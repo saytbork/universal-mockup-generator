@@ -1186,6 +1186,12 @@ function buildProductDesignLock(state: ProductStudioState): string {
     ].join(' ');
 }
 
+function resolveVisualIntentFromQualityProfile(
+    qualityProfile: ProductStudioState['qualityProfile']
+): ProductStudioState['visualIntent'] {
+    return qualityProfile === 'ecommerce-conversion' ? 'conversion' : 'campaign';
+}
+
 /**
  * FINAL PROMPT ASSEMBLY ORDER (MANDATORY):
  * 1. Scene Type
@@ -1201,6 +1207,13 @@ function buildProductDesignLock(state: ProductStudioState): string {
  */
 function assembleSingleProductPrompt(state: ProductStudioState, product: ProductAsset): string {
     const segments: string[] = [];
+    const visualIntent = String(state.visualIntent || 'conversion');
+    const controlTier = String((state as any).controlTier || 'basic');
+    const conversionSquareOptimized =
+        visualIntent === 'conversion' && String(state.aspectRatio || '') === '1:1';
+    console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
+    console.log('CONTROL_TIER_ACTIVE =', controlTier);
+    console.log('CONVERSION_SQUARE_OPTIMIZED =', conversionSquareOptimized);
     const sceneResult = mapSceneToPrompt(state, product);
 
     segments.push(sceneResult.prompt);
@@ -1231,6 +1244,13 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
 function assembleBundlePrompt(state: ProductStudioState): string {
     const segments: string[] = [];
     const primary = state.products.find(p => p.id === state.bundle.primaryProductId) ?? null;
+    const visualIntent = String(state.visualIntent || 'conversion');
+    const controlTier = String((state as any).controlTier || 'basic');
+    const conversionSquareOptimized =
+        visualIntent === 'conversion' && String(state.aspectRatio || '') === '1:1';
+    console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
+    console.log('CONTROL_TIER_ACTIVE =', controlTier);
+    console.log('CONVERSION_SQUARE_OPTIMIZED =', conversionSquareOptimized);
     const sceneResult = mapSceneToPrompt(state, primary ?? undefined);
 
     segments.push(sceneResult.prompt);
@@ -1499,6 +1519,19 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
 function normalizeProductStudioStateForPrompt(state: ProductStudioState): ProductStudioState {
     const next: ProductStudioState = { ...state };
+    // Keep effective state strict: output profile is authoritative for visual intent.
+    next.visualIntent = resolveVisualIntentFromQualityProfile(next.qualityProfile);
+    const normalizedControlTier =
+        String((next as any).controlTier || '').trim().toLowerCase() === 'pro' ? 'pro' : 'basic';
+    (next as any).controlTier = normalizedControlTier;
+    if (normalizedControlTier !== 'pro') {
+        (next as any).advancedModeEnabled = false;
+        next.proMode = false;
+    } else {
+        const advancedEnabled = Boolean((next as any).advancedModeEnabled);
+        (next as any).advancedModeEnabled = advancedEnabled;
+        next.proMode = advancedEnabled;
+    }
     // Back-compat for older persisted interaction values.
     if ((next as any).interaction === 'applying') {
         (next as any).interaction = 'applying-opening';

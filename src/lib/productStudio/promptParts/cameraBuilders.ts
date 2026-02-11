@@ -53,6 +53,7 @@ export type CameraOverride = {
 export type CameraBuildOptions = {
   override?: CameraOverride;
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'editorial';
+  compactMetadata?: boolean;
   forceLens?: string;
   forceCameraSystem?: string;
   forceAngle?: string;
@@ -84,11 +85,11 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
     const rotation = options.forceRotation?.trim();
     const base = [
       'CAMERA:',
-      ...(cameraSystem ? [`Camera system: ${cameraSystem}.`] : []),
+      ...(options.compactMetadata ? [] : (cameraSystem ? [`Camera system: ${cameraSystem}.`] : [])),
       'Camera angle: top-down flat lay.',
       `Framing distance: ${distance}.`,
-      `Lens selection: ${lens}.`,
-      ...(rotation ? [`Rotation: ${rotation}.`] : []),
+      ...(options.compactMetadata ? [] : [`Lens selection: ${lens}.`]),
+      ...(options.compactMetadata ? [] : (rotation ? [`Rotation: ${rotation}.`] : [])),
       `${composition}.`,
       'Strict overhead framing; avoid eye-level, low-angle, or hero 45-degree viewpoints.',
       options.qualityProfile === 'ecommerce-conversion'
@@ -124,11 +125,11 @@ export function buildCamera(mode: PhotoModeKey, randomizer: Randomizer, options:
 
   const base = [
     'CAMERA:',
-    ...(cameraSystem ? [`Camera system: ${cameraSystem}.`] : []),
+    ...(options.compactMetadata ? [] : (cameraSystem ? [`Camera system: ${cameraSystem}.`] : [])),
     `Camera angle: ${angle}.`,
     `Framing distance: ${distance}.`,
-    `Lens selection: ${lens}.`,
-    ...(rotation ? [`Rotation: ${rotation}.`] : []),
+    ...(options.compactMetadata ? [] : [`Lens selection: ${lens}.`]),
+    ...(options.compactMetadata ? [] : (rotation ? [`Rotation: ${rotation}.`] : [])),
     `${composition}.`,
     modeNotes[mode] ?? 'Avoid symmetrical default framing; prioritize premium commercial composition.'
   ];

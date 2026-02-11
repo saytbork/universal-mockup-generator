@@ -544,6 +544,7 @@ export type PaletteSource = 'brand' | 'warm-neutral' | 'cool-neutral' | 'complem
 export type PropDensity = 'none' | 'low' | 'medium' | 'dense';
 export type VisualIntent = 'conversion' | 'campaign';
 export type EnergyLevel = 'low' | 'medium' | 'high';
+export type ControlTier = 'basic' | 'pro';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -717,6 +718,8 @@ export type ProductStudioState = {
     // PRODUCT STUDIO UI CONTROLS (NEW)
     // ========================================================================
     interpretationNotes: Partial<Record<string, { message: string; ts: number }>>;
+    controlTier: ControlTier;
+    advancedModeEnabled: boolean;
     qualityProfile: OutputQualityProfile;
     ultraRealStrict: boolean;
     photoMode: PhotoMode;

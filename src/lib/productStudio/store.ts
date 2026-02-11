@@ -40,6 +40,7 @@ import type {
     BrandPreset,
     BrandPresetId,
     OutputQualityProfile,
+    ControlTier,
     ProductMode,
     BrandPalette,
     EnvironmentContext,
@@ -114,6 +115,12 @@ const DEFAULT_CUSTOM: CustomPhysical = {
     color: DEFAULT_COLOR,
     scale: 'medium',
     propsAutoBlocked: true,
+};
+
+const mapQualityProfileToVisualIntent = (
+    profile: OutputQualityProfile
+): ProductStudioState['visualIntent'] => {
+    return profile === 'ecommerce-conversion' ? 'conversion' : 'campaign';
 };
 
 export function getDefaultPhysical(type: ProductType): PhysicalDefinition {
@@ -651,6 +658,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
 
     // PRODUCT STUDIO UI CONTROLS (NEW)
     interpretationNotes: {},
+    controlTier: 'basic',
+    advancedModeEnabled: false,
     qualityProfile: 'ecommerce-conversion',
     ultraRealStrict: true,
     photoMode: 'Hero Landing Page',
@@ -819,6 +828,8 @@ type ProductStudioActions = {
     applyBrandPreset: (presetId: BrandPresetId) => void;
 
     // Product Studio UI Controls (NEW)
+    setControlTier: (tier: ControlTier) => void;
+    setAdvancedModeEnabled: (enabled: boolean) => void;
     setQualityProfile: (profile: OutputQualityProfile) => void;
     setUltraRealStrict: (enabled: boolean) => void;
     setPhotoMode: (mode: PhotoMode) => void;
@@ -1590,7 +1601,31 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         }),
 
     // Product Studio UI Controls (NEW)
-    setQualityProfile: (profile) => set({ qualityProfile: profile }),
+    setControlTier: (controlTier) =>
+        set((state) => {
+            if (controlTier === 'basic') {
+                return {
+                    controlTier,
+                    advancedModeEnabled: false,
+                    proMode: false,
+                };
+            }
+            return { controlTier };
+        }),
+    setAdvancedModeEnabled: (enabled) =>
+        set((state) => {
+            const nextEnabled = state.controlTier === 'pro' ? Boolean(enabled) : false;
+            return {
+                advancedModeEnabled: nextEnabled,
+                // Keep legacy flag in sync for backward compatibility.
+                proMode: nextEnabled,
+            };
+        }),
+    setQualityProfile: (profile) =>
+        set({
+            qualityProfile: profile,
+            visualIntent: mapQualityProfileToVisualIntent(profile),
+        }),
     setUltraRealStrict: (enabled) => set({ ultraRealStrict: Boolean(enabled) }),
     setPhotoMode: (mode) =>
         set((state) => {
@@ -1954,7 +1989,18 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
             return next;
         }),
-    setProMode: (enabled) => set({ proMode: enabled }),
+    setProMode: (enabled) =>
+        set((state) => {
+            const nextEnabled = Boolean(enabled);
+            if (!nextEnabled) {
+                return { proMode: false, advancedModeEnabled: false };
+            }
+            return {
+                controlTier: 'pro',
+                proMode: true,
+                advancedModeEnabled: true,
+            };
+        }),
     setViewpoint: (viewpoint) =>
         set((state) => {
             if (state.photoMode === 'Ingredient Flat Lay') {

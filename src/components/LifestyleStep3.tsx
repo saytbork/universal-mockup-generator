@@ -2283,29 +2283,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
 
-              {/* PRESET TIER — Hidden when Photo Mode is active (Phase 1) */}
-              {productStore.environmentContext != null && (
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>PRESET TIER</p>
-                  <div className="flex gap-2">
-                    {(['basic', 'pro'] as const).map(tier => (
-                      <Chip
-                        key={tier}
-                        onClick={() => {
-                          productStore.setPresetTier(tier);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={productStore.presetTier === tier}
-                      >
-                        {tier === 'basic' ? 'Basic' : 'Pro'}
-                      </Chip>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Pro unlocks advanced bundle modes and full prop density.
-                  </p>
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>CONTROL TIER</p>
+                <div className="flex gap-2">
+                  {(['basic', 'pro'] as const).map(tier => (
+                    <Chip
+                      key={tier}
+                      onClick={() => {
+                        productStore.setControlTier(tier);
+                        // Keep legacy tier in sync while migrating UI gating.
+                        productStore.setPresetTier(tier);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.controlTier === tier}
+                    >
+                      {tier === 'basic' ? 'Basic' : 'Pro'}
+                    </Chip>
+                  ))}
                 </div>
-              )}
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Basic keeps controls simplified. Pro unlocks advanced manual overrides.
+                </p>
+              </div>
 
               {/* PHYSICAL PLACEMENT — Mandatory physics decision */}
               <div className={SECTION_GROUP_CLASS}>
@@ -4022,7 +4021,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
 
                     {/* ADVANCED COMPOSITION — Pro only extension */}
-                    {productStore.presetTier === 'pro' && (
+                    {productStore.controlTier === 'pro' && (
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
                         <div className="flex flex-wrap gap-2">
@@ -4091,7 +4090,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       5. PRO ONLY — Advanced Controls
                       Hidden in Basic mode, revealed progressively in Pro
                       ═══════════════════════════════════════════════════════════ */}
-                  {productStore.presetTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
+                  {productStore.controlTier === 'pro' && productStore.photoMode !== 'Hero Landing Page' && (
                     <>
                       {/* PRO PHOTOGRAPHER MODE */}
                       <div className={SECTION_GROUP_CLASS}>
@@ -4100,9 +4099,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <p className={GROUP_LABEL_CLASS}>PRO PHOTOGRAPHER MODE</p>
                           </div>
                           <Toggle
-                            checked={productStore.proMode}
+                            checked={productStore.advancedModeEnabled}
                             onCheckedChange={(next) => {
-                              productStore.setProMode(next);
+                              productStore.setAdvancedModeEnabled(next);
                               markSectionTouched('product-setup');
                             }}
                             aria-label="Pro photographer mode"
@@ -4110,7 +4109,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div
-                          className={`overflow-hidden transition-all duration-500 ${productStore.proMode ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                          className={`overflow-hidden transition-all duration-500 ${productStore.advancedModeEnabled ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                             }`}
                           style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                         >
@@ -5931,9 +5930,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       productStore.setCameraSystem('mirrorless');
                     }
                     productStore.setCameraUiLabels({ cameraSystem: option });
-                    if (!productStore.proMode && option === 'Macro lens') {
+                    if (!productStore.advancedModeEnabled && option === 'Macro lens') {
                       productStore.setLens('100mm Macro Prime');
-                    } else if (!productStore.proMode && option === 'Telephoto compression') {
+                    } else if (!productStore.advancedModeEnabled && option === 'Telephoto compression') {
                       productStore.setLens('70-200mm Compression');
                     }
                     markSectionTouched('product-camera');

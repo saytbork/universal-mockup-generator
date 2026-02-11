@@ -604,6 +604,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const visualIntent = resolveVisualIntent(state);
   const energyLevel = resolveEnergyLevel(state);
   const isCampaignIntent = visualIntent === 'campaign';
+  const controlTier = String((state as any).controlTier || '').trim().toLowerCase() === 'pro' ? 'pro' : 'basic';
+  const isProTier = controlTier === 'pro';
+  const isBasicTier = !isProTier;
+  const advancedModeEnabled = isProTier && Boolean((state as any).advancedModeEnabled);
+  const isConversionSquareOptimized = !isCampaignIntent && String(state.aspectRatio || '').trim() === '1:1';
+  console.log('VISUAL_INTENT_ACTIVE =', visualIntent);
+  console.log('CONTROL_TIER_ACTIVE =', controlTier);
+  console.log('CONVERSION_SQUARE_OPTIMIZED =', isConversionSquareOptimized);
   const beachFoamProfile =
     state.photoMode === 'Beach Foam Splash'
       ? (isCampaignIntent ? 'BeachFoam_Campaign' : 'BeachFoam_Conversion')
@@ -1006,17 +1014,26 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const strictLightingRigLock =
     !isCampaignIntent &&
-    Boolean((state as any).proMode) &&
+    advancedModeEnabled &&
     Boolean(lightingRigOverrideText);
-  const lightingOverrideText = strictLightingRigLock
-    ? lightingRigOverrideText
-    : [
-      lightingStyleOverrideText,
-      isCampaignIntent ? '' : userLightingStyleText,
-      lightingRigOverrideText,
-    ].filter(Boolean).join(' ');
+  const lightingOverrideText = (() => {
+    if (isBasicTier) {
+      return [
+        lightingStyleOverrideText,
+        isCampaignIntent ? '' : userLightingStyleText,
+      ].filter(Boolean).join(' ');
+    }
+    return strictLightingRigLock
+      ? lightingRigOverrideText
+      : [
+        lightingStyleOverrideText,
+        isCampaignIntent ? '' : userLightingStyleText,
+        lightingRigOverrideText,
+      ].filter(Boolean).join(' ');
+  })();
 
   const finishOverrideText = (() => {
+    if (!advancedModeEnabled) return '';
     const finish = String((state as any).finish || '').trim();
     if (!finish) return '';
     return `Finish / Treatment: ${finish}. Keep this treatment consistent across the whole scene.`;
@@ -1024,7 +1041,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const proPhotographerLockText = (() => {
     if (isCampaignIntent) return '';
-    if (!Boolean((state as any).proMode)) return '';
+    if (!advancedModeEnabled) return '';
     const lens = String((state as any).lens || '').trim();
     const rig = String((state as any).lightingRig || '').trim();
     const finish = String((state as any).finish || '').trim();
@@ -1153,10 +1170,15 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const effectiveAngleLabelResolved = isCampaignIntent ? effectiveAngleLabelResolvedBase : '45° hero';
   const effectiveFramingLabel = isCampaignIntent
     ? (effectiveFramingLabelBase === 'Centered hero' ? 'Rule of thirds' : effectiveFramingLabelBase)
-    : 'Centered hero';
-  const effectiveDistanceLabel = isCampaignIntent ? effectiveDistanceLabelBase : 'Standard';
-  const effectiveLensLabel = isCampaignIntent ? campaignLens : '50mm Product Prime';
+    : (isConversionSquareOptimized ? 'Centered dominance with mild crop bias' : 'Centered hero');
+  const effectiveDistanceLabel = isCampaignIntent
+    ? effectiveDistanceLabelBase
+    : (isConversionSquareOptimized ? 'Slightly Closer' : 'Standard');
+  const effectiveLensLabel = isCampaignIntent
+    ? campaignLens
+    : (isConversionSquareOptimized ? '45mm equivalent behavior' : '50mm Product Prime');
   const effectiveRotationLabel = isCampaignIntent ? campaignRotation : '0°';
+  const environmentalSpread = isConversionSquareOptimized;
 
   const cameraControlsTraceText = [
     'Camera controls selected:',
@@ -1166,6 +1188,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     `rotation=${effectiveRotationLabel};`,
     `lens=${effectiveLensLabel};`,
     `framing=${effectiveFramingLabel}.`,
+    `environmentalSpread=${environmentalSpread}.`,
   ].join(' ');
 
   const forcedCameraAngle =
@@ -1178,7 +1201,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       : campaignAngle;
   const forcedCameraFraming =
     !isCampaignIntent
-      ? 'centered hero composition'
+      ? (isConversionSquareOptimized
+        ? 'centered dominance with mild crop bias and controlled horizontal environmental spread; avoid narrow vertical subject bias and artificial lateral emptiness'
+        : 'centered hero composition')
       : mode === 'INGREDIENT_FLAT_LAY'
       ? 'grid-ready composition'
       : effectiveMacroMode
@@ -1186,7 +1211,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       : campaignFraming;
   const forcedCameraDistance =
     !isCampaignIntent
-      ? 'standard framing'
+      ? (isConversionSquareOptimized ? 'slightly closer framing' : 'standard framing')
       : mode === 'INGREDIENT_FLAT_LAY'
       ? (effectiveUiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
       : effectiveMacroMode
@@ -1238,7 +1263,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       return [
         'VISUAL INTENT: Conversion Strict Mode.',
         'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
-        'Keep centered hero composition, 45-degree hero camera, 50mm product-prime look, and 0-degree rotation.',
+        isConversionSquareOptimized
+          ? (isBasicTier
+            ? 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness.'
+            : 'For 1:1 output, keep centered product dominance with mild crop bias and controlled horizontal environmental spread to avoid narrow vertical subject bias and artificial side emptiness; maintain 45-degree hero camera, slightly closer distance, 45mm-equivalent behavior, and 0-degree rotation.')
+          : (isBasicTier
+            ? 'Keep centered product dominance with stable hero perspective and controlled reflections.'
+            : 'Keep centered hero composition, 45-degree hero camera, 50mm product-prime look, and 0-degree rotation.'),
         'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
       ].join(' ');
     }
@@ -1313,7 +1344,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       forceDistance: forcedCameraDistance,
       forceComposition: forcedCameraFraming,
       forceRotation: forcedRotation,
-      override: { text: cameraControlsTraceText },
+      override: advancedModeEnabled ? { text: cameraControlsTraceText } : undefined,
+      compactMetadata: isBasicTier,
     }),
     proPhotographerLockText,
     finishOverrideText,
@@ -1329,9 +1361,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         mode === 'INGREDIENT_STACK' || mode === 'INGREDIENT_FLAT_LAY' ? 'ingredientStack' : 'default',
         isCampaignIntent ? 'editorial' : state.qualityProfile,
         {
-          lensLocked: isCampaignIntent ? false : Boolean(String((state as any).lens || '').trim()),
-          lightingLocked: isCampaignIntent ? false : Boolean(String((state as any).lightingRig || '').trim()),
-          finishLocked: isCampaignIntent ? false : Boolean(String((state as any).finish || '').trim()),
+          lensLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).lens || '').trim())),
+          lightingLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).lightingRig || '').trim())),
+          finishLocked: isCampaignIntent ? false : (advancedModeEnabled && Boolean(String((state as any).finish || '').trim())),
           propsLocked: isCampaignIntent ? false : !explicitSecondaryPropsText,
         }
       ),

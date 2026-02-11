@@ -43,6 +43,7 @@ export type {
     PropDensity,
     VisualIntent,
     EnergyLevel,
+    ControlTier,
     BlankSpaceSide,
     AspectRatio,
     BundleModeV2,
