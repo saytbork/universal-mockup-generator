@@ -261,6 +261,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const authenticatedEmail = checkAuth(req);
   const isAnonymousTrial = !authenticatedEmail;
+  const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
+  const isPreview = vercelEnv === 'preview';
+  const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
   let guestIpUsageKey: string | null = null;
@@ -342,18 +345,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
-    creditResult = await consumeCredit(authenticatedEmail!);
-    if (!creditResult.ok || !creditResult.bucket) {
-      await addDebugLog('generate.reject.no_credits', {
-        aspectRatio,
-        model,
-        promptHash: debugMeta?.promptHash,
-      }, authenticatedEmail);
-      res.status(402).json({ error: 'No credits remaining' });
-      return;
-    }
-    if (creditResult.bucket !== 'admin') {
-      await addActivity(authenticatedEmail!, 'image', { delta: -1, bucket: creditResult.bucket });
+    const creditMode = isPreview ? 'preview' : (unlimitedEnv ? 'unlimited-env' : (vercelEnv || 'standard'));
+    console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
+    if (isPreview || unlimitedEnv) {
+      console.log('[CREDITS] Skipped decrement in preview/unlimited mode');
+    } else {
+      creditResult = await consumeCredit(authenticatedEmail!);
+      if (!creditResult.ok || !creditResult.bucket) {
+        await addDebugLog('generate.reject.no_credits', {
+          aspectRatio,
+          model,
+          promptHash: debugMeta?.promptHash,
+        }, authenticatedEmail);
+        res.status(402).json({ error: 'No credits remaining' });
+        return;
+      }
+      if (creditResult.bucket !== 'admin') {
+        await addActivity(authenticatedEmail!, 'image', { delta: -1, bucket: creditResult.bucket });
+      }
     }
   }
 
