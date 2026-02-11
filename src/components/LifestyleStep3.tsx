@@ -20,6 +20,7 @@ import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/pr
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productStudio/placementResolver';
+import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceResolver';
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
@@ -1246,6 +1247,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     String(productStore.photoMode || ''),
     productStore.placement || 'surface'
   );
+  const physicsResolution = resolvePhysicsCoherence({
+    ...(productStore as ProductStudioState),
+    placement: placementResolution.resolvedPlacement,
+  });
+  const cameraAngleLabelFromState = (angle: ProductStudioState['angle']): string => {
+    if (angle === 'detail') return 'Detail close-up';
+    if (angle === 'top') return 'Top-down flat lay';
+    if (angle === 'front') return 'Eye level product';
+    return '45° hero';
+  };
 
   useEffect(() => {
     if (!isProductMode) return;
@@ -1263,6 +1274,42 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore,
     productStore.placement,
     placementPhotoType,
+  ]);
+
+  useEffect(() => {
+    if (!isProductMode) return;
+    if (!physicsResolution.corrected) return;
+
+    let didUpdate = false;
+
+    if (
+      physicsResolution.correctedPlacement &&
+      physicsResolution.correctedPlacement !== productStore.placement
+    ) {
+      productStore.setPlacement(physicsResolution.correctedPlacement);
+      didUpdate = true;
+    }
+
+    if (
+      physicsResolution.correctedCameraAngle &&
+      physicsResolution.correctedCameraAngle !== productStore.angle
+    ) {
+      productStore.setAngle(physicsResolution.correctedCameraAngle);
+      productStore.setCameraUiLabels({ angle: cameraAngleLabelFromState(physicsResolution.correctedCameraAngle) });
+      didUpdate = true;
+    }
+
+    if (!didUpdate) return;
+
+    setPlacementCorrectionMessage('Camera angle auto-adjusted for physical coherence.');
+  }, [
+    isProductMode,
+    physicsResolution.corrected,
+    physicsResolution.correctedPlacement,
+    physicsResolution.correctedCameraAngle,
+    productStore,
+    productStore.placement,
+    productStore.angle,
   ]);
 
   useEffect(() => {

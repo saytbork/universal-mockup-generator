@@ -25,6 +25,7 @@ import { buildRandomizationRules, createRandomizer } from './promptParts/randomi
 import { buildQualityEnforcers } from './promptParts/qualityEnforcers';
 import { buildUltraRealStrictBlock } from './promptParts/ultraRealStrict';
 import { resolvePlacement } from './placementResolver';
+import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -789,14 +790,28 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     supportsCustomIngredientsMode && customIngredientsText
       ? [state.props, customIngredientsText].filter(Boolean).join(' | ')
       : state.props;
-  const placementResolution = resolvePlacement(
-    environmentModeActive ? 'environment' : 'photo-studio',
+  const placementPhotoType = environmentModeActive ? 'environment' : 'photo-studio';
+  const initialPlacementResolution = resolvePlacement(
+    placementPhotoType,
     String(state.photoMode || ''),
     state.placement || 'surface'
   );
-  if (placementResolution.corrected) {
-    console.log('[PLACEMENT] AUTO_CORRECTED =', `${placementResolution.requestedPlacement} -> ${placementResolution.resolvedPlacement}`);
+  if (initialPlacementResolution.corrected) {
+    console.log('[PLACEMENT] AUTO_CORRECTED =', `${initialPlacementResolution.requestedPlacement} -> ${initialPlacementResolution.resolvedPlacement}`);
   }
+  const physicsResolution = resolvePhysicsCoherence({
+    ...state,
+    placement: initialPlacementResolution.resolvedPlacement,
+  });
+  if (physicsResolution.corrected) {
+    console.log('[PHYSICS] AUTO_CORRECTED', physicsResolution.reason);
+  }
+  const resolvedPlacementForPrompt = physicsResolution.correctedPlacement || initialPlacementResolution.resolvedPlacement;
+  const placementResolution = resolvePlacement(
+    placementPhotoType,
+    String(state.photoMode || ''),
+    resolvedPlacementForPrompt
+  );
 
   const isWaterStabilityMode =
     state.photoMode === 'Beach Foam Splash' || state.photoMode === 'Pool Water';
@@ -1091,7 +1106,19 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     return map[viewpoint] || '';
   })();
 
-  const effectiveAngleLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Top-down flat lay' : uiAngleLabel;
+  const correctedAngleState = physicsResolution.correctedCameraAngle;
+  const effectiveAngleState = correctedAngleState || state.angle;
+  const correctedUiAngleLabel = (() => {
+    if (!correctedAngleState) return uiAngleLabel;
+    const byState: Record<typeof correctedAngleState, string> = {
+      front: 'Eye level product',
+      '45': '45° hero',
+      top: 'Top-down flat lay',
+      detail: 'Detail close-up',
+    };
+    return byState[correctedAngleState];
+  })();
+  const effectiveAngleLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Top-down flat lay' : correctedUiAngleLabel;
   const effectiveMacroMode = !isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label';
   const bundleMacroDistanceGuardActive = Boolean(state.bundle?.enabled) && uiDistanceLabel === 'Macro';
   const effectiveUiDistanceLabel = bundleMacroDistanceGuardActive ? 'Standard' : uiDistanceLabel;
@@ -1166,7 +1193,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const environmentalSpread = isConversionSquareOptimized;
 
   const forcedCameraAngle =
-    !isCampaignIntent
+    correctedAngleState
+      ? mapAngleToPrompt(effectiveAngleState, correctedUiAngleLabel)
+      : !isCampaignIntent
       ? '45-degree hero angle'
       : mode === 'INGREDIENT_FLAT_LAY'
       ? 'top-down flat lay'
@@ -1284,6 +1313,28 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     }
     return 'Energy Level: Medium. Visible splash arcs, stronger contrast shaping, dynamic composition.';
   })();
+  const gravitationalBlock = `
+GRAVITATIONAL VECTOR CONSISTENCY:
+All objects must obey real-world gravity unless placement explicitly defines suspension or buoyancy.
+Contact shadows must align with gravitational direction.
+No contradictory shadow direction allowed.
+`;
+  const lightCoherenceBlock = `
+LIGHT SOURCE COHERENCE:
+Lighting direction must align with camera angle and placement.
+No backlight contradicting frontal camera dominance.
+No impossible highlight orientation.
+Specular reflections must follow real physical light source direction.
+`;
+  const underwaterRefractionBlock = String(state.photoMode || '').toLowerCase().includes('underwater')
+    ? `
+UNDERWATER OPTICAL COHERENCE:
+Refraction distortion must follow camera axis.
+Water caustics must respond to depth and surface angle.
+No flat overlay water effects.
+No studio-style suspension shadows underwater.
+`
+    : '';
 
   const parts = [
     buildBaseContext({
@@ -1297,6 +1348,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     photoModeEnvironmentAdaptationText,
     scene,
     placementResolution.promptFragment,
+    physicsResolution.promptFragment,
+    gravitationalBlock,
     viewpointDirectiveText,
     environmentModeActive ? '' : adaptedPhotoModeModifiers,
     mode === 'INGREDIENT_STACK' ||
@@ -1305,11 +1358,6 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       !explicitSecondaryPropsText
       ? ''
       : buildSecondaryProps(mode, randomizer, explicitSecondaryPropsText),
-    buildLighting(mode, randomizer, {
-      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
-      ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
-      strictRigLock: strictLightingRigLock,
-    }),
     buildCamera(mode, randomizer, {
       qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
       forceLens: forcedLens || undefined,
@@ -1326,6 +1374,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       override: undefined,
       compactMetadata: isBasicTier && !isCampaignIntent,
     }),
+    buildLighting(mode, randomizer, {
+      qualityProfile: isCampaignIntent ? 'editorial' : state.qualityProfile,
+      ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
+      strictRigLock: strictLightingRigLock,
+    }),
+    lightCoherenceBlock,
+    underwaterRefractionBlock,
     proPhotographerLockText,
     finishOverrideText,
     creativityOverrideText,
@@ -1349,8 +1404,16 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     isCampaignIntent ? '' : buildQualityEnforcers(state.qualityProfile),
   ].filter(Boolean);
 
+  const assembledPrompt = normalizePromptText(parts.join(' '));
+  const finalPrompt = assembledPrompt
+    .replace(/(Physics coherence adjustment applied\.)+/g, 'Physics coherence adjustment applied.')
+    .replace(
+      /(Clinical softbox lighting with clean reflections and neutral color\.\s*){2,}/g,
+      'Clinical softbox lighting with clean reflections and neutral color.'
+    );
+
   return {
-    prompt: normalizePromptText(parts.join(' ')),
+    prompt: finalPrompt,
     mode,
     splashMode,
     randomSeed: randomizer.seed,
