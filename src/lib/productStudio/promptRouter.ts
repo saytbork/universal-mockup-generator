@@ -4,31 +4,12 @@ import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/i
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
-function readViteFlag(): string | undefined {
-  try {
-    const value = (import.meta as ImportMeta & { env?: Record<string, unknown> }).env?.VITE_USE_STUDIO_V2;
-    return typeof value === 'string' ? value : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function readNodeFlag(): string | undefined {
-  if (typeof process === 'undefined' || !process.env) return undefined;
-  const value = process.env.VITE_USE_STUDIO_V2;
-  return typeof value === 'string' ? value : undefined;
-}
-
 function isStudioV2Enabled(): boolean {
-  // Feature flag is intentionally strict for safe rollout.
-  // Frontend (Vite): VITE_USE_STUDIO_V2=true
-  // Node/tests:      VITE_USE_STUDIO_V2=true
-  const viteFlag = readViteFlag();
-  const nodeFlag = readNodeFlag();
-  const source = viteFlag !== undefined ? 'vite' : (nodeFlag !== undefined ? 'node' : 'default');
-  const flagValue = viteFlag ?? nodeFlag ?? 'false';
-  const enabled = normalize(flagValue) === 'true';
-  console.log(`[STUDIO ROUTER] flag v2=${flagValue} source=${source} enabled=${enabled}`);
+  const flag = import.meta.env.VITE_USE_STUDIO_V2;
+  const enabled = flag === 'true';
+  console.log(
+    `[STUDIO ROUTER] flag v2=${flag ?? 'undefined'} source=vite enabled=${enabled}`
+  );
   return enabled;
 }
 
