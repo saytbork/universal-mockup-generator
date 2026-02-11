@@ -769,7 +769,13 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
             ? 'Pouring'
             : 'Static';
 
-  const photoModeResult = buildPhotoModePrompt(state.photoMode as PhotoMode, {
+  const isBundleMacroGuardActive = Boolean(state.bundle?.enabled);
+  const effectivePhotoModeForPrompt: PhotoMode =
+    isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label'
+      ? ('Brand Campaign' as PhotoMode)
+      : (state.photoMode as PhotoMode);
+
+  const photoModeResult = buildPhotoModePrompt(effectivePhotoModeForPrompt, {
     suggestedProps: effectiveSuggestedProps,
     ingredientLayout: state.ingredientLayout,
     dynamicSettings,
@@ -1000,7 +1006,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const effectiveAngleLabel = mode === 'INGREDIENT_FLAT_LAY' ? 'Top-down flat lay' : uiAngleLabel;
-  const effectiveMacroMode = state.photoMode === 'Macro Dew Label';
+  const effectiveMacroMode = !isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label';
+  const bundleMacroDistanceGuardActive = Boolean(state.bundle?.enabled) && uiDistanceLabel === 'Macro';
+  const effectiveUiDistanceLabel = bundleMacroDistanceGuardActive ? 'Standard' : uiDistanceLabel;
   const effectiveAngleLabelResolved = effectiveMacroMode ? 'Detail close-up' : effectiveAngleLabel;
   const effectiveFramingLabel = mode === 'INGREDIENT_FLAT_LAY'
     ? 'Grid-ready'
@@ -1008,10 +1016,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ? 'Full-bleed macro crop'
       : uiFramingLabel;
   const effectiveDistanceLabel = mode === 'INGREDIENT_FLAT_LAY'
-    ? (uiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
+    ? (effectiveUiDistanceLabel === 'Macro' ? 'Macro' : 'Standard')
     : effectiveMacroMode
       ? 'Macro'
-      : uiDistanceLabel;
+      : effectiveUiDistanceLabel;
 
   const cameraControlsTraceText = [
     'Camera controls selected:',
@@ -1036,14 +1044,16 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       : mapFramingToPrompt(state.framing, uiFramingLabel);
   const forcedCameraDistance =
     mode === 'INGREDIENT_FLAT_LAY'
-      ? (uiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
-      : state.photoMode === 'Macro Dew Label'
+      ? (effectiveUiDistanceLabel === 'Macro' ? 'macro close-up' : 'standard framing')
+      : effectiveMacroMode
         ? 'macro close-up'
-      : mapDistanceToPrompt(state.distance, uiDistanceLabel);
+      : (bundleMacroDistanceGuardActive
+        ? 'standard framing'
+        : mapDistanceToPrompt(state.distance, effectiveUiDistanceLabel));
 
   const prismRefractionText = (() => {
     const definitionType = String(state.definition?.type || '').toLowerCase();
-    const photoMode = String(state.photoMode || '');
+    const photoMode = String(effectivePhotoModeForPrompt || '');
     const likelyTranslucentContainer =
       definitionType === 'drops' || definitionType === 'skincare';
     const lightSensitiveMode =
