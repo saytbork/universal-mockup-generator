@@ -1436,8 +1436,12 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     } else if (String(state.props || '').trim()) {
         core.push(`PROPS: ${String(state.props).trim()}`);
     }
-    if (state.controlTier) core.push(`ADVANCED_CONTROLS: ${state.controlTier}`);
-    if (state.controlTier === 'pro') {
+    const advancedControlsOn =
+        String((state as any).controlTier || '').trim().toLowerCase() === 'pro' ||
+        Boolean((state as any).advancedModeEnabled) ||
+        Boolean((state as any).proMode);
+    core.push(`ADVANCED_CONTROLS: ${advancedControlsOn ? 'on' : 'off'}`);
+    if (advancedControlsOn) {
         if (String(state.lens || '').trim()) core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
         if (String(state.lightingRig || '').trim()) core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
