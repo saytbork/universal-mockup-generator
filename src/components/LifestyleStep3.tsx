@@ -2192,6 +2192,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   useEffect(() => {
     if (values.sceneIntent !== 'ecommerce') return;
 
+    const creationModeRaw = String(values.creationMode || '').trim().toLowerCase();
+    const forceLifestyleMode =
+      creationModeRaw === 'aesthetic builder' ||
+      creationModeRaw === 'aesthetic' ||
+      values.noPerson === false;
+
+    if (forceLifestyleMode) {
+      console.log('[PRODUCT MODE VALIDATION] Lifestyle mode active, skipping UGC clearing');
+      return;
+    }
+
     console.log('[PRODUCT MODE VALIDATION] Clearing UGC state');
 
     // Auto-clear UGC Real Mode
@@ -2207,6 +2218,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     }
   }, [
     values.sceneIntent,
+    values.creationMode,
     values.ugcRealMode,
     values.noPerson,
     values.creationIntent,
@@ -2228,11 +2240,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [values.formulationStoryEnabled, values.ugcRealMode, updateValue]);
 
   useEffect(() => {
+    const creationModeRaw = String(values.creationMode || '').trim().toLowerCase();
+    const forceLifestyleMode =
+      creationModeRaw === 'aesthetic builder' ||
+      creationModeRaw === 'aesthetic' ||
+      values.noPerson === false;
+    if (forceLifestyleMode) return;
+
     const shouldDisablePerson = values.sceneIntent === 'ecommerce';
     if (values.noPerson !== shouldDisablePerson) {
       updateValue('noPerson', shouldDisablePerson);
     }
-  }, [values.sceneIntent, values.noPerson, updateValue]);
+  }, [values.sceneIntent, values.creationMode, values.noPerson, updateValue]);
 
   useEffect(() => {
     if (!values.formulationStoryEnabled) return;

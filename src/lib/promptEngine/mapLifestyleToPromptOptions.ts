@@ -747,7 +747,17 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
     }
 
-    if (sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
+    const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
+    const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
+    const personIncludedSignal =
+        (sceneState as any).personIncluded === true ||
+        sceneState.noPerson === false;
+    const forceLifestyleEngine =
+        creationModeRaw === 'aesthetic' ||
+        contentStyleRaw === 'ugc' ||
+        personIncludedSignal === true;
+
+    if (!forceLifestyleEngine && sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
         throw new Error('Invalid state: ugcRealMode + ecommerce sceneIntent');
     }
@@ -759,7 +769,7 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent (creationMode)');
         throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent (creationMode)');
     }
-    if (sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
+    if (!forceLifestyleEngine && sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
     }
@@ -793,7 +803,11 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    if (sceneState.sceneIntent === 'ecommerce') {
+    if (forceLifestyleEngine) {
+        console.log('[ROUTER] Lifestyle mode detected → forcing lifestyle engine');
+        console.log('[ENGINE ACTIVE]', 'lifestyle');
+    } else if (sceneState.sceneIntent === 'ecommerce') {
+        console.log('[ENGINE ACTIVE]', 'studio');
         console.log('[PRODUCT MODE ACTIVE]');
         return mapProductModeToPromptOptions(sceneState, existingOptions);
     }
@@ -801,6 +815,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // PRIORITY 1: PRODUCT MODE EXIT
     // ========================================================================
+    console.log('[ENGINE ACTIVE]', 'lifestyle');
     console.log('[LIFESTYLE MODE ACTIVE]');
 
     // Initialize mapped options
