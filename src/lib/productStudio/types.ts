@@ -614,6 +614,18 @@ export type BrandPreset = {
 
 
 export type ProductPlacement = 'surface' | 'held' | 'supported' | 'air' | 'floating';
+export type CustomIngredientCutStyle = 'whole' | 'sliced' | 'halved' | 'crushed' | 'powdered' | 'extract' | 'auto';
+export type CustomIngredientFreshness = 'dry' | 'fresh' | 'wet' | 'condensed' | 'auto';
+export type CustomIngredientDensity = 'minimal' | 'balanced' | 'abundant' | 'auto';
+export type CustomIngredientPlacement = 'base' | 'surround' | 'background' | 'foreground' | 'auto';
+
+export type CustomIngredient = {
+    name: string;
+    cutStyle?: CustomIngredientCutStyle;
+    freshness?: CustomIngredientFreshness;
+    density?: CustomIngredientDensity;
+    placement?: CustomIngredientPlacement;
+};
 
 export type ProductStudioState = {
     products: ProductAsset[];
@@ -746,6 +758,8 @@ export type ProductStudioState = {
     gradientMid: string;
     gradientAngle: number;
     props: string;
+    customIngredients?: CustomIngredient[];
+    specialEffects?: string[];
     /** Ingredient Stack only: controls whether ingredients float or rest on the base. */
     ingredientLayout: IngredientStackLayout;
     interaction:

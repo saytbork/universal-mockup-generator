@@ -32,6 +32,9 @@ import { buildSplashPhysicsModel, isSplashPhysicsContext } from './promptParts/b
 import { assemblePrompt } from './promptParts/promptAssembler';
 import { resolvePlacement } from './placementResolver';
 import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
+import { resolveAtmosphere, type CanonicalScene, type CanonicalSceneIngredient } from '../prompt/atmosphereResolver';
+import { validateAtmosphere } from '../prompt/atmosphereValidator';
+import { buildAtmosphereDebugTree } from '../prompt/atmosphereDebugTree';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -39,6 +42,20 @@ const titleCaseFromKebab = (value: string): string =>
     .map(part => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
     .join(' ')
     .trim();
+
+const parseCustomIngredientsText = (raw: string): CanonicalSceneIngredient[] => {
+  return String(raw || '')
+    .split(/[\n,|;]/g)
+    .map(token => token.trim())
+    .filter(Boolean)
+    .map(name => ({
+      name,
+      cutStyle: 'auto',
+      freshness: 'auto',
+      density: 'auto',
+      placement: 'auto',
+    }));
+};
 
 function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType<typeof createRandomizer>): string {
   if (state.blankSpaceEnabled) return '';
@@ -777,6 +794,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const customIngredientsText = sanitizeDynamicSettingText(
     String(state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode]?.customIngredients || '')
   );
+  const customIngredientsStructured =
+    Array.isArray((state as any).customIngredients) && (state as any).customIngredients.length > 0
+      ? ((state as any).customIngredients as CanonicalSceneIngredient[])
+      : parseCustomIngredientsText(customIngredientsText);
   const supportsCustomIngredientsMode =
     state.photoMode === 'Ingredient Stack' ||
     state.photoMode === 'Ingredient Flat Lay' ||
@@ -1360,6 +1381,60 @@ No studio-style suspension shadows underwater.
     isSplashPhysicsContext(String(state.photoMode || ''), authorities)
       ? buildSplashPhysicsModel(authorities)
       : '';
+  const resolvedSpecialEffects = (() => {
+    const provided = Array.isArray((state as any).specialEffects)
+      ? ((state as any).specialEffects as string[]).filter(effect => String(effect || '').trim().length > 0)
+      : [];
+    if (provided.length > 0) return provided;
+    const modeKey = String(state.photoMode || '').trim().toLowerCase();
+    if (modeKey === 'splash shot') return ['Splash Shot'];
+    if (modeKey === 'condensation droplets') return ['Condensation Droplets'];
+    if (modeKey === 'underwater split') return ['Underwater Split'];
+    if (modeKey === 'pool water') return ['Pool Water'];
+    if (modeKey.includes('foam')) return ['Foam'];
+    return [];
+  })();
+
+  const canonicalScene: CanonicalScene = {
+    outputProfile: state.qualityProfile,
+    photoType: environmentModeActive ? 'Environment' : 'Photo Studio',
+    composition: forcedCameraFraming,
+    photoMode: String(state.photoMode || ''),
+    productStateMotion: String(authorities.motion || 'static'),
+    productStructure: String(state.definition?.physical?.kind || 'standard'),
+    environmentSettings: environmentModeActive
+      ? `${String(state.environmentContext?.macro || '').trim()} ${String(state.environmentContext?.micro || '').trim()}`.trim()
+      : 'studio',
+    physicalPlacement: placementResolution.resolvedPlacement,
+    physicalProperties: `${state.physicalScaleLabel || 'medium-tabletop'} / packaging ${state.packagingMode || 'without-box'}`,
+    defaultIngredients: String(effectiveSuggestedProps || '')
+      .split('|')
+      .map(part => part.trim())
+      .filter(Boolean),
+    customIngredients: customIngredientsStructured,
+    visualWorld: mode,
+    lighting: lightingOverrideText || lightingStyleOverrideText,
+    specialEffects: resolvedSpecialEffects,
+    productInteraction: String(state.interaction || 'none'),
+    viewpointVantage: viewpointDirectiveText || mapAngleToPrompt(effectiveAngleState, effectiveAngleLabelResolved),
+    cameraFraming: `${forcedCameraAngle}; ${forcedCameraDistance}; ${forcedCameraFraming}`,
+    constraintSuffix: 'Preserve existing constraint engine, locked compositions, label lock, product lock, square integrity, and physical properties.',
+  };
+  const atmosphere = resolveAtmosphere(canonicalScene);
+  const validation = validateAtmosphere(canonicalScene, atmosphere);
+  const criticalValidationErrors = validation.errors.filter(error => error.severity === 'critical');
+  const warningValidationErrors = validation.errors.filter(error => error.severity === 'warning');
+  if (criticalValidationErrors.length > 0) {
+    console.error('Atmosphere validation failed (critical)', criticalValidationErrors);
+    throw new Error(criticalValidationErrors.map(error => error.code).join(','));
+  }
+  if (warningValidationErrors.length > 0) {
+    console.warn('Atmosphere validation warnings', warningValidationErrors);
+  }
+  if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_STUDIO_DEBUG === 'true') {
+    const debugTree = buildAtmosphereDebugTree(canonicalScene, atmosphere);
+    console.log('STUDIO_DEBUG_TREE', JSON.stringify(debugTree, null, 2));
+  }
 
   const parts = [
     buildBaseContext({
@@ -1419,6 +1494,7 @@ No studio-style suspension shadows underwater.
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile, authorities),
     prismRefractionText,
     isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile, authorities),
+    atmosphere,
     macroFullBleedLockText,
     strictStudioBranding
       ? ''
