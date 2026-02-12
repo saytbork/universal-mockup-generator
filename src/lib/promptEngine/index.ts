@@ -555,10 +555,14 @@ export class PromptEngine {
                 // Optional Interaction
                 interaction: (options as any).studioInteraction
             });
+            const layerPromptText = String((options as any).studioLayerPromptText || '').trim();
+            const layeredPrompt = layerPromptText
+                ? `${studioPrompt}\n\nLAYERED_PROMPT_MODEL:\n${layerPromptText}`
+                : studioPrompt;
 
             // Studio Product uses Studio Presets as the single prompt authority (positive-only whitelist base).
             // Do not prepend Product Studio deterministic foundation here.
-            const finalStudioPrompt = `GENERATION INSTRUCTIONS:\n${studioPrompt}`;
+            const finalStudioPrompt = `GENERATION INSTRUCTIONS:\n${layeredPrompt}`;
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);

@@ -10,8 +10,16 @@
 import type { ProductStudioStep3Values } from '@/lib/productStudio/state';
 import type { PromptOptions } from './types';
 
+export interface PromptLayer {
+    id: string;
+    category: 'world' | 'composition' | 'material' | 'motion' | 'environment' | 'lighting' | 'interaction' | 'modifier';
+    content: string;
+    priority: number;
+}
+
 export type SceneState = ProductStudioStep3Values & {
     visualStyle?: string;
+    visualIntent?: string;
     productStateMotion?: string;
     specialEffects?: string[] | string;
     lighting?: string;
@@ -158,12 +166,7 @@ export function mapProductModeToPromptOptions(
     sceneState: SceneState
 ): PromptOptions;
 export function mapProductModeToPromptOptions(
-    sceneState: SceneState,
-    existingOptions: Partial<PromptOptions>
-): PromptOptions;
-export function mapProductModeToPromptOptions(
-    sceneState: SceneState,
-    existingOptions: Partial<PromptOptions> = {}
+    sceneState: SceneState
 ): PromptOptions {
     console.log('[MAP PRODUCT MODE INPUT]', sceneState);
     console.log('[PRODUCT STEP3 INPUT]', {
@@ -202,14 +205,12 @@ export function mapProductModeToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Selfie mode cannot run in product mode');
         throw new Error('Invalid state: selfie mode in product mode');
     }
-    if (((sceneState.productAssets?.length || existingOptions.productAssets?.length || 0) > 1) && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+    if ((sceneState.productAssets?.length || 0) > 1 && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
         console.error('[INVALID STATE BLOCKED] Selfie cannot be used with multi-product');
         throw new Error('Invalid state: selfie + multi-product');
     }
 
-    const mapped: Partial<PromptOptions> = {
-        ...existingOptions
-    };
+    const mapped: Partial<PromptOptions> = {};
 
     // Prevent any UGC contracts from leaking into Product prompts.
     // masterPrompt.ts appends UGC_CONTRACTS[ugcStyle] unconditionally.
@@ -270,36 +271,88 @@ export function mapProductModeToPromptOptions(
         }
     }
 
-    const resolvedWorld =
-        sceneState.visualStyle !== undefined
-            ? sceneState.visualStyle
-            : 'controlled studio environment';
-    const resolvedMotion =
-        sceneState.productStateMotion !== undefined
-            ? sceneState.productStateMotion
-            : 'static';
-    const resolvedModifiers =
-        sceneState.specialEffects !== undefined
-            ? (Array.isArray(sceneState.specialEffects)
-                ? sceneState.specialEffects.filter(Boolean).join(', ')
-                : String(sceneState.specialEffects))
-            : 'none';
-    const resolvedLightingModel =
-        sceneState.lighting !== undefined
-            ? sceneState.lighting
-            : 'conversion softbox wrap';
-    const resolvedComposition =
-        sceneState.viewpoint !== undefined
-            ? sceneState.viewpoint
-            : 'hero';
+    const layers: PromptLayer[] = [];
+    const addLayer = (
+        id: string,
+        category: PromptLayer['category'],
+        content: string | undefined,
+        priority: number
+    ) => {
+        const clean = String(content || '').trim();
+        if (!clean) return;
+        layers.push({ id, category, content: clean, priority });
+    };
 
+    const resolvedWorld = sceneState.visualStyle ?? 'controlled studio environment';
+    const resolvedMotion = sceneState.productStateMotion ?? 'static';
+    const resolvedModifiers = sceneState.specialEffects ?? 'none';
+    const resolvedLightingModel = sceneState.lighting ?? sceneState.lightingStyle ?? 'conversion softbox wrap';
+    const resolvedComposition = sceneState.viewpoint ?? 'hero';
+
+    addLayer('visual-intent-world', 'world', sceneState.visualIntent ?? sceneState.visualStyle ?? resolvedWorld, 10);
+    addLayer('product-type-material', 'material', sceneState.productType ? `Product material profile: ${sceneState.productType}` : undefined, 20);
+    if (String(sceneState.productCreativeTheme || '').toLowerCase().includes('ingredient')) {
+        addLayer('ingredient-system-composition', 'composition', `Ingredient composition mode: ${sceneState.productCreativeTheme}`, 30);
+        addLayer('ingredient-system-modifier', 'modifier', `Ingredient modifiers: ${(sceneState.productPropsSelected || []).join(', ') || 'balanced ingredient accents'}`, 31);
+    }
+    addLayer('state-motion', 'motion', `Product state motion: ${resolvedMotion}`, 40);
+    addLayer(
+        'environment-context',
+        'environment',
+        (sceneState.customEnvironment || '').trim() || (sceneState.environment || '').trim() || undefined,
+        50
+    );
+    addLayer('lighting-system', 'lighting', `Lighting model: ${resolvedLightingModel}`, 60);
+    addLayer(
+        'special-effects',
+        'modifier',
+        Array.isArray(resolvedModifiers) ? resolvedModifiers.join(', ') : String(resolvedModifiers),
+        70
+    );
+    addLayer(
+        'camera-interaction',
+        'interaction',
+        [
+            sceneState.productCameraSystem ? `Camera system: ${sceneState.productCameraSystem}` : '',
+            sceneState.productCameraAngle ? `Angle: ${sceneState.productCameraAngle}` : '',
+            sceneState.productCameraDistance ? `Distance: ${sceneState.productCameraDistance}` : '',
+            sceneState.productFramingGuide ? `Framing: ${sceneState.productFramingGuide}` : '',
+        ].filter(Boolean).join('; ') || undefined,
+        80
+    );
+    addLayer('viewpoint-composition', 'composition', `Composition model: ${resolvedComposition}`, 90);
+
+    const sortedLayers = [...layers].sort((a, b) => (a.priority - b.priority) || a.id.localeCompare(b.id));
+    const byCategoryOrder: PromptLayer['category'][] = [
+        'world',
+        'material',
+        'composition',
+        'motion',
+        'environment',
+        'lighting',
+        'interaction',
+        'modifier',
+    ];
+    const mergedByCategory = byCategoryOrder
+        .map((category) => {
+            const items = sortedLayers.filter((layer) => layer.category === category);
+            if (items.length === 0) return '';
+            const text = items.map((item) => item.content).join(' | ');
+            return `${category.toUpperCase()}: ${text}.`;
+        })
+        .filter(Boolean)
+        .join(' ');
+
+    (mapped as any).studioPromptLayers = sortedLayers;
+    (mapped as any).studioLayerPromptText = mergedByCategory;
     (mapped as any).studioWorld = resolvedWorld;
     (mapped as any).studioMotion = resolvedMotion;
-    (mapped as any).studioModifiers = resolvedModifiers;
     (mapped as any).studioLightingModel = resolvedLightingModel;
     (mapped as any).studioCompositionModel = resolvedComposition;
+    (mapped as any).studioModifiers = Array.isArray(resolvedModifiers) ? resolvedModifiers.join(', ') : String(resolvedModifiers);
     (mapped as any).studioLighting = resolvedLightingModel;
     (mapped as any).studioComposition = resolvedComposition;
+    console.log('[LAYER STACK]', sortedLayers);
 
     const sidePlacement = normalizeSidePlacement(sceneState.sidePlacement);
     mapped.sidePlacement = sidePlacement;
