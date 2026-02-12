@@ -55,11 +55,102 @@ import { FinalizeBuilder } from './builders/finalize';
 	import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
-import { PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
+import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 import { buildDeterministicFoundation } from './deterministicSystemPrompt';
+
+const STRICT_STATE_MODE = true;
+const ENABLE_PROTECTION_LIGHT = import.meta.env.VITE_PROMPT_PROTECTION_LIGHT === 'true';
+const ENABLE_STRICT_PACKAGING_LOCK = import.meta.env.VITE_PROMPT_STRICT_PACKAGING_LOCK === 'true';
+
+function normalizeParts(parts: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of parts) {
+        const line = String(raw || '').trim();
+        if (!line) continue;
+        if (seen.has(line)) continue;
+        seen.add(line);
+        out.push(line);
+    }
+    return out;
+}
+
+function buildProtectionLight(options: PromptOptions): string[] {
+    if (!ENABLE_PROTECTION_LIGHT) return [];
+    const hasProductContext =
+        Boolean((options as any).studioPromptParts?.length) ||
+        options.creationMode === 'studio' ||
+        options.contentStyle === 'product';
+    if (!hasProductContext) return [];
+
+    return [
+        'Basic physical coherence: realistic gravity, coherent contacts, and plausible material response.',
+        'Packaging assembled and physically intact.',
+        'Label remains legible without extreme distortion.',
+    ];
+}
+
+function buildStrictPackagingLock(options: PromptOptions): string[] {
+    if (!ENABLE_STRICT_PACKAGING_LOCK) return [];
+    const hasProductContext =
+        Boolean((options as any).studioPromptParts?.length) ||
+        options.creationMode === 'studio' ||
+        options.contentStyle === 'product';
+    if (!hasProductContext) return [];
+    return ['Strict packaging lock: preserve exact product geometry and design fidelity.'];
+}
+
+function assembleStrictPrompt(coreParts: string[], options: PromptOptions): string {
+    const normalizedCore = normalizeParts(coreParts);
+    const protection = buildProtectionLight(options);
+    const strictLock = buildStrictPackagingLock(options);
+    const assembled = normalizeParts([...normalizedCore, ...protection, ...strictLock]);
+    return assembled.join(' ');
+}
+
+function buildLegacyPromptFromOptions(options: PromptOptions): string {
+    return buildStudioPrompt({
+        photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+        suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
+        ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
+        paletteColor1: (options as any).paletteColor1,
+        paletteColor2: (options as any).paletteColor2,
+        paletteColor3: (options as any).paletteColor3,
+        backgroundColor: (options as any).heroBackground || options.bgColor,
+        gradientStart: options.bgGradient?.startColor,
+        gradientEnd: options.bgGradient?.endColor,
+        surface: (options as any).studioSurface,
+        surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
+        composition: (options as any).studioComposition,
+        scale: (options as any).studioScale,
+        spacing: (options as any).studioSpacing,
+        negativeSpace: (options as any).studioNegativeSpace,
+        lens: (options as any).studioLens,
+        angle: (options as any).studioAngle,
+        distance: (options as any).studioDistance,
+        framing: (options as any).studioFraming,
+        lighting: (options as any).studioLighting,
+        finish: (options as any).studioFinish,
+        shadow: (options as any).studioShadow || (options as any).heroShadow,
+        interaction: (options as any).studioInteraction,
+    });
+}
+
+function assembleLegacyPrompt(studioPromptParts: string[], options: PromptOptions): string {
+    const legacyPrompt = buildLegacyPromptFromOptions(options);
+    if (studioPromptParts.length === 0) return legacyPrompt;
+    return [legacyPrompt, ...studioPromptParts].join(' ');
+}
+
+function buildFinalPrompt(studioPromptParts: string[], options: PromptOptions): string {
+    if (STRICT_STATE_MODE) {
+        return assembleStrictPrompt(studioPromptParts, options);
+    }
+    return assembleLegacyPrompt(studioPromptParts, options);
+}
 
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
@@ -502,10 +593,15 @@ export class PromptEngine {
                     .filter(Boolean)
                 : [];
             const layerPromptText = String((options as any).studioLayerPromptText || '').trim();
-            if (layerPromptText) {
-                studioPromptParts.push(layerPromptText);
+            if (studioPromptParts.length === 0 && layerPromptText) {
+                studioPromptParts.push(
+                    ...layerPromptText
+                        .split('.')
+                        .map((entry) => entry.trim())
+                        .filter(Boolean)
+                );
             }
-            const finalStudioPrompt = studioPromptParts.join(' ');
+            const finalStudioPrompt = buildFinalPrompt(studioPromptParts, options);
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);

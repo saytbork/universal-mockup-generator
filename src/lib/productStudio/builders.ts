@@ -1192,6 +1192,48 @@ function resolveVisualIntentFromQualityProfile(
     return qualityProfile === 'ecommerce-conversion' ? 'conversion' : 'campaign';
 }
 
+const STRICT_STATE_PROMPT = import.meta.env.VITE_STRICT_STATE_PROMPT !== 'false';
+const ENABLE_PROTECTION_LIGHT = import.meta.env.VITE_PROMPT_PROTECTION_LIGHT === 'true';
+const ENABLE_STRICT_PACKAGING_LOCK = import.meta.env.VITE_PROMPT_STRICT_PACKAGING_LOCK === 'true';
+
+function normalizePromptSegments(parts: string[]): string[] {
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const raw of parts) {
+        const value = String(raw || '').trim();
+        if (!value) continue;
+        if (seen.has(value)) continue;
+        seen.add(value);
+        out.push(value);
+    }
+    return out;
+}
+
+function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
+    const core: string[] = [];
+    if (scenePrompt) core.push(scenePrompt);
+    if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
+    if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
+    if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);
+    if (state.interaction && state.interaction !== 'none') core.push(`INTERACTION: ${state.interaction}`);
+    if (state.placement) core.push(`PLACEMENT: ${state.placement}`);
+    return core;
+}
+
+function buildProtectionLightLayer(): string[] {
+    if (!ENABLE_PROTECTION_LIGHT) return [];
+    return [
+        'Basic physical coherence: realistic gravity and contact behavior.',
+        'Packaging assembled and physically intact.',
+        'Label remains legible without extreme distortion.',
+    ];
+}
+
+function buildStrictPackagingLayer(): string[] {
+    if (!ENABLE_STRICT_PACKAGING_LOCK) return [];
+    return ['Strict packaging lock: preserve exact product geometry and design fidelity.'];
+}
+
 /**
  * FINAL PROMPT ASSEMBLY ORDER (MANDATORY):
  * 1. Scene Type
@@ -1219,6 +1261,19 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // - USE_STUDIO_V2=true  -> ProductStudioV2
     // - otherwise           -> legacy mapSceneToPrompt
     const sceneResult = routeStudioScenePrompt(state, product);
+
+    if (STRICT_STATE_PROMPT) {
+        const finalParts = normalizePromptSegments([
+            ...buildCoreSceneLayer(state, sceneResult.prompt),
+            ...buildProtectionLightLayer(),
+            ...buildStrictPackagingLayer(),
+        ]);
+        const finalPrompt = finalParts.join(' ');
+        console.log('2. Generated Prompt Parts:', finalParts);
+        console.log('3. FINAL PROMPT:', finalPrompt);
+        console.groupEnd();
+        return finalPrompt;
+    }
 
     segments.push(sceneResult.prompt);
     segments.push(buildProductDescription(state, product));
@@ -1260,6 +1315,17 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // - USE_STUDIO_V2=true  -> ProductStudioV2
     // - otherwise           -> legacy mapSceneToPrompt
     const sceneResult = routeStudioScenePrompt(state, primary ?? undefined);
+
+    if (STRICT_STATE_PROMPT) {
+        const finalParts = normalizePromptSegments([
+            ...buildCoreSceneLayer(state, sceneResult.prompt),
+            state.bundle.enabled ? `BUNDLE_MODE: ${state.bundle.mode}` : '',
+            state.bundle.enabled ? `BUNDLE_LAYOUT: ${state.bundle.layout}` : '',
+            ...buildProtectionLightLayer(),
+            ...buildStrictPackagingLayer(),
+        ]);
+        return finalParts.join(' ');
+    }
 
     segments.push(sceneResult.prompt);
     if (primary) {
@@ -1527,6 +1593,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
 function normalizeProductStudioStateForPrompt(state: ProductStudioState): ProductStudioState {
     const next: ProductStudioState = { ...state };
+    if (STRICT_STATE_PROMPT) {
+        next.handsHolding = next.interaction !== 'none';
+        return next;
+    }
     // Keep effective state strict: output profile is authoritative for visual intent.
     next.visualIntent = resolveVisualIntentFromQualityProfile(next.qualityProfile);
     const normalizedControlTier =
