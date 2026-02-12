@@ -1312,11 +1312,30 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
             `playfulness=${v.playfulness}`
         );
     } else if (mode === 'Hands Application Clean') {
+        const dynamicHands = cfg.dynamic?.['Hands Application Clean'] || {};
+        const handPose = String(dynamicHands.handPose || '').trim();
+        const skinLighting = String(dynamicHands.skinLighting || '').trim();
+        const cropStyle = String(dynamicHands.cropStyle || '').trim();
+        const handPoseLower = handPose.toLowerCase();
+        const effectiveInteraction =
+            handPoseLower === 'applying' || handPoseLower === 'opening'
+                ? 'applying-opening'
+                : handPoseLower === 'holding'
+                    ? 'holding'
+                    : state.interaction;
+        const effectiveMotion =
+            handPoseLower === 'applying' || handPoseLower === 'opening'
+                ? 'dispensed'
+                : state.stateMotion;
+
         features.push(
-            `interaction=${state.interaction}`,
+            `interaction=${effectiveInteraction}`,
             `placement=${state.placement}`,
-            `stateMotion=${state.stateMotion}`
+            `stateMotion=${effectiveMotion}`
         );
+        if (handPose) features.push(`handPose=${handPose}`);
+        if (skinLighting) features.push(`skinLighting=${skinLighting}`);
+        if (cropStyle) features.push(`cropStyle=${cropStyle}`);
     } else if (mode === 'Macro Dew Label') {
         features.push(
             `distance=${state.distance}`,
@@ -1473,8 +1492,30 @@ function isHeroPhotoMode(mode: string): boolean {
     return normalized.includes('hero');
 }
 
+function resolveHandsApplicationHandPose(state: ProductStudioState): string {
+    if (state.photoMode !== 'Hands Application Clean') return '';
+    return String(state.photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '').trim();
+}
+
+function resolveEffectiveInteraction(state: ProductStudioState): ProductStudioState['interaction'] {
+    if (state.photoMode !== 'Hands Application Clean') return state.interaction;
+    const handPose = resolveHandsApplicationHandPose(state).toLowerCase();
+    if (handPose === 'applying' || handPose === 'opening') return 'applying-opening';
+    if (handPose === 'holding') return 'holding';
+    return state.interaction;
+}
+
+function resolveEffectiveMotion(state: ProductStudioState): ProductStudioState['stateMotion'] {
+    if (state.photoMode !== 'Hands Application Clean') return state.stateMotion;
+    const handPose = resolveHandsApplicationHandPose(state).toLowerCase();
+    if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
+    return state.stateMotion;
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
+    const effectiveInteraction = resolveEffectiveInteraction(state);
+    const effectiveMotion = resolveEffectiveMotion(state);
     if (scenePrompt) core.push(scenePrompt);
     if (state.qualityProfile) core.push(`OUTPUT_PROFILE: ${state.qualityProfile}`);
     if (state.sceneType) {
@@ -1557,9 +1598,14 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
         if (String(state.viewpoint || '').trim()) core.push(`VIEWPOINT_OVERRIDE: ${String(state.viewpoint).trim()}`);
     }
+    if (state.photoMode === 'Hands Application Clean') {
+        core.push('HANDS_APPLICATION_CONSTRAINTS: Hands must be anatomically correct.');
+        core.push('HANDS_APPLICATION_CONSTRAINTS: No exaggerated gestures.');
+        core.push('HANDS_APPLICATION_CONSTRAINTS: No facial subject required.');
+    }
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
-    if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);
-    if (state.interaction && state.interaction !== 'none') core.push(`INTERACTION: ${state.interaction}`);
+    if (effectiveMotion) core.push(`MOTION: ${effectiveMotion}`);
+    if (effectiveInteraction && effectiveInteraction !== 'none') core.push(`INTERACTION: ${effectiveInteraction}`);
     return core;
 }
 

@@ -43,6 +43,12 @@ function inferStudioComposition(state: ProductStudioState): StudioUIState['compo
 }
 
 function inferStudioMotion(state: ProductStudioState): StudioUIState['motion'] {
+  if (state.photoMode === 'Hands Application Clean') {
+    const handPose = String((state as any).photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '')
+      .trim()
+      .toLowerCase();
+    if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
+  }
   if (state.stateMotion === 'falling') return 'falling';
   if (state.stateMotion === 'dispensed') return 'dispensed';
   if (state.stateMotion === 'pouring' || state.stateMotion === 'spilled') return 'pouring';
