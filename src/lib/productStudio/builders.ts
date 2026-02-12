@@ -1364,6 +1364,13 @@ function buildIngredientStackBackgroundLock(state: ProductStudioState): string {
     return '';
 }
 
+function isHeroPhotoMode(mode: string): boolean {
+    const normalized = String(mode || '').trim().toLowerCase();
+    if (!normalized) return false;
+    if (normalized.includes('ingredient stack')) return false;
+    return normalized.includes('hero');
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     if (scenePrompt) core.push(scenePrompt);
@@ -1385,6 +1392,14 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     }
     if (state.placement) core.push(`PHYSICAL_PLACEMENT: ${state.placement}`);
     if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
+    if (isHeroPhotoMode(state.photoMode)) {
+        core.push(
+            'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
+        );
+        core.push('VERTICAL_SUBJECT_DOMINANCE: Strong.');
+        core.push('LATERAL_SPREAD: Restricted.');
+        core.push('NEGATIVE_SPACE_POLICY: Controlled and minimal.');
+    }
     if (state.composition) core.push(`COMPOSITION: ${state.composition}`);
     const featureParts = buildPhotoModeFeatureParts(state);
     if (featureParts.length > 0) {
