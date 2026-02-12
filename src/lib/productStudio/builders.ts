@@ -1255,6 +1255,30 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
         Object.entries(v).forEach(([key, value]) => {
             features.push(`${key}=${String(value)}`);
         });
+    } else if (mode === 'Acrylic Blocks') {
+        const v = cfg.acrylicBlocks;
+        features.push(
+            `blockShape=${v.blockShape}`,
+            `materialFinish=${v.materialFinish}`,
+            `reflectionLevel=${v.reflectionLevel}`,
+            `elevation=${v.elevation}`
+        );
+    } else if (mode === 'Splash Shot') {
+        const v = cfg.splashShot;
+        features.push(
+            `splashMedium=${v.splashMedium}`,
+            `motionIntensity=${v.motionIntensity}`,
+            `freezeMoment=${v.freezeMoment}`,
+            `productStability=${v.productStability}`
+        );
+    } else if (mode === 'Foam & Texture') {
+        const v = cfg.foamAndTexture;
+        features.push(
+            `textureType=${v.textureType}`,
+            `textureDensity=${v.textureDensity}`,
+            `focusDistance=${v.focusDistance}`,
+            `cleanliness=${v.cleanliness}`
+        );
     } else if (mode === 'Routine Carousel') {
         const v = cfg.routineCarousel;
         features.push(
@@ -1262,6 +1286,30 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
             `routineFlow=${v.routineFlow}`,
             `consistency=${v.consistency}`,
             `heroFrame=${v.heroFrame}`
+        );
+    } else if (mode === 'Clinical Lab Counter') {
+        const v = cfg.clinicalLabCounter;
+        features.push(
+            `clinicalTone=${v.clinicalTone}`,
+            `labElements=${v.labElements}`,
+            `surfaceType=${v.surfaceType}`,
+            `trustLevel=${v.trustLevel}`
+        );
+    } else if (mode === 'Golden Mist Aura') {
+        const v = cfg.goldenMistAura;
+        features.push(
+            `glowStrength=${v.glowStrength}`,
+            `mistStyle=${v.mistStyle}`,
+            `mood=${v.mood}`,
+            `contrast=${v.contrast}`
+        );
+    } else if (mode === 'Candy Gradient Lab') {
+        const v = cfg.candyGradientLab;
+        features.push(
+            `gradientStyle=${v.gradientStyle}`,
+            `colorCount=${v.colorCount}`,
+            `edgeStyle=${v.edgeStyle}`,
+            `playfulness=${v.playfulness}`
         );
     } else if (mode === 'Hands Application Clean') {
         features.push(
@@ -1294,6 +1342,13 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     if (scenePrompt) core.push(scenePrompt);
+    if (state.qualityProfile) core.push(`OUTPUT_PROFILE: ${state.qualityProfile}`);
+    if (state.sceneType) {
+        const photoType = state.sceneType === 'studio-branding' || state.sceneType === 'studio-hero'
+            ? 'Photo Studio'
+            : 'Environment';
+        core.push(`PHOTO_TYPE: ${photoType}`);
+    }
     const explicitEnvironment = String((state as any).environment || '').trim();
     const explicitWorld = String((state as any).world || '').trim();
     if (STRICT_STATE_PROMPT) {
@@ -1303,6 +1358,7 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         if (explicitEnvironment) core.push(`STUDIO_WORLD: ${explicitEnvironment}`);
         else if (explicitWorld) core.push(`STUDIO_WORLD: ${explicitWorld}`);
     }
+    if (state.placement) core.push(`PHYSICAL_PLACEMENT: ${state.placement}`);
     if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
     if (state.composition) core.push(`COMPOSITION: ${state.composition}`);
     const featureParts = buildPhotoModeFeatureParts(state);
@@ -1325,10 +1381,29 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
             'INGREDIENT_VISUALIZATION: Each ingredient listed must be visually represented exactly as named. Do NOT substitute with common cosmetic ingredients. Do NOT hallucinate hyaluronic acid, vitamin C, retinol, etc unless explicitly provided. Only use ingredients provided in INGREDIENT_LIST.'
         );
     }
+    if (Array.isArray(state.specialEffects) && state.specialEffects.length > 0) {
+        const effects = state.specialEffects.map((entry) => String(entry || '').trim()).filter(Boolean);
+        if (effects.length > 0) core.push(`SPECIAL_EFFECTS: ${effects.join(', ')}`);
+    }
+    if (state.definition?.type) core.push(`PRODUCT_TYPE: ${state.definition.type}`);
+    if (state.packagingMode) core.push(`PACKAGING: ${state.packagingMode}`);
+    if (state.physicalScaleLabel) core.push(`PHYSICAL_SCALE: ${state.physicalScaleLabel}`);
+    if (Array.isArray(state.selectedProps) && state.selectedProps.length > 0) {
+        const selectedProps = state.selectedProps.map((entry) => String(entry || '').trim()).filter(Boolean);
+        if (selectedProps.length > 0) core.push(`PROPS: ${selectedProps.join(', ')}`);
+    } else if (String(state.props || '').trim()) {
+        core.push(`PROPS: ${String(state.props).trim()}`);
+    }
+    if (state.controlTier) core.push(`ADVANCED_CONTROLS: ${state.controlTier}`);
+    if (state.controlTier === 'pro') {
+        if (String(state.lens || '').trim()) core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
+        if (String(state.lightingRig || '').trim()) core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
+        if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
+        if (String(state.viewpoint || '').trim()) core.push(`VIEWPOINT_OVERRIDE: ${String(state.viewpoint).trim()}`);
+    }
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
     if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);
     if (state.interaction && state.interaction !== 'none') core.push(`INTERACTION: ${state.interaction}`);
-    if (state.placement) core.push(`PLACEMENT: ${state.placement}`);
     return core;
 }
 
