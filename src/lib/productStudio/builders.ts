@@ -1211,6 +1211,86 @@ function normalizePromptSegments(parts: string[]): string[] {
     return out;
 }
 
+function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
+    const mode = String(state.photoMode || '').trim();
+    if (!mode) return [];
+
+    const cfg = state.photoModeConfig;
+    const features: string[] = [];
+
+    if (mode === 'Hero Landing Page') {
+        const v = cfg.heroLandingPage;
+        features.push(
+            `backgroundType=${v.backgroundType}`,
+            `gradientStyle=${v.gradientStyle}`,
+            `colorSource=${v.colorSource}`,
+            `paletteSource=${v.paletteSource}`,
+            `negativeSpace=${v.negativeSpace}`,
+            `contrastLevel=${v.contrastLevel}`
+        );
+    } else if (mode === 'Color Pop Hero') {
+        const v = cfg.colorPopHero;
+        features.push(
+            `backgroundType=${v.backgroundType}`,
+            `gradientStyle=${v.gradientStyle}`,
+            `colorSource=${v.colorSource}`,
+            `saturationLevel=${v.saturationLevel}`,
+            `contrastStrategy=${v.contrastStrategy}`,
+            `negativeSpace=${v.negativeSpace}`
+        );
+    } else if (mode === 'Ingredient Stack') {
+        const v = cfg.ingredientStack;
+        features.push(
+            `ingredientFocus=${v.ingredientFocus}`,
+            `stackStyle=${v.stackStyle}`,
+            `ingredientPresence=${v.ingredientPresence}`,
+            `labelPriority=${v.labelPriority}`,
+            `backgroundEnabled=${String(v.backgroundEnabled)}`,
+            `backgroundType=${v.backgroundType}`,
+            `gradientStyle=${v.gradientStyle}`,
+            `colorSource=${v.colorSource}`
+        );
+    } else if (mode === 'Ingredient Flat Lay') {
+        const v = cfg.ingredientFlatLay || {};
+        Object.entries(v).forEach(([key, value]) => {
+            features.push(`${key}=${String(value)}`);
+        });
+    } else if (mode === 'Routine Carousel') {
+        const v = cfg.routineCarousel;
+        features.push(
+            `frameCount=${String(v.frameCount)}`,
+            `routineFlow=${v.routineFlow}`,
+            `consistency=${v.consistency}`,
+            `heroFrame=${v.heroFrame}`
+        );
+    } else if (mode === 'Hands Application Clean') {
+        features.push(
+            `interaction=${state.interaction}`,
+            `placement=${state.placement}`,
+            `stateMotion=${state.stateMotion}`
+        );
+    } else if (mode === 'Macro Dew Label') {
+        features.push(
+            `distance=${state.distance}`,
+            `angle=${state.angle}`,
+            `framing=${state.framing}`,
+            `lens=${state.lens || ''}`.trim()
+        );
+    }
+
+    const dynamic = cfg.dynamic?.[mode];
+    if (dynamic) {
+        Object.entries(dynamic).forEach(([key, value]) => {
+            const normalized = String(value || '').trim();
+            if (normalized) features.push(`${key}=${normalized}`);
+        });
+    }
+
+    return features
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     if (scenePrompt) core.push(scenePrompt);
@@ -1224,6 +1304,11 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         else if (explicitWorld) core.push(`STUDIO_WORLD: ${explicitWorld}`);
     }
     if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
+    if (state.composition) core.push(`COMPOSITION: ${state.composition}`);
+    const featureParts = buildPhotoModeFeatureParts(state);
+    if (featureParts.length > 0) {
+        core.push(`PHOTO_MODE_FEATURES: ${featureParts.join('; ')}`);
+    }
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
     if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);
     if (state.interaction && state.interaction !== 'none') core.push(`INTERACTION: ${state.interaction}`);

@@ -24,6 +24,7 @@ export interface PromptLayer {
 export type SceneState = ProductStudioStep3Values & {
   visualStyle?: string;
   visualIntent?: string;
+  composition?: string;
   productStateMotion?: string;
   specialEffects?: string[] | string;
   lighting?: string;
@@ -93,6 +94,7 @@ export function mapProductModeToPromptOptions(sceneState: SceneState): PromptOpt
   const lightingRig = String(sceneState.studioLightingRig || '').trim();
   const interaction = String(sceneState.productStudioInteraction || '').trim();
   const viewpoint = String(sceneState.viewpoint || '').trim();
+  const composition = String((sceneState as any).composition || sceneState.productFramingGuide || '').trim();
 
   const explicitIngredients = Array.isArray(sceneState.ingredients)
     ? sceneState.ingredients.map((entry) => String(entry).trim()).filter(Boolean)
@@ -129,6 +131,7 @@ export function mapProductModeToPromptOptions(sceneState: SceneState): PromptOpt
   };
 
   addLayer('photo-mode', 'composition', photoMode ? `Photo mode: ${photoMode}` : undefined, 10);
+  addLayer('composition', 'composition', composition ? `Composition: ${composition}` : undefined, 15);
   addLayer('world', 'world', visualIntent || visualStyle || undefined, 20);
   addLayer(
     'product-type',
@@ -197,7 +200,7 @@ export function mapProductModeToPromptOptions(sceneState: SceneState): PromptOpt
   (mapped as any).studioWorld = visualIntent || visualStyle || undefined;
   (mapped as any).studioMotion = motion || undefined;
   (mapped as any).studioLightingModel = lightingRig || lighting || lightingStyle || undefined;
-  (mapped as any).studioCompositionModel = viewpoint || undefined;
+  (mapped as any).studioCompositionModel = composition || viewpoint || undefined;
   (mapped as any).studioModifiers = [...ingredients, ...specialEffects].join(', ') || undefined;
   (mapped as any).studioInteraction = interaction || undefined;
   (mapped as any).ingredients = ingredients;
