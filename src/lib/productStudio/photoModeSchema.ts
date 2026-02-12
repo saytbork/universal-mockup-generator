@@ -740,6 +740,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         basePrompt: 'true macro close-up of the product label and bottle material texture, label occupying most of frame, realistic dew droplets with optical magnification behavior, ultra-sharp commercial detail and controlled highlights',
         subOptions: [
             { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
+            { key: 'dropletMode', label: 'Droplet Mode', values: ['Clean', 'Wet', 'Drops'] },
             { key: 'dropletDensity', label: 'Droplet Density', values: ['Low', 'Balanced', 'High'] },
             { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
         ],

@@ -1512,6 +1512,44 @@ function resolveEffectiveMotion(state: ProductStudioState): ProductStudioState['
     return state.stateMotion;
 }
 
+function buildMacroDewLabelSemanticParts(state: ProductStudioState): string[] {
+    if (state.photoMode !== 'Macro Dew Label') return [];
+    const dynamic = state.photoModeConfig?.dynamic?.['Macro Dew Label'] || {};
+    const macroTightness = String(dynamic.macroTightness || '').trim().toLowerCase();
+    const dropletMode = String(dynamic.dropletMode || '').trim().toLowerCase();
+    const dropletDensity = String(dynamic.dropletDensity || '').trim();
+    const highlightControl = String(dynamic.highlightControl || '').trim();
+
+    const parts: string[] = [
+        'MACRO_FRAME_CONSTRAINT: True macro proximity is mandatory. First-plan close-up only. No medium framing. No wide framing.',
+        'MACRO_LABEL_PRIORITY: Primary label area must dominate the frame while remaining fully legible.',
+        'MACRO_SUBJECT_SCOPE: Show label plus adjacent bottle surface only. Product must fill most of the frame with minimal side margins.',
+        'LATERAL_SPREAD: Restricted for macro.',
+        'NEGATIVE_SPACE_POLICY: Minimal in macro mode.',
+    ];
+
+    if (macroTightness === 'extreme') {
+        parts.push('MACRO_TIGHTNESS: Extreme. Ultra-tight close-up; label and nearby bottle texture dominate the frame.');
+    } else if (macroTightness === 'tight') {
+        parts.push('MACRO_TIGHTNESS: Tight. Strong close-up with label as principal subject.');
+    }
+
+    if (dropletMode === 'clean') {
+        parts.push('DROPLET_POLICY: Clean. No droplets on label or bottle. Surface must be clean and dry.');
+    } else if (dropletMode === 'wet') {
+        parts.push('DROPLET_POLICY: Wet. Subtle moisture film only; no isolated beads crossing key label text.');
+    } else if (dropletMode === 'drops') {
+        const densitySegment = dropletDensity ? ` with density ${dropletDensity}` : '';
+        parts.push(`DROPLET_POLICY: Drops${densitySegment}. Physically plausible droplets only, no random CGI beads.`);
+    }
+
+    if (highlightControl) {
+        parts.push(`HIGHLIGHT_CONTROL: ${highlightControl}. Keep label text sharp and readable with controlled specular behavior.`);
+    }
+
+    return parts;
+}
+
 function buildHandsApplicationSemanticParts(state: ProductStudioState): string[] {
     if (state.photoMode !== 'Hands Application Clean') return [];
     const dynamicHands = state.photoModeConfig?.dynamic?.['Hands Application Clean'] || {};
@@ -1583,6 +1621,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (featureParts.length > 0) {
         core.push(`PHOTO_MODE_FEATURES: ${featureParts.join('; ')}`);
     }
+    const macroSemanticParts = buildMacroDewLabelSemanticParts(state);
+    if (macroSemanticParts.length > 0) core.push(...macroSemanticParts);
     const handsSemanticParts = buildHandsApplicationSemanticParts(state);
     if (handsSemanticParts.length > 0) core.push(...handsSemanticParts);
     const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
