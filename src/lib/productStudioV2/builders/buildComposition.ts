@@ -18,6 +18,7 @@ export function buildComposition(authority: StudioAuthorityBundle): string {
     heroMode
       ? 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
       : '',
+    'FRAME_EDGE_POLICY: Maintain real scene continuity to all four edges. No white lateral padding, no pillarbox/letterbox bars, no mirrored edge extension, no duplicated side strips, and no synthetic side-fill bands.',
     heroMode
       ? 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
       : '',

@@ -1556,6 +1556,9 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
             : 'Environment';
         core.push(`PHOTO_TYPE: ${photoType}`);
     }
+    core.push(
+        'FRAME_EDGE_POLICY: Edge-to-edge real scene content across all borders. No white side fill, no artificial padding, no pillarbox/letterbox bars, no mirrored edge extension, no duplicated side panels, and no blurred lateral bands.'
+    );
     const explicitEnvironment = String((state as any).environment || '').trim();
     const explicitWorld = String((state as any).world || '').trim();
     if (STRICT_STATE_PROMPT) {
