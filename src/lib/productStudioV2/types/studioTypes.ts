@@ -42,6 +42,7 @@ export interface StudioUIState {
   world?: StudioWorld;
   motion: StudioMotion;
   composition: StudioComposition;
+  lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
   photoMode?: string;
   subjectOrientation?: 'vertical' | 'horizontal' | 'square';

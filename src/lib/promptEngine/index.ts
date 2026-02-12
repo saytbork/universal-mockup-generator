@@ -55,7 +55,7 @@ import { FinalizeBuilder } from './builders/finalize';
 	import { VisualGrammarBuilder } from './builders/visualGrammar';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
-import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
+import { PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
@@ -496,73 +496,16 @@ export class PromptEngine {
             console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
             console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
 
-            // MUTUAL EXCLUSIVITY GUARD: Studio mode must not have environment data
-            if (options.setting && options.setting !== '' && options.setting !== 'studio') {
-                console.warn('[STUDIO GUARD] Environment detected in Studio mode - clearing:', options.setting);
-                (options as any).setting = '';
-                (options as any).environment = '';
-                (options as any).microLocation = '';
-            }
-
-            // Log which Studio options are being used
-            console.log('[CLEANUP-INSTRUMENT] Studio options:', {
-                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
-                surface: (options as any).studioSurface,
-                composition: (options as any).studioComposition,
-                lighting: (options as any).studioLighting,
-                hasPalette: !!((options as any).paletteColor1 || (options as any).paletteColor2),
-            });
-
-            const studioPrompt = buildStudioPrompt({
-                // Photo Mode
-                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
-
-                // Props / Ingredients (Ingredient Stack only)
-                suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
-                ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
-
-                // Auto Palette Extraction
-                paletteColor1: (options as any).paletteColor1,
-                paletteColor2: (options as any).paletteColor2,
-                paletteColor3: (options as any).paletteColor3,
-
-                // Background (fallback if no palette)
-                backgroundColor: (options as any).heroBackground || options.bgColor,
-                gradientStart: options.bgGradient?.startColor,
-                gradientEnd: options.bgGradient?.endColor,
-
-                // Surface
-                surface: (options as any).studioSurface,
-                surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
-
-                // Composition
-                composition: (options as any).studioComposition,
-                scale: (options as any).studioScale,
-                spacing: (options as any).studioSpacing,
-                negativeSpace: (options as any).studioNegativeSpace,
-
-                // Camera
-                lens: (options as any).studioLens,
-                angle: (options as any).studioAngle,
-                distance: (options as any).studioDistance,
-                framing: (options as any).studioFraming,
-
-                // Lighting & Finish
-                lighting: (options as any).studioLighting,
-                finish: (options as any).studioFinish,
-                shadow: (options as any).studioShadow || (options as any).heroShadow,
-
-                // Optional Interaction
-                interaction: (options as any).studioInteraction
-            });
+            const studioPromptParts = Array.isArray((options as any).studioPromptParts)
+                ? (options as any).studioPromptParts
+                    .map((entry: unknown) => String(entry || '').trim())
+                    .filter(Boolean)
+                : [];
             const layerPromptText = String((options as any).studioLayerPromptText || '').trim();
-            const layeredPrompt = layerPromptText
-                ? `${studioPrompt}\n\nLAYERED_PROMPT_MODEL:\n${layerPromptText}`
-                : studioPrompt;
-
-            // Studio Product uses Studio Presets as the single prompt authority (positive-only whitelist base).
-            // Do not prepend Product Studio deterministic foundation here.
-            const finalStudioPrompt = `GENERATION INSTRUCTIONS:\n${layeredPrompt}`;
+            if (layerPromptText) {
+                studioPromptParts.push(layerPromptText);
+            }
+            const finalStudioPrompt = studioPromptParts.join(' ');
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);

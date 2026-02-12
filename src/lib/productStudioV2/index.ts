@@ -24,7 +24,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildMotion(authority),
     buildPhysics(authority),
     buildModifiers(modifiers),
-    buildLighting(authority),
+    buildLighting(authority, state),
     buildMaterials(authority),
     buildUltraReal(authority),
   ];
