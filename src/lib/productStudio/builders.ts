@@ -1364,6 +1364,108 @@ function buildIngredientStackBackgroundLock(state: ProductStudioState): string {
     return '';
 }
 
+function buildPhysicalPropertiesParts(state: ProductStudioState): string[] {
+    const definition = state.definition;
+    if (!definition || !definition.physical) return [];
+
+    const parts: string[] = [];
+    const colorName = String(definition.color?.semanticName || '').trim();
+    if (colorName) {
+        parts.push(`baseColor=${colorName}`);
+    }
+
+    switch (definition.physical.kind) {
+        case 'capsules': {
+            const v = definition.physical.v;
+            parts.push(
+                `capsuleStyle=${v.capsuleStyle}`,
+                `capsuleContentColor=${String(v.capsuleContentColor?.semanticName || '') || String(v.capsuleContentColor?.hex || '')}`,
+                `quantity=${String(v.quantity)}`,
+                `layout=${v.layout}`,
+                `glassOfWater=${String(v.glassOfWater)}`,
+                `spoon=${String(v.spoon)}`
+            );
+            break;
+        }
+        case 'gummies': {
+            const v = definition.physical.v;
+            parts.push(
+                `shape=${v.shape}`,
+                `gummyColor=${String(v.gummyColor?.semanticName || '') || String(v.gummyColor?.hex || '')}`,
+                `quantity=${String(v.quantity)}`,
+                `bowl=${String(v.bowl)}`,
+                `plate=${String(v.plate)}`
+            );
+            break;
+        }
+        case 'drops': {
+            const v = definition.physical.v;
+            parts.push(
+                `liquidColorMode=${v.liquidColorMode}`,
+                `liquidCustomColor=${String(v.liquidCustomColor?.semanticName || '') || String(v.liquidCustomColor?.hex || '')}`,
+                `dropperState=${v.dropperState}`,
+                `interactionMode=${v.interactionMode}`,
+                `glass=${String(v.glass)}`,
+                `teaCup=${String(v.teaCup)}`,
+                `minimalSpoon=${String(v.minimalSpoon)}`
+            );
+            break;
+        }
+        case 'powder': {
+            const v = definition.physical.v;
+            parts.push(
+                `powderColor=${String(v.powderColor?.semanticName || '') || String(v.powderColor?.hex || '')}`,
+                `texture=${v.texture}`,
+                `presentation=${v.presentation}`,
+                `mixMode=${v.mixMode}`,
+                `cupOrMug=${String(v.cupOrMug)}`,
+                `scoop=${String(v.scoop)}`,
+                `spoon=${String(v.spoon)}`
+            );
+            break;
+        }
+        case 'skincare': {
+            const v = definition.physical.v;
+            parts.push(
+                `subtype=${v.subtype}`,
+                `texture=${v.texture}`,
+                `color=${String(v.color?.semanticName || '') || String(v.color?.hex || '')}`,
+                `dispersion=${v.dispersion}`,
+                `towel=${String(v.towel)}`,
+                `sink=${String(v.sink)}`,
+                `minimalSurfaceOnly=${String(v.minimalSurfaceOnly)}`
+            );
+            break;
+        }
+        case 'device': {
+            const v = definition.physical.v;
+            parts.push(
+                `material=${v.material}`,
+                `color=${String(v.color?.semanticName || '') || String(v.color?.hex || '')}`,
+                `scale=${v.scale}`
+            );
+            break;
+        }
+        case 'custom': {
+            const v = definition.physical.v;
+            parts.push(
+                `material=${v.material}`,
+                `color=${String(v.color?.semanticName || '') || String(v.color?.hex || '')}`,
+                `scale=${v.scale}`,
+                `propsAutoBlocked=${String(v.propsAutoBlocked)}`
+            );
+            break;
+        }
+        case 'dummy':
+        default:
+            break;
+    }
+
+    return parts
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+}
+
 function isHeroPhotoMode(mode: string): boolean {
     const normalized = String(mode || '').trim().toLowerCase();
     if (!normalized) return false;
@@ -1427,7 +1529,15 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         const effects = state.specialEffects.map((entry) => String(entry || '').trim()).filter(Boolean);
         if (effects.length > 0) core.push(`SPECIAL_EFFECTS: ${effects.join(', ')}`);
     }
-    if (state.definition?.type) core.push(`PRODUCT_TYPE: ${state.definition.type}`);
+    if (state.definition?.type) {
+        const rawType = String(state.definition.type || '').trim();
+        const uiType = rawType ? `${rawType.charAt(0).toUpperCase()}${rawType.slice(1)}` : '';
+        core.push(`PRODUCT_TYPE: ${uiType || rawType}`);
+    }
+    const physicalProperties = buildPhysicalPropertiesParts(state);
+    if (physicalProperties.length > 0) {
+        core.push(`PHYSICAL_PROPERTIES: ${physicalProperties.join('; ')}`);
+    }
     if (state.packagingMode) core.push(`PACKAGING: ${state.packagingMode}`);
     if (state.physicalScaleLabel) core.push(`PHYSICAL_SCALE: ${state.physicalScaleLabel}`);
     if (Array.isArray(state.selectedProps) && state.selectedProps.length > 0) {
