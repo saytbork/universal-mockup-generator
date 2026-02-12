@@ -3555,6 +3555,13 @@ const App: React.FC = () => {
   const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
     // PHASE 3: MANDATORY LOG - Prove App receives sceneState
     console.log('[APP RECEIVED SCENESTATE]', values);
+    console.log('[APP RECEIVED SCENESTATE FIELDS]', {
+      sceneType: values.sceneType,
+      creationMode: values.creationMode,
+      contentStyle: values.contentStyle,
+      personIncluded: values.personIncluded,
+      sceneIntent: values.sceneIntent,
+    });
 
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);

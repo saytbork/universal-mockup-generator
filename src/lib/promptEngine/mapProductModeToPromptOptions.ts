@@ -10,6 +10,15 @@
 import type { ProductStudioStep3Values } from '@/lib/productStudio/state';
 import type { PromptOptions } from './types';
 
+export type SceneState = ProductStudioStep3Values & {
+    visualStyle?: string;
+    productStateMotion?: string;
+    specialEffects?: string[] | string;
+    lighting?: string;
+    viewpoint?: string;
+    productAssets?: { id: string }[];
+};
+
 const normalizeSidePlacement = (raw?: string): 'left' | 'center' | 'right' => {
     const lower = String(raw || '').toLowerCase();
     if (lower.includes('left')) return 'left';
@@ -146,9 +155,17 @@ const mapProductFraming = (
  * - Never reference people/faces/emotions
  */
 export function mapProductModeToPromptOptions(
-    sceneState: ProductStudioStep3Values,
+    sceneState: SceneState
+): PromptOptions;
+export function mapProductModeToPromptOptions(
+    sceneState: SceneState,
+    existingOptions: Partial<PromptOptions>
+): PromptOptions;
+export function mapProductModeToPromptOptions(
+    sceneState: SceneState,
     existingOptions: Partial<PromptOptions> = {}
-): Partial<PromptOptions> {
+): PromptOptions {
+    console.log('[MAP PRODUCT MODE INPUT]', sceneState);
     console.log('[PRODUCT STEP3 INPUT]', {
         sceneIntent: sceneState.sceneIntent,
         aspectRatio: sceneState.aspectRatio,
@@ -185,7 +202,7 @@ export function mapProductModeToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Selfie mode cannot run in product mode');
         throw new Error('Invalid state: selfie mode in product mode');
     }
-    if ((existingOptions.productAssets?.length || 0) > 1 && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
+    if (((sceneState.productAssets?.length || existingOptions.productAssets?.length || 0) > 1) && sceneState.selfieMode && sceneState.selfieMode !== 'None') {
         console.error('[INVALID STATE BLOCKED] Selfie cannot be used with multi-product');
         throw new Error('Invalid state: selfie + multi-product');
     }
@@ -200,11 +217,22 @@ export function mapProductModeToPromptOptions(
 
     const ecommerceCanvasActive = sceneState.ecommerceSidePlacementFlag === true;
 
-    // Force Product Mode flags (authoritative)
-    mapped.contentStyle = 'product';
-    mapped.creationIntent = 'product';
-    mapped.personIncluded = false;
-    mapped.sceneIntent = 'ecommerce';
+    // Preserve state authority from explicit Step3 payload.
+    const explicitContentStyle = String((sceneState as any).contentStyle || '').trim();
+    if (explicitContentStyle) {
+        mapped.contentStyle = explicitContentStyle as any;
+    }
+    const explicitCreationIntent = String((sceneState as any).creationIntent || '').trim();
+    if (explicitCreationIntent) {
+        mapped.creationIntent = explicitCreationIntent as any;
+    }
+    if (typeof (sceneState as any).personIncluded === 'boolean') {
+        mapped.personIncluded = Boolean((sceneState as any).personIncluded);
+    }
+    const explicitSceneIntent = String((sceneState as any).sceneIntent || '').trim();
+    if (explicitSceneIntent) {
+        mapped.sceneIntent = explicitSceneIntent as any;
+    }
     const productStudioInteractionRaw = String((sceneState as any).productStudioInteraction ?? '').trim();
     const productStudioInteraction =
         productStudioInteractionRaw || (sceneState.handsHolding === true ? 'holding' : 'none');
@@ -214,23 +242,64 @@ export function mapProductModeToPromptOptions(
     // Ecommerce blank-space is optional and must be toggle-driven.
     // If disabled, Product mode should generate non-blank studio/aesthetic shots.
     if (ecommerceCanvasActive) {
-        mapped.creationMode = 'ecom-blank';
         mapped.compositionMode = 'Ecommerce Blank Space';
         mapped.ecommerceBlankSpaceMode = true;
         mapped.ecommerceSidePlacementFlag = true;
         mapped.lighting =
             'neutral studio lighting with clean highlights, controlled reflections, and a minimal contact shadow; no environment context';
     } else {
-        mapped.creationMode =
-            sceneState.productCreativityLevel && sceneState.productCreativityLevel !== 'Off'
-                ? 'aesthetic'
-                : 'studio';
         mapped.compositionMode = undefined;
         mapped.ecommerceBlankSpaceMode = false;
         mapped.ecommerceSidePlacementFlag = false;
         mapped.lighting =
             'soft studio lighting with clean highlights, controlled reflections, and gentle realistic shadows; product-only composition';
     }
+
+    const explicitCreationMode = String((sceneState as any).creationMode || '').trim().toLowerCase();
+    if (explicitCreationMode) {
+        if (explicitCreationMode === 'ecommerce blank space' || explicitCreationMode === 'ecom-blank') {
+            mapped.creationMode = 'ecom-blank';
+        } else if (explicitCreationMode === 'aesthetic builder' || explicitCreationMode === 'aesthetic') {
+            mapped.creationMode = 'aesthetic';
+        } else if (explicitCreationMode === 'studio hero' || explicitCreationMode === 'studio') {
+            mapped.creationMode = 'studio';
+        } else if (explicitCreationMode === 'lifestyle ugc' || explicitCreationMode === 'lifestyle') {
+            mapped.creationMode = 'lifestyle';
+        } else if (explicitCreationMode === 'background replace' || explicitCreationMode === 'bg-replace') {
+            mapped.creationMode = 'bg-replace';
+        }
+    }
+
+    const resolvedWorld =
+        sceneState.visualStyle !== undefined
+            ? sceneState.visualStyle
+            : 'controlled studio environment';
+    const resolvedMotion =
+        sceneState.productStateMotion !== undefined
+            ? sceneState.productStateMotion
+            : 'static';
+    const resolvedModifiers =
+        sceneState.specialEffects !== undefined
+            ? (Array.isArray(sceneState.specialEffects)
+                ? sceneState.specialEffects.filter(Boolean).join(', ')
+                : String(sceneState.specialEffects))
+            : 'none';
+    const resolvedLightingModel =
+        sceneState.lighting !== undefined
+            ? sceneState.lighting
+            : 'conversion softbox wrap';
+    const resolvedComposition =
+        sceneState.viewpoint !== undefined
+            ? sceneState.viewpoint
+            : 'hero';
+
+    (mapped as any).studioWorld = resolvedWorld;
+    (mapped as any).studioMotion = resolvedMotion;
+    (mapped as any).studioModifiers = resolvedModifiers;
+    (mapped as any).studioLightingModel = resolvedLightingModel;
+    (mapped as any).studioCompositionModel = resolvedComposition;
+    (mapped as any).studioLighting = resolvedLightingModel;
+    (mapped as any).studioComposition = resolvedComposition;
 
     const sidePlacement = normalizeSidePlacement(sceneState.sidePlacement);
     mapped.sidePlacement = sidePlacement;
@@ -400,8 +469,26 @@ export function mapProductModeToPromptOptions(
         studioInteraction: (mapped as any).studioInteraction,
         aspectRatio: mapped.aspectRatio
     });
+    console.log('[FINAL SCENETYPE]', (mapped as any).sceneType ?? (sceneState as any).sceneType ?? 'undefined');
+    console.log('[FINAL CREATIONMODE]', mapped.creationMode ?? (sceneState as any).creationMode ?? 'undefined');
+    console.log('[FINAL CONTENTSTYLE]', mapped.contentStyle ?? (sceneState as any).contentStyle ?? 'undefined');
 
-    return mapped;
+    const resolvedOptions: PromptOptions = {
+        contentStyle: (mapped.contentStyle as PromptOptions['contentStyle']) || 'product',
+        creationMode: (mapped.creationMode as PromptOptions['creationMode']) || 'studio',
+        aspectRatio: mapped.aspectRatio || '1:1',
+        camera: mapped.camera || 'DSLR / mirrorless camera',
+        setting: mapped.setting || '',
+        lighting: mapped.lighting || resolvedLightingModel,
+        perspective: mapped.perspective || '',
+        environmentOrder: mapped.environmentOrder || '',
+        productPlane: mapped.productPlane || '',
+        ...mapped,
+    };
+
+    console.log('[MAP PRODUCT MODE OUTPUT]', resolvedOptions);
+
+    return resolvedOptions;
 }
 
 export function validateProductModePrompt(prompt: string): boolean {
