@@ -1309,6 +1309,22 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (featureParts.length > 0) {
         core.push(`PHOTO_MODE_FEATURES: ${featureParts.join('; ')}`);
     }
+    const explicitIngredients = Array.isArray((state as any).ingredients)
+        ? ((state as any).ingredients as unknown[])
+            .map((entry) => String(entry || '').trim())
+            .filter(Boolean)
+        : [];
+    if (explicitIngredients.length > 0) {
+        core.push(`INGREDIENT_LIST: ${explicitIngredients.join(', ')}`);
+    }
+    if (
+        explicitIngredients.length > 0 &&
+        (state.photoMode === 'Ingredient Stack' || state.photoMode === 'Ingredient Flat Lay')
+    ) {
+        core.push(
+            'INGREDIENT_VISUALIZATION: Each ingredient listed must be visually represented exactly as named. Do NOT substitute with common cosmetic ingredients. Do NOT hallucinate hyaluronic acid, vitamin C, retinol, etc unless explicitly provided. Only use ingredients provided in INGREDIENT_LIST.'
+        );
+    }
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
     if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);
     if (state.interaction && state.interaction !== 'none') core.push(`INTERACTION: ${state.interaction}`);
