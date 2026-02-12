@@ -1512,6 +1512,38 @@ function resolveEffectiveMotion(state: ProductStudioState): ProductStudioState['
     return state.stateMotion;
 }
 
+function buildHandsApplicationSemanticParts(state: ProductStudioState): string[] {
+    if (state.photoMode !== 'Hands Application Clean') return [];
+    const dynamicHands = state.photoModeConfig?.dynamic?.['Hands Application Clean'] || {};
+    const handPose = String(dynamicHands.handPose || '').trim().toLowerCase();
+    const skinLighting = String(dynamicHands.skinLighting || '').trim().toLowerCase();
+    const cropStyle = String(dynamicHands.cropStyle || '').trim().toLowerCase();
+
+    const parts: string[] = [];
+
+    if (handPose === 'applying') {
+        parts.push('HANDS_ACTION: Applying gesture only. Clear product-to-skin application moment with realistic contact and pressure.');
+    } else if (handPose === 'opening') {
+        parts.push('HANDS_ACTION: Opening gesture only. Cap/closure manipulation is visible; no application smear.');
+    } else if (handPose === 'holding') {
+        parts.push('HANDS_ACTION: Holding gesture only. Clean hold presentation with stable grip and no exaggerated motion.');
+    }
+
+    if (skinLighting === 'soft natural') {
+        parts.push('SKIN_LIGHTING: Soft natural skin light with gentle falloff and realistic tone transitions.');
+    } else if (skinLighting === 'neutral studio') {
+        parts.push('SKIN_LIGHTING: Neutral studio skin light with balanced exposure and clean texture fidelity.');
+    }
+
+    if (cropStyle === 'tight') {
+        parts.push('CROP_STYLE: Tight crop. Hands and product occupy most of the frame with minimal empty margins.');
+    } else if (cropStyle === 'medium') {
+        parts.push('CROP_STYLE: Medium crop. Hands and product remain dominant with controlled breathing room.');
+    }
+
+    return parts;
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     const effectiveInteraction = resolveEffectiveInteraction(state);
@@ -1548,6 +1580,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (featureParts.length > 0) {
         core.push(`PHOTO_MODE_FEATURES: ${featureParts.join('; ')}`);
     }
+    const handsSemanticParts = buildHandsApplicationSemanticParts(state);
+    if (handsSemanticParts.length > 0) core.push(...handsSemanticParts);
     const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
     if (ingredientStackBackgroundLock) core.push(ingredientStackBackgroundLock);
     const explicitIngredients = Array.isArray((state as any).ingredients)
