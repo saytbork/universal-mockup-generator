@@ -803,11 +803,13 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    if (forceLifestyleEngine) {
-        console.log('[ROUTER] Lifestyle mode detected → forcing lifestyle engine');
-        console.log('[ENGINE ACTIVE]', 'lifestyle');
-    } else if (sceneState.sceneIntent === 'ecommerce') {
-        console.log('[ENGINE ACTIVE]', 'studio');
+    const activeEngine =
+        !forceLifestyleEngine && sceneState.sceneIntent === 'ecommerce'
+            ? 'studio'
+            : 'lifestyle';
+    console.log('[ENGINE ACTIVE]', activeEngine);
+
+    if (activeEngine === 'studio') {
         console.log('[PRODUCT MODE ACTIVE]');
         return mapProductModeToPromptOptions(sceneState);
     }
@@ -815,7 +817,6 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // PRIORITY 1: PRODUCT MODE EXIT
     // ========================================================================
-    console.log('[ENGINE ACTIVE]', 'lifestyle');
     console.log('[LIFESTYLE MODE ACTIVE]');
 
     // Initialize mapped options

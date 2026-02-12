@@ -573,17 +573,16 @@ export class PromptEngine {
             options.creationMode === 'aesthetic' ||
             options.contentStyle === 'ugc' ||
             options.personIncluded === true;
-
-        if (forceLifestyleEngine) {
-            console.log('[ROUTER] Lifestyle mode detected → forcing lifestyle engine');
-            console.log('[ENGINE ACTIVE]', 'lifestyle');
-        }
+        const activeEngine =
+            options.creationMode === 'studio' && !forceLifestyleEngine
+                ? 'studio'
+                : 'lifestyle';
+        console.log('[ENGINE ACTIVE]', activeEngine);
 
         // ====================================================================
         // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
         // ====================================================================
-        if (options.creationMode === 'studio' && !forceLifestyleEngine) {
-            console.log('[ENGINE ACTIVE]', 'studio');
+        if (activeEngine === 'studio') {
             console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
             console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
 
