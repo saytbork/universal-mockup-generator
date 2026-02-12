@@ -28,7 +28,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
 
   const blocks = [
     buildIntent(authority),
-    buildWorld(authority),
+    buildWorld(authority, state.world),
     buildComposition(authority),
     buildMotion(authority),
     buildPhysics(authority),

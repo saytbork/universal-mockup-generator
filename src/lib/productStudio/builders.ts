@@ -98,6 +98,7 @@ function appendClosingPhrase(prompt: string): string {
 }
 
 function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?: boolean }): string {
+    if (import.meta.env.VITE_STRICT_STATE_PROMPT !== 'false') return prompt;
     const terms = [...SANITIZE_ALWAYS];
     if (options?.allowHands !== true) {
         terms.push('hand', 'hands');
@@ -1195,6 +1196,7 @@ function resolveVisualIntentFromQualityProfile(
 const STRICT_STATE_PROMPT = import.meta.env.VITE_STRICT_STATE_PROMPT !== 'false';
 const ENABLE_PROTECTION_LIGHT = import.meta.env.VITE_PROMPT_PROTECTION_LIGHT === 'true';
 const ENABLE_STRICT_PACKAGING_LOCK = import.meta.env.VITE_PROMPT_STRICT_PACKAGING_LOCK === 'true';
+const ALLOW_EMPTY_WORLD_IN_STRICT = true;
 
 function normalizePromptSegments(parts: string[]): string[] {
     const out: string[] = [];
@@ -1212,6 +1214,15 @@ function normalizePromptSegments(parts: string[]): string[] {
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     if (scenePrompt) core.push(scenePrompt);
+    const explicitEnvironment = String((state as any).environment || '').trim();
+    const explicitWorld = String((state as any).world || '').trim();
+    if (STRICT_STATE_PROMPT) {
+        console.log('STRICT_MODE: world injection controlled:', explicitEnvironment || explicitWorld || '');
+    }
+    if (!ALLOW_EMPTY_WORLD_IN_STRICT || explicitEnvironment || explicitWorld) {
+        if (explicitEnvironment) core.push(`STUDIO_WORLD: ${explicitEnvironment}`);
+        else if (explicitWorld) core.push(`STUDIO_WORLD: ${explicitWorld}`);
+    }
     if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
     if (state.stateMotion) core.push(`MOTION: ${state.stateMotion}`);

@@ -593,7 +593,7 @@ export class PromptEngine {
                     .filter(Boolean)
                 : [];
             const layerPromptText = String((options as any).studioLayerPromptText || '').trim();
-            if (studioPromptParts.length === 0 && layerPromptText) {
+            if (!STRICT_STATE_MODE && studioPromptParts.length === 0 && layerPromptText) {
                 studioPromptParts.push(
                     ...layerPromptText
                         .split('.')

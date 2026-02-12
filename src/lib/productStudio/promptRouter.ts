@@ -13,11 +13,20 @@ function isStudioV2Enabled(): boolean {
   return enabled;
 }
 
-function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] {
-  const mode = normalize(state.photoMode);
-  if (mode.includes('underwater')) return 'underwater';
-  if (mode.includes('splash') || mode.includes('foam') || mode.includes('pool water')) return 'splash-tank';
-  return 'studio';
+function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
+  const explicitWorld = normalize((state as any).world);
+  const explicitEnvironment = normalize((state as any).environment);
+  const explicitEnvironmentContext =
+    normalize((state as any).environmentContext?.macro) || normalize((state as any).environmentContext?.micro);
+  const source = `${explicitWorld} ${explicitEnvironment} ${explicitEnvironmentContext}`.trim();
+
+  if (!source) return undefined;
+  if (source.includes('underwater')) return 'underwater';
+  if (source.includes('splash') || source.includes('foam') || source.includes('pool water') || source.includes('tank')) {
+    return 'splash-tank';
+  }
+  if (source.includes('studio')) return 'studio';
+  return undefined;
 }
 
 function inferStudioComposition(state: ProductStudioState): StudioUIState['composition'] {
