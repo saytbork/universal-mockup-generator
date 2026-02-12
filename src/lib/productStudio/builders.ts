@@ -1339,6 +1339,31 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
         .filter(Boolean);
 }
 
+function buildIngredientStackBackgroundLock(state: ProductStudioState): string {
+    if (state.photoMode !== 'Ingredient Stack') return '';
+    const cfg = state.photoModeConfig?.ingredientStack;
+    if (!cfg || cfg.backgroundEnabled !== true) return '';
+
+    const backgroundType = String(cfg.backgroundType || '').trim();
+    if (backgroundType === 'Solid') {
+        const solid = String(state.backgroundColor || '').trim();
+        if (!solid) return '';
+        return `INGREDIENT_STACK_BACKGROUND_LOCK: Background override active. Use SOLID background only with exact color ${solid}. Lock this background color; do not auto-replace, do not neutralize, do not drift.`;
+    }
+
+    if (backgroundType === 'Gradient') {
+        const start = String(state.gradientStart || '').trim();
+        const end = String(state.gradientEnd || '').trim();
+        const mid = String(state.gradientMid || '').trim();
+        const angle = typeof state.gradientAngle === 'number' ? state.gradientAngle : 180;
+        if (!start || !end) return '';
+        const midSegment = mid ? ` with optional midpoint ${mid}` : '';
+        return `INGREDIENT_STACK_BACKGROUND_LOCK: Background override active. Use GRADIENT background only from ${start} to ${end}${midSegment} at ${angle} degrees. Lock this gradient; do not auto-replace, do not neutralize, do not drift.`;
+    }
+
+    return '';
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     if (scenePrompt) core.push(scenePrompt);
@@ -1365,6 +1390,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (featureParts.length > 0) {
         core.push(`PHOTO_MODE_FEATURES: ${featureParts.join('; ')}`);
     }
+    const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
+    if (ingredientStackBackgroundLock) core.push(ingredientStackBackgroundLock);
     const explicitIngredients = Array.isArray((state as any).ingredients)
         ? ((state as any).ingredients as unknown[])
             .map((entry) => String(entry || '').trim())
