@@ -1754,20 +1754,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     }
     
     // INGREDIENT INTERPRETATION - Simple version
-    const ingredientModes = [
-        'Ingredient Stack',
-        'Ingredient Flat Lay',
-        'Citrus Fresh Flat Lay',
-        'Stones & Crystals Flat Lay',
-        'Dried Citrus Earth',
-        'Beach Foam Splash',
-        'Pool Water',
-        'Ice Cubes',
-        'Condensation Droplets',
-        'Fruit Garnish / Citrus Accents',
-        'Textured Bed / Scatter Base',
-    ];
-    if (ingredientModes.includes(state.photoMode)) {
+    // INGREDIENT_RULE: Only for modes with natural ingredients or ice cubes around product
+    if (state.photoMode === 'Ingredient Stack' || state.photoMode === 'Ingredient Flat Lay' || state.photoMode === 'Ice Cubes') {
         core.push('INGREDIENT_RULE: Show natural raw ingredients only (herbs, fruits, spices). NOT packaged products or bottles. ONE product + ingredients around it.');
     }
     
