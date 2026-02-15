@@ -1637,6 +1637,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
             let resolvedHandsHolding = state.handsHolding;
             const notes: Partial<ProductStudioState> = {};
+            
+            // CLEANUP: Clear props/ingredients when switching AWAY from Ingredient modes
+            const wasIngredientMode = state.photoMode === 'Ingredient Stack' || state.photoMode === 'Ingredient Flat Lay';
+            const isIngredientMode = resolvedMode === 'Ingredient Stack' || resolvedMode === 'Ingredient Flat Lay';
+            const shouldClearProps = wasIngredientMode && !isIngredientMode;
+
 
             if (schema?.allowsPersonPresence === false && resolvedInteraction !== 'none') {
                 resolvedInteraction = 'none';
@@ -1681,6 +1687,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     : null,
                 handsHolding: resolvedHandsHolding,
                 interaction: resolvedInteraction,
+                // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
+                ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
                 ...notes,
             };
 
