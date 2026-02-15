@@ -30,7 +30,7 @@ export function buildComposition(authority: StudioAuthorityBundle): string {
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'
       : '',
     ingredientStackMode
-      ? 'COMPOSITION_DIRECTIVE: Product positioned at center with ingredients arranged in a surround/halo pattern around it. Eye-level or slight angle view. Ingredients rest on same surface as product (grounded, not floating). NOT a flat lay top-down view. CAMERA_ANGLE: Eye-level or slight 15-20° elevated angle, NOT overhead/top-down.'
+      ? 'COMPOSITION_DIRECTIVE: CRITICAL CAMERA REQUIREMENT - Eye-level frontal view OR maximum 15-20° elevated angle. ABSOLUTELY FORBIDDEN: top-down/overhead/flat-lay/bird-view/90° angle. Product must be seen from FRONT/SIDE perspective, NOT from above. Ingredients arranged in surround/halo circle pattern around product (grounded on same surface, not floating). INGREDIENT_INTERPRETATION LOCK: Render ONLY raw natural ingredients (fresh herbs, botanicals, whole fruits, spices, plant matter, oils in amber droppers). FORBIDDEN: packaged products, cosmetic bottles, secondary product containers. "cinnamon oil extract" = cinnamon sticks + dropper bottle with amber oil, NOT another packaged cinnamon oil product. Ingredients are PROPS for composition, NOT additional sellable products.'
       : '',
     flatLayMode
       ? 'COMPOSITION_DIRECTIVE: Top-down flat lay composition. Product and ingredients arranged on a single surface viewed from directly above (90° overhead). Clean grid-like or organized radial placement.'
