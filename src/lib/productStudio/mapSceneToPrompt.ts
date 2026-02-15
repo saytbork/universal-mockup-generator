@@ -395,7 +395,7 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
       const classic = randomizer.pick([
         'classic ad splash with one clean directional sheet and crisp droplet scatter around the product',
         'diagonal splash sheet mostly behind the product with frozen droplets and clear label visibility',
-        'base-impact splash wrapping around the lower body of the product with coherent droplet separation',
+        'base-impact splash wrapping around the lower section of the product with coherent droplet separation',
       ]);
       return [
         `SPLASH (CLASSIC): ${classic}.`,
