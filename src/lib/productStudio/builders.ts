@@ -149,6 +149,73 @@ export function validateBundleState(state: ProductStudioState): void {
 // COLOR VALIDATION
 // ============================================================================
 
+// ============================================================================
+// REFERENCE PRODUCT DETECTION & CATEGORY STRIP (Gemini/GPT Recommendations)
+// ============================================================================
+
+/**
+ * Detects if user uploaded actual product images (not generative mode).
+ * When true, we MUST NOT describe product semantically (no PRODUCT_TYPE, no PHYSICAL_PROPERTIES).
+ * This prevents the model from activating category priors (e.g., "Capsules" → white bottle).
+ */
+function hasReferenceProductImage(state: ProductStudioState): boolean {
+    if (Array.isArray(state.products) && state.products.length > 0) {
+        for (const product of state.products) {
+            if (!product) continue;
+            // Check all possible image fields
+            if (typeof product.base64 === 'string' && product.base64.trim().length > 0) return true;
+            if (typeof (product as any).imageUrl === 'string' && (product as any).imageUrl.trim().length > 0) return true;
+            if (typeof (product as any).url === 'string' && (product as any).url.trim().length > 0) return true;
+            if (typeof (product as any).src === 'string' && (product as any).src.trim().length > 0) return true;
+            if (typeof (product as any).previewUrl === 'string' && (product as any).previewUrl.trim().length > 0) return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Strips category priors from prompt when reference image exists.
+ * Removes: PRODUCT_TYPE, PHYSICAL_PROPERTIES, semantic descriptors, and aggressive frame constraints.
+ * This forces the model to treat the product as "pixel-truth" instead of "semantic category".
+ */
+function stripCategoryPriorsFromPrompt(prompt: string): string {
+    return prompt
+        // Remove semantic category descriptors
+        .replace(/\bPRODUCT_TYPE:[^\n.]*[.\n]?/gi, ' ')
+        .replace(/\bPHYSICAL_PROPERTIES:[^\n.]*[.\n]?/gi, ' ')
+        .replace(/\bsupplement bottle\b/gi, ' ')
+        .replace(/\bcapsule container\b/gi, ' ')
+        .replace(/\bpill bottle\b/gi, ' ')
+        .replace(/\bcosmetic jar\b/gi, ' ')
+        .replace(/\bpackaging type\b/gi, ' ')
+        // Replace aggressive frame constraint with proportional version
+        .replace(/The product must fill most of the vertical frame \(85.?92% height coverage\)\.?/gi, 
+                 'Close-up framing without altering object proportions.')
+        .replace(/Tight hero framing\. The product must fill most of the vertical frame \(85.?92% height coverage\)\./gi,
+                 'Close-up framing without altering object proportions.')
+        // Cleanup
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * Prepends HARD LOCK block at the very beginning (token positioning).
+ * When the model reads preservation rules FIRST, it establishes context for everything that follows.
+ */
+const REFERENCE_PRODUCT_HARD_LOCK = 
+    'REFERENCE PRODUCT LOCK: The uploaded product image is the single source of truth. ' +
+    'Reproduce the exact same object with zero redesign. ' +
+    'Preserve exact geometry, silhouette, cap shape, cap color, neck height, proportions, ' +
+    'material finish, surface texture, label layout, typography, alignment, and color relationships. ' +
+    'Do not reinterpret. Do not regenerate. Do not restyle. Do not substitute category defaults. ' +
+    'Do not improve or redesign packaging. The product must remain pixel-faithful to the reference image. ' +
+    'GEOMETRY PRESERVATION: Do not stretch, scale, elongate, inflate, compress, morph, or reshape ' +
+    'the object to satisfy framing constraints. If size adjustment is required, simulate camera proximity only. Never modify proportions.';
+
+// ============================================================================
+// COLOR VALIDATION (original content continues here)
+// ============================================================================
+
 function validateProductColor(color: { hex: string; semanticName: string }, productId: string, field: string): void {
     if (!color.semanticName || color.semanticName === 'neutral' || color.semanticName === '') {
         console.warn(`[COLOR] ${field} using neutral default for ${productId}`);
@@ -1608,10 +1675,17 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     }
     if (state.placement) core.push(`PHYSICAL_PLACEMENT: ${state.placement}`);
     if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
+    
+    // GEMINI/GPT FIX: Relax frame constraint when reference product exists to prevent morphing
+    const hasReference = hasReferenceProductImage(state);
     if (isHeroPhotoMode(state.photoMode)) {
-        core.push(
-            'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
-        );
+        if (hasReference) {
+            // Proportional framing - don't force % coverage that causes stretching
+            core.push('FRAME_CONSTRAINT: Close-up framing without altering object proportions. Minimal side margins. No excessive lateral negative space.');
+        } else {
+            // Original aggressive constraint (OK for generative mode)
+            core.push('FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.');
+        }
         core.push('VERTICAL_SUBJECT_DOMINANCE: Strong.');
         core.push('LATERAL_SPREAD: Restricted.');
         core.push('NEGATIVE_SPACE_POLICY: Controlled and minimal.');
@@ -1647,14 +1721,22 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         const effects = state.specialEffects.map((entry) => String(entry || '').trim()).filter(Boolean);
         if (effects.length > 0) core.push(`SPECIAL_EFFECTS: ${effects.join(', ')}`);
     }
-    if (state.definition?.type) {
+    
+    // GEMINI/GPT FIX: Only emit PRODUCT_TYPE when NO reference image (generative mode)
+    // When reference exists, semantic descriptors activate category priors (e.g., "Capsules" → white bottle)
+    // Use hasReference already declared above
+    if (!hasReference && state.definition?.type) {
         const rawType = String(state.definition.type || '').trim();
         const uiType = rawType ? `${rawType.charAt(0).toUpperCase()}${rawType.slice(1)}` : '';
         core.push(`PRODUCT_TYPE: ${uiType || rawType}`);
     }
-    const physicalProperties = buildPhysicalPropertiesParts(state);
-    if (physicalProperties.length > 0) {
-        core.push(`PHYSICAL_PROPERTIES: ${physicalProperties.join('; ')}`);
+    
+    // GEMINI/GPT FIX: Only emit PHYSICAL_PROPERTIES when NO reference image
+    if (!hasReference) {
+        const physicalProperties = buildPhysicalPropertiesParts(state);
+        if (physicalProperties.length > 0) {
+            core.push(`PHYSICAL_PROPERTIES: ${physicalProperties.join('; ')}`);
+        }
     }
     if (state.packagingMode) core.push(`PACKAGING: ${state.packagingMode}`);
     if (state.physicalScaleLabel) core.push(`PHYSICAL_SCALE: ${state.physicalScaleLabel}`);
@@ -1759,6 +1841,13 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }
+    
+    // GEMINI/GPT FIX PATCH 3: When reference product exists, strip category priors and prepend HARD LOCK
+    if (hasReferenceProductImage(state)) {
+        finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
+        finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+    }
+    
     console.log('2. Generated Prompt Parts:', segments);
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
@@ -1817,6 +1906,13 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }
+    
+    // GEMINI/GPT FIX PATCH 3: When reference product exists, strip category priors and prepend HARD LOCK
+    if (hasReferenceProductImage(state)) {
+        finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
+        finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+    }
+    
     return finalPrompt;
 }
 
