@@ -334,7 +334,7 @@ export type ColorPopHeroContrastStrategy = 'Soft' | 'High';
 export type ColorPopHeroNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
 
 export type IngredientStackIngredientFocus = 'Key active only' | 'Full formula';
-export type IngredientStackStackStyle = 'Vertical stack' | 'Surround' | 'Split composition';
+export type IngredientStackStackStyle = 'Surround' | 'Split composition';
 export type IngredientStackIngredientPresence = 'Subtle' | 'Balanced' | 'Hero';
 export type IngredientStackLabelPriority = 'Always readable' | 'Secondary to ingredients';
 export type IngredientStackBackgroundType = 'Solid' | 'Gradient';

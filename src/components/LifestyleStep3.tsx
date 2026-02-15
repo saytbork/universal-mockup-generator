@@ -3202,7 +3202,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div>
                                       <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
                                       <div className="flex flex-wrap gap-2">
-                                        {(['Vertical stack', 'Surround', 'Split composition'] as const).map(v => (
+                                        {(['Surround', 'Split composition'] as const).map(v => (
                                           <Chip
                                             key={v}
                                             selected={productStore.photoModeConfig.ingredientStack.stackStyle === v}

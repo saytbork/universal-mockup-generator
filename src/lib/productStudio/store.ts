@@ -525,7 +525,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     },
     ingredientStack: {
         ingredientFocus: 'Key active only',
-        stackStyle: 'Vertical stack',
+        stackStyle: 'Surround',
         ingredientPresence: 'Balanced',
         labelPriority: 'Always readable',
         backgroundEnabled: false,

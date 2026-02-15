@@ -1625,11 +1625,17 @@ function buildHandsApplicationSemanticParts(state: ProductStudioState): string[]
     const cropStyle = String(dynamicHands.cropStyle || '').trim().toLowerCase();
 
     const parts: string[] = [];
+    
+    // PRODUCT PRESERVATION LOCK - Must come FIRST for token positioning
+    const hasReference = hasReferenceProductImage(state);
+    if (hasReference) {
+        parts.push('PRODUCT_PRESERVATION_LOCK: The EXACT product from reference image MUST be shown in hands. Preserve ALL product features: cap shape, cap color, cap material (transparent/opaque/metallic), pump mechanism, bottle shape, bottle color, label design, closure type. If cap is transparent in reference, keep it transparent. If cap is metallic silver, keep it metallic silver. If cap is matte black, keep it matte black. Do NOT regenerate, recolor, or redesign any product element. Hands interact with THIS SPECIFIC PRODUCT, not a generic version.');
+    }
 
     if (handPose === 'applying') {
-        parts.push('HANDS_ACTION: Applying gesture only. Clear product-to-skin application moment with realistic contact and pressure.');
+        parts.push('HANDS_ACTION: Applying gesture only. Product dispensing onto skin or fingers. Clear product-to-skin application moment with realistic contact and pressure. Product formula visible on skin/fingertips.');
     } else if (handPose === 'opening') {
-        parts.push('HANDS_ACTION: Opening gesture only. Cap/closure manipulation is visible; no application smear.');
+        parts.push('HANDS_ACTION: Opening gesture only. Hand removing/twisting cap from bottle. Cap/closure manipulation is visible; no application smear. Cap must remain attached to hand or bottle, NOT disappear.');
     } else if (handPose === 'holding') {
         parts.push('HANDS_ACTION: Holding gesture only. Clean hold presentation with stable grip and no exaggerated motion.');
     }
