@@ -30,7 +30,7 @@ export function buildComposition(authority: StudioAuthorityBundle): string {
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'
       : '',
     ingredientStackMode
-      ? 'COMPOSITION_DIRECTIVE: Product at center. Ingredients arranged around product on same surface (NOT floating, NOT overhead view). Eye-level camera angle.'
+      ? 'INGREDIENT_STACK_PERSPECTIVE_LOCK: Camera must be front-facing or 45° hero angle. Eye-level or slight 10–20° downward tilt maximum. Absolutely NO top-down view. Absolutely NO overhead camera. Absolutely NO flat lay composition. Product must show visible front label plane. Bottle height must be visible in perspective. Cap and vertical geometry must be visible. Surface horizon line must be visible behind product. Ingredients must sit on same physical surface plane as product. Ingredients must not form circular flat lay pattern. Depth separation required between foreground and background. Shallow depth of field allowed. Overhead symmetry forbidden. FLAT_LAY_FORBIDDEN: If camera angle > 35° downward tilt, regenerate composition. COMPOSITION_DIRECTIVE: Product positioned upright at eye-level or 45° hero angle. Camera height aligned with product mid-body. Visible front label plane. Ingredients arranged around base perimeter on same horizontal surface plane, viewed from front perspective. Surface horizon line visible. No overhead geometry compression. CAMERA_POSITION_LOCK: Camera physically placed in front of product at tabletop height. Viewer must see front face of label. Viewer must see depth behind product.'
       : '',
     flatLayMode
       ? 'COMPOSITION_DIRECTIVE: Top-down flat lay composition. Product and ingredients arranged on a single surface viewed from directly above (90° overhead). Clean grid-like or organized radial placement.'
@@ -44,5 +44,8 @@ export function buildComposition(authority: StudioAuthorityBundle): string {
     authority.permissions.allowVerticalDominance
       ? 'No lateral splash expansion allowed.'
       : 'Lateral splash expansion follows world constraints.',
+    ingredientStackMode
+      ? 'CRITICAL_COMPOSITION_GUARD: If the composition resembles a flat lay, overhead table shot, or top-down ingredient layout, this output is invalid and must be regenerated with front-facing perspective.'
+      : '',
   ].join(' ');
 }
