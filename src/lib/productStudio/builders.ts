@@ -1747,8 +1747,21 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         core.push(`PROPS: ${String(state.props).trim()}`);
     }
     
-    // INGREDIENT INTERPRETATION LOCK for Ingredient Stack/Flat Lay modes
-    if (state.photoMode === 'Ingredient Stack' || state.photoMode === 'Ingredient Flat Lay') {
+    // INGREDIENT INTERPRETATION LOCK for ALL modes that accept ingredients/props
+    const ingredientModes = [
+        'Ingredient Stack',
+        'Ingredient Flat Lay',
+        'Citrus Fresh Flat Lay',
+        'Stones & Crystals Flat Lay',
+        'Dried Citrus Earth',
+        'Beach Foam Splash',
+        'Pool Water',
+        'Ice Cubes',
+        'Condensation Droplets',
+        'Fruit Garnish / Citrus Accents',
+        'Textured Bed / Scatter Base',
+    ];
+    if (ingredientModes.includes(state.photoMode)) {
         core.push('INGREDIENT_INTERPRETATION: Show RAW NATURAL ingredients ONLY (fresh herbs, botanicals, fruits, spices, essential oils in droppers, raw plant matter). NEVER show packaged products, cosmetic bottles, or product containers as "ingredients". If ingredient name suggests oil/extract/essence, render it as NATURAL RAW FORM (e.g., "cinnamon oil" = cinnamon sticks + amber dropper with oil drops, NOT a bottled cinnamon oil product). Ingredients are props/styling elements, NOT additional products.');
     }
     

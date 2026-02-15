@@ -1638,9 +1638,22 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             let resolvedHandsHolding = state.handsHolding;
             const notes: Partial<ProductStudioState> = {};
             
-            // CLEANUP: Clear props/ingredients when switching AWAY from Ingredient modes
-            const wasIngredientMode = state.photoMode === 'Ingredient Stack' || state.photoMode === 'Ingredient Flat Lay';
-            const isIngredientMode = resolvedMode === 'Ingredient Stack' || resolvedMode === 'Ingredient Flat Lay';
+            // CLEANUP: Clear props/ingredients when switching AWAY from ANY ingredient mode
+            const ingredientModes = [
+                'Ingredient Stack',
+                'Ingredient Flat Lay',
+                'Citrus Fresh Flat Lay',
+                'Stones & Crystals Flat Lay',
+                'Dried Citrus Earth',
+                'Beach Foam Splash',
+                'Pool Water',
+                'Ice Cubes',
+                'Condensation Droplets',
+                'Fruit Garnish / Citrus Accents',
+                'Textured Bed / Scatter Base',
+            ];
+            const wasIngredientMode = ingredientModes.includes(state.photoMode);
+            const isIngredientMode = ingredientModes.includes(resolvedMode);
             const shouldClearProps = wasIngredientMode && !isIngredientMode;
 
 
