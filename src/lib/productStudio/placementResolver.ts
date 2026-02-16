@@ -162,7 +162,7 @@ function buildUnderwaterPlacementPrompt(resolvedPlacement: ProductPlacement): st
     ].join(' ');
   }
   return [
-    'Placement resolved: submerged product body.',
+    'Placement resolved: submerged product form.',
     'Product is fully submerged with physically coherent depth, refraction, and waterline behavior.'
   ].join(' ');
 }
@@ -192,7 +192,7 @@ function buildEnvironmentPlacementPrompt(
   if (resolvedPlacement === 'held') {
     return [
       'Placement resolved: hand-held environmental composition.',
-      'Product is physically held within the scene with realistic body mechanics and contact pressure.'
+      'Product is physically held within the scene with realistic hand mechanics and contact pressure.'
     ].join(' ');
   }
   return [

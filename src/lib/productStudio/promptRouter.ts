@@ -13,14 +13,28 @@ function isStudioV2Enabled(): boolean {
   return enabled;
 }
 
-function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] {
-  const mode = normalize(state.photoMode);
-  if (mode.includes('underwater')) return 'underwater';
-  if (mode.includes('splash') || mode.includes('foam') || mode.includes('pool water')) return 'splash-tank';
-  return 'studio';
+function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
+  const explicitWorld = normalize((state as any).world);
+  const explicitEnvironment = normalize((state as any).environment);
+  const explicitEnvironmentContext =
+    normalize((state as any).environmentContext?.macro) || normalize((state as any).environmentContext?.micro);
+  const source = `${explicitWorld} ${explicitEnvironment} ${explicitEnvironmentContext}`.trim();
+
+  if (!source) return undefined;
+  if (source.includes('underwater')) return 'underwater';
+  if (source.includes('splash') || source.includes('foam') || source.includes('pool water') || source.includes('tank')) {
+    return 'splash-tank';
+  }
+  if (source.includes('studio')) return 'studio';
+  return undefined;
 }
 
 function inferStudioComposition(state: ProductStudioState): StudioUIState['composition'] {
+  const composition = normalize((state as any).composition);
+  if (composition === 'flatlay') return 'flat-lay';
+  if (composition === 'grid' || composition === 'grid-ready') return 'carousel';
+  if (composition === 'macro') return 'macro';
+
   if (state.photoMode === 'Ingredient Flat Lay') return 'flat-lay';
   if (state.photoMode === 'Ingredient Stack') return 'ingredient-stack';
   if (state.photoMode === 'Macro Dew Label' || state.distance === 'macro') return 'macro';
@@ -29,6 +43,12 @@ function inferStudioComposition(state: ProductStudioState): StudioUIState['compo
 }
 
 function inferStudioMotion(state: ProductStudioState): StudioUIState['motion'] {
+  if (state.photoMode === 'Hands Application Clean') {
+    const handPose = String((state as any).photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '')
+      .trim()
+      .toLowerCase();
+    if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
+  }
   if (state.stateMotion === 'falling') return 'falling';
   if (state.stateMotion === 'dispensed') return 'dispensed';
   if (state.stateMotion === 'pouring' || state.stateMotion === 'spilled') return 'pouring';
@@ -48,17 +68,67 @@ function inferSubjectOrientation(state: ProductStudioState): StudioUIState['subj
   return 'square';
 }
 
+function inferLightingOverride(state: ProductStudioState): string | undefined {
+  const rig = String((state as any).lightingRig || '').trim();
+  const style = String((state as any).lighting || '').trim();
+  if (rig && style) return `${rig}; ${style}`;
+  if (rig) return rig;
+  if (style) return style;
+  return undefined;
+}
+
+function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requestedModifiers'] {
+  const requested = new Set<string>();
+
+  const photoMode = String(state.photoMode || '').toLowerCase();
+  const allText = [
+    photoMode,
+    String((state as any).props || '').toLowerCase(),
+    ...(Array.isArray((state as any).selectedProps) ? (state as any).selectedProps.map((v: unknown) => String(v).toLowerCase()) : []),
+    ...(Array.isArray((state as any).specialEffects) ? (state as any).specialEffects.map((v: unknown) => String(v).toLowerCase()) : []),
+  ];
+  const haystack = allText.join(' | ');
+
+  if (haystack.includes('splash') || haystack.includes('pool water') || haystack.includes('underwater')) {
+    requested.add('splash');
+  }
+  if (haystack.includes('foam')) {
+    requested.add('foam');
+  }
+  if (haystack.includes('condensation')) {
+    requested.add('condensation');
+  }
+  if (haystack.includes('ice')) {
+    requested.add('ice');
+  }
+  if (haystack.includes('fruit') || haystack.includes('citrus') || haystack.includes('garnish')) {
+    requested.add('fruit');
+  }
+  if (haystack.includes('textured bed') || haystack.includes('scatter base') || haystack.includes('stone') || haystack.includes('sand')) {
+    requested.add('texturedBed');
+  }
+  if (haystack.includes('particle')) {
+    requested.add('particles');
+  }
+  if (haystack.includes('acrylic')) {
+    requested.add('acrylic');
+  }
+
+  return Array.from(requested) as StudioUIState['requestedModifiers'];
+}
+
 function toStudioV2State(state: ProductStudioState): StudioUIState {
+  const requestedModifiers = inferRequestedModifiers(state);
   return {
     creativeIntent: inferStudioIntent(state),
     world: inferStudioWorld(state),
     motion: inferStudioMotion(state),
     composition: inferStudioComposition(state),
+    lightingModelOverride: inferLightingOverride(state),
     aspectRatio: state.aspectRatio,
     photoMode: state.photoMode,
     subjectOrientation: inferSubjectOrientation(state),
-    // Keep V2 strict: no modifiers are auto-injected.
-    requestedModifiers: [],
+    requestedModifiers,
   };
 }
 
@@ -79,6 +149,7 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
 
   console.log('[STUDIO ROUTER] engine=v2');
   const v2State = toStudioV2State(state);
+  console.log('[STUDIO ROUTER] v2-state', v2State);
   const v2Prompt = generateStudioPromptV2(v2State);
   return mapV2ToScenePromptResult(v2Prompt);
 }

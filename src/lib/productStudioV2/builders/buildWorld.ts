@@ -6,6 +6,7 @@ const WORLD_LABELS: Record<StudioAuthorityBundle['world'], string> = {
   'splash-tank': 'splash tank environment with bounded liquid containment',
 };
 
-export function buildWorld(authority: StudioAuthorityBundle): string {
+export function buildWorld(authority: StudioAuthorityBundle, explicitWorld?: StudioAuthorityBundle['world']): string {
+  if (!explicitWorld) return '';
   return `STUDIO_WORLD: ${WORLD_LABELS[authority.world]}.`;
 }

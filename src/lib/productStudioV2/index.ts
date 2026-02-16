@@ -11,22 +11,31 @@ import { buildMaterials } from './builders/buildMaterials.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
-import type { StudioUIState } from './types/studioTypes.ts';
+import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
+
+const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
+
+function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
+  if (!STRICT_GUARDRAILS) return [];
+  return [buildUltraReal(authority)];
+}
 
 export function generateStudioPromptV2(state: StudioUIState): string {
+  console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const authority = resolveStudioAuthority(state);
   const modifiers = getAllowedStudioModifiers(authority, state);
+  const protectionLayer = buildProtectionLayer(authority);
 
   const blocks = [
     buildIntent(authority),
-    buildWorld(authority),
+    buildWorld(authority, state.world),
     buildComposition(authority),
     buildMotion(authority),
     buildPhysics(authority),
     buildModifiers(modifiers),
-    buildLighting(authority),
+    buildLighting(authority, state),
     buildMaterials(authority),
-    buildUltraReal(authority),
+    ...protectionLayer,
   ];
 
   const prompt = assembleStudioPrompt(blocks);

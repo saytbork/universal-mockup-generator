@@ -256,6 +256,9 @@ interface LifestyleStep3Props {
 }
 
 export interface Step3Values {
+  sceneType?: 'studio-branding' | 'lifestyle-real';
+  contentStyle?: 'ugc' | 'product' | 'brand';
+  personIncluded?: boolean;
   placement?: ProductPlacement;
   // Creator/Person
   age: number; // Numeric age (18-90)
@@ -509,6 +512,16 @@ export interface Step3Values {
   studioBackgroundColor?: string;
   studioAccentColor?: string;
 }
+
+const normalizeCreationModeForEmit = (raw: string): 'aesthetic' | 'lifestyle' | 'ugc' | 'studio' | 'ecom-blank' => {
+  const value = String(raw || '').trim().toLowerCase();
+  if (value === 'aesthetic builder' || value === 'aesthetic') return 'aesthetic';
+  if (value === 'lifestyle ugc' || value === 'lifestyle') return 'lifestyle';
+  if (value === 'ugc') return 'ugc';
+  if (value === 'studio hero' || value === 'studio') return 'studio';
+  if (value === 'ecommerce blank space' || value === 'ecom-blank') return 'ecom-blank';
+  return 'aesthetic';
+};
 
 // ============================================================================
 // CONSTANTS
@@ -1804,9 +1817,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
-    console.log('[STEP3 EMIT]', values);
+    const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
+    const sceneType: 'studio-branding' | 'lifestyle-real' =
+      normalizedCreationMode === 'aesthetic' ||
+        normalizedCreationMode === 'lifestyle' ||
+        normalizedCreationMode === 'ugc'
+        ? 'lifestyle-real'
+        : 'studio-branding';
+    const contentStyle: 'ugc' | 'product' | 'brand' =
+      values.ugcRealMode || values.creationIntent === 'ugc'
+        ? 'ugc'
+        : values.sceneIntent === 'ecommerce'
+          ? 'product'
+          : 'brand';
+    const personIncluded = values.noPerson === false;
+    const payload: Step3Values = {
+      ...values,
+      creationMode: normalizedCreationMode,
+      sceneType,
+      contentStyle,
+      personIncluded,
+    };
+
+    console.log('[STEP3 FINAL EMIT PAYLOAD]', JSON.stringify(payload, null, 2));
+    console.log('[STEP3 FINAL EMIT FIELDS]', {
+      sceneType: payload.sceneType,
+      creationMode: payload.creationMode,
+      contentStyle: payload.contentStyle,
+      personIncluded: payload.personIncluded,
+      sceneIntent: payload.sceneIntent,
+    });
     if (onValuesChange) {
-      onValuesChange(values);
+      onValuesChange(payload);
     }
   }, [values, onValuesChange]);
 
@@ -2184,35 +2226,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Note: Ecommerce canvas is not a sceneIntent; do not switch modes from compositionMode.
 
-  // ========================================================================
-  // PRODUCT MODE VALIDATION (Stage 11)
-  // ========================================================================
-
-  // Block and clear UGC state when Product Mode is active
-  useEffect(() => {
-    if (values.sceneIntent !== 'ecommerce') return;
-
-    console.log('[PRODUCT MODE VALIDATION] Clearing UGC state');
-
-    // Auto-clear UGC Real Mode
-    if (values.ugcRealMode) {
-      console.log('[PRODUCT MODE] Disabling UGC Real Mode');
-      updateValue('ugcRealMode', false);
-    }
-
-    // Set creation intent to product
-    if (values.creationIntent !== 'product') {
-      console.log('[PRODUCT MODE] Setting creationIntent = product');
-      updateValue('creationIntent', 'product');
-    }
-  }, [
-    values.sceneIntent,
-    values.ugcRealMode,
-    values.noPerson,
-    values.creationIntent,
-    updateValue
-  ]);
-
   useEffect(() => {
     if (!values.formulationStoryEnabled) {
       return;
@@ -2226,23 +2239,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       updateValue(layer, []);
     });
   }, [values.formulationStoryEnabled, values.ugcRealMode, updateValue]);
-
-  useEffect(() => {
-    const shouldDisablePerson = values.sceneIntent === 'ecommerce';
-    if (values.noPerson !== shouldDisablePerson) {
-      updateValue('noPerson', shouldDisablePerson);
-    }
-  }, [values.sceneIntent, values.noPerson, updateValue]);
-
-  useEffect(() => {
-    if (!values.formulationStoryEnabled) return;
-    if (values.sceneIntent === 'ecommerce') return;
-
-    if (values.noPerson) {
-      console.log('[FORMULATION STORY] Forcing person enabled (noPerson=false)');
-      updateValue('noPerson', false);
-    }
-  }, [values.formulationStoryEnabled, values.sceneIntent, values.noPerson, updateValue]);
 
   useEffect(() => {
     if (values.ugcRealMode && values.formulationStoryEnabled) {
@@ -3206,7 +3202,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div>
                                       <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
                                       <div className="flex flex-wrap gap-2">
-                                        {(['Vertical stack', 'Surround', 'Split composition'] as const).map(v => (
+                                        {(['Surround', 'Split composition'] as const).map(v => (
                                           <Chip
                                             key={v}
                                             selected={productStore.photoModeConfig.ingredientStack.stackStyle === v}

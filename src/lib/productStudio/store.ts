@@ -525,7 +525,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     },
     ingredientStack: {
         ingredientFocus: 'Key active only',
-        stackStyle: 'Vertical stack',
+        stackStyle: 'Surround',
         ingredientPresence: 'Balanced',
         labelPriority: 'Always readable',
         backgroundEnabled: false,
@@ -1077,16 +1077,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 updates.customMicroPlaceText = '';
             }
 
-            // Map mode to sceneType (legacy compatibility)
-            const modeToSceneType: Record<typeof mode, SceneType> = {
-                'studio': 'studio-branding',
-                'editorial': 'editorial-product',
-                'lifestyle-real': 'lifestyle-real',
-                'ugc': 'ugc-phone',
-                'ecommerce': 'studio-branding',
-            };
-            updates.sceneType = modeToSceneType[mode];
-
             console.log(`[ProductStudio] MODE set to: ${mode}`);
             return updates;
         }),
@@ -1211,36 +1201,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     // Scene Type (Legacy)
     setSceneType: (sceneType) =>
-        set((state) => {
-            let newBundle = state.bundle;
-            // lifestyle-real forces bundle off
-            if (sceneType === 'lifestyle-real' && state.bundle.enabled) {
-                newBundle = { ...state.bundle, enabled: false };
-            }
-            // Lifestyle sceneType requires an active environment context.
-            // If environment is missing, keep Studio to avoid accidental mode switching.
-            const requestedSceneType =
-                sceneType === 'lifestyle-real' && state.environmentContext == null
-                    ? 'studio-branding'
-                    : sceneType;
-            // blankSpaceEnabled forces studio
-            const effectiveSceneType = state.blankSpaceEnabled ? 'studio-branding' : requestedSceneType;
-            const isStudioLike =
-                effectiveSceneType === 'studio-branding' ||
-                effectiveSceneType === 'studio-hero' ||
-                effectiveSceneType === 'ecommerce-pdp';
-            return {
-                sceneType: effectiveSceneType,
-                bundle: newBundle,
-                // studio forces neutral-surface
-                microPlace: effectiveSceneType === 'studio-branding' ? 'neutral-surface' : state.microPlace,
-                environmentContext: isStudioLike ? null : state.environmentContext,
-                environmentMacro: isStudioLike ? 'studio' : state.environmentMacro,
-                customEnvironmentText: isStudioLike ? '' : state.customEnvironmentText,
-                customMicroPlaceText: isStudioLike ? '' : state.customMicroPlaceText,
-                mode: isStudioLike ? 'studio' : state.mode,
-            };
-        }),
+        set(() => ({ sceneType })),
 
     // Creativity
     setVisualIntent: (intent) => set({ visualIntent: intent }),
@@ -1336,8 +1297,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     microPlace: 'neutral-surface',
                     customEnvironmentText: '',
                     customMicroPlaceText: '',
-                    mode: 'studio',
-                    sceneType: 'studio-branding',
                 };
             }
 
@@ -1370,8 +1329,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 environmentMacro: validatedMacro,
                 microPlace: validatedMicro ?? 'neutral-surface',
                 lighting: validatedLighting,
-                mode: validatedMacro === 'studio' ? 'studio' : 'lifestyle-real',
-                sceneType: validatedMacro === 'studio' ? 'studio-branding' : 'lifestyle-real',
             };
         });
     },
@@ -1398,12 +1355,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 lighting: validLighting,
             };
 
-            if (isRealEnvironment && state.mode === 'studio') {
-                updates.mode = 'lifestyle-real';
-                updates.sceneType = 'lifestyle-real';
-                console.log('[ProductStudio] UI LOCK: Real environment selected → Studio Creative disabled');
-            }
-
             return updates;
         }),
     setMicroPlace: (place) => set({ microPlace: place }),
@@ -1414,8 +1365,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (trimmed) {
                 updates.environmentContext = { macro: 'custom', micro: state.environmentContext?.micro ?? null };
                 updates.environmentMacro = 'custom';
-                updates.mode = 'lifestyle-real';
-                updates.sceneType = 'lifestyle-real';
             }
             return updates;
         }),
@@ -1438,7 +1387,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setBlankSpaceEnabled: (enabled) =>
         set((state) => ({
             blankSpaceEnabled: enabled,
-            sceneType: enabled ? 'studio-branding' : state.sceneType,
             microPlace: enabled ? 'neutral-surface' : state.microPlace,
             environmentContext: enabled ? null : state.environmentContext,
             environmentMacro: enabled ? 'studio' : state.environmentMacro,
@@ -1539,7 +1487,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 // Apply basic tier restrictions
                 return {
                     presetTier: tier,
-                    sceneType: 'studio-branding',
                     propDensity: state.propDensity === 'medium' ? 'low' : state.propDensity,
                     bundle: state.bundle.mode !== 'off' && state.bundle.mode !== 'hero'
                         ? { ...state.bundle, mode: 'hero' }
@@ -1552,7 +1499,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     applyBasicPreset: () =>
         set({
             presetTier: 'basic',
-            sceneType: 'studio-branding',
             creativityLevel: 1,
             creativeTheme: 'clinical-minimal',
             propDensity: 'none',
@@ -1691,6 +1637,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
             let resolvedHandsHolding = state.handsHolding;
             const notes: Partial<ProductStudioState> = {};
+            
+            // CLEANUP: Clear props/ingredients when switching AWAY from ingredient modes
+            // Only these 3 modes use ingredients field:
+            const ingredientModes = ['Ingredient Stack', 'Ingredient Flat Lay', 'Ice Cubes'];
+            const wasIngredientMode = ingredientModes.includes(state.photoMode);
+            const isIngredientMode = ingredientModes.includes(resolvedMode);
+            const shouldClearProps = wasIngredientMode && !isIngredientMode;
+
 
             if (schema?.allowsPersonPresence === false && resolvedInteraction !== 'none') {
                 resolvedInteraction = 'none';
@@ -1735,6 +1689,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     : null,
                 handsHolding: resolvedHandsHolding,
                 interaction: resolvedInteraction,
+                // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
+                ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
                 ...notes,
             };
 
@@ -1752,7 +1708,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (resolvedMode === 'Hero Landing Page' && !shouldUseEnvironment) {
                 const merged = {
                     ...common,
-                    sceneType: 'studio-hero',
                     proMode: false,
                     // Hero Landing Page rules: bundles are not allowed.
                     bundle: { ...state.bundle, enabled: false },
@@ -1766,15 +1721,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (shouldUseEnvironment) {
                 return {
                     ...common,
-                    sceneType: 'lifestyle-real',
-                    mode: 'lifestyle-real',
                 };
             }
 
             return {
                 ...common,
-                sceneType: 'studio-branding',
-                mode: 'studio',
             };
         }),
     updatePhotoModeSubSetting: (mode, category, value) =>

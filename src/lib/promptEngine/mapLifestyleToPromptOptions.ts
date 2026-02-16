@@ -747,7 +747,17 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
     }
 
-    if (sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
+    const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
+    const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
+    const personIncludedSignal =
+        (sceneState as any).personIncluded === true ||
+        sceneState.noPerson === false;
+    const forceLifestyleEngine =
+        creationModeRaw === 'aesthetic' ||
+        contentStyleRaw === 'ugc' ||
+        personIncludedSignal === true;
+
+    if (!forceLifestyleEngine && sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
         throw new Error('Invalid state: ugcRealMode + ecommerce sceneIntent');
     }
@@ -759,7 +769,7 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent (creationMode)');
         throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent (creationMode)');
     }
-    if (sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
+    if (!forceLifestyleEngine && sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
     }
@@ -793,9 +803,15 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    if (sceneState.sceneIntent === 'ecommerce') {
+    const activeEngine =
+        !forceLifestyleEngine && sceneState.sceneIntent === 'ecommerce'
+            ? 'studio'
+            : 'lifestyle';
+    console.log('[ENGINE ACTIVE]', activeEngine);
+
+    if (activeEngine === 'studio') {
         console.log('[PRODUCT MODE ACTIVE]');
-        return mapProductModeToPromptOptions(sceneState, existingOptions);
+        return mapProductModeToPromptOptions(sceneState);
     }
 
     // ========================================================================
@@ -1216,21 +1232,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // CREATION MODE → Structural Rules (FIRST - affects everything downstream)
     // ========================================================================
-    let creationModeKey =
-        sceneState.creationMode ||
-        (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
-
-    // OVERRIDE: If Composition Mode is 'Ecommerce Blank Space', force creation mode
-    // This allows Ecommerce Builder to work without UI state sync complexity
-    if (sceneState.compositionMode === 'Ecommerce Blank Space' && !isEnvironmentSceneIntent) {
-        creationModeKey = 'Ecommerce Blank Space';
-    }
-
-    if (isEnvironmentSceneIntent) {
-        creationModeKey =
-            sceneState.creationMode ||
-            (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
-    }
+    const creationModeKey = sceneState.creationMode || 'Aesthetic Builder';
 
     const productProminenceKey =
         ((sceneState as any).productProminence as
@@ -1262,7 +1264,7 @@ export function mapLifestyleToPromptOptions(
         'Background Replace': 'bg-replace',
         'Ecommerce Blank Space': 'ecom-blank'
     };
-    mapped.creationMode = creationModeInternalMap[creationModeKey] || 'lifestyle';
+    mapped.creationMode = creationModeInternalMap[creationModeKey] || 'aesthetic';
     mapped.creationModeStructural = creationModeStructural;
     console.log('[MAP] creationMode:', creationModeKey, '→', mapped.creationMode, '→', creationModeStructural);
 
@@ -1308,8 +1310,6 @@ export function mapLifestyleToPromptOptions(
     if ((sceneState.ugcRealMode || lifestyleUgcMode) && !forceHideProductRequested) {
         console.log('[MAP] UGC Real Mode ACTIVE - applying hard overrides');
 
-        // FORCE lifestyle mode
-        mapped.creationMode = 'lifestyle';
         mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
         mapped.ugcCaptureSituation = sceneState.ugcCaptureSituation || null;
@@ -1937,7 +1937,6 @@ export function mapLifestyleToPromptOptions(
             delete mapped.bgGradient;
         }
 
-        mapped.creationMode = 'bg-replace';
         mapped.creationModeStructural =
             'Background replacement mode: preserve the subject and replace the original environment with a neutral hero canvas.';
         mapped.compositionModeStructural =
@@ -2068,9 +2067,10 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    // This mapper is used for Lifestyle/UGC flows. Even when "creationIntent" is "brand" or "product-first",
-    // we still allow people/identity language. Product-only isolation is handled by the Studio pipeline.
-    mapped.contentStyle = 'ugc';
+    const explicitContentStyle = String((sceneState as any).contentStyle || '').trim();
+    if (explicitContentStyle) {
+        mapped.contentStyle = explicitContentStyle as any;
+    }
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
@@ -2174,7 +2174,6 @@ export function mapLifestyleToPromptOptions(
             delete mapped.bgGradient;
         }
         delete (mapped as any).ageGroup;
-        mapped.creationMode = mapped.creationMode || 'lifestyle';
         mapped.creationModeStructural =
             mapped.creationModeStructural ||
             'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
@@ -2243,6 +2242,9 @@ export function mapLifestyleToPromptOptions(
         });
         console.log('[MAP OUTPUT]', JSON.stringify(mapped, null, 2));
     }
+    console.log('[FINAL SCENETYPE]', (mapped as any).sceneType ?? (sceneState as any).sceneType ?? 'undefined');
+    console.log('[FINAL CREATIONMODE]', mapped.creationMode ?? sceneState.creationMode ?? 'undefined');
+    console.log('[FINAL CONTENTSTYLE]', mapped.contentStyle ?? (sceneState as any).contentStyle ?? 'undefined');
 
     return mapped;
 }
