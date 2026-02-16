@@ -733,25 +733,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </motion.div>
 
           {/* SaaS Headline & Mechanism */}
-          <div className="max-w-6xl mx-auto text-center space-y-8">
+          <div className="max-w-6xl mx-auto text-center space-y-6">
             <motion.h1
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-              className="text-3xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight text-balance"
+              className="text-4xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight text-balance"
             >
-              Your product photos are the reason your store looks small.
+              Upload one product photo. Generate sell-ready ecommerce visuals instantly.
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed font-medium text-balance"
+              transition={{ duration: 1, delay: 0.3 }}
+              className="text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-4xl mx-auto leading-relaxed font-normal text-balance"
             >
-              Turn raw product shots into studio-quality visuals.
-              <br className="hidden sm:block" />
-              Same product. No photoshoot. No designer.
+              Turn a single product image into AI-generated studio and lifestyle photos in under 60 seconds. No prompts. No redesign.
             </motion.p>
           </div>
 
@@ -759,32 +757,39 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 w-full"
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="flex flex-col items-center justify-center gap-3 mt-10 w-full"
           >
             <Link
               to="/app"
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-12 py-6 font-bold text-lg transition-all hover:bg-indigo-700 shadow-2xl shadow-indigo-600/30 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              Try it for free
-              <ArrowRight className="ml-2 w-4 h-4" />
+              Generate 2 Free Images
+              <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+              No email required · Ready in under 60 seconds
+            </p>
             <button
               onClick={handleSmoothScroll('#before-after')}
-              className="relative w-full sm:w-auto inline-flex items-center justify-center px-8 py-5 font-bold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
+              className="relative mt-2 inline-flex items-center justify-center px-6 py-3 font-semibold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
             >
               See the Before → After
               <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
             </button>
           </motion.div>
-          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold text-center">
-            No setup. No learning curve. First result in minutes.
-          </p>
         </div>
       </header>
 
       {/* Modern Auto-Scrolling Before/After Carousel */}
       <section id="before-after" className="bg-white dark:bg-black py-6 sm:py-16 overflow-hidden">
+        {/* Support line above carousel */}
+        <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            All visuals below are generated automatically from a single product upload.
+          </p>
+        </div>
+        
         <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
           <div className="text-center space-y-4">
             <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
