@@ -5236,25 +5236,15 @@ If the model attempts to create a scene or environment, override it and force a 
                 : (isMultiProductRequest ? 550_000 : 4_000_000),
               quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
             });
-            // Force reference images to match the selected Output Format aspect ratio.
-            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${resized.mimeType};base64,${resized.base64}`,
-              aspectRatio,
-              {
-                maxLongEdge: isProductPlacement
-                  ? (isMultiProductRequest ? 1440 : 3072)
-                  : (isMultiProductRequest ? 1024 : 2048),
-                background: '#FFFFFF',
-                mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
-                quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
-              }
-            );
-            let finalReference = normalized;
+            
+            // CLEAN FIX: Send products in their natural aspect ratio
+            // Do NOT letterbox references - this causes the model to generate letterboxed/distorted outputs
+            // The model should compose the scene naturally to fit the target aspect ratio
+            let finalReference = resized;
 
             // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {
-              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+              finalReference = await maybeDownscaleInlineImage(resized.base64, resized.mimeType, {
                 maxLongEdge: isProductPlacement ? 1200 : 960,
                 maxBase64Length: isProductPlacement ? 450_000 : 320_000,
                 quality: 0.86,
