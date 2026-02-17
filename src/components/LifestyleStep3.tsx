@@ -4322,6 +4322,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 />
                               </div>
                             </div>
+                            {productStore.customLightColor && productStore.customLightColor !== '#FFFFFF' && (
+                              <div>
+                                <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gel Light Intensity</p>
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={productStore.accentLightIntensity}
+                                    onChange={(e) => {
+                                      productStore.setAccentLightIntensity(Number(e.target.value));
+                                      markSectionTouched('product-setup');
+                                    }}
+                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                  />
+                                  <span className="text-[11px] font-mono text-gray-700 w-10 text-right">
+                                    {productStore.accentLightIntensity}%
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 

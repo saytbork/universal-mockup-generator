@@ -50,4 +50,5 @@ export interface StudioUIState {
   requestedModifiers?: string[];
   customLightColor?: string;
   lightColorTemp?: string;
+  accentLightIntensity?: number;
 }

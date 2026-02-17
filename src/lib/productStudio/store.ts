@@ -695,6 +695,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     lightingRig: 'Softbox Wrap',
     lightColorTemp: 'Neutral (5000K)',
     customLightColor: '',
+    accentLightIntensity: 50, // Default 50% intensity
     finish: 'High-Gloss Commercial',
 
     // LEGACY (To be removed)
@@ -857,6 +858,7 @@ type ProductStudioActions = {
     setLightingRig: (rig: string) => void;
     setLightColorTemp: (temp: string) => void;
     setCustomLightColor: (color: string) => void;
+    setAccentLightIntensity: (intensity: number) => void;
     setFinish: (finish: string) => void;
     updatePhotoModeSubSetting: (mode: PhotoMode, category: string, value: string) => void;
 
@@ -2017,6 +2019,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setLightingRig: (rig) => set({ lightingRig: rig }),
     setLightColorTemp: (temp) => set({ lightColorTemp: temp }),
     setCustomLightColor: (color) => set({ customLightColor: color }),
+    setAccentLightIntensity: (intensity) => set({ accentLightIntensity: Math.max(0, Math.min(100, intensity)) }),
     setFinish: (finish) => set({ finish }),
 
     resetProducts: () =>

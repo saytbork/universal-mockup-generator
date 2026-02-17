@@ -781,6 +781,7 @@ export type ProductStudioState = {
     lightingRig: string;
     lightColorTemp: string;
     customLightColor: string;
+    accentLightIntensity: number; // 0-100, intensity of accent/gel lights
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;

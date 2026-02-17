@@ -1770,8 +1770,10 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         
         // Accent/gel light color override
         const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
+        const intensity = Number((state as any).accentLightIntensity ?? 50);
         if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
-            core.push(`ACCENT_LIGHT_GEL: ${customColor} (add colored edge/rim lighting with this gel color on product edges and contours for dramatic highlights)`);
+            const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
+            core.push(`ACCENT_LIGHT_GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on product edges and contours for ${intensityDesc} highlights.`);
         }
         
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);

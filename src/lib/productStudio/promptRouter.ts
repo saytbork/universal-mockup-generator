@@ -132,6 +132,7 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     // Pro Mode light color controls
     ...(state.customLightColor ? { customLightColor: state.customLightColor } : {}),
     ...(state.lightColorTemp ? { lightColorTemp: state.lightColorTemp } : {}),
+    ...(state.accentLightIntensity !== undefined ? { accentLightIntensity: state.accentLightIntensity } : {}),
   } as StudioUIState;
 }
 

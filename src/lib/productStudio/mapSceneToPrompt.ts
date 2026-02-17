@@ -1033,8 +1033,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     
     // Check for custom accent/gel light color first
     const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
+    const intensity = Number((state as any).accentLightIntensity ?? 50);
     if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
-      return `Accent light gel: ${customColor}. Add colored edge/rim lighting with this gel color on the product edges and contours, creating dramatic colored highlights and atmospheric glow. Main key light remains neutral.`;
+      const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
+      return `Accent light gel: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow. Main key light remains neutral.`;
     }
     
     // Temperature presets removed - only gel colors supported
