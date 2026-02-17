@@ -1370,8 +1370,9 @@ const trimBlackBarsDataUrl = async (
 };
 
 /**
- * GEMINI FIX: Normalize product to target aspect ratio with transparent padding
+ * GEMINI FIX: Normalize product to target aspect ratio with light neutral padding
  * This prevents distortion by showing the model the "intended space" around the product
+ * Uses a very light gray background instead of transparency for better model comprehension
  * 
  * @param dataUrl - Product image data URL
  * @param targetAspectRatio - Target output aspect ratio (e.g., "1:1", "4:5")
@@ -1425,8 +1426,11 @@ const normalizeProductWithTransparentPadding = async (
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   
-  // Clear canvas to transparent
-  ctx.clearRect(0, 0, canvasW, canvasH);
+  // GEMINI STRATEGY: Instead of pure transparency, use a very light neutral background
+  // This gives the model a "hint" that this space should be filled with environment
+  // Pure transparency may confuse the model's composition logic
+  ctx.fillStyle = '#F8F8F8'; // Very light gray, almost white
+  ctx.fillRect(0, 0, canvasW, canvasH);
 
   // Calculate product dimensions maintaining aspect ratio
   const imgRatio = imgW / imgH;
@@ -1441,10 +1445,10 @@ const normalizeProductWithTransparentPadding = async (
 
   ctx.drawImage(img, x, y, displayWidth, displayHeight);
 
-  // Always return PNG to preserve transparency
-  const out = canvas.toDataURL('image/png');
+  // Return as JPEG with light background (no transparency needed)
+  const out = canvas.toDataURL('image/jpeg', 0.95);
   const [, base64] = out.split(';base64,');
-  return { base64: base64 ?? '', mimeType: 'image/png' };
+  return { base64: base64 ?? '', mimeType: 'image/jpeg' };
 };
 
 const maybeDownscaleInlineImage = async (
@@ -5330,9 +5334,10 @@ If the model attempts to create a scene or environment, override it and force a 
             
             console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
             
-            // GEMINI FIX: Normalize product with transparent padding
-            // This creates a canvas at the target aspect ratio with the product centered
-            // Prevents distortion by showing the model the "intended space" around the product
+            // GEMINI FIX: Normalize product with light neutral padding
+            // Creates a canvas at the target aspect ratio with the product centered
+            // Light gray background (#F8F8F8) shows the model the "intended space" to fill with environment
+            // Prevents distortion by pre-formatting the reference to the output aspect ratio
             const normalized = await normalizeProductWithTransparentPadding(
               `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
@@ -5341,7 +5346,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 maxLongEdge: isProductPlacement
                   ? (isMultiProductRequest ? 1440 : 2048)
                   : (isMultiProductRequest ? 1024 : 1536),
-                mimeType: 'image/png', // Always PNG to preserve transparency
+                mimeType: 'image/jpeg', // JPEG with light background
                 quality: 0.96,
               }
             );
