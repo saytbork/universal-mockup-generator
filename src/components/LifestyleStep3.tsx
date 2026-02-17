@@ -4279,7 +4279,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     productStore.setCustomLightColor('');
                                     markSectionTouched('product-setup');
                                   }}
-                                  className={`h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+                                  className={`h-12 w-12 rounded-full border-2 bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                                     !productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4288,7 +4288,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   aria-label="No accent color"
                                 />
                                 <label
-                                  className={`relative inline-block h-9 w-9 rounded-full border bg-white transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 cursor-pointer ${
+                                  className={`relative inline-block h-12 w-12 rounded-full border-2 bg-white transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 cursor-pointer ${
                                     productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4307,11 +4307,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     aria-label="Custom gel color picker"
                                   />
                                 </label>
-                                {productStore.customLightColor && (
-                                  <span className="text-[11px] font-mono text-gray-600">
-                                    {productStore.customLightColor}
-                                  </span>
-                                )}
+                                <input
+                                  type="text"
+                                  placeholder="#0066FF"
+                                  value={productStore.customLightColor || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value.toUpperCase();
+                                    if (val === '' || /^#[0-9A-F]{0,6}$/.test(val)) {
+                                      productStore.setCustomLightColor(val);
+                                      markSectionTouched('product-setup');
+                                    }
+                                  }}
+                                  className="px-3 py-2 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-24"
+                                />
                               </div>
                             </div>
                           </div>
