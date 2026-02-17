@@ -444,7 +444,7 @@ function buildBundleComposition(state: ProductStudioState): string {
         })
         .filter((v): v is string => Boolean(v));
     if (productsWithHeight.length > 0) {
-        parts.push(`relative scale lock: preserve real-world height ratios across all products (${productsWithHeight.join('; ')})`);
+        parts.push(`CRITICAL SCALE REQUIREMENT: Preserve exact real-world height proportions between all products. ${productsWithHeight.join('; ')}. A ${productsWithHeight[0]?.split('~')[1] || ''} product MUST appear visibly taller/smaller than other products according to their specified heights. DO NOT render all products at equal size.`);
     }
 
     parts.push('clear visual hierarchy with primary product dominant');
@@ -1905,8 +1905,25 @@ function assembleBundlePrompt(state: ProductStudioState): string {
                 state.products.find(p => p.id === state.bundle.primaryProductId),
                 ...((state.bundle.secondaryProductIds || []).map(id => state.products.find(p => p.id === id)).filter(Boolean))
             ].filter(Boolean);
-            const productLabels = allProducts.map(p => p?.productName || 'supplement bottle').join(', ');
-            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}. CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
+            const productLabels = allProducts.map(p => (p as any)?.name || (p as any)?.productName || 'supplement bottle').join(', ');
+            
+            // CRITICAL: Include height information for scale preservation
+            const productsWithHeight = allProducts
+                .map((p) => {
+                    const raw = (p as any)?.heightValue as number | null | undefined;
+                    const unit = ((p as any)?.heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+                    if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return null;
+                    const cm = unit === 'in' ? raw * 2.54 : raw;
+                    const rounded = Math.round(cm * 10) / 10;
+                    return `${(p as any)?.name || (p as any)?.productName || 'product'} ~${rounded}cm`;
+                })
+                .filter((v): v is string => Boolean(v));
+            
+            const scaleInstruction = productsWithHeight.length > 0
+                ? ` CRITICAL SCALE REQUIREMENT: Preserve exact real-world height proportions between all products. ${productsWithHeight.join('; ')}. Products MUST appear proportionally sized according to their specified heights. DO NOT render all products at equal size.`
+                : '';
+            
+            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
         })() : '';
         
         const finalParts = normalizePromptSegments([
