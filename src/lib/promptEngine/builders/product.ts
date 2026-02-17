@@ -85,7 +85,11 @@ export class ProductBuilder implements PromptBuilder {
             options.personIncluded === false;
 
         // Product-first optics lock: the product must never be the blurred element.
-        if (ugcDepthLockActive) {
+        // Exception: Ritual Mode allows natural depth with ritual action in focus
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture tack sharp. Product can be naturally integrated in the scene with contextual focus; label should remain readable but product is not the primary sharp element.';
+        } else if (ugcDepthLockActive) {
             // UGC guard blocks any positive depth-of-field language. Keep focus directives without DOF terms.
             prompt +=
                 isProductOnly
@@ -104,10 +108,17 @@ export class ProductBuilder implements PromptBuilder {
             prompt +=
                 ' SCALE RULE: Keep the product large enough that the label text is readable at a glance. Do not make the product small in the frame; avoid full-body-wide shots that shrink the product.';
         }
-        prompt +=
-            isProductOnly
-                ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
-                : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
+        
+        // Ritual Mode: product placement is secondary to the action
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' PLACEMENT RULE (RITUAL MODE): Product must be naturally integrated in the background or mid-ground, secondary to the ritual action. The ritual activity and body posture are the primary visual elements. Product should feel incidental and contextual, not hero-focused.';
+        } else {
+            prompt +=
+                isProductOnly
+                    ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
+                    : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
+        }
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial

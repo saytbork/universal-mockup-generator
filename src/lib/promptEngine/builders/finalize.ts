@@ -41,15 +41,29 @@ export class FinalizeBuilder implements PromptBuilder {
                 );
             }
         } else {
-            lines.push('Sharp focus on the subject (product), with natural lighting and grounded shadows.');
+            // Ritual Mode: focus on ritual action, not product
+            if (options.ritualModeActive) {
+                lines.push('Sharp focus on the ritual action and body posture, with natural lighting and grounded shadows.');
+            } else {
+                lines.push('Sharp focus on the subject (product), with natural lighting and grounded shadows.');
+            }
             lines.push(
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',
                 'PRODUCT INTEGRITY (NON-NEGOTIABLE): The product packaging must remain identical across all images in the sequence. Same size, same proportions, and same orientation.',
                 'No deformation, no scaling inconsistencies. Branding must be sharp and readable.',
                 'Material and texture must look photorealistic (e.g., paper pouch, matte finish). product sits naturally on surfaces, not hovering.',
-                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.',
-                'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.',
+                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.'
+            );
+            
+            // Ritual Mode exception: product is secondary to ritual action
+            if (!options.ritualModeActive) {
+                lines.push(
+                    'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.'
+                );
+            }
+            
+            lines.push(
                 'CONTACT REALISM: The product must look physically held or placed naturally (not composited). Natural shadows and believable contact pressure.',
                 ugcDepthLockActive
                     ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
