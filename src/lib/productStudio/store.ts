@@ -1426,8 +1426,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     setBundleMode: (mode) =>
         set((state) => {
-            // Basic tier restricts bundle modes
-            if (state.presetTier === 'basic' && mode !== 'off' && mode !== 'hero') {
+            // Only restrict in basic tier AND not in pro mode
+            const isProModeActive = state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+            if (state.presetTier === 'basic' && !isProModeActive && mode !== 'off' && mode !== 'hero') {
                 return { bundle: { ...state.bundle, mode: 'hero' } };
             }
             return { bundle: { ...state.bundle, mode } };

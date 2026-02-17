@@ -1902,7 +1902,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
                 ...((state.bundle.secondaryProductIds || []).map(id => state.products.find(p => p.id === id)).filter(Boolean))
             ].filter(Boolean);
             const productLabels = allProducts.map(p => p?.productName || 'supplement bottle').join(', ');
-            return `BUNDLE: ${productCount} products (${productLabels}). Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}. All products must be clearly visible in the scene.`;
+            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}. CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
         })() : '';
         
         const finalParts = normalizePromptSegments([
