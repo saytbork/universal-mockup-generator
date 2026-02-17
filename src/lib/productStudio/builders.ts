@@ -1894,10 +1894,20 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     const sceneResult = routeStudioScenePrompt(state, primary ?? undefined);
 
     if (STRICT_STATE_PROMPT) {
+        // Build bundle info string with product count and details
+        const bundleInfo = state.bundle.enabled ? (() => {
+            const productCount = 1 + (state.bundle.secondaryProductIds?.length || 0);
+            const allProducts = [
+                state.products.find(p => p.id === state.bundle.primaryProductId),
+                ...((state.bundle.secondaryProductIds || []).map(id => state.products.find(p => p.id === id)).filter(Boolean))
+            ].filter(Boolean);
+            const productLabels = allProducts.map(p => p?.productName || 'supplement bottle').join(', ');
+            return `BUNDLE: ${productCount} products (${productLabels}). Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}. All products must be clearly visible in the scene.`;
+        })() : '';
+        
         const finalParts = normalizePromptSegments([
             ...buildCoreSceneLayer(state, sceneResult.prompt),
-            state.bundle.enabled ? `BUNDLE_MODE: ${state.bundle.mode}` : '',
-            state.bundle.enabled ? `BUNDLE_LAYOUT: ${state.bundle.layout}` : '',
+            bundleInfo,
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
