@@ -260,6 +260,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const authenticatedEmail = checkAuth(req);
+  const ADMIN_EMAILS = ['juanamisano@gmail.com', 'boostugc@gmail.com'];
+  const isAdminUser = authenticatedEmail ? ADMIN_EMAILS.includes(authenticatedEmail.toLowerCase().trim()) : false;
   const isAnonymousTrial = !authenticatedEmail;
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
@@ -440,7 +442,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
-    const maybeWatermarkedImage = isAnonymousTrial
+    // Apply watermark only for anonymous trial users (not admin or paid users)
+    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser;
+    const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
     await addDebugLog('generate.success', {
