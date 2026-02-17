@@ -250,13 +250,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'fruit-garnish-citrus-accents',
         label: 'Fruit Garnish / Citrus Accents',
         scope: 'studio',
-        description: 'Product staged with fruit/citrus accents as clean secondary styling elements.',
-        basePrompt: 'product staged with fruit or citrus accents as clean secondary styling elements (slices, peels, wedges), premium advertising composition, controlled reflections and freshness cues, product remains the hero and label stays readable',
+        description: 'Product staged with fresh citrus slices arranged in a premium flat lay composition.',
+        basePrompt: 'product hero centered on clean surface surrounded by fresh citrus slices (orange, lemon, lime, or grapefruit) arranged in a natural premium flat lay pattern, top-down or slightly angled perspective, fresh cut citrus with visible pulp texture and natural juice droplets, soft directional natural light creating gentle shadows, clean minimal styling with product as hero and label fully readable',
         subOptions: [],
         constraints: [
-            'Accents must be secondary (do not overpower the product)',
-            'Fresh cut realism and correct scale',
-            'Label must remain readable'
+            'Citrus slices must be fresh-cut and realistic (not artificial)',
+            'Product remains dominant hero - citrus is supporting element',
+            'Natural arrangement - avoid overly symmetrical or contrived patterns',
+            'Label must remain fully readable and sharp'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],

@@ -46,7 +46,7 @@ const STUDIO_MODIFIER_REGISTRY: Record<StudioModifier, StudioModifierDefinition>
   },
   fruit: {
     requires: (authority, state) => authority.world !== 'underwater' || Boolean(state.fruitSubmerged),
-    blocks: ['Use realistic fruit garnish scale and physically grounded placement.'],
+    blocks: ['Fresh citrus slices (orange, lemon, lime, or grapefruit) arranged around the product in a natural premium flat lay composition. Citrus must show realistic fresh-cut texture with visible pulp segments and natural juice. Use top-down or slightly angled perspective. Soft natural directional light. Product remains hero with citrus as supporting visual element.'],
   },
   foam: {
     requires: (authority) => authority.world !== 'underwater' || authority.permissions.allowSplash,
