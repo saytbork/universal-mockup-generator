@@ -1369,6 +1369,84 @@ const trimBlackBarsDataUrl = async (
     : outCanvas.toDataURL('image/png');
 };
 
+/**
+ * GEMINI FIX: Normalize product to target aspect ratio with transparent padding
+ * This prevents distortion by showing the model the "intended space" around the product
+ * 
+ * @param dataUrl - Product image data URL
+ * @param targetAspectRatio - Target output aspect ratio (e.g., "1:1", "4:5")
+ * @param relativeHeight - Scale factor based on real-world height (0.0 to 1.0, where 1.0 = tallest product)
+ * @param opts - Canvas and quality options
+ */
+const normalizeProductWithTransparentPadding = async (
+  dataUrl: string,
+  targetAspectRatio: string,
+  relativeHeight: number,
+  opts: { maxLongEdge: number; mimeType: 'image/png' | 'image/jpeg'; quality?: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const parsed = parseAspectRatio(targetAspectRatio);
+  if (!parsed) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const targetRatio = parsed.w / parsed.h;
+  
+  // Create canvas with target aspect ratio
+  let canvasW: number;
+  let canvasH: number;
+  if (targetRatio >= 1) {
+    // Landscape or square
+    canvasW = opts.maxLongEdge;
+    canvasH = Math.round(canvasW / targetRatio);
+  } else {
+    // Portrait
+    canvasH = opts.maxLongEdge;
+    canvasW = Math.round(canvasH * targetRatio);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  // Clear canvas to transparent
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  // Calculate product dimensions maintaining aspect ratio
+  const imgRatio = imgW / imgH;
+  
+  // Apply relative height scaling (based on cm/in values)
+  const displayHeight = canvasH * Math.min(relativeHeight, 0.95); // Max 95% of canvas height
+  const displayWidth = displayHeight * imgRatio;
+
+  // Center horizontally, align to bottom (product sits on "surface")
+  const x = (canvasW - displayWidth) / 2;
+  const y = canvasH - displayHeight - (canvasH * 0.05); // 5% padding from bottom
+
+  ctx.drawImage(img, x, y, displayWidth, displayHeight);
+
+  // Always return PNG to preserve transparency
+  const out = canvas.toDataURL('image/png');
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: 'image/png' };
+};
+
 const maybeDownscaleInlineImage = async (
   base64: string,
   mimeType: string,
@@ -5226,21 +5304,49 @@ If the model attempts to create a scene or environment, override it and force a 
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
-            // Higher-fidelity reference helps avoid warped labels/typography on the product.
-            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: isProductPlacement
-                ? (isMultiProductRequest ? 1440 : 3072)
-                : (isMultiProductRequest ? 1024 : 2048),
-              maxBase64Length: isProductPlacement
-                ? (isMultiProductRequest ? 900_000 : 7_500_000)
-                : (isMultiProductRequest ? 550_000 : 4_000_000),
-              quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
-            });
+            // Calculate relative height scale for this product
+            // Find the tallest product to use as reference (1.0)
+            const allHeights = generationProducts.map(p => {
+              const heightValue = (p as any).heightValue as number | null | undefined;
+              const heightUnit = ((p as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
+                return null;
+              }
+              const cm = heightUnit === 'in' ? heightValue * 2.54 : heightValue;
+              return cm;
+            }).filter((h): h is number => h !== null);
             
-            // CLEAN FIX: Send products in their natural aspect ratio
-            // Do NOT letterbox references - this causes the model to generate letterboxed/distorted outputs
-            // The model should compose the scene naturally to fit the target aspect ratio
-            let finalReference = resized;
+            const maxHeight = allHeights.length > 0 ? Math.max(...allHeights) : null;
+            const currentHeight = (() => {
+              const heightValue = (product as any).heightValue as number | null | undefined;
+              const heightUnit = ((product as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
+                return null;
+              }
+              return heightUnit === 'in' ? heightValue * 2.54 : heightValue;
+            })();
+            
+            const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
+            
+            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
+            
+            // GEMINI FIX: Normalize product with transparent padding
+            // This creates a canvas at the target aspect ratio with the product centered
+            // Prevents distortion by showing the model the "intended space" around the product
+            const normalized = await normalizeProductWithTransparentPadding(
+              `data:${product.mimeType};base64,${product.base64}`,
+              aspectRatio,
+              relativeHeight,
+              {
+                maxLongEdge: isProductPlacement
+                  ? (isMultiProductRequest ? 1440 : 2048)
+                  : (isMultiProductRequest ? 1024 : 1536),
+                mimeType: 'image/png', // Always PNG to preserve transparency
+                quality: 0.96,
+              }
+            );
+            
+            let finalReference = normalized;
 
             // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {

@@ -1073,9 +1073,9 @@ function buildAspectRatio(state: ProductStudioState): string {
     };
     const aspectRatioDesc = map[state.aspectRatio];
     
-    // CRITICAL: Product references may have different aspect ratios than the output
-    // The model MUST compose the scene naturally without distorting products
-    return `${aspectRatioDesc}. CRITICAL COMPOSITION RULE: Product references maintain their natural proportions. Compose scene by adjusting camera angle, adding environmental context (surfaces, backgrounds, props), or intelligent framing. NEVER stretch, compress, or warp product geometry to fill the frame. If needed, add scene elements or crop naturally - products must stay true to reference proportions.`;
+    // GEMINI FIX: Use optical/physical language to prevent distortion
+    // Product references are provided in normalized frames with their exact intended aspect ratio
+    return `${aspectRatioDesc}. GEOMETRY LOCK: Each product reference is provided in its exact intended aspect ratio within a normalized frame. DO NOT alter the width-to-height ratio of the subjects. The scene must be rendered as if using a 50mm prime lens with zero distortion. Any empty space in the output must be filled with environmental context (background, surfaces, props, lighting), NEVER by stretching or compressing the product geometry. Maintain rigid orthographic proportions for all products.`;
 }
 
 function buildNegativeConstraints(state: ProductStudioState): string {
