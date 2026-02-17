@@ -647,10 +647,10 @@ Captured by smartphone so fine edges may appear soft or broken.
             parts.push(sanitizePart(personDetails.personProps, isUgcMode));
         }
 
-        // Anti-doll constraint for UGC
-        if (isUgcMode) {
-            parts.push(ANTI_DOLL_CONSTRAINT);
-        }
+        // Anti-doll constraint for ALL modes with people (not just UGC)
+        // This prevents CGI/doll-like faces in Lifestyle and Brand content too
+        // Previously only applied to UGC mode, causing doll-face in Lifestyle
+        parts.push(ANTI_DOLL_CONSTRAINT);
 
         const result = parts.filter(Boolean).join('. ').trim();
         console.log('[IDENTITY BUILDER OUTPUT]', result.substring(0, 200) + '...');

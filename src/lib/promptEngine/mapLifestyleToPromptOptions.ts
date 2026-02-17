@@ -1453,6 +1453,20 @@ export function mapLifestyleToPromptOptions(
             mapped.camera = cameraDevice;
         }
 
+        // ANTI-DOLL FIX: Strip cinematic language when person is included
+        // Cinema/filmic aesthetic conflicts with raw/real person appearance
+        const personIncluded = !sceneState.noPerson && sceneState.personIncluded !== false;
+        if (personIncluded && effectiveCameraSemantic) {
+            effectiveCameraSemantic = effectiveCameraSemantic
+                .replace(/cinema camera rig/gi, 'natural camera capture')
+                .replace(/cinematic/gi, 'natural')
+                .replace(/filmic dynamic range/gi, 'natural tonal range')
+                .replace(/filmic color science/gi, 'natural color rendition')
+                .replace(/controlled rigs/gi, 'steady capture')
+                .replace(/smooth motion/gi, 'natural movement');
+            console.log('[ANTI-DOLL] Stripped cinematic language for person-included scene');
+        }
+
         if (foregroundProductFocusRequested) {
             // Avoid semantics that encourage focusing on the face/background when the product must be foreground.
             effectiveCameraSemantic = effectiveCameraSemantic
