@@ -4235,6 +4235,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHT COLOR TEMPERATURE</p>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              'Warm (3200K)',
+                              'Neutral (5000K)',
+                              'Cool (6500K)',
+                              'Daylight (5600K)',
+                              'Tungsten (3000K)',
+                              'LED Cool (7000K)'
+                            ].map(temp => (
+                              <button
+                                key={temp}
+                                onClick={() => {
+                                  productStore.setLightColorTemp(temp);
+                                  markSectionTouched('product-setup');
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightColorTemp === temp
+                                  ? 'bg-indigo-600 text-white border-indigo-600'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  }`}
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
+                              >
+                                {temp}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
                           <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                           <div className="flex flex-wrap gap-2">
                             {[

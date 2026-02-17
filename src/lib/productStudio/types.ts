@@ -779,6 +779,7 @@ export type ProductStudioState = {
     viewpoint: string;
     lens: string;
     lightingRig: string;
+    lightColorTemp: string;
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;

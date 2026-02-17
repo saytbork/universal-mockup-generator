@@ -693,6 +693,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     viewpoint: 'eye-level',
     lens: '50mm Product Prime',
     lightingRig: 'Softbox Wrap',
+    lightColorTemp: 'Neutral (5000K)',
     finish: 'High-Gloss Commercial',
 
     // LEGACY (To be removed)
@@ -853,6 +854,7 @@ type ProductStudioActions = {
     setViewpoint: (viewpoint: string) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
+    setLightColorTemp: (temp: string) => void;
     setFinish: (finish: string) => void;
     updatePhotoModeSubSetting: (mode: PhotoMode, category: string, value: string) => void;
 
@@ -2011,6 +2013,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return next;
         }),
     setLightingRig: (rig) => set({ lightingRig: rig }),
+    setLightColorTemp: (temp) => set({ lightColorTemp: temp }),
     setFinish: (finish) => set({ finish }),
 
     resetProducts: () =>
