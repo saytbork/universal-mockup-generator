@@ -5350,7 +5350,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
             // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {
-              finalReference = await maybeDownscaleInlineImage(resized.base64, resized.mimeType, {
+              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
                 maxLongEdge: isProductPlacement ? 1200 : 960,
                 maxBase64Length: isProductPlacement ? 450_000 : 320_000,
                 quality: 0.86,
