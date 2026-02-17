@@ -47,12 +47,6 @@ import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecomme
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
 import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
-import { 
-  determineProductReferenceStrategy, 
-  shouldSendProductReferenceImages,
-  explainReferenceDecision,
-  PRODUCT_REFERENCE_STRATEGY_ENABLED 
-} from './src/services/productReferenceStrategy';
 // PHASE 2: ProductStudio direct generation
 import {
   useProductStudioStore,
@@ -5214,36 +5208,6 @@ If the model attempts to create a scene or environment, override it and force a 
         const rawMode = !!promptOptions.ugcRealModeActive;
         const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
-        
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // PRODUCT REFERENCE STRATEGY
-        // Determina si enviar imágenes de referencia del producto o confiar en el prompt
-        // En Studio/Lifestyle, el prompt es tan detallado que no necesita referencias
-        // Esto evita letterboxing causado por conflicto entre dimensiones del producto y aspect ratio
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const referenceStrategy = PRODUCT_REFERENCE_STRATEGY_ENABLED
-          ? determineProductReferenceStrategy(
-              promptOptions.sceneType || '',
-              '', // visualIntent - no disponible en este contexto
-              generationProducts.length > 0,
-              aspectRatio
-            )
-          : 'full'; // Si está desactivado, comportamiento original
-
-        const shouldSendProductRef = shouldSendProductReferenceImages(
-          referenceStrategy,
-          finalPrompt,
-          generationProducts
-        );
-
-        // Log detallado para debugging
-        console.log(explainReferenceDecision(
-          referenceStrategy,
-          shouldSendProductRef,
-          promptOptions.sceneType || '',
-          generationProducts.length
-        ));
-        
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
@@ -5255,7 +5219,7 @@ If the model attempts to create a scene or environment, override it and force a 
           : null;
         const requestParts: any[] = [];
         requestParts.push({ text: finalPrompt });
-        if (shouldSendProductImage && shouldSendProductRef) {
+        if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
           const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
@@ -5313,10 +5277,6 @@ If the model attempts to create a scene or environment, override it and force a 
             });
             totalAttachedReferenceBase64 += finalReference.base64.length;
           }
-        } else if (shouldSendProductImage && !shouldSendProductRef) {
-          // Log cuando la estrategia decide NO enviar referencias
-          console.log(`[REFERENCE STRATEGY] ⚠️  Skipping ${generationProducts.length} product reference images`);
-          console.log('[REFERENCE STRATEGY] Model will generate products from prompt description only');
         }
         if (shouldIncludeHumanImage) {
           if (identityInlinePart) {
