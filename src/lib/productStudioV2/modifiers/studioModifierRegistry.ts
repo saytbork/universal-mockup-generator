@@ -38,7 +38,7 @@ const STUDIO_MODIFIER_REGISTRY: Record<StudioModifier, StudioModifierDefinition>
   },
   texturedBed: {
     requires: (authority) => authority.world !== 'underwater',
-    blocks: ['Use grounded textured bed with bounded displacement and contact coherence.'],
+    blocks: ['Product grounded on a premium textured scatter base at the bottom edge of frame. Use controlled natural scatter elements (coffee beans, seeds, crystals, sand, stones) arranged around the base of the product with intentional premium placement. Scatter must be minimal, bounded, and serve the composition—not dominate it. Maintain clean hero product focus with readable label. Apply realistic contact shadows between product and scatter base.'],
   },
   ice: {
     requires: () => true,

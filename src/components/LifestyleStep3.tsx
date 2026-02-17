@@ -2524,7 +2524,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
                               { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
-                              { label: 'Botanical Water Garden', mode: 'Botanical Water Garden' },
+                              // REMOVED: 'Botanical Water Garden' - already in Visual Style group (line 2439)
                             ];
 
                             return (
