@@ -442,8 +442,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
-    // Apply watermark only for anonymous trial users (not admin or paid users)
-    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser;
+    // Apply watermark only for anonymous trial users in production (not preview, not admin, not paid users)
+    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser && !isPreview;
     const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
