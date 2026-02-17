@@ -1417,6 +1417,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 bundle: {
                     ...state.bundle,
                     enabled,
+                    mode: enabled ? (state.bundle.mode === 'off' ? 'hero' : state.bundle.mode) : 'off', // Auto-set to hero if currently off
                     primaryProductId: enabled ? primaryId : null,
                     secondaryProductIds: enabled ? secondaryIds : [],
                 },
