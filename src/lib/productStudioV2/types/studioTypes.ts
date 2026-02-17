@@ -48,4 +48,6 @@ export interface StudioUIState {
   subjectOrientation?: 'vertical' | 'horizontal' | 'square';
   fruitSubmerged?: boolean;
   requestedModifiers?: string[];
+  customLightColor?: string;
+  lightColorTemp?: string;
 }

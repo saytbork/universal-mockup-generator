@@ -1767,6 +1767,18 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (advancedControlsOn) {
         if (String(state.lens || '').trim()) core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
         if (String(state.lightingRig || '').trim()) core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
+        
+        // Light color/temperature override
+        const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
+        if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
+            core.push(`LIGHT_COLOR: ${customColor} (all light sources must have this exact color tint)`);
+        } else {
+            const temp = String((state as any).lightColorTemp || '').trim();
+            if (temp && temp !== 'Neutral (5000K)') {
+                core.push(`LIGHT_TEMPERATURE: ${temp}`);
+            }
+        }
+        
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
         if (String(state.viewpoint || '').trim()) core.push(`VIEWPOINT_OVERRIDE: ${String(state.viewpoint).trim()}`);
     }
