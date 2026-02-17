@@ -1031,24 +1031,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const lightColorTempText = (() => {
     if (isCampaignIntent || !isProModeActive) return '';
     
-    // Check for custom color first
+    // Check for custom accent/gel light color first
     const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
     if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
-      return `Light color: ${customColor}. All light sources must have this exact color tint, creating a colored lighting atmosphere throughout the scene.`;
+      return `Accent light gel: ${customColor}. Add colored edge/rim lighting with this gel color on the product edges and contours, creating dramatic colored highlights and atmospheric glow. Main key light remains neutral.`;
     }
     
-    // Otherwise use temperature presets
-    const temp = String((state as any).lightColorTemp || '').trim();
-    if (!temp) return '';
-    const tempMap: Record<string, string> = {
-      'Warm (3200K)': 'Color temperature: 3200K. Warm, amber-orange light creating a cozy, intimate mood with yellow-red undertones.',
-      'Neutral (5000K)': 'Color temperature: 5000K. Neutral white light with balanced color accuracy, no warm or cool bias.',
-      'Cool (6500K)': 'Color temperature: 6500K. Cool, slightly blue-tinted light creating a clean, modern atmosphere.',
-      'Daylight (5600K)': 'Color temperature: 5600K. Natural daylight white with slight cool undertones, mimicking midday sun.',
-      'Tungsten (3000K)': 'Color temperature: 3000K. Warm tungsten light with strong amber-yellow cast, classic interior lighting feel.',
-      'LED Cool (7000K)': 'Color temperature: 7000K. Cool LED white with pronounced blue undertones, contemporary clinical aesthetic.',
-    };
-    return tempMap[temp] || `Color temperature: ${temp}.`;
+    // Temperature presets removed - only gel colors supported
+    return '';
   })();
 
   const strictLightingRigLock =

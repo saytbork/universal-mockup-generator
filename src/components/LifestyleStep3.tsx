@@ -4235,40 +4235,43 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHT COLOR & TEMPERATURE</p>
+                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">ACCENT / GEL LIGHT COLOR</p>
                           <div className="space-y-5">
                             <div>
-                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Temperature Presets</p>
+                              <p className="text-[10px] text-gray-500 mb-2">Popular gel colors for edge/rim lighting:</p>
                               <div className="flex flex-wrap gap-2">
                                 {[
-                                  'Warm (3200K)',
-                                  'Neutral (5000K)',
-                                  'Cool (6500K)',
-                                  'Daylight (5600K)',
-                                  'Tungsten (3000K)',
-                                  'LED Cool (7000K)'
-                                ].map(temp => (
+                                  { label: 'Blue Gel', value: '#0066FF' },
+                                  { label: 'Cyan Gel', value: '#00FFFF' },
+                                  { label: 'Purple Gel', value: '#9966FF' },
+                                  { label: 'Magenta Gel', value: '#FF00FF' },
+                                  { label: 'Red Gel', value: '#FF0033' },
+                                  { label: 'Orange Gel', value: '#FF6600' },
+                                  { label: 'Green Gel', value: '#00FF66' },
+                                  { label: 'Amber Gel', value: '#FFAA00' },
+                                ].map(({ label, value }) => (
                                   <button
-                                    key={temp}
+                                    key={value}
                                     onClick={() => {
-                                      productStore.setLightColorTemp(temp);
-                                      productStore.setCustomLightColor('');
+                                      productStore.setCustomLightColor(value);
+                                      productStore.setLightColorTemp('Neutral (5000K)');
                                       markSectionTouched('product-setup');
                                     }}
                                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${
-                                      productStore.lightColorTemp === temp && !productStore.customLightColor
-                                      ? 'bg-indigo-600 text-white border-indigo-600'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      productStore.customLightColor === value
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                     }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
-                                    {temp}
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: value }}></span>
+                                    {label}
                                   </button>
                                 ))}
                               </div>
                             </div>
                             <div>
-                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Color</p>
+                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Gel Color</p>
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
@@ -4277,21 +4280,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     markSectionTouched('product-setup');
                                   }}
                                   className={`h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
-                                    !productStore.customLightColor || productStore.customLightColor === '#FFFFFF'
+                                    !productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                   style={{ background: '#FFFFFF' }}
-                                  aria-label="Reset to white light"
+                                  aria-label="No accent color"
                                 />
                                 <label
                                   className={`relative inline-block h-9 w-9 rounded-full border bg-white transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 cursor-pointer ${
-                                    productStore.customLightColor && productStore.customLightColor !== '#FFFFFF'
+                                    productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                   style={{ background: productStore.customLightColor || '#FFFFFF' }}
-                                  aria-label="Pick a custom light color"
+                                  aria-label="Pick a custom gel color"
                                 >
                                   <input
                                     type="color"
@@ -4301,10 +4304,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-setup');
                                     }}
                                     className="absolute inset-0 opacity-0 cursor-pointer"
-                                    aria-label="Custom light color picker"
+                                    aria-label="Custom gel color picker"
                                   />
                                 </label>
-                                {productStore.customLightColor && productStore.customLightColor !== '#FFFFFF' && (
+                                {productStore.customLightColor && (
                                   <span className="text-[11px] font-mono text-gray-600">
                                     {productStore.customLightColor}
                                   </span>

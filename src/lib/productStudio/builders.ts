@@ -1768,15 +1768,10 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         if (String(state.lens || '').trim()) core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
         if (String(state.lightingRig || '').trim()) core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
         
-        // Light color/temperature override
+        // Accent/gel light color override
         const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
         if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
-            core.push(`LIGHT_COLOR: ${customColor} (all light sources must have this exact color tint)`);
-        } else {
-            const temp = String((state as any).lightColorTemp || '').trim();
-            if (temp && temp !== 'Neutral (5000K)') {
-                core.push(`LIGHT_TEMPERATURE: ${temp}`);
-            }
+            core.push(`ACCENT_LIGHT_GEL: ${customColor} (add colored edge/rim lighting with this gel color on product edges and contours for dramatic highlights)`);
         }
         
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
