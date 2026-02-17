@@ -780,6 +780,7 @@ export type ProductStudioState = {
     lens: string;
     lightingRig: string;
     lightColorTemp: string;
+    customLightColor: string;
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;

@@ -1030,6 +1030,14 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const lightColorTempText = (() => {
     if (isCampaignIntent || !isProModeActive) return '';
+    
+    // Check for custom color first
+    const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
+    if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
+      return `Light color: ${customColor}. All light sources must have this exact color tint, creating a colored lighting atmosphere throughout the scene.`;
+    }
+    
+    // Otherwise use temperature presets
     const temp = String((state as any).lightColorTemp || '').trim();
     if (!temp) return '';
     const tempMap: Record<string, string> = {
