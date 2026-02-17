@@ -366,14 +366,20 @@ export class SceneNarrativeBuilder {
             return 'Lifestyle environment composition with no visible product packaging anywhere in frame.';
         }
 
-        // Ritual Hero Canvas: neutral background + hero placement (Lifestyle-only).
-        // Only active when the user explicitly enables the Hero canvas (neutral background + placement).
-        if (!isProductMode && options.ritualModeActive && options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
-            return [
-                'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
-                'Hero placement: centered composition with clean negative space and intentional framing.',
-                'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
-            ].join(' ');
+        // Ritual Mode: action-first composition (Lifestyle-only)
+        if (!isProductMode && options.ritualModeActive) {
+            // Ritual Hero Canvas: neutral background + hero placement
+            if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
+                return [
+                    'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
+                    'Hero placement: centered composition with clean negative space and intentional framing.',
+                    'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
+                ].join(' ');
+            }
+            // Regular Ritual Mode: action and environment-first
+            return options.ritualHideProduct
+                ? 'Lifestyle ritual composition focused purely on the wellness action and environment. Product-free scene.'
+                : 'Lifestyle ritual composition focused on the wellness action first. If product appears, it must be naturally integrated and secondary to the ritual action.';
         }
 
         // Ecommerce canvas overlay (background replacement) can coexist with environment controls.

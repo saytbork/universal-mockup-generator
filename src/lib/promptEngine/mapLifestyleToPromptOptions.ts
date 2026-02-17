@@ -1273,7 +1273,15 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
     const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
-    const compositionModeStructural = isEnvironmentSceneIntent
+    
+    // RITUAL MODE OVERRIDE: Action-first composition
+    const ritualModeActive = (mapped as any).ritualModeActive === true;
+    
+    const compositionModeStructural = ritualModeActive
+        ? ritualHideProductRequested
+            ? 'Ritual action-first composition: focus on the wellness activity and environment. No product visible.'
+            : 'Ritual action-first composition: focus on the wellness activity; if product appears, it must be naturally integrated and incidental to the ritual scene.'
+        : isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
             ? ({
                 balanced: 'Balanced framing: product and person share attention; environment supports the moment without stealing focus.',
@@ -1291,10 +1299,14 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
 
     if (isEnvironmentSceneIntent) {
-        if (forceHideProductRequested) {
+        if (forceHideProductRequested || ritualHideProductRequested) {
             mapped.placementStyle = 'Lifestyle placement with the person integrated in the environment.';
             mapped.productPlane =
                 'Person-first framing with realistic environment context. Keep the subject tack sharp with grounded contact shadows. No product packaging in frame.';
+        } else if (ritualModeActive) {
+            mapped.placementStyle = 'Ritual-focused placement with the action as the primary visual element.';
+            mapped.productPlane =
+                'Action-first composition. If product appears, it must be naturally placed in the background or mid-ground, secondary to the ritual activity. Keep the ritual action sharp and clearly visible.';
         } else {
             mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
             mapped.productPlane =
