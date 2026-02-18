@@ -4,6 +4,103 @@ import LoadingSpinner from './LoadingSpinner';
 import { HIGH_RES_UNAVAILABLE_MESSAGE } from '../constants';
 import type { DownloadCreditConfig, DownloadResolution } from '../constants';
 
+// ============================================================================
+// GENERATION PROGRESS COMPONENT - Animated progress bar with time estimation
+// ============================================================================
+
+const GenerationProgress: React.FC = () => {
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<'analyzing' | 'composing' | 'rendering' | 'finalizing'>('analyzing');
+  const [timeElapsed, setTimeElapsed] = useState(0);
+
+  useEffect(() => {
+    const startTime = Date.now();
+    
+    // Update elapsed time every 100ms
+    const timeInterval = setInterval(() => {
+      setTimeElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 100);
+
+    // Realistic progress curve: fast start (0-30%), slower middle (30-70%), fast finish (70-100%)
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < 30) {
+          // Fast initial progress (0-30%): ~2 seconds
+          return Math.min(30, prev + 1.5);
+        } else if (prev < 70) {
+          // Slower middle progress (30-70%): ~4 seconds
+          return Math.min(70, prev + 0.6);
+        } else if (prev < 95) {
+          // Fast final progress (70-95%): ~2 seconds
+          return Math.min(95, prev + 1.2);
+        } else {
+          // Stay at 95% until actual completion
+          return 95;
+        }
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(timeInterval);
+    };
+  }, []);
+
+  // Update stage based on progress
+  useEffect(() => {
+    if (progress < 20) {
+      setStage('analyzing');
+    } else if (progress < 50) {
+      setStage('composing');
+    } else if (progress < 85) {
+      setStage('rendering');
+    } else {
+      setStage('finalizing');
+    }
+  }, [progress]);
+
+  const stageMessages = {
+    analyzing: 'Analyzing scene parameters…',
+    composing: 'Composing visual elements…',
+    rendering: 'Rendering high-quality image…',
+    finalizing: 'Finalizing details…',
+  };
+
+  const estimatedTotal = 12; // ~12 seconds average
+  const estimatedRemaining = Math.max(0, estimatedTotal - timeElapsed);
+
+  return (
+    <div className="text-center px-6 max-w-md mx-auto">
+      <LoadingSpinner />
+      
+      {/* Progress Bar */}
+      <div className="mt-6 w-full bg-gray-200 dark:bg-white/10 rounded-full h-2 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Progress Percentage */}
+      <div className="mt-3 flex items-center justify-between text-sm">
+        <span className="text-gray-600 dark:text-white/60">{Math.floor(progress)}%</span>
+        <span className="text-gray-500 dark:text-white/50">
+          ~{estimatedRemaining}s remaining
+        </span>
+      </div>
+
+      {/* Stage Message */}
+      <p className="mt-3 text-gray-600 dark:text-white/60 font-medium">
+        {stageMessages[stage]}
+      </p>
+    </div>
+  );
+};
+
+// ============================================================================
+// IMAGE VARIANT METADATA
+// ============================================================================
+
 interface ImageVariantMeta {
   url: string;
   width: number;
@@ -286,10 +383,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
         className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
       >
         {isImageLoading ? (
-          <div className="text-center">
-            <LoadingSpinner />
-            <p className="mt-4 text-gray-600 dark:text-white/60">Generating image…</p>
-          </div>
+          <GenerationProgress />
         ) : imageError ? (
           <div className="text-center text-gray-500 px-4 dark:text-white/60">
             <p className="font-semibold">Generation Failed</p>
@@ -375,7 +469,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 <button
                   onClick={handleDownload}
                   disabled={isProcessingDownload || !imageUrl}
-                  className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+                  className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
                   aria-label="Download Image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
