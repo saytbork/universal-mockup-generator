@@ -462,11 +462,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
 
-    // Get signed URL with long expiration (10 years)
-    const [imageUrl] = await file.getSignedUrl({
-      action: 'read',
-      expires: '03-01-2035',
-    });
+    // Make file publicly accessible (fixes CORS)
+    await file.makePublic();
+    
+    // Use public URL instead of signed URL
+    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
     await addDebugLog('generate.success', {
       aspectRatio,

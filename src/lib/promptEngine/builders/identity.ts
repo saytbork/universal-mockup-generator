@@ -21,7 +21,7 @@ This subject must be a unique individual. Do not reuse or approximate any previo
 `.trim().replace(/\s+/g, ' ');
 
 const ANTI_DOLL_CONSTRAINT = `
-CRITICAL REALISM REQUIREMENT: The person MUST look like a real unedited smartphone photo of a real human subject. ABSOLUTELY NO CGI, 3D render, synthetic appearance, mannequin, doll-like appearance, porcelain skin, or artificial perfection. This is a photograph of a REAL PERSON, not a digital render.
+CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited photo of a real human being, NOT a 3D render, CGI model, digital avatar, or AI-generated perfect face. REJECT: porcelain skin, flawless complexion, symmetrical features, doll-like appearance, mannequin face, synthetic smoothness, video game character, animated look, plastic appearance, wax figure, beauty filter, Instagram filter, FaceTune, professional retouching, airbrushing. MANDATORY: visible skin pores, natural skin texture, minor blemishes, subtle asymmetry, real human imperfections, natural skin tone variation, authentic facial structure. This is a REAL PERSON captured with a smartphone camera, not a computer-generated image.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -182,7 +182,7 @@ export class IdentityBuilder implements PromptBuilder {
         // Prevents CGI/synthetic/porcelain appearance in both UGC and Lifestyle modes
         parts.push(ANTI_DOLL_CONSTRAINT);
         parts.push(`
-SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection.
+SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights, subtle facial asymmetry, natural expression lines. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness, NO plastic appearance, NO wax figure look, NO video game character. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection. The face must have natural human texture and imperfections visible at all times.
         `.trim().replace(/\s+/g, ' '));
 
         // ====================================================================
@@ -486,26 +486,29 @@ Captured by smartphone so fine edges may appear soft or broken.
             }
 
             // UGC MODE: Lighting and Environment Randomization
-            // Default: randomize for authentic casual vibe
-            // Override: if user explicitly selects environment, respect their choice
+            // UGC disables environment by default (authentic casual anywhere)
+            // But user can optionally select a specific environment if needed
             if (isUgcMode) {
                 const lighting = randomizer.getLightingEnvironment();
                 parts.push(`LIGHTING: ${lighting}`);
                 
                 // Check if user explicitly selected an environment
-                // If user selected environment, respect it and skip randomization
+                const customEnv = (options as any).customEnvironment;
                 const hasUserEnvironment = Boolean(
                     (options.setting && options.setting.trim()) ||
-                    (options.sceneEnvironment && options.sceneEnvironment.trim())
+                    (options.sceneEnvironment && options.sceneEnvironment.trim()) ||
+                    (customEnv && String(customEnv).trim())
                 );
                 
-                // Only randomize environment if user did NOT select one
-                if (!hasUserEnvironment) {
-                    // No user selection → randomize for authentic casual UGC
+                if (hasUserEnvironment) {
+                    // User selected environment → use it but add random micro-location details
+                    const backgroundElements = randomizer.getBackgroundElements();
+                    parts.push(`ENVIRONMENT DETAILS: ${backgroundElements}`);
+                } else {
+                    // No user environment → fully randomize location (bedroom, bathroom, kitchen, etc.)
                     const backgroundElements = randomizer.getBackgroundElements();
                     parts.push(`ENVIRONMENT: ${backgroundElements}`);
                 }
-                // If hasUserEnvironment = true, skip randomization and let canonicalScene.ts handle it
             }
 
             // ================================================================
