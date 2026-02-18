@@ -7,7 +7,7 @@ import { checkAuth } from '../server/lib/checkAuth.js';
 import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
-import { uploadImageBuffer } from '../server/lib/firebaseAdmin.js';
+import { bucket } from '../server/lib/firebaseAdmin.js';
 import sharp from 'sharp';
 
 const parseBody = async (req: VercelRequest) => {
@@ -443,19 +443,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
+    
     // Apply watermark only for anonymous trial users in production (not preview, not admin, not paid users)
     const shouldApplyWatermark = isAnonymousTrial && !isAdminUser && !isPreview;
     const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
 
-    // 🔥 NEW: Upload to Firebase Storage instead of returning base64
-    const userId = authenticatedEmail || guestId || 'guest';
-    const imageBuffer = Buffer.from(maybeWatermarkedImage, 'base64');
-    const { url: imageUrl } = await uploadImageBuffer(imageBuffer, userId, {
-      aspectRatio,
-      model,
-      isAnonymousTrial: String(isAnonymousTrial),
+    // 🔥 Upload to Firebase Storage instead of returning base64
+    const buffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.png`;
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: 'image/png',
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+    });
+
+    // Get signed URL with long expiration (10 years)
+    const [imageUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-01-2035',
     });
 
     await addDebugLog('generate.success', {

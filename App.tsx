@@ -5484,7 +5484,7 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           return;
         }
-        // 🔥 Changed from imageBase64 to imageUrl
+        // 🔥 Use imageUrl directly from Firebase Storage
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
         if (!imageUrl) {
           throw new Error('Image generation failed or returned no image URL.');
@@ -5493,31 +5493,25 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        // 🔥 Use imageUrl directly instead of converting to data URL
-        const finalUrl = imageUrl;
-        const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          mimeType: 'image/png',
-        });
-        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        // 🔥 NO processing - use Firebase URL directly
+        setGeneratedImageUrl(imageUrl);
+        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
             status: 'success',
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
-              outputMimeType: normalizedOutput.mimeType,
-              outputSizeBase64: normalizedOutput.base64?.length ?? 0,
+              imageUrl,
             },
           });
         }
-        setGeneratedImageUrl(outputUrl);
-        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: outputUrl,
+            imageUrl: imageUrl,
             createdAt: Date.now(),
             plan: resolvedPlanTier,
             aspectRatio,
@@ -5526,8 +5520,10 @@ If the model attempts to create a scene or environment, override it and force a 
         } catch (e) {
           console.warn('Local gallery save failed', e);
         }
-        void reportGalleryEntry(outputUrl);
-        runHiResPipeline(outputUrl);
+        
+        void reportGalleryEntry(imageUrl);
+        runHiResPipeline(imageUrl);
+        
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
             const newCount = creditUsage + creditCost;
@@ -5537,7 +5533,7 @@ If the model attempts to create a scene or environment, override it and force a 
             }
           }
         }
-        // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
+        // Firebase Storage URLs don't have localStorage quota issues
       } catch (err) {
         console.error(err);
         let errorMessage = '';
