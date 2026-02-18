@@ -211,40 +211,66 @@ Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coveri
             }
         } else {
             // ================================================================
-            // AGE ANCHOR (for 45+; stronger for 50+)
+            // AGE ANCHOR (CRITICAL - PREVENTS YOUTHFUL RENDERING)
             // ================================================================
-            if (age >= 60 && age < 70) {
+            // PROBLEM: Model defaults to ages 20-35 unless explicitly constrained
+            // SOLUTION: Strong age anchors for ALL age ranges with visible markers
+            
+            if (age >= 70) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old (late 60s realism).
-Facial features must match a real ${age}-year-old adult: visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck.
-Hands and neck MUST show age-appropriate texture (fine lines, subtle age spots, visible tendons/veins).
-Do NOT make the subject appear youthful, botoxed, facelifted, or heavily beautified. Avoid "anti-aging" smoothing.
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger.
+Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
+MANDATORY visible age markers: deep forehead lines, pronounced crow's feet, marionette lines, jowls, loose neck skin, age spots on hands/face, thinning eyebrows.
+ABSOLUTELY NO youthful features, smooth skin, tight jawline, or any appearance under 65 years old.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 60 && age < 70) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 40s or 50s.
+MANDATORY visible age markers for someone in their 60s: visible forehead lines, crow's feet, smile lines (nasolabial folds), mild under-eye hollows, slight skin laxity around jaw/neck, age spots beginning to appear on hands.
+Hands and neck MUST show age-appropriate texture: fine lines, subtle age spots, visible tendons/veins, looser skin texture.
+REJECT: youthful skin, tight jawline, smooth forehead, or any appearance that reads as 40s-50s. This person is in their 60s and must look it.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 50 && age < 60) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
-Do NOT make the subject appear youthful (no teen/20s look).
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 30s or 40s.
+MANDATORY visible age markers for someone in their 50s: moderate forehead lines, crow's feet, smile lines (nasolabial folds), beginning of under-eye bags, slight softening of jawline, mature facial structure with visible aging.
+Skin texture must show age: NO smooth 20s/30s skin, NO tight youthful appearance, NO "anti-aging filter" look.
+REJECT: youthful teen/20s/30s appearance, smooth skin, tight features. This person is in their 50s and must show visible aging.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 45 && age < 50) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 20s or 30s.
+MANDATORY visible age markers for someone in their mid-to-late 40s: subtle forehead lines, beginning crow's feet, early smile lines, mature facial structure, age-appropriate skin texture with minor imperfections.
+REJECT: youthful teen/20s/30s appearance, perfectly smooth skin, overly tight features. This person is approaching 50 and must show early signs of aging.
                 `.trim().replace(/\s+/g, ' '));
-            } else if (age >= 70) {
+            } else if (age >= 35 && age < 45) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
-Do NOT make the person appear younger.
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their early 20s.
+MANDATORY visible age markers for someone in their late 30s to early 40s: early fine lines around eyes when smiling, subtle forehead creases, mature facial structure (not teen/early-20s roundness), natural skin texture without youthful smoothness.
+REJECT: teen appearance, early-20s baby face, perfectly smooth unlined skin. This person is in their late 30s/early 40s and must show mature features.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 25 && age < 35) {
+                parts.push(`
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old - a fully mature adult, NOT a teenager or early-20s person.
+Face should show mature adult features: defined facial structure, no teen roundness, natural skin texture (not perfectly smooth), mature expression and presence.
+REJECT: teen appearance, baby face, high school look. This person is ${age} years old and must look like a mature adult.
                 `.trim().replace(/\s+/g, ' '));
             }
 
-            if (age >= 55) {
-                const negativeAgeBand =
-                    age >= 70
-                        ? 'no 20s/30s/40s/50s/60s appearance, no middle-aged look, no youthful skin'
-                        : 'no 20s/30s/40s face, no youthful skin, no teen proportions';
-                parts.push(`NEGATIVE AGE CONSTRAINT: ${primarySubjectNoun} must NOT render younger (${negativeAgeBand}). Age visibility must remain dominant.`);
+            // ================================================================
+            // NEGATIVE AGE CONSTRAINTS (CRITICAL - PREVENTS MODEL DRIFT TO YOUNGER AGES)
+            // ================================================================
+            // Model has strong bias toward ages 20-35; must explicitly block younger rendering
+            if (age >= 70) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 65. REJECT: 20s/30s/40s/50s/60s appearance, middle-aged look, youthful skin, smooth face, tight jawline. Age visibility must be DOMINANT and UNMISTAKABLE.`);
+            } else if (age >= 60) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 55. REJECT: 20s/30s/40s appearance, youthful skin, smooth forehead, tight features. This person is in their 60s - age must be clearly visible.`);
+            } else if (age >= 50) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 45. REJECT: 20s/30s appearance, baby face, youthful smooth skin, teen proportions. This person is in their 50s - visible aging is REQUIRED.`);
+            } else if (age >= 40) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 35. REJECT: teen appearance, early-20s look, baby face, perfectly smooth skin. This person is in their 40s - mature features are REQUIRED.`);
+            } else if (age >= 30) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render as a teenager or early-20s person. REJECT: teen look, baby face, high school appearance. This person is ${age} years old - fully mature adult features are REQUIRED.`);
             }
 
             if (age >= 70) {
@@ -459,29 +485,17 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`ETHNICITY VARIATION: ${randomEthnicity} (unique per generation)`);
             }
 
-            // ALWAYS randomize lighting in UGC mode for authentic casual vibe
-            // But NEVER randomize background in Lifestyle mode (canonicalScene.ts handles it)
+            // ALWAYS randomize lighting AND environment in UGC mode for authentic casual vibe
+            // But NEVER randomize in Lifestyle mode (canonicalScene.ts handles environment)
             if (isUgcMode) {
                 const lighting = randomizer.getLightingEnvironment();
                 parts.push(`LIGHTING: ${lighting}`);
                 
-                // Background randomization: DISABLED for Lifestyle mode
-                // Lifestyle mode always has environment specified via setting/microLocation
-                // canonicalScene.ts builder handles all environment/background composition
-                // Only randomize background if explicitly in Raw Domestic UGC mode with no structure
-                const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
-                const hasEnvironmentStructure = Boolean(
-                    (options.sceneEnvironment && options.sceneEnvironment.trim()) ||
-                    (options.setting && options.setting.trim()) ||
-                    (options.microLocation && options.microLocation.trim())
-                );
-                
-                // Only add random background if Raw UGC AND no environment specified
-                if (hasRawUgcCameraControl && !hasEnvironmentStructure) {
-                    const backgroundElements = randomizer.getBackgroundElements();
-                    parts.push(`BACKGROUND: ${backgroundElements}`);
-                }
-                // Otherwise, canonicalScene.ts will handle environment (don't override)
+                // CRITICAL: ALWAYS randomize background/environment in UGC mode
+                // UGC = authentic casual user-generated content = random diverse environments
+                // DO NOT respect user-selected environment in UGC mode - randomize for authenticity
+                const backgroundElements = randomizer.getBackgroundElements();
+                parts.push(`ENVIRONMENT: ${backgroundElements}`);
             }
 
             // ================================================================
