@@ -1803,19 +1803,30 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         Boolean((state as any).advancedModeEnabled) ||
         Boolean((state as any).proMode);
     core.push(`ADVANCED_CONTROLS: ${advancedControlsOn ? 'on' : 'off'}`);
+    
+    // CRITICAL: Only inject advanced overrides when toggle is ON
+    // When toggle is OFF, all pro controls (lens, lighting rig, gel color, finish, viewpoint) are disabled
     if (advancedControlsOn) {
-        if (String(state.lens || '').trim()) core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
-        if (String(state.lightingRig || '').trim()) core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
+        if (String(state.lens || '').trim()) {
+            core.push(`LENS_OVERRIDE: ${String(state.lens).trim()}`);
+        }
+        if (String(state.lightingRig || '').trim()) {
+            core.push(`LIGHTING_RIG_OVERRIDE: ${String(state.lightingRig).trim()}`);
+            // CRITICAL: Lighting equipment must NEVER be physically visible in the frame
+            core.push(`LIGHTING_EQUIPMENT_POLICY: Studio lights, spotlights, ring lights, softboxes, and all lighting hardware must remain OFF-CAMERA and invisible. Only their lighting effects (highlights, shadows, reflections) should appear on the product and scene. Do not render visible light sources, light stands, or lighting equipment in the frame.`);
+        }
         
         // Accent/gel light color override
         const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
         const intensity = Number((state as any).accentLightIntensity ?? 50);
         if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
             const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
-            core.push(`ACCENT_LIGHT_GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). CRITICAL: Use external studio lights with colored gels positioned to graze the product edges, creating ${intensityDesc} colored reflections and refractions on metallic/glossy surfaces. The colored light reflects OFF the product surface (not from within). The product itself does NOT contain LEDs, neon, or any light-emitting materials. No glowing edges. No light emanating from the product. Only natural reflection and refraction of the external colored light source on the product's surface materials.`);
+            core.push(`ACCENT_LIGHT_GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). CRITICAL: Use external OFF-CAMERA studio lights with colored gels positioned to graze the product edges, creating ${intensityDesc} colored reflections and refractions on metallic/glossy surfaces. The colored light reflects OFF the product surface (not from within). The product itself does NOT contain LEDs, neon, or any light-emitting materials. No glowing edges. No light emanating from the product. Only natural reflection and refraction of the external colored light source on the product's surface materials. The light sources themselves must remain invisible and off-camera.`);
         }
         
-        if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
+        if (String(state.finish || '').trim()) {
+            core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
+        }
         
         // VIEWPOINT_OVERRIDE: Only add if Camera & Framing controls are NOT explicitly set
         // Camera Angle selection should take priority over viewpoint in Pro Mode

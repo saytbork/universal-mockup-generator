@@ -457,8 +457,18 @@ Captured by smartphone so fine edges may appear soft or broken.
             // ALWAYS randomize clothing in UGC mode (even if user specified wardrobe)
             // User wardrobe becomes a "style direction" but we still add random variation
             // ONLY if user did NOT specify custom clothes (respect custom clothes completely)
-            const hasCustomClothes = Boolean(options.customClothes && options.customClothes.enabled);
-            if (isUgcMode && !hasCustomClothes) {
+            const customClothesEnabled = Boolean((options as any).customClothesEnabled);
+            const customClothesGarmentType = String((options as any).customClothesGarmentType || '').trim();
+            const customClothesPrimaryColor = String((options as any).customClothesPrimaryColor || '').trim();
+            
+            if (isUgcMode && customClothesEnabled && customClothesGarmentType) {
+                // User specified custom clothes: use them exactly
+                let clothingDesc = customClothesGarmentType;
+                if (customClothesPrimaryColor) {
+                    clothingDesc = `${customClothesPrimaryColor} ${clothingDesc}`;
+                }
+                parts.push(`CLOTHING: ${clothingDesc}, worn naturally and casually`);
+            } else if (isUgcMode) {
                 const clothing = randomizer.getClothing();
                 if (options.wardrobeStyle && options.wardrobeStyle.trim()) {
                     // User specified wardrobe: blend it with random casual clothing

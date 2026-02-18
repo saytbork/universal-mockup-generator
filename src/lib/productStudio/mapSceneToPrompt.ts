@@ -1016,22 +1016,22 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (!rig) return '';
     const rigCues: Record<string, string> = {
       'Prism Spotlight Duo':
-        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional).',
+        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional). CRITICAL: The light sources themselves (spotlights, rings, stands) must remain OFF-CAMERA and invisible. Only their lighting effects should be visible.',
       '3-Point Beauty Dish':
-        'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections.',
+        'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections. CRITICAL: Lighting equipment must remain OFF-CAMERA and invisible.',
       'Softbox Wrap':
-        'Large softbox wrap with broad diffuse highlights and smooth edge transitions.',
+        'Large softbox wrap with broad diffuse highlights and smooth edge transitions. CRITICAL: Softbox hardware must remain OFF-CAMERA and invisible.',
       'Hard Edge Gels':
-        'Directional hard-light edges with controlled gel accents and high-contrast shadow geometry.',
+        'Directional hard-light edges with controlled gel accents and high-contrast shadow geometry. CRITICAL: Light sources must remain OFF-CAMERA and invisible.',
       'Backlit Acrylic':
-        'Backlit translucent planes with clean edge glow and controlled specular response.',
+        'Backlit translucent planes with clean edge glow and controlled specular response. CRITICAL: Lighting hardware must remain OFF-CAMERA and invisible.',
       'High-Speed Splash Rig':
-        'High-speed strobe freeze behavior with crisp droplets and minimal motion blur.',
+        'High-speed strobe freeze behavior with crisp droplets and minimal motion blur. CRITICAL: Strobe lights must remain OFF-CAMERA and invisible.',
       'Gradient Cyclorama':
-        'Seamless cyclorama gradient wash with clean tonal rolloff and no banding.',
+        'Seamless cyclorama gradient wash with clean tonal rolloff and no banding. CRITICAL: Lighting equipment must remain OFF-CAMERA and invisible.',
     };
     const cue = rigCues[rig] || '';
-    return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`, cue].filter(Boolean).join(' ');
+    return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup. NEVER render the physical lighting equipment (spotlights, softboxes, ring lights, light stands) in the frame - only their lighting effects on the product and scene.`, cue].filter(Boolean).join(' ');
   })();
 
   const lightColorTempText = (() => {
@@ -1042,7 +1042,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     const intensity = Number((state as any).accentLightIntensity ?? 50);
     if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
       const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
-      return `Accent light gel: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow. Main key light remains neutral.`;
+      return `Accent light gel: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow. Main key light remains neutral. CRITICAL: The gel light sources must remain OFF-CAMERA and invisible - only their colored lighting effects should appear on the product.`;
     }
     
     // Temperature presets removed - only gel colors supported

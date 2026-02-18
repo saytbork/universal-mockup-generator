@@ -3171,6 +3171,10 @@ const App: React.FC = () => {
   const handleUGCRealModeToggle = useCallback(
     (value: boolean) => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: value }));
+      // When UGC is activated, clear environment to allow random selection
+      if (value) {
+        setOptions(prev => ({ ...prev, setting: '' }));
+      }
     },
     [persistUgcRealSettings]
   );
