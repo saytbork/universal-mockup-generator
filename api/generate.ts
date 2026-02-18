@@ -7,6 +7,7 @@ import { checkAuth } from '../server/lib/checkAuth.js';
 import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
+import { uploadImageBuffer } from '../server/lib/firebaseAdmin.js';
 import sharp from 'sharp';
 
 const parseBody = async (req: VercelRequest) => {
@@ -447,12 +448,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
+
+    // 🔥 NEW: Upload to Firebase Storage instead of returning base64
+    const userId = authenticatedEmail || guestId || 'guest';
+    const imageBuffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    const { url: imageUrl } = await uploadImageBuffer(imageBuffer, userId, {
+      aspectRatio,
+      model,
+      isAnonymousTrial: String(isAnonymousTrial),
+    });
+
     await addDebugLog('generate.success', {
       aspectRatio,
       model,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
+      imageUrl, // Log the Firebase Storage URL
     }, email);
     if (isAnonymousTrial) {
       let remaining = Math.max(anonymousRemaining - 1, 0);
@@ -479,7 +491,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       res.status(200).json({
         ok: true,
-        imageBase64: maybeWatermarkedImage,
+        imageUrl: imageUrl, // 🔥 Changed from imageBase64 to imageUrl
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -497,7 +509,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     res.status(200).json({
       ok: true,
-      imageBase64: maybeWatermarkedImage,
+      imageUrl: imageUrl, // 🔥 Changed from imageBase64 to imageUrl
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,

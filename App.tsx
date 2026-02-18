@@ -5484,15 +5484,17 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           return;
         }
-        const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
-        if (!encodedImage) {
-          throw new Error('Image generation failed or returned no images.');
+        // 🔥 Changed from imageBase64 to imageUrl
+        const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
+        if (!imageUrl) {
+          throw new Error('Image generation failed or returned no image URL.');
         }
         if (typeof data?.remaining_credits === 'number') {
           setRemoteCredits(data.remaining_credits);
         }
 
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
+        // 🔥 Use imageUrl directly instead of converting to data URL
+        const finalUrl = imageUrl;
         const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
         const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
           maxLongEdge: 4096,
