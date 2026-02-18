@@ -5,7 +5,7 @@ import { HIGH_RES_UNAVAILABLE_MESSAGE } from '../constants';
 import type { DownloadCreditConfig, DownloadResolution } from '../constants';
 
 // ============================================================================
-// GENERATION PROGRESS COMPONENT - Animated progress bar with time estimation
+// GENERATION PROGRESS COMPONENT - Modern 2026 design with subtle animations
 // ============================================================================
 
 const GenerationProgress: React.FC = () => {
@@ -70,29 +70,49 @@ const GenerationProgress: React.FC = () => {
   const estimatedRemaining = Math.max(0, estimatedTotal - timeElapsed);
 
   return (
-    <div className="text-center px-6 max-w-md mx-auto">
-      <LoadingSpinner />
+    <div className="text-center px-8 max-w-sm mx-auto">
+      {/* Modern Pulsing Dots Animation (replaces old spinner) */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <div 
+          className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse"
+          style={{ animationDelay: '0ms', animationDuration: '1.4s' }}
+        />
+        <div 
+          className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse"
+          style={{ animationDelay: '200ms', animationDuration: '1.4s' }}
+        />
+        <div 
+          className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse"
+          style={{ animationDelay: '400ms', animationDuration: '1.4s' }}
+        />
+      </div>
       
-      {/* Progress Bar */}
-      <div className="mt-6 w-full bg-gray-200 dark:bg-white/10 rounded-full h-2 overflow-hidden">
+      {/* Stage Message (above progress bar for better hierarchy) */}
+      <p className="mb-3 text-sm font-medium text-gray-700 dark:text-white/70">
+        {stageMessages[stage]}
+      </p>
+
+      {/* Modern Minimalist Progress Bar */}
+      <div className="relative w-full h-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+        {/* Shimmer effect background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent dark:via-white/10 animate-shimmer" 
+             style={{ 
+               backgroundSize: '200% 100%',
+               animation: 'shimmer 2s infinite linear'
+             }} 
+        />
+        {/* Actual progress fill - solid color, no gradients */}
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 transition-all duration-300 ease-out"
+          className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-400 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Progress Percentage */}
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="text-gray-600 dark:text-white/60">{Math.floor(progress)}%</span>
-        <span className="text-gray-500 dark:text-white/50">
-          ~{estimatedRemaining}s remaining
-        </span>
+      {/* Progress Info (minimal, single line) */}
+      <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-white/50">
+        <span>{Math.floor(progress)}%</span>
+        <span>{estimatedRemaining}s</span>
       </div>
-
-      {/* Stage Message */}
-      <p className="mt-3 text-gray-600 dark:text-white/60 font-medium">
-        {stageMessages[stage]}
-      </p>
     </div>
   );
 };

@@ -291,3 +291,20 @@ html.dark .scene-age-slider::-moz-range-thumb {
 .scene-age-slider::-moz-range-track {
   background: transparent;
 }
+
+/* ============================================================================
+   MODERN PROGRESS ANIMATIONS (2026 Design)
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
