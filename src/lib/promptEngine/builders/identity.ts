@@ -176,6 +176,16 @@ export class IdentityBuilder implements PromptBuilder {
         const primaryHairColorSpecified = Boolean(personDetails?.hairColor);
 
         // ====================================================================
+        // CRITICAL: ANTI-DOLL CONSTRAINT (ALWAYS FIRST - ALL MODES)
+        // ====================================================================
+        // Apply anti-doll protection in ALL modes when person is included
+        // Prevents CGI/synthetic/porcelain appearance in both UGC and Lifestyle modes
+        parts.push(ANTI_DOLL_CONSTRAINT);
+        parts.push(`
+SKIN REALISM (CRITICAL): Real authentic skin texture. Visible pores, natural surface variation, minor imperfections, uneven tone. NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection. Must look like a real person photographed naturally.
+        `.trim().replace(/\s+/g, ' '));
+
+        // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
         // ====================================================================
         if (hasModelReference) {
@@ -184,6 +194,7 @@ MODEL REFERENCE OVERRIDE:
 Use the uploaded model reference as the single source of truth for appearance.
 Do not alter age, gender, ethnicity, facial structure, skin, hair, or expression.
 Match the person exactly as shown.
+CRITICAL: Preserve the REAL SKIN TEXTURE from the reference. Do not smooth, beautify, or render as CGI/doll-like.
             `.trim().replace(/\s+/g, ' '));
 
             if (modelReferenceLockAccessories !== false) {
