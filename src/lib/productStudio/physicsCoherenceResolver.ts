@@ -17,7 +17,7 @@ const isSplash = (photoMode: string) =>
   normalize(photoMode).includes('splash');
 
 const isHighAngle = (angle?: CameraAngle) =>
-  angle === 'top';
+  angle === 'top_down' || angle === 'high_angle';
 
 export function resolvePhysicsCoherence(
   state: ProductStudioState
@@ -28,7 +28,7 @@ export function resolvePhysicsCoherence(
   if (isUnderwater(photoMode) && isHighAngle(angle)) {
     return {
       corrected: true,
-      correctedCameraAngle: 'front',
+      correctedCameraAngle: 'eye_level',
       reason: 'Underwater scenes cannot use aerial or top-down camera geometry.',
       promptFragment:
         'Camera angle adjusted from overhead to eye-level to maintain underwater optical plausibility and depth refraction consistency.',
@@ -39,7 +39,7 @@ export function resolvePhysicsCoherence(
   if (placement === 'air' && isHighAngle(angle)) {
     return {
       corrected: true,
-      correctedCameraAngle: '45',
+      correctedCameraAngle: '45_hero',
       reason: 'Air placement requires volumetric hero readability.',
       promptFragment:
         'Camera angle adjusted to 45-degree hero to preserve volumetric suspension and gravitational coherence.',

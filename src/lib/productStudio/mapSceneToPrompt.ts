@@ -620,25 +620,25 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const uiSystemLabel =
     String((state as any).cameraUiSystemLabel || '').trim() ||
-    (state.cameraSystem === 'mirrorless' ? 'Mirrorless' : 'DSLR / mirrorless');
+    (state.cameraSystem === 'macro' ? 'Macro lens' : 'DSLR / mirrorless');
   const uiAngleLabel =
     String((state as any).cameraUiAngleLabel || '').trim() ||
-    (state.angle === 'top' ? 'Top-down flat lay' : state.angle === 'detail' ? 'Detail close-up' : state.angle === 'front' ? 'Eye level product' : '45° hero');
+    (state.angle === 'top_down' ? 'Top-down flat lay' : state.angle === 'detail_closeup' ? 'Detail close-up' : state.angle === 'eye_level' ? 'Eye level product' : '45° hero');
   const uiDistanceLabel =
     String((state as any).cameraUiDistanceLabel || '').trim() ||
-    (state.distance === 'macro' ? 'Macro' : state.distance === 'close' ? 'Tight' : 'Standard');
+    (state.distance === 'macro' ? 'Macro' : state.distance === 'tight' ? 'Tight' : 'Standard');
   const uiRotationLabel =
     String((state as any).cameraUiRotationLabel || '').trim() ||
-    (state.rotation === 'slight' ? '5°' : '0°');
+    (state.rotation > 0 ? `${state.rotation}°` : '0°');
   const uiFramingLabel =
     String((state as any).cameraUiFramingLabel || '').trim() ||
-    (state.framing === 'rule-of-thirds' ? 'Rule of thirds' : 'Centered hero');
+    (state.framing === 'rule_of_thirds' ? 'Rule of thirds' : 'Centered hero');
 
   const mapCameraSystemToPrompt = (system: ProductStudioState['cameraSystem'], systemLabel: string): string => {
     const normalized = systemLabel.toLowerCase();
     if (normalized.includes('macro lens')) return 'professional macro lens camera setup';
     if (normalized.includes('telephoto')) return 'professional telephoto compression camera setup';
-    if (system === 'mirrorless') return 'professional mirrorless camera';
+    if (system === 'macro') return 'professional macro lens camera';
     return 'professional DSLR / mirrorless camera';
   };
 
@@ -653,10 +653,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     };
     if (byLabel[angleLabel]) return byLabel[angleLabel];
     const byState: Record<ProductStudioState['angle'], string> = {
-      front: 'eye-level product view',
-      '45': '45-degree hero angle',
-      top: 'top-down flat lay',
-      detail: 'detail close-up',
+      eye_level: 'eye-level product view',
+      '45_hero': '45-degree hero angle',
+      top_down: 'top-down flat lay',
+      detail_closeup: 'detail close-up',
+      low_angle: 'low angle hero view',
+      high_angle: 'high angle overview',
     };
     return byState[angle] || '45-degree hero angle';
   };
@@ -671,8 +673,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (byLabel[distanceLabel]) return byLabel[distanceLabel];
     const byState: Record<ProductStudioState['distance'], string> = {
       macro: 'macro close-up',
-      close: 'tight hero crop',
-      medium: 'standard framing',
+      tight: 'tight hero crop',
+      standard: 'standard framing',
+      wide: 'wide framing',
     };
     return byState[distance] || 'standard framing';
   };
@@ -687,15 +690,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     };
     if (byLabel[framingLabel]) return byLabel[framingLabel];
     const byState: Record<ProductStudioState['framing'], string> = {
-      centered: 'centered hero composition',
-      'rule-of-thirds': 'rule-of-thirds composition',
+      centered_hero: 'centered hero composition',
+      rule_of_thirds: 'rule-of-thirds composition',
+      left_negative: 'left-aligned composition with negative space',
+      right_negative: 'right-aligned composition with negative space',
+      grid_ready: 'grid-ready composition',
     };
     return byState[framing] || 'centered hero composition';
   };
 
   const mapRotationToPrompt = (rotation: ProductStudioState['rotation'], rotationLabel: string): string => {
     if (rotationLabel) return rotationLabel.replace(/\s+/g, '').endsWith('°') ? rotationLabel : `${rotationLabel}°`;
-    if (rotation === 'slight') return '5°';
+    if (rotation > 0) return `${rotation}°`;
     return '0°';
   };
 
@@ -1150,10 +1156,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const correctedUiAngleLabel = (() => {
     if (!correctedAngleState) return uiAngleLabel;
     const byState: Record<typeof correctedAngleState, string> = {
-      front: 'Eye level product',
-      '45': '45° hero',
-      top: 'Top-down flat lay',
-      detail: 'Detail close-up',
+      eye_level: 'Eye level product',
+      '45_hero': '45° hero',
+      top_down: 'Top-down flat lay',
+      detail_closeup: 'Detail close-up',
+      low_angle: 'Low angle power',
+      high_angle: 'High angle overview',
     };
     return byState[correctedAngleState];
   })();

@@ -1265,9 +1265,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     placement: placementResolution.resolvedPlacement,
   });
   const cameraAngleLabelFromState = (angle: ProductStudioState['angle']): string => {
-    if (angle === 'detail') return 'Detail close-up';
-    if (angle === 'top') return 'Top-down flat lay';
-    if (angle === 'front') return 'Eye level product';
+    if (angle === 'detail_closeup') return 'Detail close-up';
+    if (angle === 'top_down') return 'Top-down flat lay';
+    if (angle === 'eye_level') return 'Eye level product';
     return '45° hero';
   };
 
@@ -1336,18 +1336,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => ({
       ...prev,
       productCameraAngle: (() => {
-        if (productStore.angle === 'detail') return 'Detail close-up';
-        if (productStore.angle === 'top') return 'Top-down flat lay';
-        if (productStore.angle === 'front') return 'Eye level product';
+        if (productStore.angle === 'detail_closeup') return 'Detail close-up';
+        if (productStore.angle === 'top_down') return 'Top-down flat lay';
+        if (productStore.angle === 'eye_level') return 'Eye level product';
         return '45° hero';
       })(),
       productCameraDistance: (() => {
         if (productStore.distance === 'macro') return 'Macro';
-        if (productStore.distance === 'close') return 'Tight';
+        if (productStore.distance === 'tight') return 'Tight';
         return 'Standard';
       })(),
-      productFramingGuide: productStore.framing === 'rule-of-thirds' ? 'Rule of thirds' : 'Centered hero',
-      productCameraRotation: productStore.rotation === 'none' ? 0 : 5,
+      productFramingGuide: productStore.framing === 'rule_of_thirds' ? 'Rule of thirds' : 'Centered hero',
+      productCameraRotation: productStore.rotation === 0 ? 0 : 5,
     }));
   }, [isProductMode, productStore.angle, productStore.distance, productStore.framing, productStore.rotation]);
 
@@ -1607,36 +1607,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           };
           mappedValue = densityMap[value as string] ?? 'none';
         } else if (key === 'productCameraSystem') {
-          mappedValue = value === 'Macro lens' ? 'mirrorless' : 'dslr';
+          mappedValue = value === 'Macro lens' ? 'macro' : 'dslr_mirrorless';
         } else if (key === 'productCameraAngle') {
           const angleMap: Record<string, CameraAngle> = {
-            'Eye level product': 'front',
-            '45° hero': '45',
-            'Top-down flat lay': 'top',
-            'Low angle power': 'front',
-            'High angle overview': '45',
-            'Detail close-up': 'detail',
+            'Eye level product': 'eye_level',
+            '45° hero': '45_hero',
+            'Top-down flat lay': 'top_down',
+            'Low angle power': 'low_angle',
+            'High angle overview': 'high_angle',
+            'Detail close-up': 'detail_closeup',
           };
-          mappedValue = angleMap[value as string] ?? '45';
+          mappedValue = angleMap[value as string] ?? '45_hero';
         } else if (key === 'productCameraDistance') {
           const distMap: Record<string, CameraDistance> = {
-            'Wide': 'medium',
-            'Standard': 'medium',
-            'Tight': 'close',
+            'Wide': 'wide',
+            'Standard': 'standard',
+            'Tight': 'tight',
             'Macro': 'macro',
           };
-          mappedValue = distMap[value as string] ?? 'medium';
+          mappedValue = distMap[value as string] ?? 'standard';
         } else if (key === 'productCameraRotation') {
-          mappedValue = (value as number) > 0 ? 'slight' : 'none';
+          mappedValue = (value as number) > 0 ? 5 : 0;
         } else if (key === 'productFramingGuide') {
           const framingMap: Record<string, CameraFraming> = {
-            'Centered hero': 'centered',
-            'Rule of thirds': 'rule-of-thirds',
-            'Left aligned + negative space': 'rule-of-thirds',
-            'Right aligned + negative space': 'rule-of-thirds',
-            'Grid-ready': 'centered',
+            'Centered hero': 'centered_hero',
+            'Rule of thirds': 'rule_of_thirds',
+            'Left aligned + negative space': 'left_negative',
+            'Right aligned + negative space': 'right_negative',
+            'Grid-ready': 'grid_ready',
           };
-          mappedValue = framingMap[value as string] ?? 'centered';
+          mappedValue = framingMap[value as string] ?? 'centered_hero';
         } else if (key === 'environment') {
           const envMap: Record<string, EnvironmentMacro> = {
             'Kitchen': 'kitchen',
@@ -6111,9 +6111,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     updateValue('productCameraSystem', option);
                     // Sync into ProductStudio store so prompt camera injection follows the UI selection.
                     if (option === 'DSLR / mirrorless') {
-                      productStore.setCameraSystem('dslr');
+                      productStore.setCameraSystem('dslr_mirrorless');
                     } else {
-                      productStore.setCameraSystem('mirrorless');
+                      productStore.setCameraSystem('macro');
                     }
                     productStore.setCameraUiLabels({ cameraSystem: option });
                     if (!productStore.advancedModeEnabled && option === 'Macro lens') {
@@ -6155,12 +6155,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       updateValue('productCameraAngle', option as any);
                       const angleMap: Record<string, ProductStudioState['angle']> = {
-                        'Eye level product': 'front',
-                        '45° hero': '45',
-                        'Top-down flat lay': 'top',
-                        'Low angle power': 'front',
-                        'High angle overview': '45',
-                        'Detail close-up': 'detail',
+                        'Eye level product': 'eye_level',
+                        '45° hero': '45_hero',
+                        'Top-down flat lay': 'top_down',
+                        'Low angle power': 'low_angle',
+                        'High angle overview': 'high_angle',
+                        'Detail close-up': 'detail_closeup',
                       };
                       const mapped = angleMap[option];
                       if (mapped) productStore.setAngle(mapped);
@@ -6187,9 +6187,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     onClick={() => {
                       updateValue('productCameraDistance', option);
                       const distanceMap: Record<string, ProductStudioState['distance']> = {
-                        Wide: 'medium',
-                        Standard: 'medium',
-                        Tight: 'close',
+                        Wide: 'wide',
+                        Standard: 'standard',
+                        Tight: 'tight',
                         Macro: 'macro',
                       };
                       const mapped = distanceMap[option];
@@ -6218,7 +6218,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     key={option}
                     onClick={() => {
                       updateValue('productCameraRotation', option);
-                      productStore.setRotation(option === 0 ? 'none' : 'slight');
+                      productStore.setRotation(option);
                       productStore.setCameraUiLabels({ rotation: `${option}°` });
                       markSectionTouched('product-camera');
                     }}
@@ -6247,9 +6247,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     onClick={() => {
                       updateValue('productFramingGuide', option as any);
                       if (option === 'Rule of thirds') {
-                        productStore.setFraming('rule-of-thirds');
+                        productStore.setFraming('rule_of_thirds');
                       } else if (option === 'Centered hero') {
-                        productStore.setFraming('centered');
+                        productStore.setFraming('centered_hero');
+                      } else if (option === 'Left aligned + negative space') {
+                        productStore.setFraming('left_negative');
+                      } else if (option === 'Right aligned + negative space') {
+                        productStore.setFraming('right_negative');
+                      } else if (option === 'Grid-ready') {
+                        productStore.setFraming('grid_ready');
                       }
                       productStore.setCameraUiLabels({ framing: option });
                       markSectionTouched('product-camera');

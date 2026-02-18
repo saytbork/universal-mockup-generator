@@ -634,11 +634,11 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     lightStyle: 'soft',
 
     // 6️⃣ CAMERA & FRAMING
-    cameraSystem: 'dslr',
-    angle: '45',
-    distance: 'medium',
-    rotation: 'none',
-    framing: 'centered',
+    cameraSystem: 'dslr_mirrorless',
+    angle: '45_hero',
+    distance: 'standard',
+    rotation: 0,
+    framing: 'centered_hero',
     cameraUiSystemLabel: 'DSLR / mirrorless',
     cameraUiAngleLabel: '45° hero',
     cameraUiDistanceLabel: 'Standard',
@@ -1245,8 +1245,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setAngle: (angle) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { angle };
-            if (state.photoMode === 'Foam & Texture' && (angle === 'top' || angle === 'detail')) {
-                next.angle = 'front';
+            if (state.photoMode === 'Foam & Texture' && (angle === 'top_down' || angle === 'detail_closeup')) {
+                next.angle = 'eye_level';
                 Object.assign(next, withInterpretationNote(state, 'angle', INTERPRETATION_MESSAGES.macroTexturesNoAerial));
             }
             if (isMacroFraming(state, { angle }) && isInteractionIncompatibleWithMacro(state.interaction)) {
@@ -1278,8 +1278,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setFraming: (framing) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { framing };
-            if (isTiltShiftLens(state.lens) && framing === 'rule-of-thirds') {
-                next.framing = 'centered';
+            if (isTiltShiftLens(state.lens) && framing === 'rule_of_thirds') {
+                next.framing = 'centered_hero';
                 Object.assign(next, withInterpretationNote(state, 'framing', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             return next;
@@ -2003,12 +2003,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             // Telephoto compression cannot coexist with macro framing.
             if (isTelephotoCompressionLens(lens) && state.distance === 'macro') {
-                next.distance = 'close';
+                next.distance = 'tight';
                 Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             // Tilt-shift invalidates strict thirds.
-            if (isTiltShiftLens(lens) && state.framing === 'rule-of-thirds') {
-                next.framing = 'centered';
+            if (isTiltShiftLens(lens) && state.framing === 'rule_of_thirds') {
+                next.framing = 'centered_hero';
                 Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             // Macro lens implies macro-safe optics if macro framing is selected.
