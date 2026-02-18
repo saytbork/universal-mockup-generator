@@ -200,7 +200,15 @@ export const LIGHTING_ENVIRONMENT = [
     'evening mood lighting, amber/orange glow',
     'ring light visible in glasses reflection',
     'natural daylight but overcast, flat lighting',
-    'nighttime with bedside lamp, very warm tone'
+    'nighttime with bedside lamp, very warm tone',
+    'golden hour sunlight through window, warm side lighting',
+    'blue hour twilight, cool tones, dim',
+    'late night artificial light, very yellow/orange',
+    'early morning light, soft but directional',
+    'cloudy day through window, diffused gray light',
+    'desk lamp close to face, dramatic shadows',
+    'string lights or fairy lights in background, bokeh',
+    'TV screen glow as main light source, blue cast'
 ];
 
 // ============================================================================
@@ -222,7 +230,17 @@ export const BACKGROUND_ELEMENTS = [
     'window with blinds half open',
     'plain wall, no decoration',
     'car interior (driver seat or passenger)',
-    'bathroom shower curtain visible behind'
+    'bathroom shower curtain visible behind',
+    'houseplants on windowsill or shelf',
+    'framed photos or art on wall behind',
+    'doorway to another room visible',
+    'curtains or drapes partially drawn',
+    'ceiling fan or light fixture visible above',
+    'desk with papers and clutter',
+    'couch or sofa with throw pillows',
+    'kitchen appliances in background',
+    'gym equipment or yoga mat visible',
+    'staircase railing in background'
 ];
 
 // ============================================================================

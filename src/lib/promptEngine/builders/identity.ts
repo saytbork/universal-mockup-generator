@@ -6,6 +6,7 @@
 
 import type { PromptOptions, PromptBuilder, PersonDetails } from '../types';
 import { DiversityRandomizer, createDiversitySeed } from './diversityRandomizer';
+import { isUgcModeActive } from '../types';
 
 // ============================================================================
 // CORE CONSTANTS (KEPT)
@@ -162,8 +163,10 @@ export class IdentityBuilder implements PromptBuilder {
             return '';
         }
 
-        const isUgcMode =
-            contentStyle === 'ugc' || creationIntent === 'ugc' || Boolean(ugcRealModeActive);
+        // CRITICAL: Use centralized helper to check UGC mode
+        // Automatically excludes UGC if Ritual Mode or Formulation Story are active
+        const isUgcMode = isUgcModeActive(options);
+        
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';

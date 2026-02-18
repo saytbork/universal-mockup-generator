@@ -18,15 +18,20 @@
 - ✅ Ángulos horribles como en tus fotos de ejemplo
 
 ### 4. **LIGHTING** → Siempre horrible (NUEVO)
+- 20 opciones de iluminación mala:
 - "harsh overhead bedroom light, yellow tint"
 - "bright bathroom lighting, washed out skin"
 - "fluorescent kitchen lighting, greenish cast"
+- "golden hour sunlight through window, warm side lighting"
+- "TV screen glow as main light source, blue cast"
 - ✅ Nunca dos imágenes con la misma iluminación
 
 ### 5. **BACKGROUND** → Siempre desordenado (NUEVO)
+- 25 opciones de ambientes casuales:
 - Usuario especifica "bedroom" → "bedroom, with unmade bed visible"
 - Usuario NO especifica → "clothes pile on chair or floor"
-- ✅ Siempre hay desorden visible
+- Opciones: "bathroom mirror with toothpaste spots", "kitchen counter with dishes", "car interior", "desk with clutter", "houseplants on windowsill", etc.
+- ✅ Siempre hay desorden visible y variado
 
 ### 6. **APARIENCIA GENERAL** → Siempre desarreglada (NUEVO)
 - "just woke up, visibly tired with pillow marks"
@@ -74,7 +79,7 @@
    - Añadidos ángulos más exagerados (15 opciones)
    - Añadida categoría OVERALL_APPEARANCE (12 opciones)
    - Mejoradas categorías: SKIN_TEXTURE, HAIR_STYLING, CASUAL_WARDROBE, ACCESSORIES
-   - Añadidas categorías: LIGHTING_ENVIRONMENT (12), BACKGROUND_ELEMENTS (15)
+   - Añadidas categorías: LIGHTING_ENVIRONMENT (20 opciones), BACKGROUND_ELEMENTS (25 opciones)
 
 2. ✅ `/src/lib/promptEngine/builders/identity.ts`
    - Línea ~405: Ropa SIEMPRE random (blend con wardrobe)

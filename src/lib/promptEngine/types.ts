@@ -337,3 +337,25 @@ export interface PromptSegment {
     content: string;
     priority: number;
 }
+
+/**
+ * Helper function to determine if UGC mode is active
+ * CRITICAL: Ritual Mode and Formulation Story are LIFESTYLE-ONLY features
+ * They are mutually exclusive with UGC mode
+ */
+export function isUgcModeActive(options: PromptOptions): boolean {
+    // FORCE disable UGC if Ritual Mode or Formulation Story is active
+    const isLifestyleOnlyFeatureActive = 
+        Boolean(options.ritualModeActive) || Boolean(options.formulationStory);
+    
+    if (isLifestyleOnlyFeatureActive) {
+        return false;  // Lifestyle-only features override UGC
+    }
+    
+    return (
+        options.contentStyle === 'ugc' ||
+        options.creationIntent === 'ugc' ||
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive)
+    );
+}
