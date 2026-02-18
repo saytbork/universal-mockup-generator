@@ -5286,24 +5286,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>BUNDLE ARRANGEMENT</p>
                 <div className="flex flex-wrap gap-2">
-                  {(['hero', 'lineup', 'editorial-cluster'] as const).map(mode => (
-                    <Chip
-                      key={mode}
-                      onClick={() => {
-                        productStore.setBundleMode(mode);
-                        markSectionTouched('productStructure');
-                      }}
-                      selected={productStore.bundle.mode === mode}
-                    >
-                      {mode === 'hero' ? 'Hero' : mode === 'lineup' ? 'Lineup' : 'Editorial Cluster'}
-                    </Chip>
-                  ))}
+                  {(['hero', 'lineup', 'editorial-cluster'] as const).map(mode => {
+                    // Only Hero is available in basic tier without Pro Mode
+                    const isProModeActive = productStore.controlTier === 'pro' || productStore.advancedModeEnabled || productStore.proMode;
+                    const isDisabled = mode !== 'hero' && productStore.presetTier === 'basic' && !isProModeActive;
+                    
+                    return (
+                      <Chip
+                        key={mode}
+                        onClick={() => {
+                          if (isDisabled) return;
+                          productStore.setBundleMode(mode);
+                          markSectionTouched('productStructure');
+                        }}
+                        selected={productStore.bundle.mode === mode}
+                        disabled={isDisabled}
+                        className={isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+                      >
+                        {mode === 'hero' ? 'Hero' : mode === 'lineup' ? 'Lineup' : 'Editorial Cluster'}
+                      </Chip>
+                    );
+                  })}
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1">
                   {productStore.bundle.mode === 'hero' && 'Primary product featured prominently.'}
                   {productStore.bundle.mode === 'lineup' && 'Products arranged in an equal row.'}
                   {productStore.bundle.mode === 'editorial-cluster' && 'Artistic, organic grouping.'}
                 </p>
+                {productStore.presetTier === 'basic' && productStore.controlTier !== 'pro' && !productStore.advancedModeEnabled && (
+                  <p className="text-[11px] text-amber-600 mt-1">
+                    Lineup and Editorial Cluster require Pro Mode.
+                  </p>
+                )}
               </div>
 
               {/* SPACING */}
