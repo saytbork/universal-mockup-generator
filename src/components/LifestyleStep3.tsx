@@ -5207,7 +5207,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {isEcommerceMode && (
       <SmoothAccordion
         icon={Layers}
-        title="04 / Product Structure"
+        title="04 / Product Composition"
         tooltip="Define how products are grouped, bundled, and positioned."
         isOpen={openAccordionId === 'productStructure'}
         onToggle={() => toggleSection('productStructure')}
@@ -5252,6 +5252,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 let label = bundle.name;
                 if (bundle.id === 'daily_duo') label = 'Duo';
                 if (bundle.id === 'essentials_trio') label = 'Trio';
+                if (bundle.id === 'launch_showcase') label = 'Launch Showcase Set';
                 if (bundle.id === 'hero_lineup') label = 'Kit';
 
                 return (
