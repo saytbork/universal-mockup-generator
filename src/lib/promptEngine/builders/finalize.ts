@@ -68,7 +68,8 @@ export class FinalizeBuilder implements PromptBuilder {
                 ugcDepthLockActive
                     ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
                     : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use eye-level or slight top-down angle (35mm–50mm lens equivalent). Absolutely no wide-angle distortion.',
-                'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.'
+                'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.',
+                'NEGATIVE PRODUCT CONSTRAINT (CRITICAL | HARD BLOCKER): distorted text on product, blurry label, messy letters, deformed logo, misspelled words, unreadable label text, warped typography, invented characters, redrawn text, hallucinated lettering, alien symbols on packaging, neon-like text, glowing letters, stylized font interpretation, AI-generated text, synthesized typography, melted letters, smeared text, pixelated typography, low-resolution label, out-of-focus text, motion-blurred lettering, abstract characters. The product label text MUST be photographic (not illustrated, not reinterpreted, not regenerated). Label must appear as direct photograph from reference image.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {
                 lines.push(

@@ -70,6 +70,11 @@ export class ProductBuilder implements PromptBuilder {
         prompt +=
             ' LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen. Do not rewrite, invent, complete, or retype label text. Do not redraw label artwork; do not change typography, font weight, spacing, or alignment. Do not warp, curve, stretch, distort, or texture-map the label; keep it as a flat optically captured decal. If the bottle rotates, the label rotates rigidly with it; no perspective distortion and no curvature compensation. Keep the label facing the camera straight-on with no 3/4 turn to prevent label deformation.';
 
+        // TEXT PRESERVATION (AI-specific constraint): Google Imagen must treat text as preserved pixels
+        // PRIORITY: This constraint must override any "creative interpretation" tendencies
+        prompt +=
+            ' TEXT PRESERVATION (NON-NEGOTIABLE | HIGHEST PRIORITY): All text, letters, numbers, and logos on the product packaging MUST remain pixel-perfect copies of the reference image. The AI MUST NOT attempt to "redraw" or "re-imagine" any printed characters. Treat all text as photographic data that cannot be altered. If the reference image shows "VITAMIN C 1000mg", output MUST show "VITAMIN C 1000mg" character-for-character. NO text hallucination, NO invented spelling, NO stylized reinterpretation. The label is a photograph being composited, not a design being recreated. PHOTOGRAPHIC TREATMENT: The label must appear as if it was photographed directly from the reference—not generated, not illustrated, not recreated. Zero AI interpretation of text/logos.';
+
         if (isEcommerceBlankSpaceMode) {
             return prompt;
         }
