@@ -21,7 +21,7 @@ This subject must be a unique individual. Do not reuse or approximate any previo
 `.trim().replace(/\s+/g, ' ');
 
 const ANTI_DOLL_CONSTRAINT = `
-The person must look like a real unedited smartphone photo of a real subject. Avoid CGI, 3D render, synthetic appearance, mannequin, or doll-like appearance.
+CRITICAL REALISM REQUIREMENT: The person MUST look like a real unedited smartphone photo of a real human subject. ABSOLUTELY NO CGI, 3D render, synthetic appearance, mannequin, doll-like appearance, porcelain skin, or artificial perfection. This is a photograph of a REAL PERSON, not a digital render.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -182,7 +182,7 @@ export class IdentityBuilder implements PromptBuilder {
         // Prevents CGI/synthetic/porcelain appearance in both UGC and Lifestyle modes
         parts.push(ANTI_DOLL_CONSTRAINT);
         parts.push(`
-SKIN REALISM (CRITICAL): Real authentic skin texture. Visible pores, natural surface variation, minor imperfections, uneven tone. NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection. Must look like a real person photographed naturally.
+SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection.
         `.trim().replace(/\s+/g, ' '));
 
         // ====================================================================
