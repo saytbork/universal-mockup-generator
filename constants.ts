@@ -60,6 +60,7 @@ export const LIGHTING_OPTIONS: Option[] = [
 
 // Curated 8-option version featuring everyday lifestyle environments.
 export const SETTING_OPTIONS: Option[] = [
+  { label: 'Random / Auto', value: '' }, // Empty value triggers randomization in UGC mode
   { label: 'Living Room', value: 'a cozy, lived-in living room' },
   { label: 'Kitchen', value: 'a bright, modern kitchen' },
   { label: 'Bedroom', value: 'a stylish, tidy bedroom' },

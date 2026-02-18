@@ -493,11 +493,16 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`LIGHTING: ${lighting}`);
                 
                 // Check if user explicitly selected an environment
+                // Empty string ('') means "Random / Auto" was selected → no user environment
                 const customEnv = (options as any).customEnvironment;
+                const settingValue = options.setting && String(options.setting).trim();
+                const sceneEnvValue = options.sceneEnvironment && String(options.sceneEnvironment).trim();
+                const customEnvValue = customEnv && String(customEnv).trim();
+                
                 const hasUserEnvironment = Boolean(
-                    (options.setting && options.setting.trim()) ||
-                    (options.sceneEnvironment && options.sceneEnvironment.trim()) ||
-                    (customEnv && String(customEnv).trim())
+                    (settingValue && settingValue !== '') ||
+                    (sceneEnvValue && sceneEnvValue !== '') ||
+                    (customEnvValue && customEnvValue !== '')
                 );
                 
                 if (hasUserEnvironment) {
