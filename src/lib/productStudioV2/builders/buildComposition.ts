@@ -1,10 +1,14 @@
-import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
+import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
-export function buildComposition(authority: StudioAuthorityBundle): string {
+export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const heroMode = authority.composition === 'hero';
   const macroMode = authority.composition === 'macro';
   const ingredientStackMode = authority.composition === 'ingredient-stack';
   const flatLayMode = authority.composition === 'flat-lay';
+  
+  // BUNDLE MODE DETECTION: Check if bundle is enabled with product references
+  // When bundle mode is active, use relaxed framing (not tight 85-92%)
+  const hasBundleReference = Boolean(state?.bundle?.enabled && state.bundle.primaryProductId);
   
   const spreadRule = authority.permissions.allowHorizontalSpread
     ? heroMode
@@ -24,7 +28,9 @@ export function buildComposition(authority: StudioAuthorityBundle): string {
   return [
     `STUDIO_COMPOSITION_MODEL: ${authority.composition}.`,
     heroMode
-      ? 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
+      ? hasBundleReference
+        ? 'FRAME_CONSTRAINT: Close-up framing without altering proportions. Products maintain exact aspect ratios.'
+        : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
       : '',
     macroMode
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'

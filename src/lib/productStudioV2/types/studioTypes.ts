@@ -51,4 +51,8 @@ export interface StudioUIState {
   customLightColor?: string;
   lightColorTemp?: string;
   accentLightIntensity?: number;
+  bundle?: {
+    enabled: boolean;
+    primaryProductId?: string;
+  };
 }

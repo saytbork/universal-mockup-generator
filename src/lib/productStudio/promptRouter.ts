@@ -129,6 +129,10 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     photoMode: state.photoMode,
     subjectOrientation: inferSubjectOrientation(state),
     requestedModifiers,
+    // Bundle state (for framing logic)
+    ...(state.bundle?.enabled && state.bundle.primaryProductId
+      ? { bundle: { enabled: true, primaryProductId: state.bundle.primaryProductId } }
+      : {}),
     // Pro Mode light color controls
     ...(state.customLightColor ? { customLightColor: state.customLightColor } : {}),
     ...(state.lightColorTemp ? { lightColorTemp: state.lightColorTemp } : {}),

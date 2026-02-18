@@ -30,7 +30,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const blocks = [
     buildIntent(authority),
     buildWorld(authority, state.world),
-    buildComposition(authority),
+    buildComposition(authority, state), // Pass state for bundle detection
     buildMotion(authority),
     buildPhysics(authority),
     buildModifiers(modifiers),
