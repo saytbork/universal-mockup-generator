@@ -1839,6 +1839,44 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         core.push('HANDS_APPLICATION_CONSTRAINTS: Hands must be anatomically correct.');
         core.push('HANDS_APPLICATION_CONSTRAINTS: No exaggerated gestures.');
         core.push('HANDS_APPLICATION_CONSTRAINTS: No facial subject required.');
+        
+        // Inject user-selected Hand Pose, Skin Lighting, and Crop Style from photoModeConfig
+        const dynamicHands = (state as any).photoModeConfig?.dynamic?.['Hands Application Clean'] || {};
+        const handPose = String(dynamicHands.handPose || '').trim();
+        const skinLighting = String(dynamicHands.skinLighting || '').trim();
+        const cropStyle = String(dynamicHands.cropStyle || '').trim();
+        
+        // Hand Pose: Applying, Opening, Holding
+        if (handPose) {
+            const handPoseLower = handPose.toLowerCase();
+            if (handPoseLower === 'applying') {
+                core.push('HAND_POSE: Hands actively applying product to skin. Natural application gesture with fingers spreading or massaging product onto skin surface. Product should be visibly touching or being worked into the skin.');
+            } else if (handPoseLower === 'opening') {
+                core.push('HAND_POSE: Hands opening or unscrewing the product container. Fingers positioned to twist cap or pump dispenser. Action-oriented moment capturing the opening gesture.');
+            } else if (handPoseLower === 'holding') {
+                core.push('HAND_POSE: Hands gently holding the product in a display presentation. Clean, simple grip showing the product clearly. Not applying - just presenting the product to camera.');
+            }
+        }
+        
+        // Skin Lighting: Soft natural, Neutral studio
+        if (skinLighting) {
+            const skinLightingLower = skinLighting.toLowerCase();
+            if (skinLightingLower === 'soft natural' || skinLightingLower === 'soft-natural') {
+                core.push('SKIN_LIGHTING: Soft natural window light on hands and skin. Gentle diffused illumination with subtle shadows. Warm, organic light quality that feels residential and authentic.');
+            } else if (skinLightingLower === 'neutral studio' || skinLightingLower === 'neutral-studio') {
+                core.push('SKIN_LIGHTING: Neutral studio lighting on hands and skin. Clean, even illumination with controlled shadows. Professional commercial light quality optimized for product clarity and skin tone accuracy.');
+            }
+        }
+        
+        // Crop Style: Tight, Medium
+        if (cropStyle) {
+            const cropStyleLower = cropStyle.toLowerCase();
+            if (cropStyleLower === 'tight') {
+                core.push('CROP_STYLE: Tight crop focusing closely on hands and product interaction. Minimal background visible. Product and hands fill most of the frame for intimate detail.');
+            } else if (cropStyleLower === 'medium') {
+                core.push('CROP_STYLE: Medium crop showing hands, product, and moderate surrounding context. Balanced framing with some background environment visible for editorial feel.');
+            }
+        }
     }
     if (state.lighting) core.push(`LIGHTING: ${state.lighting}`);
     if (effectiveMotion) core.push(`MOTION: ${effectiveMotion}`);
