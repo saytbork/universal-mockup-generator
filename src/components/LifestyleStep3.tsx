@@ -7845,6 +7845,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {values.ugcRealMode && (
                       <>
+                        {/* Random Character Toggle */}
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Random Character</p>
+                              <p className="text-xs text-gray-600">Generate a completely different person with each image (age, gender, ethnicity, hair, skin, mood, wardrobe).</p>
+                            </div>
+                            <Toggle
+                              checked={values.isRandomCharacterEnabled || false}
+                              aria-label="Enable Random Character"
+                              onCheckedChange={(newValue) => {
+                                updateValue('isRandomCharacterEnabled', newValue);
+                              }}
+                            />
+                          </div>
+                        </div>
+
                         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -7865,6 +7882,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                           </div>
                         </div>
+                        
                         <div className="space-y-5">
                           {RAW_DOMESTIC_CAPTURE_SECTIONS.map(section => {
                             const currentSelections = (values[section.field] as string[]) || [];

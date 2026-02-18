@@ -2209,7 +2209,6 @@ const App: React.FC = () => {
     order.push('Photography');
     if (!isProductPlacement) {
       order.push('Person Details');
-      order.push('UGC Real Mode');
     }
     return order;
   }, [isProductPlacement]);
@@ -2217,9 +2216,6 @@ const App: React.FC = () => {
   const hasSavedTalent = Boolean(savedTalentProfile);
   useEffect(() => {
     if (isProductPlacement && openAccordion === 'Person Details') {
-      setOpenAccordion('Product Details');
-    }
-    if (isProductPlacement && openAccordion === 'UGC Real Mode') {
       setOpenAccordion('Product Details');
     }
     if (!isProductPlacement && openAccordion === 'Product Details') {
@@ -2761,51 +2757,6 @@ const App: React.FC = () => {
                 </p>
               </div>
             </div>
-          </Accordion>
-        </div>
-      )}
-      {!isProductPlacement && (
-        <div id={getSectionId('UGC Real Mode')}>
-          <Accordion
-            title="UGC Real Mode"
-            isOpen={openAccordion === 'UGC Real Mode'}
-            onToggle={() => handleToggleAccordion('UGC Real Mode')}
-            disabled={personControlsDisabled}
-          >
-            <UGCRealModePanel
-              disabled={personControlsDisabled}
-              enabled={ugcRealSettings.isEnabled}
-              onToggle={handleUGCRealModeToggle}
-              clothingPresets={UGC_CLOTHING_PRESETS}
-              selectedClothingPresetIds={ugcRealSettings.selectedClothingPresetIds}
-              onToggleClothingPreset={handleClothingPresetToggle}
-              onUploadClothing={handleCustomClothesUpload}
-              onClearClothing={handleClearCustomClothes}
-              clothingPreview={ugcRealSettings.clothingPreview}
-              expressionPresets={UGC_EXPRESSION_PRESETS}
-              selectedExpressionId={ugcRealSettings.selectedExpressionId}
-              onSelectExpression={handleUGCExpressionSelect}
-              blur={ugcRealSettings.blurAmount}
-              grain={ugcRealSettings.grainAmount}
-              onBlurChange={handleBlurChange}
-              onGrainChange={handleGrainChange}
-              lowResolution={ugcRealSettings.lowResolution}
-              onLowResolutionToggle={handleLowResolutionToggle}
-              imperfectLighting={ugcRealSettings.imperfectLighting}
-              onImperfectLightingToggle={handleImperfectLightingToggle}
-              offFocus={ugcRealSettings.offFocus}
-              onOffFocusToggle={handleOffFocusToggle}
-              tiltedPhone={ugcRealSettings.tiltedPhone}
-              onTiltedPhoneToggle={handleTiltedPhoneToggle}
-              offCenterOptions={UGC_OFF_CENTER_OPTIONS}
-              selectedOffCenterId={ugcRealSettings.offCenterId}
-              onSelectOffCenter={handleOffCenterSelect}
-              framingOptions={UGC_SPONTANEOUS_FRAMING_OPTIONS}
-              selectedFramingId={ugcRealSettings.framingId}
-              onSelectFraming={handleFramingSelect}
-              isRandomCharacterEnabled={isRandomCharacterEnabled}
-              onRandomCharacterToggle={handleRandomCharacterToggle}
-            />
           </Accordion>
         </div>
       )}
