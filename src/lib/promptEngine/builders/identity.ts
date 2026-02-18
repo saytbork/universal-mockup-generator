@@ -1,9 +1,11 @@
 /**
  * Identity Builder - Person identity and appearance (OPTIMIZED)
  * Uses token-based identity control instead of semantic variations
+ * V2: Enhanced with diversity randomization to prevent "AI Clone Syndrome"
  */
 
 import type { PromptOptions, PromptBuilder, PersonDetails } from '../types';
+import { DiversityRandomizer, createDiversitySeed } from './diversityRandomizer';
 
 // ============================================================================
 // CORE CONSTANTS (KEPT)
@@ -361,6 +363,96 @@ Captured by smartphone so fine edges may appear soft or broken.
             // Push core identity
             if (identityParts.length > 0) {
                 parts.push(identityParts.join(', '));
+            }
+
+            // ================================================================
+            // DIVERSITY RANDOMIZATION (V2: Prevent AI Clone Syndrome)
+            // ================================================================
+            // Create unique seed for each generation to prevent repetitive faces
+            const diversitySeed = createDiversitySeed(
+                options.userId || 'user',
+                options.timestamp || Date.now()
+            );
+            const randomizer = new DiversityRandomizer(diversitySeed);
+
+            // ALWAYS randomize facial structure (user has no control over this)
+            const facialStructure = randomizer.getFacialStructure();
+            parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
+
+            // SKIP camera angle randomization if Raw Domestic UGC is active
+            // (Raw UGC has its own camera control: torso-level, high-angle, etc.)
+            const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
+            if (!hasRawUgcCameraControl) {
+                const cameraAngle = randomizer.getCameraAngle();
+                parts.push(`CAMERA ANGLE: ${cameraAngle}`);
+            }
+
+            // ALWAYS randomize skin texture (prevents "porcelain doll" look)
+            const skinTexture = randomizer.getSkinTexture();
+            if (skinTexture) {
+                parts.push(`SKIN TEXTURE: ${skinTexture}`);
+            }
+
+            // ALWAYS randomize hair styling (prevents "salon perfect" hair)
+            const hairStyling = randomizer.getHairStyling();
+            parts.push(`HAIR STYLING: ${hairStyling}`);
+
+            // ALWAYS randomize overall appearance (authentically messy UGC vibe)
+            if (isUgcMode) {
+                const overallAppearance = randomizer.getOverallAppearance();
+                parts.push(`OVERALL VIBE: ${overallAppearance}`);
+            }
+
+            // Randomize accessories only if not locked by model reference
+            if (!hasModelReference) {
+                const accessories = randomizer.getAccessories();
+                if (accessories && accessories !== 'no visible accessories or jewelry') {
+                    parts.push(`ACCESSORIES: ${accessories}`);
+                }
+            }
+
+            // ALWAYS randomize clothing in UGC mode (even if user specified wardrobe)
+            // User wardrobe becomes a "style direction" but we still add random variation
+            if (isUgcMode) {
+                const clothing = randomizer.getClothing();
+                if (options.wardrobeStyle) {
+                    // User specified wardrobe: blend it with random casual clothing
+                    parts.push(`CLOTHING BASE: ${sanitizePart(options.wardrobeStyle, isUgcMode)}, but ${clothing.toLowerCase()}`);
+                } else {
+                    // No user wardrobe: fully random
+                    parts.push(`CLOTHING: ${clothing}`);
+                }
+            }
+
+            // Randomize facial hair (for male/masculine presentations)
+            const gender = (personDetails?.gender || '').toLowerCase();
+            const isMasculinePresentation = 
+                gender.includes('male') && !gender.includes('female');
+            
+            if (isMasculinePresentation && age >= 18 && age < 75) {
+                const facialHair = randomizer.getFacialHair();
+                parts.push(`FACIAL HAIR: ${facialHair}`);
+            }
+
+            // Randomize ethnicity ONLY when "Non-specific" was selected
+            if (personDetails?.ethnicity === 'Non-specific') {
+                const randomEthnicity = randomizer.getRandomEthnicity();
+                parts.push(`ETHNICITY VARIATION: ${randomEthnicity} (unique per generation)`);
+            }
+
+            // ALWAYS randomize lighting and background in UGC mode for authentic casual vibe
+            if (isUgcMode) {
+                const lighting = randomizer.getLightingEnvironment();
+                parts.push(`LIGHTING: ${lighting}`);
+                
+                // Background randomization: if user specified environment, blend it with random casual elements
+                const backgroundElements = randomizer.getBackgroundElements();
+                if (options.sceneEnvironment && options.sceneEnvironment.trim()) {
+                    parts.push(`BACKGROUND: ${sanitizePart(options.sceneEnvironment, isUgcMode)}, with ${backgroundElements.toLowerCase()}`);
+                } else {
+                    // No user environment: fully random casual background
+                    parts.push(`BACKGROUND: ${backgroundElements}`);
+                }
             }
 
             // ================================================================

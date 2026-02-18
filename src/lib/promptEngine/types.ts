@@ -309,6 +309,10 @@ export interface PromptOptions {
     backgroundVariationId?: string;
     lastBackgroundId?: string;
 
+    // Diversity Randomization (V2: Prevent AI Clone Syndrome)
+    userId?: string;                  // User ID for deterministic randomization
+    timestamp?: number;               // Timestamp for unique seed generation
+
     compositionIntro?: string;
     identityBlock?: string;
     sceneStructure?: import('../../../types').SceneStructure;
