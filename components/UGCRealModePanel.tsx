@@ -53,6 +53,8 @@ interface UGCRealModePanelProps {
   framingOptions: UGCCameraFramingOption[];
   selectedFramingId: string;
   onSelectFraming: (id: string) => void;
+  isRandomCharacterEnabled: boolean;
+  onRandomCharacterToggle: () => void;
 }
 
 const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
@@ -86,6 +88,8 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
   framingOptions,
   selectedFramingId,
   onSelectFraming,
+  isRandomCharacterEnabled,
+  onRandomCharacterToggle,
 }) => {
   const panelDisabled = disabled && !enabled;
   const normalizedExpressions = normalizeOptions(
@@ -128,6 +132,46 @@ const UGCRealModePanel: React.FC<UGCRealModePanelProps> = ({
       )}
       {enabled && (
         <div className="space-y-6">
+          {/* Random Character Toggle - Generate unique person each time */}
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">Random Character</p>
+                <p className="text-xs text-gray-600 dark:text-white/60">Generate a completely different person with each image (age, gender, ethnicity, hair, skin, mood, wardrobe).</p>
+              </div>
+              <label className="relative inline-flex cursor-pointer items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  checked={isRandomCharacterEnabled} 
+                  onChange={onRandomCharacterToggle}
+                />
+                <div
+                  className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${
+                    isRandomCharacterEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'
+                  } dark:border-white/10 ${
+                    isRandomCharacterEnabled ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'
+                  }`}
+                >
+                  <span 
+                    className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${
+                      isRandomCharacterEnabled ? 'translate-x-4' : ''
+                    } dark:border-white/10`} 
+                  />
+                </div>
+                <span 
+                  className={`text-xs font-semibold ${
+                    isRandomCharacterEnabled ? 'text-indigo-600' : 'text-gray-500'
+                  } ${
+                    isRandomCharacterEnabled ? 'dark:text-indigo-300' : 'dark:text-white/50'
+                  }`}
+                >
+                  {isRandomCharacterEnabled ? 'Active' : 'Off'}
+                </span>
+              </label>
+            </div>
+          </div>
+
           <CustomClothesSelector
             presets={normalizedClothing}
             selectedPresetIds={selectedClothingPresetIds}

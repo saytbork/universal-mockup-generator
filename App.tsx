@@ -2661,25 +2661,6 @@ const App: React.FC = () => {
                   </div>
                   {/* No persistent explanatory copy; use tooltips only. */}
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">Randomize Character</p>
-                      <p className="text-xs text-gray-600 dark:text-white/60">Generate a completely different person with each image (age, gender, ethnicity, hair, etc. will vary automatically)</p>
-                    </div>
-                    <label className="relative inline-flex cursor-pointer items-center gap-2">
-                      <input type="checkbox" className="sr-only" checked={isRandomCharacterEnabled} onChange={handleRandomCharacterToggle} disabled={personControlsDisabled} />
-                      <div
-                        className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${isRandomCharacterEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'} ${personControlsDisabled ? 'opacity-50' : ''} dark:border-white/10 ${isRandomCharacterEnabled ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
-                      >
-                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isRandomCharacterEnabled ? 'translate-x-4' : ''} dark:border-white/10`} />
-                      </div>
-                      <span className={`text-xs font-semibold ${isRandomCharacterEnabled ? 'text-indigo-600' : 'text-gray-500'} ${isRandomCharacterEnabled ? 'dark:text-indigo-300' : 'dark:text-white/50'}`}>
-                        {isRandomCharacterEnabled ? 'Active' : 'Off'}
-                      </span>
-                    </label>
-                  </div>
-                </div>
               </div>
               <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={personControlsDisabled} />
               <ChipSelectGroup label="Mood" options={PERSON_MOOD_OPTIONS} selectedValue={options.personMood} onChange={(value) => handleOptionChange('personMood', value, 'Person Details')} disabled={personControlsDisabled} />
@@ -2822,6 +2803,8 @@ const App: React.FC = () => {
               framingOptions={UGC_SPONTANEOUS_FRAMING_OPTIONS}
               selectedFramingId={ugcRealSettings.framingId}
               onSelectFraming={handleFramingSelect}
+              isRandomCharacterEnabled={isRandomCharacterEnabled}
+              onRandomCharacterToggle={handleRandomCharacterToggle}
             />
           </Accordion>
         </div>
