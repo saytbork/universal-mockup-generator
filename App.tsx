@@ -1881,6 +1881,7 @@ const App: React.FC = () => {
   });
   const [isTalentLinkedAcrossScenes, setIsTalentLinkedAcrossScenes] = useState(false);
   const [linkedTalentProfile, setLinkedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
+  const [isRandomCharacterEnabled, setIsRandomCharacterEnabled] = useState(false);
   const heroProductId = activeProducts[0]?.id ?? productAssets[0]?.id ?? null;
   const activeProductAsset = useMemo(
     () => productAssets.find(asset => asset.id === heroProductId) ?? null,
@@ -2659,6 +2660,25 @@ const App: React.FC = () => {
                     </label>
                   </div>
                   {/* No persistent explanatory copy; use tooltips only. */}
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">Randomize Character</p>
+                      <p className="text-xs text-gray-600 dark:text-white/60">Generate a completely different person with each image (age, gender, ethnicity, hair, etc. will vary automatically)</p>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center gap-2">
+                      <input type="checkbox" className="sr-only" checked={isRandomCharacterEnabled} onChange={handleRandomCharacterToggle} disabled={personControlsDisabled} />
+                      <div
+                        className={`relative h-5 w-10 rounded-full border border-gray-200 transition ${isRandomCharacterEnabled ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-200'} ${personControlsDisabled ? 'opacity-50' : ''} dark:border-white/10 ${isRandomCharacterEnabled ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/10'}`}
+                      >
+                        <span className={`absolute left-1 top-1 block h-3 w-3 rounded-full bg-white border border-gray-200 transition ${isRandomCharacterEnabled ? 'translate-x-4' : ''} dark:border-white/10`} />
+                      </div>
+                      <span className={`text-xs font-semibold ${isRandomCharacterEnabled ? 'text-indigo-600' : 'text-gray-500'} ${isRandomCharacterEnabled ? 'dark:text-indigo-300' : 'dark:text-white/50'}`}>
+                        {isRandomCharacterEnabled ? 'Active' : 'Off'}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
               <ChipSelectGroup label="Appearance Level" options={PERSON_APPEARANCE_OPTIONS} selectedValue={options.personAppearance} onChange={(value) => handleOptionChange('personAppearance', value, 'Person Details')} disabled={personControlsDisabled} />
@@ -3460,6 +3480,41 @@ const App: React.FC = () => {
     syncTalentAcrossScenes,
     applyOptionsUpdate,
   ]);
+
+  const handleRandomCharacterToggle = useCallback(() => {
+    setIsRandomCharacterEnabled(prev => !prev);
+  }, []);
+
+  const randomizeCharacterParameters = useCallback(() => {
+    if (!isRandomCharacterEnabled) return;
+    
+    // Random selection helpers
+    const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+    
+    // Build random character parameters
+    const randomUpdates: Partial<MockupOptions> = {
+      ageGroup: pickRandom(AGE_GROUP_OPTIONS.filter(opt => opt.value !== 'no person')).value,
+      gender: pickRandom(GENDER_OPTIONS).value,
+      ethnicity: pickRandom(ETHNICITY_OPTIONS).value,
+      hairStyle: pickRandom(HAIR_STYLE_OPTIONS).value,
+      hairColor: pickRandom(HAIR_COLOR_OPTIONS).value,
+      skinTone: pickRandom(SKIN_TONE_OPTIONS).value,
+      eyeColor: pickRandom(EYE_COLOR_OPTIONS).value,
+      personAppearance: pickRandom(PERSON_APPEARANCE_OPTIONS).value,
+      personMood: pickRandom(PERSON_MOOD_OPTIONS).value,
+      wardrobeStyle: pickRandom(WARDROBE_STYLE_OPTIONS).value,
+    };
+    
+    // Apply randomized parameters
+    applyOptionsUpdate(prev => ({ ...prev, ...randomUpdates }));
+    
+    // Force new identity variation token to ensure different face
+    setPersonIdentityPackage(prev => ({
+      ...prev,
+      identityLock: false,
+      identityVariationToken: undefined, // This will trigger a new random face
+    }));
+  }, [isRandomCharacterEnabled, applyOptionsUpdate]);
 
   useEffect(() => {
     if (!isTalentLinkedAcrossScenes) return;
@@ -5020,6 +5075,12 @@ If the model attempts to create a scene or environment, override it and force a 
     async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       let generationLogId: string | null = null;
       bundleSelectionRef.current = bundleProducts ?? null;
+      
+      // RANDOM CHARACTER: Randomize all person parameters before generation
+      if (isRandomCharacterEnabled) {
+        randomizeCharacterParameters();
+      }
+      
       if (isTrialLocked) {
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
         return;
@@ -5577,6 +5638,8 @@ If the model attempts to create a scene or environment, override it and force a 
       }
     },
     [
+      isRandomCharacterEnabled,
+      randomizeCharacterParameters,
       activeProducts,
       planTier,
       planCreditLimit,
