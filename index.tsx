@@ -2,6 +2,7 @@ import React from 'react';
 import './index.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App';
 import { AuthProvider } from './src/contexts/AuthContext';
 import Login from './src/pages/Login';
@@ -110,6 +111,7 @@ root.render(
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <SupportWidget />
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </RootErrorBoundary>
