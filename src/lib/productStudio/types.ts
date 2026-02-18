@@ -526,14 +526,14 @@ export type Lighting =
     | 'night-mode' | 'flash-photo' | 'clinical-softbox';
 
 // ============================================================================
-// CAMERA
+// CAMERA & FRAMING (COMPREHENSIVE CONTROLS)
 // ============================================================================
 
-export type CameraSystem = 'dslr' | 'mirrorless';
-export type CameraAngle = 'front' | '45' | 'top' | 'detail';
-export type CameraDistance = 'macro' | 'close' | 'medium';
-export type CameraRotation = 'none' | 'slight';
-export type CameraFraming = 'centered' | 'rule-of-thirds';
+export type CameraSystem = 'dslr_mirrorless' | 'macro' | 'telephoto';
+export type CameraAngle = 'eye_level' | '45_hero' | 'top_down' | 'low_angle' | 'high_angle' | 'detail_closeup';
+export type CameraDistance = 'wide' | 'standard' | 'tight' | 'macro';
+export type CameraRotation = 0 | 5 | 10 | 15;
+export type CameraFraming = 'centered_hero' | 'rule_of_thirds' | 'left_negative' | 'right_negative' | 'grid_ready';
 
 // ============================================================================
 // CREATIVITY

@@ -1633,17 +1633,9 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).customEnvironment = isCustomMacro ? macro : '';
 
         if (isUGCRealMode) {
-            const forbiddenUgcOutdoor = new Set([
-                'Urban Exterior',
-                'Natural Exterior',
-                'Parking Lot',
-                'Backyard / Patio',
-                'Street Corner',
-            ]);
-            if (forbiddenUgcOutdoor.has(macro)) {
-                console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
-                throw new Error('Invalid state: outdoor environment selected in UGC');
-            }
+            // UGC Mode: User-selected environment takes priority over randomization
+            // No restrictions - user can select any environment including outdoor
+            // This allows user to override the default indoor randomization if desired
             (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
         }
 
@@ -1699,16 +1691,10 @@ export function mapLifestyleToPromptOptions(
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
 
-        if (
-            isUGCRealMode &&
-            selectedEnvironment &&
-            selectedEnvironment !== 'Custom' &&
-            !ugcIndoorEnvironments.has(selectedEnvironment)
-        ) {
-            console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
-            throw new Error('Invalid state: outdoor environment selected in UGC');
-        }
-
+        // UGC Mode: User-selected environment always takes priority
+        // No validation errors - user can override randomization with any environment
+        // If user selects outdoor environment in UGC, respect their choice
+        
         (mapped as any).selectedEnvironment = selectedEnvironment;
         (mapped as any).customEnvironment = customEnvironmentValue;
 

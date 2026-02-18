@@ -24,6 +24,10 @@ import type {
     CreativeTheme,
     PaletteSource,
     PropDensity,
+    CameraSystem,
+    CameraAngle,
+    CameraDistance,
+    CameraFraming,
 } from './types';
 
 import { routeStudioScenePrompt } from './promptRouter';
@@ -928,45 +932,46 @@ function buildCamera(state: ProductStudioState): string {
     const parts: string[] = [];
 
     // CAMERA SYSTEM (DSLR / Macro / Telephoto)
-    const cameraSystemMap: Record<ProductStudioState['cameraSystem'], string> = {
-        'dslr_mirrorless': 'shot on professional DSLR/mirrorless camera, sharp focus, shallow depth of field',
-        'macro': 'macro lens photography, extreme close-up detail, texture-focused, minimal depth of field',
-        'telephoto': 'telephoto compression lens, flattened perspective, isolated subject, compressed spatial layers',
+    const cameraSystemMap: Record<CameraSystem, string> = {
+        dslr_mirrorless: 'shot on professional DSLR/mirrorless camera, sharp focus, shallow depth of field',
+        macro: 'macro lens photography, extreme close-up detail, texture-focused, minimal depth of field',
+        telephoto: 'telephoto compression lens, flattened perspective, isolated subject, compressed spatial layers',
     };
     parts.push(cameraSystemMap[state.cameraSystem]);
 
     // ANGLE (Eye level / 45° / Top-down / Low / High / Detail)
-    const angleMap: Record<ProductStudioState['angle'], string> = {
-        'eye_level': 'eye-level product angle, straight-on perspective at natural viewing height',
+    const angleMap: Record<CameraAngle, string> = {
+        eye_level: 'eye-level product angle, straight-on perspective at natural viewing height',
         '45_hero': '45-degree hero angle, dynamic elevated product presentation',
-        'top_down': 'top-down flat lay angle, direct overhead perspective',
-        'low_angle': 'low angle power shot, camera positioned below product looking upward, imposing presence',
-        'high_angle': 'high angle overview, camera positioned above looking downward, comprehensive view',
-        'detail_closeup': 'extreme close-up detail angle, texture and material emphasis',
+        top_down: 'top-down flat lay angle, direct overhead perspective',
+        low_angle: 'low angle power shot, camera positioned below product looking upward, imposing presence',
+        high_angle: 'high angle overview, camera positioned above looking downward, comprehensive view',
+        detail_closeup: 'extreme close-up detail angle, texture and material emphasis',
     };
     parts.push(angleMap[state.angle]);
 
     // DISTANCE (Wide / Standard / Tight / Macro)
-    const distanceMap: Record<ProductStudioState['distance'], string> = {
-        'wide': 'wide camera distance, environmental context visible, product in setting',
-        'standard': 'standard camera distance, product fills frame appropriately with breathing room',
-        'tight': 'tight camera distance, product dominates frame with minimal background',
-        'macro': 'macro camera distance, extreme detail visible, surface textures emphasized',
+    const distanceMap: Record<CameraDistance, string> = {
+        wide: 'wide camera distance, environmental context visible, product in setting',
+        standard: 'standard camera distance, product fills frame appropriately with breathing room',
+        tight: 'tight camera distance, product dominates frame with minimal background',
+        macro: 'macro camera distance, extreme detail visible, surface textures emphasized',
     };
     parts.push(distanceMap[state.distance]);
 
     // ROTATION (0° / 5° / 10° / 15°)
-    if (state.rotation > 0) {
-        parts.push(`${state.rotation}° intentional product rotation for dynamic presentation`);
+    const rotation = Number(state.rotation);
+    if (rotation > 0) {
+        parts.push(`${rotation}° intentional product rotation for dynamic presentation`);
     }
 
     // FRAMING GUIDE (Centered / Rule of thirds / Left/Right negative space / Grid-ready)
-    const framingMap: Record<ProductStudioState['framing'], string> = {
-        'centered_hero': 'centered hero framing, product positioned in center with symmetrical composition',
-        'rule_of_thirds': 'rule of thirds framing, product positioned at thirds intersection for balanced asymmetry',
-        'left_negative': 'left-aligned framing, product positioned on left with intentional negative space on right for text overlay',
-        'right_negative': 'right-aligned framing, product positioned on right with intentional negative space on left for text overlay',
-        'grid_ready': 'grid-ready framing, social media optimized composition with flexible crop zones',
+    const framingMap: Record<CameraFraming, string> = {
+        centered_hero: 'centered hero framing, product positioned in center with symmetrical composition',
+        rule_of_thirds: 'rule of thirds framing, product positioned at thirds intersection for balanced asymmetry',
+        left_negative: 'left-aligned framing, product positioned on left with intentional negative space on right for text overlay',
+        right_negative: 'right-aligned framing, product positioned on right with intentional negative space on left for text overlay',
+        grid_ready: 'grid-ready framing, social media optimized composition with flexible crop zones',
     };
     parts.push(framingMap[state.framing]);
 

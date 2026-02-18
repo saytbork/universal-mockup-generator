@@ -485,17 +485,27 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`ETHNICITY VARIATION: ${randomEthnicity} (unique per generation)`);
             }
 
-            // ALWAYS randomize lighting AND environment in UGC mode for authentic casual vibe
-            // But NEVER randomize in Lifestyle mode (canonicalScene.ts handles environment)
+            // UGC MODE: Lighting and Environment Randomization
+            // Default: randomize for authentic casual vibe
+            // Override: if user explicitly selects environment, respect their choice
             if (isUgcMode) {
                 const lighting = randomizer.getLightingEnvironment();
                 parts.push(`LIGHTING: ${lighting}`);
                 
-                // CRITICAL: ALWAYS randomize background/environment in UGC mode
-                // UGC = authentic casual user-generated content = random diverse environments
-                // DO NOT respect user-selected environment in UGC mode - randomize for authenticity
-                const backgroundElements = randomizer.getBackgroundElements();
-                parts.push(`ENVIRONMENT: ${backgroundElements}`);
+                // Check if user explicitly selected an environment
+                // If user selected environment, respect it and skip randomization
+                const hasUserEnvironment = Boolean(
+                    (options.setting && options.setting.trim()) ||
+                    (options.sceneEnvironment && options.sceneEnvironment.trim())
+                );
+                
+                // Only randomize environment if user did NOT select one
+                if (!hasUserEnvironment) {
+                    // No user selection → randomize for authentic casual UGC
+                    const backgroundElements = randomizer.getBackgroundElements();
+                    parts.push(`ENVIRONMENT: ${backgroundElements}`);
+                }
+                // If hasUserEnvironment = true, skip randomization and let canonicalScene.ts handle it
             }
 
             // ================================================================

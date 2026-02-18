@@ -344,6 +344,15 @@ export class SceneNarrativeBuilder {
             ].join(' ');
         }
 
+        // Check if user selected "Holding" interaction
+        const isHoldingProduct = options.productInteraction === 'Holding';
+        
+        // If user selected "Holding", allow active product holding
+        // Otherwise, product should be incidental and secondary
+        const productGuidance = isHoldingProduct
+            ? 'The person holds the product naturally as part of the ritual scene. The product is visible and clear, but the ritual activity remains the primary focus.'
+            : 'If a product appears, it must be incidental and secondary (never a hero packshot).';
+
         return [
             'RITUAL MODE: Lifestyle ritual scene.',
             `Depict a wellness ritual such as ${ritualList}.`,
@@ -352,7 +361,7 @@ export class SceneNarrativeBuilder {
             coupleStagingCopy,
             postureCopy,
             ...constraintLines,
-            'If a product appears, it must be incidental and secondary (never a hero packshot).'
+            productGuidance
         ].join(' ');
     }
 
