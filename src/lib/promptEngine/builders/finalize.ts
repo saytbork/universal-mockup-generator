@@ -86,7 +86,19 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No selfie perspective.',
                 'No phone camera.',
                 'No text or graphic overlays.',
-                'No logos or graphics.'
+                'No logos or graphics.',
+                'CRITICAL BLOCKERS (HARD CONSTRAINT): No visible phone in frame, no arm-extended selfie, no mirror selfie, no front-facing camera perspective, no bathroom mirror photo, no car selfie. Professional photography only.'
+            );
+        }
+
+        // ADDITIONAL CRITICAL BLOCKER: Never show phone or cut-off hands in Lifestyle/Brand mode
+        if (options.personIncluded && intent !== 'ugc' && options.contentStyle !== 'ugc') {
+            lines.push(
+                'HAND INTEGRITY (NON-NEGOTIABLE): Hands must be anatomically correct with exactly 5 fingers per hand. No extra fingers, no missing fingers, no fused fingers, no malformed fingers.',
+                'HAND VISIBILITY (CRITICAL): If hands are visible, they must be complete and not cropped awkwardly at wrists or mid-hand. Either show full hands or keep them out of frame entirely.',
+                'NO PHONE VISIBLE: Absolutely no smartphone visible in the frame. This is professional brand photography, not a selfie.',
+                'LIFESTYLE PHOTOGRAPHY (EDITORIAL STANDARD): This is a professional studio photoshoot for advertising/editorial. Professional model, professional photographer, professional lighting rig (softbox/reflectors), intentional composition. NOT a casual snapshot, NOT a selfie, NOT user-generated content.',
+                'NEGATIVE CONSTRAINT (ABSOLUTE): no phone in hand, no arm extended holding camera, no mirror reflection of photographer, no bathroom selfie, no front-facing camera angle, no accidental framing, no casual snapshot aesthetic.'
             );
         }
 

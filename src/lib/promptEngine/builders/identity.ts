@@ -382,10 +382,11 @@ Captured by smartphone so fine edges may appear soft or broken.
             const facialStructure = randomizer.getFacialStructure();
             parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
 
-            // SKIP camera angle randomization if Raw Domestic UGC is active
-            // (Raw UGC has its own camera control: torso-level, high-angle, etc.)
+            // CAMERA ANGLE RANDOMIZATION: ONLY in UGC mode
+            // Lifestyle mode uses professional camera setup from canonicalScene.ts
+            // SKIP if Raw Domestic UGC is active (it has its own camera control)
             const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
-            if (!hasRawUgcCameraControl) {
+            if (isUgcMode && !hasRawUgcCameraControl) {
                 const cameraAngle = randomizer.getCameraAngle();
                 parts.push(`CAMERA ANGLE: ${cameraAngle}`);
             }
