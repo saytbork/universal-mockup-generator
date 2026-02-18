@@ -13,7 +13,7 @@ if (!admin.apps.length) {
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: `${serviceAccount.project_id}.appspot.com`,
+    storageBucket: 'perfectmockup-storage.firebasestorage.app', // 🔥 Fixed: use exact bucket name
   });
 
   console.log('✅ Firebase Admin SDK initialized successfully');
