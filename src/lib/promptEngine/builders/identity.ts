@@ -448,20 +448,29 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`ETHNICITY VARIATION: ${randomEthnicity} (unique per generation)`);
             }
 
-            // ALWAYS randomize lighting and background in UGC mode for authentic casual vibe
-            // But ONLY randomize background if user did NOT specify an environment
+            // ALWAYS randomize lighting in UGC mode for authentic casual vibe
+            // But NEVER randomize background in Lifestyle mode (canonicalScene.ts handles it)
             if (isUgcMode) {
                 const lighting = randomizer.getLightingEnvironment();
                 parts.push(`LIGHTING: ${lighting}`);
                 
-                // Background randomization: ONLY if user did NOT specify environment
-                const userSpecifiedEnvironment = Boolean(options.sceneEnvironment && options.sceneEnvironment.trim());
-                if (!userSpecifiedEnvironment) {
-                    // No user environment: fully random casual background
+                // Background randomization: DISABLED for Lifestyle mode
+                // Lifestyle mode always has environment specified via setting/microLocation
+                // canonicalScene.ts builder handles all environment/background composition
+                // Only randomize background if explicitly in Raw Domestic UGC mode with no structure
+                const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
+                const hasEnvironmentStructure = Boolean(
+                    (options.sceneEnvironment && options.sceneEnvironment.trim()) ||
+                    (options.setting && options.setting.trim()) ||
+                    (options.microLocation && options.microLocation.trim())
+                );
+                
+                // Only add random background if Raw UGC AND no environment specified
+                if (hasRawUgcCameraControl && !hasEnvironmentStructure) {
                     const backgroundElements = randomizer.getBackgroundElements();
                     parts.push(`BACKGROUND: ${backgroundElements}`);
                 }
-                // If user specified environment, canonicalScene.ts will handle it (don't override)
+                // Otherwise, canonicalScene.ts will handle environment (don't override)
             }
 
             // ================================================================
