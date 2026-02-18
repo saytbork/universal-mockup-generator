@@ -170,6 +170,14 @@ function hasReferenceProductImage(state: ProductStudioState): boolean {
             if (typeof (product as any).previewUrl === 'string' && (product as any).previewUrl.trim().length > 0) return true;
         }
     }
+    
+    // BUNDLE MODE FIX: Check if bundle is enabled with products
+    // Even if individual product objects aren't available, if bundle is enabled
+    // and has product IDs, assume reference images exist (user uploaded them)
+    if (state.bundle?.enabled && state.bundle.primaryProductId) {
+        return true; // Bundle mode requires uploaded product references
+    }
+    
     return false;
 }
 
@@ -911,7 +919,7 @@ function buildInteraction(state: ProductStudioState): string {
 }
 
 // ============================================================================
-// CAMERA BUILDER (Step 8)
+// CAMERA BUILDER (Step 8) - COMPREHENSIVE CONTROLS
 // ============================================================================
 
 function buildCamera(state: ProductStudioState): string {
@@ -919,31 +927,53 @@ function buildCamera(state: ProductStudioState): string {
 
     const parts: string[] = [];
 
-    parts.push(`shot on professional ${state.cameraSystem.toUpperCase()} camera`);
+    // CAMERA SYSTEM (DSLR / Macro / Telephoto)
+    const cameraSystemMap: Record<ProductStudioState['cameraSystem'], string> = {
+        'dslr_mirrorless': 'shot on professional DSLR/mirrorless camera, sharp focus, shallow depth of field',
+        'macro': 'macro lens photography, extreme close-up detail, texture-focused, minimal depth of field',
+        'telephoto': 'telephoto compression lens, flattened perspective, isolated subject, compressed spatial layers',
+    };
+    parts.push(cameraSystemMap[state.cameraSystem]);
 
-    const angleMap = {
-        'front': 'straight-on front view',
-        '45': '45-degree hero angle',
-        'top': 'top-down flat lay perspective',
-        'detail': 'detail close-up angle emphasizing label and material',
+    // ANGLE (Eye level / 45° / Top-down / Low / High / Detail)
+    const angleMap: Record<ProductStudioState['angle'], string> = {
+        'eye_level': 'eye-level product angle, straight-on perspective at natural viewing height',
+        '45_hero': '45-degree hero angle, dynamic elevated product presentation',
+        'top_down': 'top-down flat lay angle, direct overhead perspective',
+        'low_angle': 'low angle power shot, camera positioned below product looking upward, imposing presence',
+        'high_angle': 'high angle overview, camera positioned above looking downward, comprehensive view',
+        'detail_closeup': 'extreme close-up detail angle, texture and material emphasis',
     };
     parts.push(angleMap[state.angle]);
 
-    const distanceMap = {
-        'macro': 'macro close-up detail',
-        'close': 'close-up framing',
-        'medium': 'standard framing, full product visible', // Enforce full visibility
+    // DISTANCE (Wide / Standard / Tight / Macro)
+    const distanceMap: Record<ProductStudioState['distance'], string> = {
+        'wide': 'wide camera distance, environmental context visible, product in setting',
+        'standard': 'standard camera distance, product fills frame appropriately with breathing room',
+        'tight': 'tight camera distance, product dominates frame with minimal background',
+        'macro': 'macro camera distance, extreme detail visible, surface textures emphasized',
     };
     parts.push(distanceMap[state.distance]);
 
-    if (state.rotation === 'slight') {
-        parts.push('slight intentional rotation');
+    // ROTATION (0° / 5° / 10° / 15°)
+    if (state.rotation > 0) {
+        parts.push(`${state.rotation}° intentional product rotation for dynamic presentation`);
     }
 
-    // Framing is handled in Composition/Art Direction now, but camera technicals stay here
-    parts.push('product-first framing');
-    parts.push('no accidental cropping');
-    parts.push('background separation without blur abuse');
+    // FRAMING GUIDE (Centered / Rule of thirds / Left/Right negative space / Grid-ready)
+    const framingMap: Record<ProductStudioState['framing'], string> = {
+        'centered_hero': 'centered hero framing, product positioned in center with symmetrical composition',
+        'rule_of_thirds': 'rule of thirds framing, product positioned at thirds intersection for balanced asymmetry',
+        'left_negative': 'left-aligned framing, product positioned on left with intentional negative space on right for text overlay',
+        'right_negative': 'right-aligned framing, product positioned on right with intentional negative space on left for text overlay',
+        'grid_ready': 'grid-ready framing, social media optimized composition with flexible crop zones',
+    };
+    parts.push(framingMap[state.framing]);
+
+    // Camera technicals
+    parts.push('professional product photography framing');
+    parts.push('no accidental cropping of product');
+    parts.push('clean background separation');
 
     return parts.join(', ');
 }
@@ -1777,11 +1807,17 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         const intensity = Number((state as any).accentLightIntensity ?? 50);
         if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
             const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
-            core.push(`ACCENT_LIGHT_GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on product edges and contours for ${intensityDesc} highlights.`);
+            core.push(`ACCENT_LIGHT_GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). CRITICAL: Use external studio lights with colored gels positioned to graze the product edges, creating ${intensityDesc} colored reflections and refractions on metallic/glossy surfaces. The colored light reflects OFF the product surface (not from within). The product itself does NOT contain LEDs, neon, or any light-emitting materials. No glowing edges. No light emanating from the product. Only natural reflection and refraction of the external colored light source on the product's surface materials.`);
         }
         
         if (String(state.finish || '').trim()) core.push(`FINISH_OVERRIDE: ${String(state.finish).trim()}`);
-        if (String(state.viewpoint || '').trim()) core.push(`VIEWPOINT_OVERRIDE: ${String(state.viewpoint).trim()}`);
+        
+        // VIEWPOINT_OVERRIDE: Only add if Camera & Framing controls are NOT explicitly set
+        // Camera Angle selection should take priority over viewpoint in Pro Mode
+        const hasCameraAngleControl = Boolean(String((state as any).angle || '').trim());
+        if (!hasCameraAngleControl && String(state.viewpoint || '').trim()) {
+            core.push(`VIEWPOINT_OVERRIDE: ${String(state.viewpoint).trim()}`);
+        }
     }
     if (state.photoMode === 'Hands Application Clean') {
         core.push('HANDS_APPLICATION_CONSTRAINTS: Hands must be anatomically correct.');
