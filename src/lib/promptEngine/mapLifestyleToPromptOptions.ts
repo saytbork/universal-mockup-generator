@@ -447,7 +447,7 @@ const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
     'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
     'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
     'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
-    'Full body': 'full-length framing from head to toe, including ground contact and environmental elements around the subject'
+    'Full body': 'extended framing from waist to top of head (3/4 body), showing full torso, arms, and upper environment; feet and floor may be excluded to keep product properly sized'
 };
 
 /**
@@ -701,6 +701,10 @@ const CREATION_MODE_STRUCTURAL_MAP: Record<string, string> = {
  * COMPOSITION MODE → Layout intent and spatial arrangement
  */
 const COMPOSITION_MODE_STRUCTURAL_MAP: Record<string, string> = {
+    'Product First': 'product-first composition: product is the hero with person supporting the story, product as primary focus',
+    'Balanced': 'balanced composition: equal attention to product and person, harmonious visual weight',
+    'Fifty / Fifty': 'fifty-fifty composition: equal visual weight given to product and model with tight framing',
+    'Model First': 'model-first composition: person is the hero with product naturally integrated into the lifestyle moment',
     'Lifestyle Showcase': 'lifestyle showcase layout: balanced subject and environment, natural contextual composition',
     'Editorial Spread': 'editorial spread layout: design-forward with intentional negative space, magazine-style arrangement',
     'Blank Space': 'blank space layout: heavy negative space on designated side, optimized for text and graphic overlays'
