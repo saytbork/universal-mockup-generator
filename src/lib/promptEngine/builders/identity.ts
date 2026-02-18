@@ -382,11 +382,13 @@ Captured by smartphone so fine edges may appear soft or broken.
             const facialStructure = randomizer.getFacialStructure();
             parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
 
-            // CAMERA ANGLE RANDOMIZATION: ONLY in UGC mode
+            // CAMERA ANGLE RANDOMIZATION: ONLY in UGC mode AND only if NOT already specified
             // Lifestyle mode uses professional camera setup from canonicalScene.ts
             // SKIP if Raw Domestic UGC is active (it has its own camera control)
+            // SKIP if user explicitly selected a camera angle (respect user choice)
             const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
-            if (isUgcMode && !hasRawUgcCameraControl) {
+            const userSpecifiedCameraAngle = Boolean(options.cameraAngle && options.cameraAngle.trim());
+            if (isUgcMode && !hasRawUgcCameraControl && !userSpecifiedCameraAngle) {
                 const cameraAngle = randomizer.getCameraAngle();
                 parts.push(`CAMERA ANGLE: ${cameraAngle}`);
             }
@@ -417,9 +419,11 @@ Captured by smartphone so fine edges may appear soft or broken.
 
             // ALWAYS randomize clothing in UGC mode (even if user specified wardrobe)
             // User wardrobe becomes a "style direction" but we still add random variation
-            if (isUgcMode) {
+            // ONLY if user did NOT specify custom clothes (respect custom clothes completely)
+            const hasCustomClothes = Boolean(options.customClothes && options.customClothes.enabled);
+            if (isUgcMode && !hasCustomClothes) {
                 const clothing = randomizer.getClothing();
-                if (options.wardrobeStyle) {
+                if (options.wardrobeStyle && options.wardrobeStyle.trim()) {
                     // User specified wardrobe: blend it with random casual clothing
                     parts.push(`CLOTHING BASE: ${sanitizePart(options.wardrobeStyle, isUgcMode)}, but ${clothing.toLowerCase()}`);
                 } else {
@@ -445,18 +449,19 @@ Captured by smartphone so fine edges may appear soft or broken.
             }
 
             // ALWAYS randomize lighting and background in UGC mode for authentic casual vibe
+            // But ONLY randomize background if user did NOT specify an environment
             if (isUgcMode) {
                 const lighting = randomizer.getLightingEnvironment();
                 parts.push(`LIGHTING: ${lighting}`);
                 
-                // Background randomization: if user specified environment, blend it with random casual elements
-                const backgroundElements = randomizer.getBackgroundElements();
-                if (options.sceneEnvironment && options.sceneEnvironment.trim()) {
-                    parts.push(`BACKGROUND: ${sanitizePart(options.sceneEnvironment, isUgcMode)}, with ${backgroundElements.toLowerCase()}`);
-                } else {
+                // Background randomization: ONLY if user did NOT specify environment
+                const userSpecifiedEnvironment = Boolean(options.sceneEnvironment && options.sceneEnvironment.trim());
+                if (!userSpecifiedEnvironment) {
                     // No user environment: fully random casual background
+                    const backgroundElements = randomizer.getBackgroundElements();
                     parts.push(`BACKGROUND: ${backgroundElements}`);
                 }
+                // If user specified environment, canonicalScene.ts will handle it (don't override)
             }
 
             // ================================================================
