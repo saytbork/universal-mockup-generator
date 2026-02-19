@@ -5339,7 +5339,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
-        const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
+        const isNaturalUgc = naturalMode || rawMode;
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
@@ -5350,8 +5350,50 @@ If the model attempts to create a scene or environment, override it and force a 
             reference: true,
           }
           : null;
+        const hasHumanReference = Boolean(identityInlinePart || modelReferenceFile);
+        const shouldIncludeHumanImage = personIncluded && (hasHumanReference || !isNaturalUgc);
         const requestParts: any[] = [];
         requestParts.push({ text: finalPrompt });
+
+        // IMPORTANT: attach human/model reference BEFORE product references.
+        // Gemini is sensitive to reference ordering; placing the model first improves identity adherence.
+        if (shouldIncludeHumanImage) {
+          if (identityInlinePart) {
+            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${modelMimeType};base64,${modelBase64}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+          }
+        }
+
+        let productReferencesAttached = 0;
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
@@ -5427,50 +5469,16 @@ If the model attempts to create a scene or environment, override it and force a 
               inlineData: { data: finalReference.base64, mimeType: finalReference.mimeType },
               reference: true,
             });
+            productReferencesAttached += 1;
             totalAttachedReferenceBase64 += finalReference.base64.length;
-          }
-        }
-        if (shouldIncludeHumanImage) {
-          if (identityInlinePart) {
-            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-          } else if (modelReferenceFile) {
-            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${modelMimeType};base64,${modelBase64}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
           }
         }
         const payload = { parts: requestParts };
         const payloadLog = {
-          isNaturalUgc: naturalMode || rawMode,
+          isNaturalUgc,
           productImageSent: shouldSendProductImage,
-          productImagesAttached: Math.max(0, requestParts.length - 1),
-          humanImageSent: shouldIncludeHumanImage && (Boolean(identityInlinePart) || Boolean(modelReferenceFile)),
+          productImagesAttached: productReferencesAttached,
+          humanImageSent: shouldIncludeHumanImage && hasHumanReference,
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
