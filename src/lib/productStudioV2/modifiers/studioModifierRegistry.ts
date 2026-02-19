@@ -30,19 +30,19 @@ const STUDIO_MODIFIER_ORDER: StudioModifier[] = [
 const STUDIO_MODIFIER_REGISTRY: Record<StudioModifier, StudioModifierDefinition> = {
   splash: {
     requires: (authority) => authority.permissions.allowSplash,
-    blocks: ['Requires dynamic splash authority and deterministic collision physics.'],
+    blocks: ['Requires dynamic splash authority and deterministic collision physics. Use premium ad-grade splash styling with one dominant directional flow, crisp droplet edge acuity, and clear hero readability.'],
   },
   condensation: {
     requires: (authority) => authority.world !== 'underwater',
-    blocks: ['Apply controlled condensation on product-facing surfaces only.'],
+    blocks: ['Apply controlled condensation on product-facing surfaces only, with premium specular sparkle and disciplined droplet distribution (no random foggy mess).'],
   },
   texturedBed: {
     requires: (authority) => authority.world !== 'underwater',
-    blocks: ['Product grounded on a premium textured scatter base at the bottom edge of frame. Use controlled natural scatter elements (coffee beans, seeds, crystals, sand, stones) arranged around the base of the product with intentional premium placement. Scatter must be minimal, bounded, and serve the composition—not dominate it. Maintain clean hero product focus with readable label. Apply realistic contact shadows between product and scatter base.'],
+    blocks: ['Product must be partially embedded into a dense premium textured ingredient bed (coffee beans, seeds, crystals, sand, stones), not just surrounded by sparse scatter. The bed should wrap around the lower base of the product with visible compression and physically plausible contact/occlusion shadows, making the product feel seated inside the material. Keep styling controlled and premium, avoid chaotic clutter, and keep the label zone clear and readable.'],
   },
   ice: {
     requires: () => true,
-    blocks: ['Use physically plausible ice geometry with melt-aware contact zones.'],
+    blocks: ['Use physically plausible ice geometry with melt-aware contact zones and clean ad-grade translucency/refraction.'],
   },
   fruit: {
     requires: (authority, state) => authority.world !== 'underwater' || Boolean(state.fruitSubmerged),
@@ -50,11 +50,11 @@ const STUDIO_MODIFIER_REGISTRY: Record<StudioModifier, StudioModifierDefinition>
   },
   foam: {
     requires: (authority) => authority.world !== 'underwater' || authority.permissions.allowSplash,
-    blocks: ['Foam must remain mass-coherent and attached to liquid flow vectors.'],
+    blocks: ['Foam must remain mass-coherent and attached to liquid flow vectors, with premium texture definition and controlled micro-bubble detail.'],
   },
   particles: {
     requires: (authority) => authority.permissions.allowParticles,
-    blocks: ['Particles allowed only as bounded atmospheric depth cues.'],
+    blocks: ['Particles allowed only as bounded atmospheric depth cues with cinematic depth layering and no noisy haze wash.'],
   },
   acrylic: {
     requires: () => true,

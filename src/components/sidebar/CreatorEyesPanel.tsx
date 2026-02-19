@@ -16,13 +16,13 @@ export default function CreatorEyesPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Eyes
       </h3>
 
       <div className="flex flex-col gap-2">
         <span className="text-gray-600 text-sm">Eye Color</span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2">
           {eyeColors.map((color) => {
             const isActive = creator.eyeColor === color;
 

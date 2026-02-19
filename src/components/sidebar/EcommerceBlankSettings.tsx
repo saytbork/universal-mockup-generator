@@ -7,7 +7,7 @@ export default function EcommerceBlankSettings() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Ecommerce Blank Space
       </h3>
 

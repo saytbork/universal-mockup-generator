@@ -127,7 +127,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
         {schema.constraints.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-2">
+            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 mb-2">
               AI Constraints
             </p>
             <ul className="space-y-1">
@@ -2259,7 +2259,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {!embedded && (
         <div className="flex flex-col gap-1">
           <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
-          <h2 className="text-2xl font-bold text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
+          <h2 className="text-2xl text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
         </div>
       )}
 
@@ -3355,7 +3355,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                   />
                                                 </div>
                                               ) : (
-                                                <div className="grid grid-cols-1 gap-3">
+                                                <div className="flex flex-wrap gap-3">
                                                   <div className="flex items-center gap-3">
                                                     <span
                                                       className="block h-8 w-8 rounded-full border-2 border-gray-200"
@@ -4198,7 +4198,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setLens(lens);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.lens === lens
+                                className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.lens === lens
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -4231,7 +4231,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setLightingRig(value);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.lightingRig === value
+                                className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.lightingRig === value
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -4266,7 +4266,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       productStore.setLightColorTemp('Neutral (5000K)');
                                       markSectionTouched('product-setup');
                                     }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${
                                       productStore.customLightColor === value
                                         ? 'bg-indigo-600 text-white border-indigo-600'
                                         : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
@@ -4368,7 +4368,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setFinish(finish);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.finish === finish
+                                className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.finish === finish
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -5530,7 +5530,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
 
                       {/* SCALE & SPACING */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-wrap gap-4">
                         <div className={SECTION_GROUP_CLASS}>
                           <p className={GROUP_LABEL_CLASS}>SCALE</p>
                           <div className="flex flex-col gap-2">
@@ -5570,7 +5570,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 }}
                                 selected={productStore.spacing === opt.value}
                                 size="md"
-                                className="w-full justify-center py-3 rounded-full text-[12px] font-semibold"
+                                className="rounded-full py-3 text-[12px] font-semibold"
                               >
                                 {opt.label}
                               </Chip>
@@ -5648,7 +5648,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>SUGGESTED PROPS</p>
                         <p className="text-[11px] text-gray-500">Optional. Product-safe suggestions based on Product Type.</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {productSuggestedProps.map(prop => {
                             const selected = productStore.selectedProps.includes(prop);
                             return (
@@ -6325,7 +6325,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold tracking-wide text-amber-800">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs tracking-wide text-amber-800">
               BETA
             </span>
           </div>
@@ -6938,7 +6938,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             <div className="space-y-2">
                               <span className="text-xs text-gray-600 dark:text-white/60">Hair</span>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="flex flex-wrap gap-2">
                                 {(['Short', 'Shoulder', 'Long'] as const).map(option => (
                                   <Chip
                                     key={option}
@@ -7078,7 +7078,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Hair length</span>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {(isCreatorPro
                               ? (['Buzzcut', 'Short', 'Shoulder', 'Chin-length', 'Long', 'Very long'] as const)
                               : (['Short', 'Shoulder', 'Long'] as const)
@@ -7088,7 +7088,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 onClick={() => { updateValue('hairLength', option as any); markSectionTouched('creator'); }}
                                 selected={values.hairLength === (option as any)}
                                 size="md"
-                                className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
+                                className="rounded-full py-2 text-[12px] font-semibold"
                               >
                                 {option}
                               </Chip>
@@ -7099,7 +7099,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     <section className="space-y-5">
                       <p className={GROUP_LABEL_CLASS}>FACIAL EXPRESSION</p>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {(isCreatorPro
                           ? ([
                             'Calm & Serene',
@@ -7117,7 +7117,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             onClick={() => { updateValue('facialExpression', option as any); markSectionTouched('creator'); }}
                             selected={values.facialExpression === (option as any)}
                             size="md"
-                            className="w-full justify-center"
+                            className=""
                           >
                             {option}
                           </Chip>
@@ -7452,7 +7452,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">Hair length</span>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {(['Short', 'Shoulder', 'Long'] as const).map(option => {
                             const active = values.hairLength === option;
                             return (
@@ -7471,7 +7471,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">Facial expression</span>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
                             onClick={() => { updateValue('facialExpression', 'Calm & Serene'); markSectionTouched('creator'); }}
@@ -7862,7 +7862,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 space-y-2">
                           <div className="flex items-center justify-between gap-4">
                             <div>
-                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 font-bold">UGC Full Automation</p>
+                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">UGC Full Automation</p>
                               <p className="text-xs text-gray-600">
                                 {hasModelReference
                                   ? 'Disabled while Model Reference is active (Model Reference always wins)'
@@ -7885,7 +7885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {values.isRandomFullAutomationEnabled && (
                             <div className="mt-2 rounded-lg bg-white/60 border border-indigo-200 px-3 py-3 space-y-3">
                               <div>
-                                <p className="text-xs uppercase tracking-wider text-indigo-600 font-bold mb-1">Active Mode</p>
+                                <p className="text-xs uppercase tracking-wider text-indigo-600 mb-1">Active Mode</p>
                                 <p className="text-xs text-gray-700">
                                   🤖 Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
                                 </p>
@@ -7893,7 +7893,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               
                               {/* Gender Preference (optional) */}
                               <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-600 font-bold mb-2">Gender Preference (Optional)</p>
+                                <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">Gender Preference (Optional)</p>
                                 <ChipSelectGroup
                                   options={[
                                     { value: 'any', label: 'Any (fully random)' },
@@ -8828,7 +8828,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     ) : (
                       <>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-wrap gap-3">
                           {[
                             { key: 'ecommerceGradientStart', label: 'Start color', value: values.ecommerceGradientStart },
                             { key: 'ecommerceGradientEnd', label: 'End color', value: values.ecommerceGradientEnd }

@@ -28,7 +28,7 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
             <p className="text-xs uppercase tracking-widest text-gray-600 mb-2">
                 Wardrobe Style
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-wrap gap-2">
                 {options.map((option) => {
                     const isActive = selectedValue === option.value;
                     return (

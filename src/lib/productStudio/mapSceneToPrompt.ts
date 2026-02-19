@@ -408,8 +408,9 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
 
     if (key === 'beach foam splash') {
       return [
-        'BEACH FOAM: controlled sea-foam interaction near the base on wet sand with thin retreating foam contours.',
-        'Keep it premium and minimal; do not bury the product in foam.',
+        'BEACH FOAM: tropical Caribbean daylight scene with turquoise seawater and clean white sand.',
+        'Product is grounded on wet white sand near shoreline with thin retreating foam contours and crisp micro-droplets.',
+        'Keep it premium and minimal; do not bury the product in foam and never block the label zone.',
         'No tall water plumes, no chaotic jet streams, no label-crossing splash arcs.',
       ].join(' ');
     }
@@ -452,8 +453,8 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
     if (key === 'textured bed / scatter base') {
       const detail = String(extras.bed || '').trim();
       return detail
-        ? `SCATTER BED: ${detail}. Keep it controlled, premium, and not overpowering the product.`
-        : 'SCATTER BED: a controlled textured bed/scatter around the base (e.g., ice + droplets, beans, sand/shells, stones), not overpowering the product.';
+        ? `SCATTER BED: ${detail}. Build a dense ingredient bed where the product sits partially embedded (not hovering), with realistic compression/contact zones. Keep it premium and controlled, and keep the label area unobstructed.`
+        : 'SCATTER BED: dense textured ingredient bed (e.g., beans, seeds, sand/shells, crystals, stones) with the product partially embedded into it; bed wraps around the lower base with realistic contact shadows/compression; no hovering, no messy clutter, label unobstructed.';
     }
 
     if (key === 'floating particles') {
@@ -783,6 +784,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (beachFoamProfile === 'BeachFoam_Conversion') {
       merged.shoreline = merged.shoreline || 'Backwash';
       merged.spray = merged.spray || 'Low';
+      merged.sand = merged.sand || 'Clean';
+      merged.water_color = merged.water_color || 'turquoise';
+      merged.atmosphere = merged.atmosphere || 'sunny tropical Caribbean';
     }
     if (beachFoamProfile === 'BeachFoam_Campaign') {
       merged.shoreline = merged.shoreline || 'Wave break';
@@ -944,9 +948,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         scene = buildAcrylicBlocksScene(sceneInput);
         break;
       case 'SPLASH_SHOT': {
-        const splash = buildSplashShotScene(sceneInput);
-        scene = splash.scene;
-        splashMode = splash.splashMode;
+        if (state.photoMode === 'Underwater Split') {
+          splashMode = 'UNDERWATER_SPLIT';
+          scene = [
+            'Split-level underwater composition with a physically coherent waterline crossing the product body.',
+            'Upper section remains in bright clean daylight air; lower section is clearly submerged in luminous aqua water.',
+            'Realistic meniscus and refraction at the waterline, with clear optical transition between above-water and underwater zones.',
+            'Underwater caustics on the lower environment, subtle volumetric rays, and crisp bubbles clustered near submerged product edges.',
+            'Keep water clean and premium (no murk, no green cast, no cloudy haze) and preserve label readability as perspective allows.',
+          ].join(' ');
+        } else {
+          const splash = buildSplashShotScene(sceneInput);
+          scene = splash.scene;
+          splashMode = splash.splashMode;
+        }
         break;
       }
       case 'FOAM_AND_TEXTURE':
@@ -982,6 +997,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   }
 
   const lightingStyleOverrideText = (() => {
+    if (state.photoMode === 'Underwater Split') {
+      return [
+        'Bright split-level daylight is mandatory: clean sunlit air above water and luminous aqua underwater light below.',
+        'Underwater zone must show natural caustics and soft volumetric rays; avoid dark/deep-sea mood and avoid clinical studio softbox look.',
+      ].join(' ');
+    }
+    if (state.photoMode === 'Beach Foam Splash') {
+      return [
+        'Bright tropical sun daylight is mandatory: directional sun, vivid turquoise-water bounce, and warm white-sand fill.',
+        'No clinical softbox look, no flat studio-neutral light, preserve lively coastal atmosphere.',
+      ].join(' ');
+    }
     if (isCampaignIntent) {
       return [
         'Natural directional sunlight with environmental bounce and specular rim highlights.',
@@ -995,6 +1022,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const userLightingStyleText = (() => {
     const lighting = String((state as any).lighting || '').trim();
     if (!lighting) return '';
+    if (state.photoMode === 'Beach Foam Splash' && lighting === 'clinical-softbox') return '';
+    if (state.photoMode === 'Underwater Split' && lighting === 'clinical-softbox') return '';
     const map: Record<string, string> = {
       'natural-light': 'Natural light with soft diffusion and realistic shadow falloff.',
       'sunny-day': 'Bright natural daylight with defined but not harsh shadows.',
@@ -1312,6 +1341,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const visualIntentDirectiveText = (() => {
+    const effectDrivenConversionMode =
+      mode === 'SPLASH_SHOT' ||
+      mode === 'FOAM_AND_TEXTURE' ||
+      state.photoMode === 'Gel Smear Editorial' ||
+      state.photoMode === 'Beach Foam Splash' ||
+      state.photoMode === 'Underwater Split' ||
+      state.photoMode === 'Pool Water' ||
+      state.photoMode === 'Citrus Fresh Flat Lay' ||
+      state.photoMode === 'Stones & Crystals Flat Lay' ||
+      state.photoMode === 'Dried Citrus Earth' ||
+      state.photoMode === 'Cheers (Hands Clink)';
+
     if (authorities.visualIntent === 'campaign') {
       return [
         'VISUAL INTENT: Campaign Energy Mode.',
@@ -1337,10 +1378,28 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         'Preserve hero dominance and label readability while allowing refined variation.',
       ].join(' ');
     }
+    if (state.photoMode === 'Beach Foam Splash') {
+      return [
+        'VISUAL INTENT: Conversion Strict Mode.',
+        'Use bright tropical sun daylight as authoritative lighting behavior (not softbox), with white-sand bounce and turquoise-water reflections.',
+        'Maintain centered hero dominance while preserving natural beach atmosphere and premium realism.',
+        'Enforce strict readability, bounded foam behavior, and physically coherent shoreline interaction.',
+      ].join(' ');
+    }
+    if (state.photoMode === 'Underwater Split') {
+      return [
+        'VISUAL INTENT: Conversion Strict Mode.',
+        'Use split-level daylight water optics as authoritative behavior: bright air above surface, luminous aqua underwater below, coherent waterline refraction.',
+        'Maintain centered hero dominance while preserving energetic hydration atmosphere and premium realism.',
+        'Enforce strict readability, bounded bubble density, and physically coherent caustic behavior.',
+      ].join(' ');
+    }
     {
       return [
         'VISUAL INTENT: Conversion Strict Mode.',
-        'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
+        effectDrivenConversionMode
+          ? 'Use premium ad-grade lighting behavior with vibrant but controlled contrast, tactile highlights, and energetic depth.'
+          : 'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
         isConversionSquareOptimized
           ? (disableSquareLateralSpreadForSplitWater
             ? 'Square composition rule: allow vertical subject dominance. Do not artificially expand horizontal environment. Water and atmosphere must extend naturally to all edges. No neutral side fill, no white lateral bands, no artificial padding.'
@@ -1350,7 +1409,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
           : (isBasicTier
             ? 'Keep centered product dominance with stable hero perspective and controlled reflections.'
             : 'Keep centered hero composition, 45-degree hero camera, and 0-degree rotation. Respect user-selected pro lens when provided.'),
-        'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
+        effectDrivenConversionMode
+          ? 'Allow controlled expressive atmosphere, richer micro-contrast, and premium tactile realism while preserving clean label readability and physical coherence.'
+          : 'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
       ].join(' ');
     }
   })();
@@ -1360,7 +1421,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (beachFoamProfile === 'BeachFoam_Conversion') {
       return [
         'BeachFoam_Conversion profile:',
-        'minimal foam, softbox-driven polish, centered hero bias, controlled backwash, strict readability.',
+        'sunny Caribbean daytime is mandatory: turquoise water, clean white sand, lively coastal atmosphere, controlled backwash, strict readability.',
       ].join(' ');
     }
     return [
@@ -1419,6 +1480,113 @@ No studio-style suspension shadows underwater.
     return [];
   })();
 
+  const effectHyperProDirectiveText = (() => {
+    const effectDrivenMode =
+      mode === 'SPLASH_SHOT' ||
+      mode === 'FOAM_AND_TEXTURE' ||
+      state.photoMode === 'Gel Smear Editorial' ||
+      state.photoMode === 'Beach Foam Splash' ||
+      state.photoMode === 'Underwater Split' ||
+      state.photoMode === 'Pool Water' ||
+      state.photoMode === 'Textured Bed / Scatter Base';
+    const hasEffects = resolvedSpecialEffects.length > 0;
+    if (!effectDrivenMode && !hasEffects) return '';
+
+    return [
+      'EFFECT ART DIRECTION (HYPER-PRO AD): premium commercial impact is mandatory.',
+      'Build a high-end advertising look with deliberate visual energy, clean depth layering, and strong but controlled highlight/contrast shaping.',
+      'Effects must feel art-directed (not random): one dominant motion/vector language, coherent secondary accents, and clear hero product dominance.',
+      'Preserve tactile micro-detail in liquid/foam/texture edges, keep scene lively and cinematic, and avoid flat lifeless lighting.',
+      'No chaotic clutter, no generic stock look, no CGI/plastic artifacts, and never sacrifice label readability.',
+    ].join(' ');
+  })();
+
+  const referenceLookDirectiveText = (() => {
+    const photoMode = String(state.photoMode || '').trim();
+    if (!photoMode) return '';
+
+    if (photoMode === 'Beach Foam Splash') {
+      return [
+        'REFERENCE LOOK LOCK: tropical ad-campaign beach still.',
+        'Clean white sand, bright turquoise water horizon, sculpted sea-foam mounds near product base, and crisp high-noon sunlight.',
+        'Keep product planted and hero-centered with energetic but controlled summer vibe.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Underwater Split') {
+      return [
+        'REFERENCE LOOK LOCK: premium split-waterline skincare ad.',
+        'Upper air zone bright and minimal; underwater zone luminous cyan-blue with clear caustics and elegant bubbles.',
+        'Waterline crossing the product must be the visual anchor, with photoreal refraction and clean label legibility.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Splash Shot') {
+      return [
+        'REFERENCE LOOK LOCK: high-speed beverage splash campaign still.',
+        'Single dominant liquid burst, frozen droplets with crystal edge acuity, premium neutral/pastel backdrop, and aggressive product hero focus.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Citrus Fresh Flat Lay') {
+      return [
+        'REFERENCE LOOK LOCK: citrus-led commercial flat lay.',
+        'Saturated fresh orange/lemon slices, controlled droplet accents, clean top-down rhythm, and bright premium color contrast.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Cheers (Hands Clink)') {
+      return [
+        'REFERENCE LOOK LOCK: summer lifestyle cheers moment.',
+        'Cropped hands only, shallow pool/beach context, flash-frozen clink droplets, and brand-first framing with vibrant vacation energy.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Sand Palm Shadows' || photoMode === 'Sunlit Stone Editorial') {
+      return [
+        'REFERENCE LOOK LOCK: sunlit editorial still-life with architectural shadows.',
+        'Hard directional sunlight, sculptural palm/shape shadows, tactile mineral/sand textures, and clean premium composition.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Warm Window Wood') {
+      return [
+        'REFERENCE LOOK LOCK: warm golden-hour window scene.',
+        'Natural sunlight through glass, soft dust sparkle, warm wood texture, and intimate premium lifestyle realism.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Gel Smear Editorial') {
+      return [
+        'REFERENCE LOOK LOCK: minimalist editorial serum smear shot.',
+        'One intentional smear with tactile depth and premium specular control, on a clean textured surface with strong product contrast.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Stones & Crystals Flat Lay') {
+      return [
+        'REFERENCE LOOK LOCK: calm wellness flat lay with natural stones/crystals.',
+        'Neutral linen/stone base, curated spacing, soft premium light, and tactile grounded material realism.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Dried Citrus Earth') {
+      return [
+        'REFERENCE LOOK LOCK: earthy citrus botanical ad still.',
+        'Sun-baked warm base, dried citrus and leaves as curated accents, hard sunlight shadows, and clean commercial styling.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Pool Water') {
+      return [
+        'REFERENCE LOOK LOCK: luxury poolside refresh visual.',
+        'Clear aqua water, crisp reflections/caustics, bright summer light, and controlled droplets for a clean energetic hydration feel.',
+      ].join(' ');
+    }
+
+    return '';
+  })();
+
   const canonicalScene: CanonicalScene = {
     outputProfile: state.qualityProfile,
     photoType: environmentModeActive ? 'Environment' : 'Photo Studio',
@@ -1469,6 +1637,8 @@ No studio-style suspension shadows underwater.
     visualIntentDirectiveText,
     energyDirectiveText,
     beachFoamProfileText,
+    effectHyperProDirectiveText,
+    referenceLookDirectiveText,
     photoModeEnvironmentAdaptationText,
     scene,
     placementResolution.promptFragment,

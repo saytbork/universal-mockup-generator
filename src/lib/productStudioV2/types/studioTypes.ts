@@ -7,7 +7,8 @@ export type StudioCreativeIntent =
 export type StudioWorld =
   | 'studio'
   | 'underwater'
-  | 'splash-tank';
+  | 'splash-tank'
+  | 'beach-daylight';
 
 export type StudioMotion =
   | 'static'

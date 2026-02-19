@@ -17,11 +17,11 @@ export default function CreationModePanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Creation Mode
       </h3>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="flex flex-wrap gap-2">
         {modes.map((label) => {
           const value = label.toLowerCase().replace(/\s+/g, "-");
           const isActive = creationMode === value;

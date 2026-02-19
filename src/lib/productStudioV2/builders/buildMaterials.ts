@@ -2,6 +2,9 @@ import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
 
 export function buildMaterials(authority: StudioAuthorityBundle): string {
   const materialModel = (() => {
+    if (authority.world === 'beach-daylight') {
+      return 'natural Caribbean shoreline materials: clean white sand grain, turquoise shallows, sea-foam edge behavior, and physically coherent wet contact zones';
+    }
     if (authority.world === 'underwater') {
       return 'submerged materials with coherent caustics, depth haze, and water-contact realism';
     }

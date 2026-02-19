@@ -159,13 +159,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        basePrompt: 'premium Caribbean beach splash setup in sunny daytime: product physically grounded on wet clean white sand, vivid turquoise seawater and shallow sea foam with clean micro-droplets only near the base, restrained directional backwash around the product, lively coastal atmosphere with product as hero and label fully readable',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
             { key: 'sand', label: 'Sand', values: ['Clean', 'Wet', 'Glossy'] },
         ],
         constraints: [
+            'Scene must read as sunny tropical Caribbean daytime (not studio, not overcast, not dusk)',
+            'Water should read turquoise and sand should read clean white',
             'Keep foam minimal and controlled (do not bury the product)',
             'Frozen motion with crisp droplets',
             'Label must remain readable and unobstructed',
@@ -268,10 +270,11 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Textured Bed / Scatter Base',
         scope: 'studio',
         description: 'Product grounded on a controlled textured bed or scatter base.',
-        basePrompt: 'product grounded on a controlled textured bed or scatter base around the bottom edge of frame, premium advertising styling, realistic contact shadows, label stays readable, keep scatter minimal and intentional',
+        basePrompt: 'product partially embedded in a dense, controlled textured ingredient bed (not just loose scatter), premium advertising styling, ingredient field wraps around lower 360 degrees of product base, realistic contact shadows and occlusion, label area remains clean and fully readable, keep composition intentional and premium',
         subOptions: [],
         constraints: [
-            'Scatter must be controlled and premium',
+            'Textured bed must feel dense and physically grounded around product base',
+            'No floating product; clear contact and compression into the ingredient bed',
             'No messy clutter or noise',
             'Label must remain readable'
         ],
@@ -674,7 +677,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Underwater Split',
         scope: 'environment',
         description: 'Split-level aqua scene with physically credible underwater depth.',
-        basePrompt: 'split-level water composition with realistic waterline, product visibly submerged below the waterline with true underwater depth cues, underwater caustics, particulate diffusion and bubbles, clean hydration-oriented premium look',
+        basePrompt: 'sunlit split-waterline composition: product intersects the water surface with upper section in bright clean air and lower section submerged in clear luminous aqua water, realistic curved meniscus at waterline, visible underwater caustics and light rays, crisp micro-bubbles around submerged edges, premium hydration look with strong product readability',
         subOptions: [
             { key: 'waterlineHeight', label: 'Waterline Height', values: ['Mid', 'Upper-mid'] },
             { key: 'bubbleDensity', label: 'Bubble Density', values: ['Low', 'Balanced'] },
@@ -682,9 +685,11 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         ],
         constraints: [
             'Waterline must be physically coherent',
-            'Submerged portion must clearly read as underwater with authentic light attenuation',
+            'Product must clearly cross the waterline (split-level view), not fully submerged and not fully dry',
+            'Submerged portion must clearly read as underwater with authentic light attenuation and caustic response',
             'Underwater refraction and caustics must be physically plausible',
             'No muddy water color',
+            'Top half should read as bright daylight air environment, clean and minimal',
             'Label remains as readable as perspective allows',
         ],
         requiredPlacement: 'air',

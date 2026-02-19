@@ -8,6 +8,7 @@ import type {
 } from '../types/studioTypes.ts';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
+const isBeachFoamMode = (value: unknown): boolean => normalize(value) === 'beach foam splash';
 
 const isDynamicMotion = (motion: StudioMotion): boolean =>
   motion === 'dispensed' || motion === 'pouring' || motion === 'falling';
@@ -15,6 +16,7 @@ const isDynamicMotion = (motion: StudioMotion): boolean =>
 const resolveWorld = (state: StudioUIState): StudioWorld => {
   if (state.world) return state.world;
   const mode = normalize(state.photoMode);
+  if (isBeachFoamMode(mode)) return 'beach-daylight';
   if (mode.includes('underwater')) return 'underwater';
   if (mode.includes('splash') || mode.includes('foam') || mode.includes('pool water')) return 'splash-tank';
   return 'studio';
@@ -39,7 +41,7 @@ export function resolveStudioAuthority(state: StudioUIState): StudioAuthorityBun
   const allowSplash =
     creativeIntent !== 'clinical' &&
     motion !== 'static' &&
-    (world === 'splash-tank' || world === 'underwater');
+    (world === 'splash-tank' || world === 'underwater' || world === 'beach-daylight');
 
   const permissions = {
     allowSplash,

@@ -261,14 +261,26 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   };
 
   const loadImageElement = async (sourceUrl: string) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = sourceUrl;
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error('Could not load the source image for download.'));
-    });
-    return img;
+    const load = (url: string, useCrossOrigin: boolean) =>
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        if (useCrossOrigin) {
+          img.crossOrigin = 'anonymous';
+        }
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Could not load the source image for download.'));
+        img.src = url;
+      });
+
+    try {
+      return await load(sourceUrl, true);
+    } catch {
+      if (!/^https?:\/\//i.test(sourceUrl)) {
+        throw new Error('Could not load the source image for download.');
+      }
+      const proxiedUrl = `/api/galleryHandler?action=proxy&url=${encodeURIComponent(sourceUrl)}`;
+      return load(proxiedUrl, false);
+    }
   };
 
   const canvasToBlob = async (canvas: HTMLCanvasElement) =>
