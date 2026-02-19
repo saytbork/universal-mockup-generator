@@ -122,7 +122,6 @@ figcaption {
   border: 1px solid var(--border);
   background: var(--surface);
   backdrop-filter: blur(18px);
-  box-shadow: 0 0 40px var(--accent-glow);
 }
 
 .glass {
@@ -152,7 +151,6 @@ figcaption {
   background: rgb(var(--accent-primary-rgb) / 0.10);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  box-shadow: 0 0 40px var(--accent-glow);
   transform: scale(1.05);
   transition-duration: 500ms;
 }
@@ -179,14 +177,7 @@ figcaption {
   border-radius: 36px !important;
 }
 
-/* Shadows */
-.shadow-lg {
-  box-shadow: 0 0 40px var(--accent-glow) !important;
-}
-
-.shadow-sm {
-  box-shadow: 0 0 20px var(--accent-glow) !important;
-}
+/* Shadows removed per UI normalization requirements */
 
 .scene-age-slider {
   appearance: none;
@@ -195,7 +186,7 @@ figcaption {
   background: linear-gradient(90deg,
       var(--accent-primary) var(--progress, 0%),
       var(--surface-tint) var(--progress, 0%));
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 html.dark .scene-age-slider {

@@ -33,7 +33,7 @@ import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
 function InterpretationNote({ message }: { message: string }) {
   return (
     <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
-      <div className="text-[10px] font-black tracking-[0.25em] text-gray-500">
+      <div className="text-xs font-black tracking-[0.25em] text-gray-500">
         Interpretation Note
       </div>
       <div>{message}</div>
@@ -68,7 +68,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
     <div className="space-y-5">
       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
         <div>
-          <p className="text-[10px] font-black tracking-[0.2em] text-indigo-600 uppercase mb-2">
+          <p className="text-xs font-black tracking-[0.2em] text-indigo-600 uppercase mb-2">
             {schema.label} Atmosphere
           </p>
           <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
@@ -79,7 +79,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
           return (
             <div key={option.key} className="space-y-2">
-              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">
                 {option.label}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -102,7 +102,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
         {supportsCustomIngredients && (
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">
               Custom Ingredients
             </p>
             <input
@@ -119,7 +119,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
               placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
               className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
-            <p className="text-[10px] text-gray-500">
+            <p className="text-xs text-gray-500">
               Adds optional custom ingredients/props on top of the mode defaults.
             </p>
           </div>
@@ -132,7 +132,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
             </p>
             <ul className="space-y-1">
               {schema.constraints.map((c, i) => (
-                <li key={i} className="text-[10px] text-gray-500 flex items-start gap-2">
+                <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
                   <span className="text-indigo-400 mt-0.5">•</span>
                   {c}
                 </li>
@@ -555,7 +555,7 @@ const GROUP_LABEL_CLASS =
 const getPillClass = (isActive: boolean, fullWidth = false) => {
   const base = `rounded-full px-4 py-2 text-xs font-semibold border transition-colors ${fullWidth ? 'w-full text-center' : ''}`;
   const active =
-    'bg-indigo-600 text-white border-indigo-600  shadow-indigo-500/20 ' +
+    'bg-indigo-600 text-white border-indigo-600 ' +
     'dark:bg-indigo-500 dark:border-indigo-500';
   const inactive =
     'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 ' +
@@ -2417,7 +2417,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
+                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
                           {(() => {
                             const compositionOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
@@ -2545,7 +2545,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                   <div className="space-y-5">
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Core</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Core</p>
                                       <div className="flex flex-wrap gap-3">
                                         {compositionOptions.map(({ label, mode }) => (
                                           <Chip
@@ -2571,7 +2571,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                   <div className="space-y-5">
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
                                       <div className="flex flex-wrap gap-3">
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Clinical Lab Counter' ||
@@ -2594,7 +2594,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
                                       <div className="flex flex-wrap gap-3">
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Monochrome Brand' ||
@@ -2616,7 +2616,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
                                       <div className="flex flex-wrap gap-3">
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Soft Wellness Morning' ||
@@ -2637,7 +2637,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
                                       <div className="flex flex-wrap gap-3">
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Sunlit Stone Editorial' ||
@@ -2660,7 +2660,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div className="space-y-3">
-                                      <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
+                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
                                       <div className="flex flex-wrap gap-3">
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Sky Float Minimal' ||
@@ -2787,7 +2787,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <div className="space-y-5">
                                         <div className="space-y-5">
                                           <div>
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Solid', 'Gradient'] as const).map(v => (
                                                 <Chip
@@ -2806,7 +2806,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {isGradient && (
                                             <div>
-                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Colors</p>
+                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Colors</p>
                                               <div className="flex items-center gap-4">
                                                 <button
                                                   type="button"
@@ -2839,7 +2839,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                         markSectionTouched('product-setup');
                                                         if (heroGradientAssignTarget === 'mid') setHeroGradientAssignTarget('end');
                                                       }}
-                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-[10px] leading-none text-gray-600 hover:border-gray-300"
+                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-xs leading-none text-gray-600 hover:border-gray-300"
                                                       aria-label="Remove third gradient color"
                                                     >
                                                       ×
@@ -2870,7 +2870,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           )}
 
                                           <div>
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Brand Colors</p>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Brand Colors</p>
                                             <div className="flex flex-wrap gap-2">
                                               {brandDots.length > 0 ? (
                                                 brandDots.map(hex => {
@@ -2898,7 +2898,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           </div>
 
                                           <div>
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Color</p>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Color</p>
                                             <div className="flex flex-wrap items-center gap-3">
                                               <button
                                                 type="button"
@@ -2969,7 +2969,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {isGradient && (
                                             <div>
-                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
+                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
                                               <div className="flex flex-wrap gap-2">
                                                 {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                                   <Chip
@@ -2993,7 +2993,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                       <div className="space-y-5">
                                         <div>
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
+                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
                                               <Chip
@@ -3011,7 +3011,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         </div>
 
                                         <div>
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
+                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
                                               <Chip
@@ -3029,7 +3029,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         </div>
 
                                         <div>
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Contrast Level</p>
+                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Contrast Level</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Soft', 'High'] as const).map(v => (
                                               <Chip
@@ -3055,7 +3055,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Color Pop Hero' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Solid', 'Gradient'] as const).map(v => (
                                       <Chip
@@ -3074,7 +3074,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                 {productStore.photoModeConfig.colorPopHero.backgroundType === 'Gradient' && (
                                   <div>
-                                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                    <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
                                     <div className="flex flex-wrap gap-2">
                                       {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                         <Chip
@@ -3093,7 +3093,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 )}
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Source</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Source</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Brand Colors', 'Product Label Colors', 'Custom Color'] as const).map(v => (
                                       <Chip
@@ -3111,7 +3111,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Saturation Level</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Saturation Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Moderate', 'High'] as const).map(v => (
                                       <Chip
@@ -3129,7 +3129,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast Strategy</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast Strategy</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft', 'High'] as const).map(v => (
                                       <Chip
@@ -3147,7 +3147,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
                                       <Chip
@@ -3170,7 +3170,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div className="space-y-3">
                                 {/* CUSTOM INGREDIENTS INPUT */}
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
                                     Ingredients <span className="text-red-400">*</span>
                                   </p>
                                   <input
@@ -3191,7 +3191,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 {productStore.photoMode === 'Ingredient Stack' && (
                                   <>
                                     <div>
-                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Focus</p>
+                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Focus</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Key active only', 'Full formula'] as const).map(v => (
                                           <Chip
@@ -3209,7 +3209,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div>
-                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
+                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Surround', 'Split composition'] as const).map(v => (
                                           <Chip
@@ -3226,7 +3226,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
                                     </div>
                                     <div>
-                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Presence</p>
+                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Presence</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Subtle', 'Balanced', 'Hero'] as const).map(v => (
                                           <Chip
@@ -3243,7 +3243,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
                                     </div>
                                     <div>
-                                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Label Priority</p>
+                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Label Priority</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Always readable', 'Secondary to ingredients'] as const).map(v => (
                                           <Chip
@@ -3263,7 +3263,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
                                       <div className="flex items-center justify-between gap-3">
                                         <div>
-                                          <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold">Background</p>
+                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">Background</p>
                                           <p className="text-[11px] text-gray-600">Optional override (solid or gradient)</p>
                                         </div>
                                         <Toggle
@@ -3279,7 +3279,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       {productStore.photoModeConfig.ingredientStack.backgroundEnabled && (
                                         <div className="space-y-3">
                                           <div>
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Solid', 'Gradient'] as const).map(v => (
                                                 <Chip
@@ -3298,7 +3298,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {productStore.photoModeConfig.ingredientStack.backgroundType === 'Gradient' && (
                                             <div>
-                                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
                                               <div className="flex flex-wrap gap-2">
                                                 {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                                   <Chip
@@ -3317,7 +3317,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           )}
 
                                           <div>
-                                            <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Colors</p>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Colors</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Brand Colors', 'Custom Color'] as const).map(v => (
                                                 <Chip
@@ -3407,7 +3407,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Acrylic Blocks' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Block Shape</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Block Shape</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Rectangular', 'Cylindrical', 'Mixed geometry'] as const).map(v => (
                                       <Chip
@@ -3424,7 +3424,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Material Finish</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Material Finish</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Clear', 'Frosted', 'Smoked'] as const).map(v => (
                                       <Chip
@@ -3441,7 +3441,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Reflection Level</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Reflection Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Minimal', 'Balanced', 'Glossy'] as const).map(v => (
                                       <Chip
@@ -3458,7 +3458,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Elevation</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Elevation</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Grounded', 'Floating illusion'] as const).map(v => (
                                       <Chip
@@ -3480,7 +3480,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Splash Shot' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Liquid'] as const).map(v => (
                                       <Chip
@@ -3497,7 +3497,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Motion Intensity</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Motion Intensity</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Dynamic', 'Explosive'] as const).map(v => (
                                       <Chip
@@ -3514,7 +3514,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Freeze Moment</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Freeze Moment</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Mid-splash', 'Peak'] as const).map(v => (
                                       <Chip
@@ -3531,7 +3531,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Stability</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Stability</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Fully grounded', 'Slight interaction'] as const).map(v => (
                                       <Chip
@@ -3562,7 +3562,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Foam & Texture' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Type</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Foam', 'Cream', 'Gel', 'Powder'] as const).map(v => (
                                       <Chip
@@ -3579,7 +3579,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Density</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Density</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Light', 'Rich', 'Dense'] as const).map(v => (
                                       <Chip
@@ -3596,7 +3596,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Focus Distance</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Focus Distance</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Macro', 'Close'] as const).map(v => (
                                       <Chip
@@ -3613,7 +3613,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Cleanliness</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Cleanliness</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Pristine', 'Natural imperfections'] as const).map(v => (
                                       <Chip
@@ -3635,7 +3635,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Routine Carousel' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Frame Count</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Frame Count</p>
                                   <div className="flex flex-wrap gap-2">
                                     {([3, 4, 5] as const).map(v => (
                                       <Chip
@@ -3652,7 +3652,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Routine Flow</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Routine Flow</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Left → Right', 'Circular'] as const).map(v => (
                                       <Chip
@@ -3669,7 +3669,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Consistency</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Consistency</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Same background', 'Subtle variation'] as const).map(v => (
                                       <Chip
@@ -3686,7 +3686,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Hero Frame</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Hero Frame</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['First', 'Middle', 'Last'] as const).map(v => (
                                       <Chip
@@ -3708,7 +3708,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Clinical Lab Counter' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Clinical Tone</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Clinical Tone</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft clinical', 'Crisp lab'] as const).map(v => (
                                       <Chip
@@ -3725,7 +3725,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Lab Elements</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Lab Elements</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Minimal', 'Standard'] as const).map(v => (
                                       <Chip
@@ -3742,7 +3742,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Surface Type</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Surface Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['White lab', 'Neutral lab'] as const).map(v => (
                                       <Chip
@@ -3759,7 +3759,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Trust Level</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Trust Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Friendly', 'Professional', 'High authority'] as const).map(v => (
                                       <Chip
@@ -3781,7 +3781,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Golden Mist Aura' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Glow Strength</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Glow Strength</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Subtle', 'Warm', 'Radiant'] as const).map(v => (
                                       <Chip
@@ -3798,7 +3798,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mist Style</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mist Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Backlit', 'Surround'] as const).map(v => (
                                       <Chip
@@ -3815,7 +3815,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mood</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mood</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Calm', 'Luxurious'] as const).map(v => (
                                       <Chip
@@ -3832,7 +3832,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft', 'Cinematic'] as const).map(v => (
                                       <Chip
@@ -3854,7 +3854,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Candy Gradient Lab' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Candy pastel', 'Bold candy'] as const).map(v => (
                                       <Chip
@@ -3871,7 +3871,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Count</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Count</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Duo', 'Trio'] as const).map(v => (
                                       <Chip
@@ -3888,7 +3888,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Edge Style</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Edge Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft blend', 'Sharp transition'] as const).map(v => (
                                       <Chip
@@ -3905,7 +3905,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Playfulness</p>
+                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Playfulness</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Controlled', 'Fun', 'Loud'] as const).map(v => (
                                       <Chip
@@ -4185,7 +4185,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     >
                       <div className="space-y-5 pl-3 border-l-2 border-indigo-300">
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
                           <div className="flex flex-wrap gap-2">
                             {[
                               '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
@@ -4198,7 +4198,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setLens(lens);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lens === lens
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.lens === lens
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -4214,7 +4214,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
                           <div className="flex flex-wrap gap-2">
                             {([
                               { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
@@ -4231,7 +4231,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setLightingRig(value);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.lightingRig === value
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.lightingRig === value
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -4244,10 +4244,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">ACCENT / GEL LIGHT COLOR</p>
+                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">ACCENT / GEL LIGHT COLOR</p>
                           <div className="space-y-5">
                             <div>
-                              <p className="text-[10px] text-gray-500 mb-2">Popular gel colors for edge/rim lighting:</p>
+                              <p className="text-xs text-gray-500 mb-2">Popular gel colors for edge/rim lighting:</p>
                               <div className="flex flex-wrap gap-2">
                                 {[
                                   { label: 'Blue Gel', value: '#0066FF' },
@@ -4266,7 +4266,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       productStore.setLightColorTemp('Neutral (5000K)');
                                       markSectionTouched('product-setup');
                                     }}
-                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${
                                       productStore.customLightColor === value
                                         ? 'bg-indigo-600 text-white border-indigo-600'
                                         : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
@@ -4280,7 +4280,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             </div>
                             <div>
-                              <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Gel Color</p>
+                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Gel Color</p>
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
@@ -4333,7 +4333,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                             {productStore.customLightColor && productStore.customLightColor !== '#FFFFFF' && (
                               <div>
-                                <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gel Light Intensity</p>
+                                <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gel Light Intensity</p>
                                 <div className="flex items-center gap-3">
                                   <input
                                     type="range"
@@ -4356,7 +4356,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                           <div className="flex flex-wrap gap-2">
                             {[
                               'High-Gloss Commercial', 'Film Grain Luxury',
@@ -4368,7 +4368,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   productStore.setFinish(finish);
                                   markSectionTouched('product-setup');
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-300 ${productStore.finish === finish
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300 ${productStore.finish === finish
                                   ? 'bg-indigo-600 text-white border-indigo-600'
                                   : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
                                   }`}
@@ -5750,7 +5750,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             return productEnvironmentShowAllMacros;
                           }).map(group => (
                             <div key={group.label} className="space-y-3">
-                              <p className="text-[10px] uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
+                              <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
                                 {group.label}
                               </p>
                               <div className="flex flex-wrap gap-3">
@@ -6325,7 +6325,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-800">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold tracking-wide text-amber-800">
               BETA
             </span>
           </div>
@@ -7502,7 +7502,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       data-person-pro-wrapper
                     >
                       <div className="border-t border-gray-100 px-4 py-3 bg-white">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-indigo-600 font-extrabold">
+                        <p className="text-xs uppercase tracking-[0.2em] text-indigo-600 font-extrabold">
                           Advanced identity controls
                         </p>
                       </div>
@@ -7512,7 +7512,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 1 – EXTENDED IDENTITY</p>
 
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">GENDER</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">GENDER</p>
                             <div className="flex flex-wrap gap-2">
                               {(['Trans', 'Non-binary', 'Gender non-conforming'] as const).map(option => (
                                 <button
@@ -7528,7 +7528,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">ETHNICITY</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">ETHNICITY</p>
                             <div className="flex flex-wrap gap-2">
                               {(['Asian', 'Middle Eastern', 'South Asian', 'Mixed'] as const).map(option => (
                                 <button
@@ -7551,7 +7551,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 2 – PHYSICAL APPEARANCE</p>
 
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">SKIN TONE</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">SKIN TONE</p>
                             <div className="flex flex-wrap gap-2">
                               {SKIN_TONE_OPTIONS.map(option => (
                                 <button
@@ -7567,7 +7567,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">EYE COLOR</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">EYE COLOR</p>
                             <div className="flex flex-wrap gap-2">
                               {EYE_COLOR_OPTIONS.map(option => (
                                 <button
@@ -7583,7 +7583,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
 
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">BODY TYPE</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">BODY TYPE</p>
                             <div className="flex flex-wrap gap-2">
                               {BODY_TYPE_OPTIONS.map(option => (
                                 <button
@@ -7712,7 +7712,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <section className="space-y-3 pt-4">
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 4 – EMOTIONAL NUANCE</p>
                           <div className="space-y-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">ADVANCED FACIAL EXPRESSIONS</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">ADVANCED FACIAL EXPRESSIONS</p>
                             <div className="flex flex-wrap gap-2">
                               {['Confident & Editorial', 'Playful & Candid', 'Hustle & Juggle', 'Stressed but Determined'].map(option => (
                                 <button
@@ -7735,7 +7735,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 5 – GAZE &amp; PERSISTENCE</p>
 
                           <div className="space-y-3">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">EYE DIRECTION</p>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">EYE DIRECTION</p>
                             <div className="flex flex-wrap gap-2">
                               {EYE_DIRECTION_OPTIONS.map(option => (
                                 <button
@@ -7885,7 +7885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {values.isRandomFullAutomationEnabled && (
                             <div className="mt-2 rounded-lg bg-white/60 border border-indigo-200 px-3 py-3 space-y-3">
                               <div>
-                                <p className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold mb-1">Active Mode</p>
+                                <p className="text-xs uppercase tracking-wider text-indigo-600 font-bold mb-1">Active Mode</p>
                                 <p className="text-xs text-gray-700">
                                   🤖 Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
                                 </p>
@@ -7893,7 +7893,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               
                               {/* Gender Preference (optional) */}
                               <div>
-                                <p className="text-[10px] uppercase tracking-wider text-gray-600 font-bold mb-2">Gender Preference (Optional)</p>
+                                <p className="text-xs uppercase tracking-wider text-gray-600 font-bold mb-2">Gender Preference (Optional)</p>
                                 <ChipSelectGroup
                                   options={[
                                     { value: 'any', label: 'Any (fully random)' },
@@ -7914,7 +7914,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
+                              <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
                             </div>
                             <div className="flex flex-wrap justify-end gap-2">
                               {(['low', 'medium', 'high'] as const).map(level => (
@@ -8702,7 +8702,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     className="absolute inset-0 h-full w-full object-cover"
                                   />
                                 ) : (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-white text-[10px] font-semibold text-gray-500">
+                                  <div className="absolute inset-0 flex items-center justify-center bg-white text-xs font-semibold text-gray-500">
                                     Upload to fill
                                   </div>
                                 )}
