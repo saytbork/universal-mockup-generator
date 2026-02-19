@@ -7263,7 +7263,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </>
                       )}
-                      </section>
 
                       <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled) ? 'opacity-50' : ''}`}>
                         <div>
