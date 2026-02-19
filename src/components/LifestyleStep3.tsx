@@ -8396,7 +8396,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>RITUAL ACTIVITIES</p>
-                        <p className="text-[11px] text-gray-500">Pick one or more.</p>
+                        <p className="text-[11px] text-gray-500">Pick one.</p>
                         <div className="flex flex-wrap gap-2">
                           {RITUAL_ACTIVITY_OPTIONS.map(option => {
                             const active = values.ritualActivities.includes(option);
@@ -8405,10 +8405,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 key={option}
                                 type="button"
                                 onClick={() => {
-                                  const next = active
-                                    ? values.ritualActivities.filter(item => item !== option)
-                                    : [...values.ritualActivities, option];
-                                  updateValue('ritualActivities', next);
+                                  // Single-select: always replace with selected option
+                                  updateValue('ritualActivities', [option]);
                                   markSectionTouched('ritual');
                                 }}
                                 className={getPillClass(active)}
