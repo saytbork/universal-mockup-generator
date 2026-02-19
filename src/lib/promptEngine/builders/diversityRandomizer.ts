@@ -334,9 +334,15 @@ export class DiversityRandomizer {
         this.seed = hash >>> 0;
     }
 
-    private pick<T>(array: T[], offset: number = 0): T {
+    // Make pick public so it can be used by identity builder
+    public pick<T>(array: T[], offset: number = 0): T {
         const index = (this.seed + offset) % array.length;
         return array[index];
+    }
+
+    // Make hashSeed public for random age generation
+    public hashSeed(offset: number): number {
+        return (this.seed + offset) >>> 0;
     }
 
     private shouldInclude(probability: number, offset: number = 0): boolean {
@@ -439,6 +445,44 @@ export class DiversityRandomizer {
      */
     getRandomEthnicity(): string {
         return this.pick(ETHNICITY_POOL, 19);
+    }
+
+    /**
+     * Returns a random age between 18-85 with proper distribution
+     */
+    getRandomAge(): number {
+        const ageRanges = [
+            { min: 18, max: 24, weight: 1 },  // young adult
+            { min: 25, max: 34, weight: 2 },  // adult (more common)
+            { min: 35, max: 44, weight: 2 },  // adult (more common)
+            { min: 45, max: 54, weight: 1.5 },// middle-aged
+            { min: 55, max: 64, weight: 1 },  // mature adult
+            { min: 65, max: 74, weight: 0.5 },// senior
+            { min: 75, max: 85, weight: 0.3 } // elder
+        ];
+        
+        const selectedRange = this.pick(ageRanges, 103);
+        const age = selectedRange.min + ((this.seed + 104) % (selectedRange.max - selectedRange.min + 1));
+        return age;
+    }
+
+    /**
+     * Returns a random gender ('male' or 'female')
+     */
+    getRandomGender(): string {
+        return this.pick(['male', 'female'], 105);
+    }
+
+    /**
+     * Returns age group label based on age
+     */
+    getAgeGroupLabel(age: number): string {
+        if (age >= 75) return 'elder';
+        if (age >= 65) return 'senior';
+        if (age >= 55) return 'mature adult';
+        if (age >= 45) return 'middle-aged adult';
+        if (age >= 25) return 'adult';
+        return 'young adult';
     }
 
     /**

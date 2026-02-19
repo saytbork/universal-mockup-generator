@@ -243,6 +243,101 @@ Subject must be a distinct real individual with authentic imperfections and natu
             );
             const randomizer = new DiversityRandomizer(diversitySeed);
 
+            // ================================================================
+            // STEP 1: Determine random gender (CRITICAL for biological coherence)
+            // ================================================================
+            let randomGender: string;
+            
+            if (genderPref === 'male') {
+                randomGender = 'male';
+            } else if (genderPref === 'female') {
+                randomGender = 'female';
+            } else {
+                // 'any' - 50/50 random
+                randomGender = randomizer.getRandomGender();
+            }
+            
+            const isMasculinePresentation = randomGender === 'male';
+            
+            // ================================================================
+            // STEP 2: Determine random age (CRITICAL to prevent youthful bias)
+            // ================================================================
+            const randomAge = randomizer.getRandomAge();
+            const ageGroupLabel = randomizer.getAgeGroupLabel(randomAge);
+            
+            console.log(`[FULL AUTOMATION] Generated: ${randomAge}-year-old ${randomGender}`);
+            
+            // ================================================================
+            // STEP 3: Add AGE ANCHORS (prevent model drift to young ages)
+            // ================================================================
+            if (randomAge >= 70) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger.
+Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${randomAge}-year-old ${ageGroupLabel}.
+MANDATORY visible age markers: deep forehead lines, pronounced crow's feet, marionette lines, jowls, loose neck skin, age spots on hands/face, thinning eyebrows.
+ABSOLUTELY NO youthful features, smooth skin, tight jawline, or any appearance under 65 years old.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 60) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 40s or 50s.
+MANDATORY visible age markers for someone in their 60s: visible forehead lines, crow's feet, smile lines (nasolabial folds), mild under-eye hollows, slight skin laxity around jaw/neck, age spots beginning to appear on hands.
+Hands and neck MUST show age-appropriate texture: fine lines, subtle age spots, visible tendons/veins, looser skin texture.
+REJECT: youthful skin, tight jawline, smooth forehead, or any appearance that reads as 40s-50s. This person is in their 60s and must look it.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 50) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 30s or 40s.
+MANDATORY visible age markers for someone in their 50s: moderate forehead lines, crow's feet, smile lines (nasolabial folds), beginning of under-eye bags, slight softening of jawline, mature facial structure with visible aging.
+Skin texture must show age: NO smooth 20s/30s skin, NO tight youthful appearance, NO "anti-aging filter" look.
+REJECT: youthful teen/20s/30s appearance, smooth skin, tight features. This person is in their 50s and must show visible aging.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 45) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 20s or 30s.
+MANDATORY visible age markers for someone in their mid-to-late 40s: subtle forehead lines, beginning crow's feet, early smile lines, mature facial structure, age-appropriate skin texture with minor imperfections.
+REJECT: youthful teen/20s/30s appearance, perfectly smooth skin, overly tight features. This person is approaching 50 and must show early signs of aging.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 35) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their early 20s.
+MANDATORY visible age markers for someone in their late 30s to early 40s: early fine lines around eyes when smiling, subtle forehead creases, mature facial structure (not teen/early-20s roundness), natural skin texture without youthful smoothness.
+REJECT: teen appearance, early-20s baby face, perfectly smooth unlined skin. This person is in their late 30s/early 40s and must show mature features.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 25) {
+                parts.push(`
+AGE ANCHOR: Subject MUST visually read as ${randomAge} years old - a fully mature adult, NOT a teenager or early-20s person.
+Face should show mature adult features: defined facial structure, no teen roundness, natural skin texture (not perfectly smooth), mature expression and presence.
+REJECT: teen appearance, baby face, high school look. This person is ${randomAge} years old and must look like a mature adult.
+                `.trim().replace(/\s+/g, ' '));
+            }
+            
+            // NEGATIVE AGE CONSTRAINTS (block model drift to younger ages)
+            if (randomAge >= 70) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 65. REJECT: 20s/30s/40s/50s/60s appearance, middle-aged look, youthful skin, smooth face, tight jawline. Age visibility must be DOMINANT and UNMISTAKABLE.`);
+            } else if (randomAge >= 60) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 55. REJECT: 20s/30s/40s appearance, youthful skin, smooth forehead, tight features. This person is in their 60s - age must be clearly visible.`);
+            } else if (randomAge >= 50) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 45. REJECT: 20s/30s appearance, baby face, youthful smooth skin, teen proportions. This person is in their 50s - visible aging is REQUIRED.`);
+            } else if (randomAge >= 40) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 35. REJECT: teen appearance, early-20s look, baby face, perfectly smooth skin. This person is in their 40s - mature features are REQUIRED.`);
+            } else if (randomAge >= 30) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render as a teenager or early-20s person. REJECT: teen look, baby face, high school appearance. This person is ${randomAge} years old - fully mature adult features are REQUIRED.`);
+            }
+            
+            if (randomAge >= 75) {
+                parts.push(`
+ELDER REALISM: Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
+Hands show visible veins and knuckle definition.
+Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
+Hair may skew gray/silver/white with thinning and irregular texture.
+                `.trim().replace(/\s+/g, ' '));
+            }
+            
+            // ================================================================
+            // STEP 4: Add gender and core identity
+            // ================================================================
+            parts.push(`${randomAge}-year-old ${ageGroupLabel}, ${randomGender}`);
+
             // ALWAYS randomize facial structure
             const facialStructure = randomizer.getFacialStructure();
             parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
@@ -281,9 +376,13 @@ Subject must be a distinct real individual with authentic imperfections and natu
                 parts.push(`CLOTHING: ${clothing}`);
             }
 
-            // Randomize facial hair (for masculine presentations)
-            const facialHair = randomizer.getFacialHair();
-            parts.push(`FACIAL HAIR: ${facialHair}`);
+            // ================================================================
+            // STEP 5: Facial hair - ONLY for male presentations, age 18-74
+            // ================================================================
+            if (isMasculinePresentation && randomAge >= 18 && randomAge < 75) {
+                const facialHair = randomizer.getFacialHair();
+                parts.push(`FACIAL HAIR: ${facialHair}`);
+            }
 
             // ALWAYS randomize ethnicity (no user control)
             const randomEthnicity = randomizer.getRandomEthnicity();
