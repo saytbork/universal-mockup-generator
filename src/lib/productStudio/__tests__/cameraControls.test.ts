@@ -7,6 +7,7 @@
 
 import { mapFieldsToProductStudioState } from '../mapper';
 import type { ProductStudioState } from '../state';
+import { describe, test, expect } from 'vitest';
 
 // ============================================================================
 // TEST: ALL CAMERA CONTROLS INJECT CORRECTLY
