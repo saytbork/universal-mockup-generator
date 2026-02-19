@@ -5306,6 +5306,14 @@ If the model attempts to create a scene or environment, override it and force a 
           ].join(' ');
         }
 
+        if (!isProductPlacement && hasModelReference) {
+          finalPrompt = [
+            finalPrompt,
+            'MODEL REFERENCE PRIORITY (HIGHEST): Use the uploaded model reference as immutable identity ground truth.',
+            'Match the same face, age, skin texture, proportions, and hair exactly. Do not substitute with another person.',
+          ].join(' ');
+        }
+
         // Persist continuity identity only when explicitly requested.
         // Otherwise "locked" mode would mint a new identityKey every click → different person.
         if (keepSamePersonAcrossRenders && promptOptions?.identityKey) {
@@ -5353,6 +5361,8 @@ If the model attempts to create a scene or environment, override it and force a 
         const hasHumanReference = Boolean(identityInlinePart || modelReferenceFile);
         const shouldIncludeHumanImage = personIncluded && (hasHumanReference || !isNaturalUgc);
         const requestParts: any[] = [];
+        let humanReferenceAttached = false;
+        let productReferencesAttached = 0;
         requestParts.push({ text: finalPrompt });
 
         // IMPORTANT: attach human/model reference BEFORE product references.
@@ -5374,6 +5384,7 @@ If the model attempts to create a scene or environment, override it and force a 
               inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
               reference: true,
             });
+            humanReferenceAttached = true;
           } else if (modelReferenceFile) {
             const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
             const normalized = await letterboxDataUrlToAspectRatio(
@@ -5390,10 +5401,10 @@ If the model attempts to create a scene or environment, override it and force a 
               inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
               reference: true,
             });
+            humanReferenceAttached = true;
           }
         }
 
-        let productReferencesAttached = 0;
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
@@ -5474,11 +5485,23 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
         const payload = { parts: requestParts };
+        if (hasModelReference && !humanReferenceAttached) {
+          throw new Error('Model Reference is enabled but no human reference image was attached to the generation payload. Re-upload the model photo and try again.');
+        }
+        const partsOrder = requestParts.map((part: any, index: number) => {
+          if (part?.text) return `${index}:text`;
+          const mimeType = String(part?.inlineData?.mimeType || '');
+          if (!mimeType) return `${index}:unknown`;
+          if (index === 1 && humanReferenceAttached) return `${index}:human(${mimeType})`;
+          return `${index}:product(${mimeType})`;
+        });
         const payloadLog = {
           isNaturalUgc,
           productImageSent: shouldSendProductImage,
           productImagesAttached: productReferencesAttached,
           humanImageSent: shouldIncludeHumanImage && hasHumanReference,
+          humanReferenceAttached,
+          partsOrder,
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
