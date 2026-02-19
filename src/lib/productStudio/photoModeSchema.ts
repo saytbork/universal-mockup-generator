@@ -205,12 +205,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Cheers (Hands Clink)',
         scope: 'environment',
         description: 'Celebratory clink moment with a clean cropped interaction and premium lifestyle light.',
-        basePrompt: 'celebratory clink moment with two products meeting at center frame, premium lifestyle lighting, clean background with soft bokeh, frozen droplets and crisp highlights, product branding remains readable',
+        basePrompt: 'celebratory clink moment with two products meeting at center frame, premium lifestyle lighting, clean background with soft bokeh, frozen droplets and crisp highlights, product branding remains readable, hands must look real with natural skin texture and anatomically plausible grip',
         subOptions: [],
         constraints: [
             'Cropped interaction only (no faces, no identity)',
             'Branding must remain readable',
-            'No chaotic motion blur'
+            'No chaotic motion blur',
+            'Hands must look real (no doll/mannequin/CGI/waxy skin)',
+            'Finger anatomy and grip pressure must be physically plausible'
         ],
         requiredPlacement: 'held',
         allowedInteractions: ['two-hand-hold', 'holding', 'supported-hold', 'presenting', 'framed-presentation'],

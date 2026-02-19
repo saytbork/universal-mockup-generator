@@ -1719,6 +1719,17 @@ function buildTexturedBedSemanticParts(state: ProductStudioState): string[] {
     return parts;
 }
 
+function buildCheersHandsRealismParts(state: ProductStudioState): string[] {
+    if (state.photoMode !== 'Cheers (Hands Clink)') return [];
+
+    return [
+        'CHEERS_HANDS_REALISM_LOCK: Real hands only. Natural skin texture and tone variation must be visible.',
+        'CHEERS_HANDS_ANATOMY_LOCK: Exactly five fingers per hand, realistic knuckle articulation, and believable thumb placement on the container.',
+        'CHEERS_HANDS_CONTACT_LOCK: Grip pressure and contact shadows must be physically coherent where fingers touch the product.',
+        'CHEERS_HANDS_NEGATIVE: No doll-like hands, no mannequin-like hands, no waxy skin, no plastic skin, and no CGI hand artifacts.',
+    ];
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     const effectiveInteraction = resolveEffectiveInteraction(state);
@@ -1771,6 +1782,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (handsSemanticParts.length > 0) core.push(...handsSemanticParts);
     const texturedBedSemanticParts = buildTexturedBedSemanticParts(state);
     if (texturedBedSemanticParts.length > 0) core.push(...texturedBedSemanticParts);
+    const cheersHandsRealismParts = buildCheersHandsRealismParts(state);
+    if (cheersHandsRealismParts.length > 0) core.push(...cheersHandsRealismParts);
     const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
     if (ingredientStackBackgroundLock) core.push(ingredientStackBackgroundLock);
     const explicitIngredients = Array.isArray((state as any).ingredients)

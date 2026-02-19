@@ -426,6 +426,8 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
       return [
         'CHEERS: two hands clinking the product (hands only, no faces), flash-frozen droplets and natural grip/contact.',
         'No identity details; focus stays on product branding and label truth.',
+        'CHEERS_HAND_REALISM: hands must look real with natural skin texture, believable knuckles/fingernails, and physically plausible finger contact.',
+        'Reject doll-like, mannequin-like, waxy, or CGI-looking hands.',
       ].join(' ');
     }
 
@@ -1539,6 +1541,7 @@ No studio-style suspension shadows underwater.
       return [
         'REFERENCE LOOK LOCK: summer lifestyle cheers moment.',
         'Cropped hands only, shallow pool/beach context, flash-frozen clink droplets, and brand-first framing with vibrant vacation energy.',
+        'Hands must be real-photo quality: natural asymmetry, natural skin micro-texture, correct finger count, and realistic grip pressure on the container.',
       ].join(' ');
     }
 
