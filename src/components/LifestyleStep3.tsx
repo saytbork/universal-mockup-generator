@@ -7107,7 +7107,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ))}
                           </div>
                         </div>
-
+                      </div> {/* END: Disable wrapper for Random Character - HAIR LENGTH */}
                     </section>
 
                     <section className="space-y-5">
@@ -7263,8 +7263,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </>
                       )}
-
-                      </div> {/* END: Disable wrapper for Random Character - APPEARANCE */}
+                      </section>
 
                       <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled) ? 'opacity-50' : ''}`}>
                         <div>
