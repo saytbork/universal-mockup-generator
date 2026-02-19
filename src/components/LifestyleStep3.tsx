@@ -817,6 +817,7 @@ const enforceSingleSelectLayers = (draft: Step3Values) => {
 
 // ENVIRONMENT OPTIONS - EXPANDED per spec
 const ENVIRONMENT_INDOOR = [
+  { id: 'none', label: 'None', value: 'none', icon: Box },
   { value: 'Kitchen', icon: Utensils },
   { value: 'Living Room', icon: Home },
   { value: 'Bedroom', icon: Home },
@@ -1721,8 +1722,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       };
 
       // CANONICAL SYNC: When legacy environment is updated, sync to environmentContext
-      if (key === 'environment' && value) {
-        const nextEnvironment = String(value as string).trim();
+      if (key === 'environment') {
+        const nextEnvironment = String((value as string) || '').trim();
+        if (!nextEnvironment || nextEnvironment === 'none') {
+          newValues.environment = 'none';
+          newValues.environmentContext = { macro: 'none', micro: '' };
+          console.log('[STEP3] Environment deselected (none) - environmentContext suppressed');
+          return newValues;
+        }
         if (nextEnvironment === 'Custom') {
           const custom = String(newValues.customEnvironment || '').trim();
           const macro = custom || 'Custom';
@@ -1742,8 +1749,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           newValues.environment = 'Custom';
           newValues.environmentContext = { macro: custom, micro: resolveDefaultMicroForEnvironment(custom) };
         } else if (newValues.environment === 'Custom') {
-          newValues.environment = 'Kitchen';
-          newValues.environmentContext = { macro: 'Kitchen', micro: resolveDefaultMicroForEnvironment('Kitchen') };
+          newValues.environment = 'none';
+          newValues.environmentContext = { macro: 'none', micro: '' };
         }
         console.log('[STEP3] Synced customEnvironment to environmentContext:', newValues.environmentContext);
       }
@@ -7842,6 +7849,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           if (newValue) {
                             updateValue('creationIntent', 'ugc');
                             updateValue('creationMode', 'Lifestyle UGC');
+                            updateValue('environment', 'none');
+                            updateValue('customEnvironment', '');
                             updateValue('ugcImperfectionLevel', 'high');
                             updateValue('personCount', 'single');
                             updateValue('editSecondaryPerson', false);

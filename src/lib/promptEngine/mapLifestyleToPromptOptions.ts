@@ -60,6 +60,11 @@ const OUTDOOR_ENVIRONMENT_LABELS = new Set([
     'Street Corner',
 ]);
 
+const isNoEnvironmentSelection = (value?: string | null): boolean => {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    return normalized === '' || normalized === 'none' || normalized === 'null';
+};
+
 function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | undefined {
     if (!sceneState.customClothesEnabled) {
         return undefined;
@@ -1613,54 +1618,70 @@ export function mapLifestyleToPromptOptions(
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';
         mapped.environmentOrder = '';
+        delete (mapped as any).sceneEnvironmentDescriptor;
         console.log('[MAP] environmentContext === null (Studio mode) - environment fully suppressed');
     } else if (envContext && envContext.macro) {
         // Lifestyle/UGC: Use environmentContext as source of truth
-        const macro = envContext.macro;
+        const macro = String(envContext.macro || '').trim();
         const micro = envContext.micro || '';
+        const hasNoEnvironment = isNoEnvironmentSelection(macro);
 
-        const allowedMacroSet = new Set([
-            'Kitchen',
-            'Living Room',
-            'Bedroom',
-            'Bathroom',
-            'Workspace',
-            'Hallway',
-            'Home Gym',
-            'Balcony / Indoor Terrace',
-            'Urban Exterior',
-            'Natural Exterior',
-            'Parking Lot',
-            'Backyard / Patio',
-            'Street Corner',
-        ]);
-        const isCustomMacro = !allowedMacroSet.has(macro);
+        if (hasNoEnvironment) {
+            // UGC + none => NO environment injection.
+            // Let internal UGC randomization decide environment downstream.
+            mapped.setting = '';
+            mapped.microLocation = '';
+            (mapped as any).sceneEnvironment = '';
+            mapped.environmentOrder = '';
+            (mapped as any).selectedEnvironment = 'none';
+            (mapped as any).customEnvironment = '';
+            delete (mapped as any).sceneEnvironmentDescriptor;
+            console.log('[MAP] environmentContext macro is none - environment suppressed');
+        } else {
 
-        mapped.setting = macro;
+            const allowedMacroSet = new Set([
+                'Kitchen',
+                'Living Room',
+                'Bedroom',
+                'Bathroom',
+                'Workspace',
+                'Hallway',
+                'Home Gym',
+                'Balcony / Indoor Terrace',
+                'Urban Exterior',
+                'Natural Exterior',
+                'Parking Lot',
+                'Backyard / Patio',
+                'Street Corner',
+            ]);
+            const isCustomMacro = !allowedMacroSet.has(macro);
 
-        const normalizedMicro = micro.trim();
-        const shouldReplaceCountertop =
-            normalizedMicro === 'Countertop' && macro !== 'Kitchen';
-        const resolvedMicro =
-            isCustomMacro
-                ? ''
-                : shouldReplaceCountertop || !normalizedMicro
-                    ? (DEFAULT_MICRO_BY_MACRO[macro] ?? '')
-                    : normalizedMicro;
-        mapped.microLocation = resolvedMicro;
-        (mapped as any).sceneEnvironment = macro;
-        mapped.environmentOrder = macro;
-        (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
-        (mapped as any).customEnvironment = isCustomMacro ? macro : '';
+            mapped.setting = macro;
 
-        if (isUGCRealMode) {
-            // UGC Mode: User-selected environment takes priority over randomization
-            // No restrictions - user can select any environment including outdoor
-            // This allows user to override the default indoor randomization if desired
-            (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
+            const normalizedMicro = micro.trim();
+            const shouldReplaceCountertop =
+                normalizedMicro === 'Countertop' && macro !== 'Kitchen';
+            const resolvedMicro =
+                isCustomMacro
+                    ? ''
+                    : shouldReplaceCountertop || !normalizedMicro
+                        ? (DEFAULT_MICRO_BY_MACRO[macro] ?? '')
+                        : normalizedMicro;
+            mapped.microLocation = resolvedMicro;
+            (mapped as any).sceneEnvironment = macro;
+            mapped.environmentOrder = macro;
+            (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
+            (mapped as any).customEnvironment = isCustomMacro ? macro : '';
+
+            if (isUGCRealMode) {
+                // UGC Mode: User-selected environment takes priority over randomization
+                // No restrictions - user can select any environment including outdoor
+                // This allows user to override the default indoor randomization if desired
+                (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
+            }
+
+            console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
         }
-
-        console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
     } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
         mapped.setting = awkwardEnvironmentOverride;
         mapped.microLocation = awkwardEnvironmentOverride;
@@ -1711,6 +1732,7 @@ export function mapLifestyleToPromptOptions(
 
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+        const noEnvironmentSelected = isNoEnvironmentSelection(selectedEnvironment);
 
         // UGC Mode: User-selected environment always takes priority
         // No validation errors - user can override randomization with any environment
@@ -1748,7 +1770,13 @@ export function mapLifestyleToPromptOptions(
             };
         };
 
-        if (isUGCRealMode) {
+        if (noEnvironmentSelected) {
+            mapped.setting = '';
+            mapped.microLocation = '';
+            (mapped as any).sceneEnvironment = '';
+            mapped.environmentOrder = '';
+            delete (mapped as any).sceneEnvironmentDescriptor;
+        } else if (isUGCRealMode) {
             const { label, description } = resolveEnvironmentLabel();
             mapped.setting = label;
             mapped.microLocation = label;
