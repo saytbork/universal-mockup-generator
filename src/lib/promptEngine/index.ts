@@ -488,6 +488,50 @@ export class PromptEngine {
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
 
+        // ====================================================================
+        // UGC FULL AUTOMATION OVERRIDE (highest entropy mode)
+        // ====================================================================
+        // When UGC Full Automation is ON:
+        // 1. Force identityMode = 'auto' (new person each render)
+        // 2. Disable Keep Same Person
+        // 3. Generate fresh identityVariationToken
+        // 4. Set fullEntropyOverride flag (tells builders to skip manual controls)
+        // Model Reference ALWAYS wins (cannot be overridden)
+        if (options.randomFullAutomationActive && options.ugcRealModeActive && !options.hasModelReference) {
+            options.identityMode = 'auto';
+            options.sameCreatorAcrossScenes = false;
+            options.identityKey = undefined;
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            options.fullEntropyOverride = true; // Flag for builders
+            console.log('[UGC FULL AUTOMATION]', {
+                active: options.randomFullAutomationActive,
+                entropy: options.fullEntropyOverride,
+                identityMode: options.identityMode,
+                token: options.identityVariationToken
+            });
+        }
+
+        // ====================================================================
+        // RANDOM CHARACTER OVERRIDE (highest priority after Model Reference)
+        // ====================================================================
+        // When Random Character is ON:
+        // 1. Force identityMode = 'auto' (new person each render)
+        // 2. Disable Keep Same Person
+        // 3. Generate fresh identityVariationToken
+        // 4. Clear identityKey
+        // Model Reference ALWAYS wins (cannot be overridden)
+        if (options.randomCharacterActive && !options.hasModelReference) {
+            options.identityMode = 'auto';
+            options.sameCreatorAcrossScenes = false;
+            options.identityKey = undefined;
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            console.log('[PROMPT ENGINE] Random Character OVERRIDE → forced identityMode=auto, token:', options.identityVariationToken);
+        }
+
         // Identity variation must change on every render unless explicitly locked.
         // This prevents "same person" repeats when the user hits Generate multiple times without changing UI values.
         const shouldRandomizeIdentity =

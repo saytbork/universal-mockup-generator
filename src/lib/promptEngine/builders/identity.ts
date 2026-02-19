@@ -209,6 +209,110 @@ If the reference includes any of the following, they MUST remain identical in th
 Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coverings. Do NOT hallucinate new accessories.
                 `.trim().replace(/\s+/g, ' '));
             }
+        } else if (options.fullEntropyOverride) {
+            // ================================================================
+            // UGC FULL AUTOMATION MODE OVERRIDE (Maximum Entropy)
+            // ================================================================
+            // Skip ALL manual controls. Rely ENTIRELY on DiversityRandomizer.
+            // No age anchors, no ethnicity mapping, no body type, no hair controls.
+            parts.push(`
+UGC_FULL_AUTOMATION_ACTIVE.
+Maximum natural entropy mode enabled.
+Ignore all manually selected creator attributes (age, gender, ethnicity, body type, hair, eye color, facial expression, skin tone, wardrobe, props).
+Generate a completely unique human subject with randomized age (18-80), gender, ethnicity, facial structure, body type, wardrobe, and environment.
+Subject must be a distinct real individual with authentic imperfections and natural variation.
+            `.trim().replace(/\s+/g, ' '));
+            
+            console.log('[IDENTITY BUILDER] UGC FULL AUTOMATION: Maximum entropy mode, skipping ALL manual controls');
+            
+            // Create unique seed for each generation
+            const diversitySeed = createDiversitySeed(
+                options.userId || 'user',
+                options.timestamp || Date.now()
+            );
+            const randomizer = new DiversityRandomizer(diversitySeed);
+
+            // ALWAYS randomize facial structure
+            const facialStructure = randomizer.getFacialStructure();
+            parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
+
+            // ALWAYS randomize camera angle in UGC mode
+            if (isUgcMode) {
+                const cameraAngle = randomizer.getCameraAngle();
+                parts.push(`CAMERA ANGLE: ${cameraAngle}`);
+            }
+
+            // ALWAYS randomize skin texture
+            const skinTexture = randomizer.getSkinTexture();
+            if (skinTexture) {
+                parts.push(`SKIN TEXTURE: ${skinTexture}`);
+            }
+
+            // ALWAYS randomize hair styling
+            const hairStyling = randomizer.getHairStyling();
+            parts.push(`HAIR STYLING: ${hairStyling}`);
+
+            // ALWAYS randomize overall appearance
+            if (isUgcMode) {
+                const overallAppearance = randomizer.getOverallAppearance();
+                parts.push(`OVERALL VIBE: ${overallAppearance}`);
+            }
+
+            // Randomize accessories
+            const accessories = randomizer.getAccessories();
+            if (accessories && accessories !== 'no visible accessories or jewelry') {
+                parts.push(`ACCESSORIES: ${accessories}`);
+            }
+
+            // ALWAYS randomize clothing in UGC mode
+            if (isUgcMode) {
+                const clothing = randomizer.getClothing();
+                parts.push(`CLOTHING: ${clothing}`);
+            }
+
+            // Randomize facial hair (for masculine presentations)
+            const facialHair = randomizer.getFacialHair();
+            parts.push(`FACIAL HAIR: ${facialHair}`);
+
+            // ALWAYS randomize ethnicity (no user control)
+            const randomEthnicity = randomizer.getRandomEthnicity();
+            parts.push(`ETHNICITY: ${randomEthnicity} (fully randomized)`);
+
+            // UGC Lighting and Environment Randomization
+            if (isUgcMode) {
+                const lighting = randomizer.getLightingEnvironment();
+                parts.push(`LIGHTING: ${lighting}`);
+                
+                const backgroundElements = randomizer.getBackgroundElements();
+                parts.push(`ENVIRONMENT: ${backgroundElements} (fully randomized domestic location)`);
+            }
+
+            // CRITICAL: Add identity variation token for face uniqueness
+            if (options.identityVariationToken) {
+                parts.push(`[IDENTITY_VARIATION_TOKEN: ${options.identityVariationToken}]`);
+                parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(options.identityVariationToken)}`);
+                parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
+            }
+
+            parts.push(PERSONAL_ADDON_BASE_RULE);
+
+            // Early return - skip all manual control logic below
+            return parts.filter(Boolean).join('. ').trim();
+        } else if (options.randomCharacterActive) {
+            // ================================================================
+            // RANDOM CHARACTER MODE OVERRIDE
+            // ================================================================
+            // Inject explicit prompt instruction to ignore manual controls
+            // Identity will be FULLY randomized by DiversityRandomizer
+            parts.push(`
+RANDOM_CREATOR_OVERRIDE_ACTIVE.
+Ignore all manually selected creator attributes (age, gender, ethnicity, body type, hair, eye color, facial expression).
+Generate a completely new human subject with varied age (18-80), gender, ethnicity, facial structure, body type, and wardrobe.
+Ensure no resemblance to previous renders.
+Subject must be a unique real individual every generation.
+            `.trim().replace(/\s+/g, ' '));
+            
+            console.log('[IDENTITY BUILDER] Random Character MODE: skipping manual controls, full DiversityRandomizer override');
         } else {
             // ================================================================
             // AGE ANCHOR (CRITICAL - PREVENTS YOUTHFUL RENDERING)
@@ -294,116 +398,121 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
             // ================================================================
             // CORE IDENTITY ATTRIBUTES
             // ================================================================
+            // CRITICAL: When Random Character is active, SKIP all manual controls
+            // DiversityRandomizer will handle ALL attributes automatically
             const identityParts: string[] = [];
 
-            // Ethnicity anchor (only when explicitly selected)
-            if (
-                personDetails?.ethnicity &&
-                personDetails.ethnicity !== 'Prefer not to specify' &&
-                personDetails.ethnicity !== 'Non-specific'
-            ) {
-                parts.push(
-                    `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
-                );
-            }
-
-            // Gender anchor
-            if (personDetails?.gender) {
-                parts.push(
-                    `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
-                );
-            }
-
-            // Skin tone anchor
-            if (personDetails?.skinTone) {
-                parts.push(
-                    `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
-                );
-            }
-
-            // Eye color anchor
-            if (personDetails?.eyeColor) {
-                parts.push(
-                    `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
-                );
-            }
-
-            // Age
-            identityParts.push(`${age}-year-old ${ageGroupLabel}`);
-
-            // Gender
-            if (personDetails?.gender) {
-                identityParts.push(sanitizePart(personDetails.gender, isUgcMode));
-            }
-
-            // Ethnicity
-            if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-                identityParts.push(personDetails.ethnicity);
-            }
-
-            // Body Type
-            if (personDetails?.bodyType) {
-                const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
-                identityParts.push(build);
-                parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
-
-                const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
-                const physiqueAnchor =
-                    bodyTypeKey === 'slim'
-                        ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
-                        : bodyTypeKey === 'curvy'
-                            ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
-                            : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
-                                ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
-                                : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
-                parts.push(physiqueAnchor);
-            }
-
-            // Skin Tone
-            if (personDetails?.skinTone) {
-                identityParts.push(sanitizePart(personDetails.skinTone, isUgcMode));
-            }
-
-            // Skin Realism (UGC override)
-            if (isUgcMode) {
-                identityParts.push('real subject appearance, everyday skin texture, natural asymmetry, no retouching');
-            } else {
-                identityParts.push('realistic skin texture appropriate for age');
-            }
-
-            // Eye Color
-            if (personDetails?.eyeColor) {
-                identityParts.push(sanitizePart(personDetails.eyeColor, isUgcMode));
-            }
-
-            // Hair (skip for 80+ in UGC)
-            const isAge80Plus = age >= 80;
-            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
-                const hairParts = [
-                    personDetails?.hairLength,
-                    personDetails?.hairTexture,
-                    personDetails?.hairColor
-                ].filter(Boolean);
-                if (hairParts.length > 0) {
-                    const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
-                    identityParts.push(hairText);
-                    parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
+            // SKIP manual controls if randomCharacterActive
+            if (!options.randomCharacterActive) {
+                // Ethnicity anchor (only when explicitly selected)
+                if (
+                    personDetails?.ethnicity &&
+                    personDetails.ethnicity !== 'Prefer not to specify' &&
+                    personDetails.ethnicity !== 'Non-specific'
+                ) {
+                    parts.push(
+                        `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
+                    );
                 }
-            }
 
-            // Hair realism for 80+
-            if (isAge80Plus) {
-                parts.push(`
+                // Gender anchor
+                if (personDetails?.gender) {
+                    parts.push(
+                        `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
+                    );
+                }
+
+                // Skin tone anchor
+                if (personDetails?.skinTone) {
+                    parts.push(
+                        `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
+                    );
+                }
+
+                // Eye color anchor
+                if (personDetails?.eyeColor) {
+                    parts.push(
+                        `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
+                    );
+                }
+
+                // Age
+                identityParts.push(`${age}-year-old ${ageGroupLabel}`);
+
+                // Gender
+                if (personDetails?.gender) {
+                    identityParts.push(sanitizePart(personDetails.gender, isUgcMode));
+                }
+
+                // Ethnicity
+                if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
+                    identityParts.push(personDetails.ethnicity);
+                }
+
+                // Body Type
+                if (personDetails?.bodyType) {
+                    const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
+                    identityParts.push(build);
+                    parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
+
+                    const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
+                    const physiqueAnchor =
+                        bodyTypeKey === 'slim'
+                            ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
+                            : bodyTypeKey === 'curvy'
+                                ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
+                                : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
+                                    ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
+                                    : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
+                    parts.push(physiqueAnchor);
+                }
+
+                // Skin Tone
+                if (personDetails?.skinTone) {
+                    identityParts.push(sanitizePart(personDetails.skinTone, isUgcMode));
+                }
+
+                // Skin Realism (UGC override)
+                if (isUgcMode) {
+                    identityParts.push('real subject appearance, everyday skin texture, natural asymmetry, no retouching');
+                } else {
+                    identityParts.push('realistic skin texture appropriate for age');
+                }
+
+                // Eye Color
+                if (personDetails?.eyeColor) {
+                    identityParts.push(sanitizePart(personDetails.eyeColor, isUgcMode));
+                }
+
+                // Hair (skip for 80+ in UGC)
+                const isAge80Plus = age >= 80;
+                if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
+                    const hairParts = [
+                        personDetails?.hairLength,
+                        personDetails?.hairTexture,
+                        personDetails?.hairColor
+                    ].filter(Boolean);
+                    if (hairParts.length > 0) {
+                        const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
+                        identityParts.push(hairText);
+                        parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
+                    }
+                }
+
+                // Hair realism for 80+
+                if (isAge80Plus) {
+                    parts.push(`
 HAIR (80+): Physically aged, thinning, irregular density, collapsed volume.
 Strands weak and fragile, scalp visibility normal, hairline uneven.
 Captured by smartphone so fine edges may appear soft or broken.
-                `.trim().replace(/\s+/g, ' '));
-            }
+                    `.trim().replace(/\s+/g, ' '));
+                }
 
-            // Push core identity
-            if (identityParts.length > 0) {
-                parts.push(identityParts.join(', '));
-            }
+                // Push core identity
+                if (identityParts.length > 0) {
+                    parts.push(identityParts.join(', '));
+                }
+            } // END: Skip manual controls if randomCharacterActive
 
             // ================================================================
             // DIVERSITY RANDOMIZATION (V2: Prevent AI Clone Syndrome)
@@ -705,77 +814,80 @@ Captured by smartphone so fine edges may appear soft or broken.
         // ====================================================================
         // EXPRESSION & POSE
         // ====================================================================
-        if (personDetails?.facialExpression) {
-            parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
-        }
-
-        if (personDetails?.eyeDirection) {
-            const eyeDirection = String(personDetails.eyeDirection);
-            const isCouple = options.personCount === 'couple';
-            const isGroup = options.personCount === 'group';
-
-            if (isCouple) {
-                if (eyeDirection === 'Looking at camera') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Only ONE subject may look at the camera. The other must look at the product or look away naturally. Never both looking at camera.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking at product') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Both subjects look at the product OR one looks at the product while the other looks at the first subject. Shared moment, not posed.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking away naturally') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
-                            isUgcMode
-                        )
-                    );
-                } else {
-                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
-                }
-            } else if (isGroup) {
-                if (eyeDirection === 'Looking at camera') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking at product') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking away naturally') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
-                            isUgcMode
-                        )
-                    );
-                } else {
-                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
-                }
-            } else {
-                const eyeMap: Record<string, string> = {
-                    'Looking at camera': 'eyes directed at camera with focused gaze',
-                    'Looking at product': 'eyes directed toward product with attentive focus',
-                    'Looking away naturally': 'eyes off-camera at natural angle, candid gaze',
-                };
-                parts.push(sanitizePart(eyeMap[eyeDirection] || eyeDirection, isUgcMode));
+        // SKIP if randomCharacterActive (expression will be randomized by DiversityRandomizer)
+        if (!options.randomCharacterActive) {
+            if (personDetails?.facialExpression) {
+                parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
             }
-        }
 
-        if (personDetails?.personPose) {
-            parts.push(sanitizePart(personDetails.personPose, isUgcMode));
+            if (personDetails?.eyeDirection) {
+                const eyeDirection = String(personDetails.eyeDirection);
+                const isCouple = options.personCount === 'couple';
+                const isGroup = options.personCount === 'group';
+
+                if (isCouple) {
+                    if (eyeDirection === 'Looking at camera') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Only ONE subject may look at the camera. The other must look at the product or look away naturally. Never both looking at camera.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking at product') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Both subjects look at the product OR one looks at the product while the other looks at the first subject. Shared moment, not posed.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking away naturally') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
+                                isUgcMode
+                            )
+                        );
+                    } else {
+                        parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                    }
+                } else if (isGroup) {
+                    if (eyeDirection === 'Looking at camera') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking at product') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking away naturally') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
+                                isUgcMode
+                            )
+                        );
+                    } else {
+                        parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                    }
+                } else {
+                    const eyeMap: Record<string, string> = {
+                        'Looking at camera': 'eyes directed at camera with focused gaze',
+                        'Looking at product': 'eyes directed toward product with attentive focus',
+                        'Looking away naturally': 'eyes off-camera at natural angle, candid gaze',
+                    };
+                    parts.push(sanitizePart(eyeMap[eyeDirection] || eyeDirection, isUgcMode));
+                }
+            }
+
+            if (personDetails?.personPose) {
+                parts.push(sanitizePart(personDetails.personPose, isUgcMode));
+            }
         }
 
         if (personDetails?.personMood) {

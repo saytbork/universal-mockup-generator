@@ -867,6 +867,24 @@ export function mapLifestyleToPromptOptions(
     }
     const ugcStyleKey = String(mapped.ugcStyle ?? 'optimized').toLowerCase();
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
+    
+    // ========================================================================
+    // RANDOM CHARACTER MODE (Override: ignores manual controls)
+    // ========================================================================
+    mapped.randomCharacterActive = Boolean(sceneState.isRandomCharacterEnabled);
+    
+    // ========================================================================
+    // UGC FULL AUTOMATION MODE (Maximum entropy: ignores ALL manual controls)
+    // ========================================================================
+    // ONLY active when:
+    // 1. UGC Real Mode is ON
+    // 2. No Model Reference (Model Reference always wins)
+    // 3. User explicitly enabled Full Automation
+    mapped.randomFullAutomationActive =
+        Boolean(sceneState.isRandomFullAutomationEnabled) &&
+        Boolean(sceneState.ugcRealMode) &&
+        !hasModelReference;
+    
     if (!identityContinuityRequested) {
         delete (mapped as any).identityLock;
     }
@@ -1764,6 +1782,21 @@ export function mapLifestyleToPromptOptions(
         mapped.environmentOrder = '';
         (mapped as any).selectedEnvironment = '';
         (mapped as any).customEnvironment = '';
+    }
+
+    // ========================================================================
+    // RANDOM CHARACTER MODE → ENVIRONMENT OVERRIDE
+    // ========================================================================
+    // When Random Character is ON, clear all environment selections.
+    // Let DiversityRandomizer in identity.ts generate fully random domestic locations.
+    if (mapped.randomCharacterActive) {
+        mapped.setting = '';
+        mapped.microLocation = '';
+        (mapped as any).sceneEnvironment = '';
+        mapped.environmentOrder = '';
+        (mapped as any).selectedEnvironment = '';
+        (mapped as any).customEnvironment = '';
+        console.log('[MAP] Random Character ON → environment cleared for full randomization');
     }
 
     // ========================================================================

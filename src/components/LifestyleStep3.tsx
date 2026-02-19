@@ -383,6 +383,11 @@ export interface Step3Values {
   customClothesMaterial: string;
   customClothesDetail: string;
 
+  // Identity Control
+  isRandomCharacterEnabled?: boolean; // Override: randomize all creator attributes
+  isRandomFullAutomationEnabled?: boolean; // UGC Full Automation: maximum entropy (ignores ALL manual controls)
+  sameCreatorAcrossScenes?: boolean;  // Lock identity across renders
+
   // Creation Intent / Modes
   creationIntent: 'ugc' | 'product' | 'brand';
   creationMode: string;
@@ -1104,6 +1109,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     elderlyRealismDescriptor: '',
     elderlyRealismGuardActive: false,
     elderlyRealismGuardLabel: '',
+
+    // Entropy Modes (Random Character, Full Automation)
+    isRandomCharacterEnabled: false,
+    isRandomFullAutomationEnabled: false,
 
     // Selfie
     selfieMode: 'None',
@@ -5313,11 +5322,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {productStore.bundle.mode === 'lineup' && 'Products arranged in an equal row.'}
                   {productStore.bundle.mode === 'editorial-cluster' && 'Artistic, organic grouping.'}
                 </p>
-                {productStore.presetTier === 'basic' && productStore.controlTier !== 'pro' && !productStore.advancedModeEnabled && (
-                  <p className="text-[11px] text-amber-600 mt-1">
-                    Lineup and Editorial Cluster require Pro Mode.
-                  </p>
-                )}
               </div>
 
               {/* SPACING */}
@@ -6637,30 +6641,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 ) : (
                   <>
+                    {/* Random Character Helper Text */}
+                    {values.isRandomCharacterEnabled && (
+                      <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 text-sm text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        <p className="font-semibold">Random Character Mode Active</p>
+                        <p className="text-xs mt-1">Identity fully randomized each render. Manual controls below are visible but not used.</p>
+                      </div>
+                    )}
+                    
                     <section className="space-y-5">
                       <div className="flex items-center gap-2">
                         <p className={GROUP_LABEL_CLASS}>CORE IDENTITY</p>
                         {touchedSections.has('creator') && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />}
                       </div>
 
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-600 dark:text-white/60">
-                            {values.personCount !== 'single' ? 'Age (Person A)' : 'Age'}
-                          </span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
+                      {/* Disable all controls when Random Character is active */}
+                      <div className={values.isRandomCharacterEnabled ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600 dark:text-white/60">
+                              {values.personCount !== 'single' ? 'Age (Person A)' : 'Age'}
+                            </span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={18}
+                            max={90}
+                            step={1}
+                            value={values.age}
+                            onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
+                            className="scene-age-slider w-full"
+                            style={{ ['--progress' as any]: `${ageSliderProgress}%` }}
+                            disabled={values.isRandomCharacterEnabled}
+                          />
                         </div>
-                        <input
-                          type="range"
-                          min={18}
-                          max={90}
-                          step={1}
-                          value={values.age}
-                          onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
-                          className="scene-age-slider w-full"
-                          style={{ ['--progress' as any]: `${ageSliderProgress}%` }}
-                        />
-                      </div>
 
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">
@@ -7065,30 +7080,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ))}
                         </div>
                       </div>
+                      </div> {/* END: Disable wrapper for Random Character */}
                     </section>
 
                     <section className="space-y-5">
                       <p className={GROUP_LABEL_CLASS}>APPEARANCE</p>
 
-                      <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">Hair length</span>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(isCreatorPro
-                            ? (['Buzzcut', 'Short', 'Shoulder', 'Chin-length', 'Long', 'Very long'] as const)
-                            : (['Short', 'Shoulder', 'Long'] as const)
-                          ).map(option => (
-                            <Chip
-                              key={option}
-                              onClick={() => { updateValue('hairLength', option as any); markSectionTouched('creator'); }}
-                              selected={values.hairLength === (option as any)}
-                              size="md"
-                              className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
-                            >
-                              {option}
-                            </Chip>
-                          ))}
+                      {/* Disable all controls when Random Character is active */}
+                      <div className={values.isRandomCharacterEnabled ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className="space-y-2">
+                          <span className="text-xs text-gray-600 dark:text-white/60">Hair length</span>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(isCreatorPro
+                              ? (['Buzzcut', 'Short', 'Shoulder', 'Chin-length', 'Long', 'Very long'] as const)
+                              : (['Short', 'Shoulder', 'Long'] as const)
+                            ).map(option => (
+                              <Chip
+                                key={option}
+                                onClick={() => { updateValue('hairLength', option as any); markSectionTouched('creator'); }}
+                                selected={values.hairLength === (option as any)}
+                                size="md"
+                                className="w-full justify-center rounded-full py-2 text-[12px] font-semibold"
+                              >
+                                {option}
+                              </Chip>
+                            ))}
+                          </div>
                         </div>
-                      </div>
 
                     </section>
 
@@ -7246,16 +7264,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </>
                       )}
 
-                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
+                      </div> {/* END: Disable wrapper for Random Character - APPEARANCE */}
+
+                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled) ? 'opacity-50' : ''}`}>
                         <div>
                           <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-                          <p className="text-[11px] text-gray-400 dark:text-white/40">Locks identity across renders (available after first generation)</p>
+                          <p className="text-[11px] text-gray-400 dark:text-white/40">
+                            {values.isRandomCharacterEnabled
+                              ? 'Disabled in Random Character mode'
+                              : 'Locks identity across renders (available after first generation)'}
+                          </p>
                         </div>
                         <Toggle
                           checked={values.sameCreatorAcrossScenes}
-                          disabled={!hasFirstGenerationComplete || hasModelReference}
+                          disabled={!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled}
                           onCheckedChange={(next) => {
-                            if (!hasFirstGenerationComplete || hasModelReference) return;
+                            if (!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled) return;
                             updateValue('sameCreatorAcrossScenes', next);
                             markSectionTouched('creator');
                           }}
@@ -7749,14 +7773,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <p className="text-[11px] text-gray-400 dark:text-white/40">
                                 {hasModelReference
                                   ? 'Disabled while Model Reference is active'
-                                  : hasFirstGenerationComplete
-                                    ? (values.sameCreatorAcrossScenes ? 'Same person across generations' : 'Different person each generation')
-                                    : 'Available after first generation'}
+                                  : values.isRandomCharacterEnabled
+                                    ? 'Disabled in Random Character mode'
+                                    : hasFirstGenerationComplete
+                                      ? (values.sameCreatorAcrossScenes ? 'Same person across generations' : 'Different person each generation')
+                                      : 'Available after first generation'}
                               </p>
                             </div>
                             <Toggle
                               checked={values.sameCreatorAcrossScenes}
-                              disabled={!hasFirstGenerationComplete || hasModelReference}
+                              disabled={!hasFirstGenerationComplete || hasModelReference || values.isRandomCharacterEnabled}
                               aria-label="Keep same person"
                               onCheckedChange={(next) => {
                                 updateValue('sameCreatorAcrossScenes', next);
@@ -7856,16 +7882,60 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div className="flex items-center justify-between gap-4">
                             <div>
                               <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Random Character</p>
-                              <p className="text-xs text-gray-600">Generate a completely different person with each image (age, gender, ethnicity, hair, skin, mood, wardrobe).</p>
+                              <p className="text-xs text-gray-600">
+                                {hasModelReference
+                                  ? 'Disabled while Model Reference is active (Model Reference always wins)'
+                                  : 'Generate a completely different person with each image (age, gender, ethnicity, hair, skin, mood, wardrobe).'}
+                              </p>
                             </div>
                             <Toggle
                               checked={values.isRandomCharacterEnabled || false}
+                              disabled={hasModelReference}
                               aria-label="Enable Random Character"
                               onCheckedChange={(newValue) => {
                                 updateValue('isRandomCharacterEnabled', newValue);
+                                // If Random Character is ON, force Keep Same Person OFF
+                                if (newValue) {
+                                  updateValue('sameCreatorAcrossScenes', false);
+                                }
                               }}
                             />
                           </div>
+                        </div>
+
+                        {/* UGC Full Automation Toggle */}
+                        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 space-y-2">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600 font-bold">UGC Full Automation</p>
+                              <p className="text-xs text-gray-600">
+                                {hasModelReference
+                                  ? 'Disabled while Model Reference is active (Model Reference always wins)'
+                                  : 'Maximum entropy mode: Randomize EVERYTHING (person identity, camera, lighting, environment, props). Ignores ALL manual selections below.'}
+                              </p>
+                            </div>
+                            <Toggle
+                              checked={values.isRandomFullAutomationEnabled || false}
+                              disabled={hasModelReference}
+                              aria-label="Enable UGC Full Automation"
+                              onCheckedChange={(newValue) => {
+                                updateValue('isRandomFullAutomationEnabled', newValue);
+                                // If Full Automation is ON, force other entropy modes OFF and lock identity
+                                if (newValue) {
+                                  updateValue('isRandomCharacterEnabled', false);
+                                  updateValue('sameCreatorAcrossScenes', false);
+                                }
+                              }}
+                            />
+                          </div>
+                          {values.isRandomFullAutomationEnabled && (
+                            <div className="mt-2 rounded-lg bg-white/60 border border-indigo-200 px-3 py-2">
+                              <p className="text-[10px] uppercase tracking-wider text-indigo-600 font-bold mb-1">Active Mode</p>
+                              <p className="text-xs text-gray-700">
+                                🤖 Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2">

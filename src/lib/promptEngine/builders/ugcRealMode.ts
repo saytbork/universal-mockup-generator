@@ -347,6 +347,33 @@ export class UGCRealModeBuilder implements PromptBuilder {
     }
 
     build(options: PromptOptions): string {
+        // ====================================================================
+        // UGC FULL AUTOMATION MODE OVERRIDE (Maximum Entropy)
+        // ====================================================================
+        // Bypass ALL manual controls for camera, lighting, environment, props.
+        // Let DiversityRandomizer handle complete scene variation.
+        if (options.fullEntropyOverride && options.ugcRealModeActive) {
+            console.log('[UGC BUILDER] FULL AUTOMATION: Bypassing manual camera/lighting/environment controls');
+            
+            const imperfectionLevel = 'high'; // Always use maximum entropy
+            
+            return [
+                UGC_DEVICE_CONTRACT,
+                UGC_COMPOSITION_RULES,
+                UGC_LIGHTING_RULES,
+                UGC_APPEARANCE_RULES,
+                UGC_ENVIRONMENT_RULE,
+                UGC_IMPERFECTION_LEVEL_RULES[imperfectionLevel],
+                'FULL AUTOMATION: Randomize camera angle, lighting, environment, and props. No user preferences applied.',
+                'FOCUS RULE: Single-plane phone capture. No background separation. No portrait mode. No bokeh. Background stays naturally present and imperfect.',
+                BLOCKED_VOCABULARY,
+                UGC_VALIDATION
+            ]
+                .filter(Boolean)
+                .join(' ')
+                .trim();
+        }
+        
         const { ugcRealModeActive, personDetails, personIncluded, rawDomesticUgcActive } = options;
 
         if (options.ugcSelfieDominant) {

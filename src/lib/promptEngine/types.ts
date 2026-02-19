@@ -285,6 +285,9 @@ export interface PromptOptions {
     identityMode?: 'auto' | 'locked';       // auto = different person each render, locked = same person
     identityKey?: string;                   // Internal key for locked mode (persisted)
     identityVariationToken?: string;        // Token for auto mode (regenerated each render)
+    randomCharacterActive?: boolean;        // Random Character override (ignores manual controls)
+    randomFullAutomationActive?: boolean;   // UGC Full Automation (maximum entropy, ignores ALL manual controls)
+    fullEntropyOverride?: boolean;          // Internal flag: when true, skip ALL manual mappings in builders
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle

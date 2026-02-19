@@ -544,7 +544,10 @@ const createDefaultOptions = (): MockupOptions => ({
   placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
   placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
   lighting: LIGHTING_OPTIONS[0].value,
-  setting: SETTING_OPTIONS[0].value,
+  // CRITICAL: Default environment for Lifestyle mode (when UGC is not active)
+  // When app loads, UGC is OFF by default, so we need Kitchen as the default environment
+  // When UGC activates, handleUGCRealModeToggle will clear this to '' (Random / Auto)
+  setting: SETTING_OPTIONS[2].value, // 'Kitchen' - will be cleared when UGC activates
   ageGroup: DEFAULT_AGE_GROUP,
   camera: CAMERA_OPTIONS[0].value,
   cameraShot: CAMERA_SHOT_OPTIONS[0].value,
@@ -3172,8 +3175,11 @@ const App: React.FC = () => {
     (value: boolean) => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: value }));
       // When UGC is activated, clear environment to allow random selection
+      // When UGC is deactivated, restore default environment (Kitchen)
       if (value) {
-        setOptions(prev => ({ ...prev, setting: '' }));
+        setOptions(prev => ({ ...prev, setting: '' })); // Random / Auto for UGC
+      } else {
+        setOptions(prev => ({ ...prev, setting: SETTING_OPTIONS[2].value })); // Kitchen for Lifestyle
       }
     },
     [persistUgcRealSettings]
@@ -3429,22 +3435,68 @@ const App: React.FC = () => {
     // Random selection helpers
     const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
     
-    // Build random character parameters
-    const randomUpdates: Partial<MockupOptions> = {
-      ageGroup: pickRandom(AGE_GROUP_OPTIONS.filter(opt => opt.value !== 'no person')).value,
-      gender: pickRandom(GENDER_OPTIONS).value,
-      ethnicity: pickRandom(ETHNICITY_OPTIONS).value,
-      hairStyle: pickRandom(HAIR_STYLE_OPTIONS).value,
-      hairColor: pickRandom(HAIR_COLOR_OPTIONS).value,
-      skinTone: pickRandom(SKIN_TONE_OPTIONS).value,
-      eyeColor: pickRandom(EYE_COLOR_OPTIONS).value,
-      personAppearance: pickRandom(PERSON_APPEARANCE_OPTIONS).value,
-      personMood: pickRandom(PERSON_MOOD_OPTIONS).value,
-      wardrobeStyle: pickRandom(WARDROBE_STYLE_OPTIONS).value,
+    // Helper: Check if user specified this field (not default/empty/non-specific)
+    const isUserSpecified = (value: string | undefined, nonSpecificValues: string[] = ['', 'Non-specific', 'Prefer not to specify']): boolean => {
+      return Boolean(value && !nonSpecificValues.includes(value));
     };
     
-    // Apply randomized parameters
-    applyOptionsUpdate(prev => ({ ...prev, ...randomUpdates }));
+    // Build random character parameters - ONLY randomize fields user did NOT specify
+    const randomUpdates: Partial<MockupOptions> = {};
+    
+    // Age: Only randomize if user did not select specific age
+    if (!isUserSpecified(options.ageGroup, ['', 'no person'])) {
+      randomUpdates.ageGroup = pickRandom(AGE_GROUP_OPTIONS.filter(opt => opt.value !== 'no person')).value;
+    }
+    
+    // Gender: Only randomize if user did not select specific gender
+    if (!isUserSpecified(options.gender, ['', 'Non-specific', 'Prefer not to specify'])) {
+      randomUpdates.gender = pickRandom(GENDER_OPTIONS).value;
+    }
+    
+    // Ethnicity: Only randomize if user did not select specific ethnicity
+    if (!isUserSpecified(options.ethnicity, ['', 'Non-specific', 'Prefer not to specify'])) {
+      randomUpdates.ethnicity = pickRandom(ETHNICITY_OPTIONS).value;
+    }
+    
+    // Hair Style: Only randomize if user did not select specific style
+    if (!isUserSpecified(options.hairStyle, [''])) {
+      randomUpdates.hairStyle = pickRandom(HAIR_STYLE_OPTIONS).value;
+    }
+    
+    // Hair Color: Only randomize if user did not select specific color
+    if (!isUserSpecified(options.hairColor, [''])) {
+      randomUpdates.hairColor = pickRandom(HAIR_COLOR_OPTIONS).value;
+    }
+    
+    // Skin Tone: Only randomize if user did not select specific tone
+    if (!isUserSpecified(options.skinTone, ['', 'Non-specific'])) {
+      randomUpdates.skinTone = pickRandom(SKIN_TONE_OPTIONS).value;
+    }
+    
+    // Eye Color: Only randomize if user did not select specific color
+    if (!isUserSpecified(options.eyeColor, [''])) {
+      randomUpdates.eyeColor = pickRandom(EYE_COLOR_OPTIONS).value;
+    }
+    
+    // Person Appearance: Only randomize if user did not select specific appearance
+    if (!isUserSpecified(options.personAppearance, [''])) {
+      randomUpdates.personAppearance = pickRandom(PERSON_APPEARANCE_OPTIONS).value;
+    }
+    
+    // Person Mood: Only randomize if user did not select specific mood
+    if (!isUserSpecified(options.personMood, [''])) {
+      randomUpdates.personMood = pickRandom(PERSON_MOOD_OPTIONS).value;
+    }
+    
+    // Wardrobe Style: Only randomize if user did not select specific wardrobe
+    if (!isUserSpecified(options.wardrobeStyle, [''])) {
+      randomUpdates.wardrobeStyle = pickRandom(WARDROBE_STYLE_OPTIONS).value;
+    }
+    
+    // Apply randomized parameters ONLY for fields that were not user-specified
+    if (Object.keys(randomUpdates).length > 0) {
+      applyOptionsUpdate(prev => ({ ...prev, ...randomUpdates }));
+    }
     
     // Force new identity variation token to ensure different face
     setPersonIdentityPackage(prev => ({
@@ -3452,7 +3504,7 @@ const App: React.FC = () => {
       identityLock: false,
       identityVariationToken: undefined, // This will trigger a new random face
     }));
-  }, [isRandomCharacterEnabled, applyOptionsUpdate]);
+  }, [isRandomCharacterEnabled, applyOptionsUpdate, options]);
 
   useEffect(() => {
     if (!isTalentLinkedAcrossScenes) return;
