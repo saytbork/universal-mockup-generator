@@ -1694,6 +1694,31 @@ function buildHandsApplicationSemanticParts(state: ProductStudioState): string[]
     return parts;
 }
 
+function buildTexturedBedSemanticParts(state: ProductStudioState): string[] {
+    if (state.photoMode !== 'Textured Bed / Scatter Base') return [];
+
+    const dynamic = state.photoModeConfig?.dynamic?.['Textured Bed / Scatter Base'] || {};
+    const depthLevel = String(dynamic.depthLevel || '').trim().toLowerCase();
+
+    const parts: string[] = [
+        'TEXTURED_BED_DEPTH_POLICY: Product must feel physically seated inside the ingredient bed with visible contact compression and realistic occlusion around the lower area.',
+        'TEXTURED_BED_VISIBILITY_LOCK: Keep cap and primary label text clearly visible and sharp. Occlusion must support depth perception without blocking core brand readability.',
+    ];
+
+    if (depthLevel === 'subtle') {
+        parts.push('TEXTURED_BED_DEPTH: Subtle embed. Ingredient bed lightly wraps the base; approximately 8-18% of lower product area may be occluded.');
+        parts.push('TEXTURED_BED_FOREGROUND: Minimal foreground overlap. Keep scene clean with light depth layering only.');
+    } else if (depthLevel === 'immersive') {
+        parts.push('TEXTURED_BED_DEPTH: Immersive embed. Ingredient bed strongly wraps the base; approximately 30-45% of lower product area may be occluded.');
+        parts.push('TEXTURED_BED_FOREGROUND: Allow controlled near-camera ingredient elements for stronger depth, but never cover core label text.');
+    } else {
+        parts.push('TEXTURED_BED_DEPTH: Balanced embed. Ingredient bed clearly wraps the base; approximately 18-30% of lower product area may be occluded.');
+        parts.push('TEXTURED_BED_FOREGROUND: Subtle-to-medium foreground layering is allowed for premium depth without clutter.');
+    }
+
+    return parts;
+}
+
 function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): string[] {
     const core: string[] = [];
     const effectiveInteraction = resolveEffectiveInteraction(state);
@@ -1744,6 +1769,8 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     if (macroSemanticParts.length > 0) core.push(...macroSemanticParts);
     const handsSemanticParts = buildHandsApplicationSemanticParts(state);
     if (handsSemanticParts.length > 0) core.push(...handsSemanticParts);
+    const texturedBedSemanticParts = buildTexturedBedSemanticParts(state);
+    if (texturedBedSemanticParts.length > 0) core.push(...texturedBedSemanticParts);
     const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
     if (ingredientStackBackgroundLock) core.push(ingredientStackBackgroundLock);
     const explicitIngredients = Array.isArray((state as any).ingredients)
