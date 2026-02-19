@@ -38,7 +38,7 @@ const STUDIO_MODIFIER_REGISTRY: Record<StudioModifier, StudioModifierDefinition>
   },
   texturedBed: {
     requires: (authority) => authority.world !== 'underwater',
-    blocks: ['Product must be partially embedded into a dense premium textured ingredient bed (coffee beans, seeds, crystals, sand, stones), not just surrounded by sparse scatter. The bed should wrap around the lower base of the product with visible compression and physically plausible contact/occlusion shadows, making the product feel seated inside the material. Keep styling controlled and premium, avoid chaotic clutter, and keep the label zone clear and readable.'],
+    blocks: ['Product must be partially embedded into a dense premium textured ingredient bed (coffee beans, seeds, crystals, sand, stones), not just surrounded by sparse scatter. Use a true top-down flat lay camera (90° overhead) with clean premium styling. The bed should wrap around the product contact area with visible compression and physically plausible contact/occlusion shadows, making the product feel seated inside the material. Product body, cap, pump, and label must remain clean and dry: no drips, no residue, no foam streaks, no liquid trails, and no decorative add-ons attached to the product. Keep the label zone clear and fully readable.'],
   },
   ice: {
     requires: () => true,

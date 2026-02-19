@@ -316,6 +316,7 @@ function getAllowedMotionsForPhotoMode(photoMode: PhotoMode): ProductStateMotion
     if (photoMode === 'Dark Premium Studio') return ['static', 'opened'];
     if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
     if (photoMode === 'Pool Water') return ['static', 'opened'];
+    if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
     return null;
 }
 

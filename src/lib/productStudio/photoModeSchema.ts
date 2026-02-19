@@ -270,11 +270,13 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Textured Bed / Scatter Base',
         scope: 'studio',
         description: 'Product grounded on a controlled textured bed or scatter base.',
-        basePrompt: 'product partially embedded in a dense, controlled textured ingredient bed (not just loose scatter), premium advertising styling, ingredient field wraps around lower 360 degrees of product base, realistic contact shadows and occlusion, label area remains clean and fully readable, keep composition intentional and premium',
+        basePrompt: 'top-down flat lay product shot with product grounded in a dense, controlled textured ingredient bed (not just loose scatter), premium advertising styling, ingredient field wraps around product contact area with realistic compression and occlusion, product surface remains clean and dry with no drips or residue, label area remains clean and fully readable, keep composition intentional and premium',
         subOptions: [],
         constraints: [
             'Textured bed must feel dense and physically grounded around product base',
             'No floating product; clear contact and compression into the ingredient bed',
+            'Camera must be top-down flat lay (90° overhead)',
+            'Product must stay clean: no drips, no residue, no foam/liquid attached to container',
             'No messy clutter or noise',
             'Label must remain readable'
         ],

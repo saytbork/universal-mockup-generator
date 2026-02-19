@@ -35,6 +35,7 @@ function inferStudioComposition(state: ProductStudioState): StudioUIState['compo
   if (composition === 'grid' || composition === 'grid-ready') return 'carousel';
   if (composition === 'macro') return 'macro';
 
+  if (state.photoMode === 'Textured Bed / Scatter Base') return 'flat-lay';
   if (state.photoMode === 'Ingredient Flat Lay') return 'flat-lay';
   if (state.photoMode === 'Ingredient Stack') return 'ingredient-stack';
   if (state.photoMode === 'Macro Dew Label' || state.distance === 'macro') return 'macro';
@@ -43,6 +44,9 @@ function inferStudioComposition(state: ProductStudioState): StudioUIState['compo
 }
 
 function inferStudioMotion(state: ProductStudioState): StudioUIState['motion'] {
+  if (state.photoMode === 'Textured Bed / Scatter Base') {
+    return 'static';
+  }
   if (state.photoMode === 'Hands Application Clean') {
     const handPose = String((state as any).photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '')
       .trim()
