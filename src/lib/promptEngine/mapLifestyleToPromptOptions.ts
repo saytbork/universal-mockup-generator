@@ -1599,6 +1599,25 @@ export function mapLifestyleToPromptOptions(
         }
     };
 
+    const generateRandomUgcEnvironment = (): { macro: string; micro: string; descriptor: string } => {
+        const ugcEnvironments = [
+            { macro: 'Kitchen', micro: 'Countertop' },
+            { macro: 'Living Room', micro: 'Coffee table' },
+            { macro: 'Bedroom', micro: 'Dresser' },
+            { macro: 'Bathroom', micro: 'Vanity sink' },
+            { macro: 'Workspace', micro: 'Desk' },
+            { macro: 'Hallway', micro: 'Entryway' },
+            { macro: 'Home Gym', micro: 'Workout area' },
+            { macro: 'Balcony / Indoor Terrace', micro: 'Balcony seating area' },
+        ] as const;
+        const picked = ugcEnvironments[Math.floor(Math.random() * ugcEnvironments.length)] || ugcEnvironments[0];
+        return {
+            macro: picked.macro,
+            micro: picked.micro,
+            descriptor: buildUgcEnvironmentDescriptor(picked.macro, false),
+        };
+    };
+
     const DEFAULT_MICRO_BY_MACRO: Record<string, string> = {
         'Kitchen': 'Countertop',
         'Living Room': 'Coffee table',
@@ -1627,16 +1646,25 @@ export function mapLifestyleToPromptOptions(
         const hasNoEnvironment = isNoEnvironmentSelection(macro);
 
         if (hasNoEnvironment) {
-            // UGC + none => NO environment injection.
-            // Let internal UGC randomization decide environment downstream.
-            mapped.setting = '';
-            mapped.microLocation = '';
-            (mapped as any).sceneEnvironment = '';
-            mapped.environmentOrder = '';
             (mapped as any).selectedEnvironment = 'none';
             (mapped as any).customEnvironment = '';
-            delete (mapped as any).sceneEnvironmentDescriptor;
-            console.log('[MAP] environmentContext macro is none - environment suppressed');
+
+            if (isUGCRealMode) {
+                const ugcEnvironment = generateRandomUgcEnvironment();
+                mapped.setting = ugcEnvironment.macro;
+                mapped.microLocation = ugcEnvironment.micro;
+                (mapped as any).sceneEnvironment = ugcEnvironment.macro;
+                mapped.environmentOrder = ugcEnvironment.macro;
+                (mapped as any).sceneEnvironmentDescriptor = ugcEnvironment.descriptor;
+                console.log('[MAP] UGC system environment:', ugcEnvironment);
+            } else {
+                mapped.setting = '';
+                mapped.microLocation = '';
+                (mapped as any).sceneEnvironment = '';
+                mapped.environmentOrder = '';
+                delete (mapped as any).sceneEnvironmentDescriptor;
+                console.log('[MAP] environmentContext macro is none - environment suppressed');
+            }
         } else {
 
             const allowedMacroSet = new Set([
@@ -1771,11 +1799,21 @@ export function mapLifestyleToPromptOptions(
         };
 
         if (noEnvironmentSelected) {
-            mapped.setting = '';
-            mapped.microLocation = '';
-            (mapped as any).sceneEnvironment = '';
-            mapped.environmentOrder = '';
-            delete (mapped as any).sceneEnvironmentDescriptor;
+            if (isUGCRealMode) {
+                const ugcEnvironment = generateRandomUgcEnvironment();
+                mapped.setting = ugcEnvironment.macro;
+                mapped.microLocation = ugcEnvironment.micro;
+                (mapped as any).sceneEnvironment = ugcEnvironment.macro;
+                mapped.environmentOrder = ugcEnvironment.macro;
+                (mapped as any).sceneEnvironmentDescriptor = ugcEnvironment.descriptor;
+                console.log('[MAP] UGC system environment (legacy path):', ugcEnvironment);
+            } else {
+                mapped.setting = '';
+                mapped.microLocation = '';
+                (mapped as any).sceneEnvironment = '';
+                mapped.environmentOrder = '';
+                delete (mapped as any).sceneEnvironmentDescriptor;
+            }
         } else if (isUGCRealMode) {
             const { label, description } = resolveEnvironmentLabel();
             mapped.setting = label;

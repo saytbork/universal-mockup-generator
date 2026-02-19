@@ -551,6 +551,12 @@ const SECTION_GROUP_CLASS =
   'space-y-3';
 const GROUP_LABEL_CLASS =
   'text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold leading-none';
+const COLOR_PICKER_BUTTON_CLASS =
+  'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+const COLOR_PICKER_SWATCH_VISUAL_CLASS =
+  'h-9 w-9 rounded-full border border-gray-200 bg-white transition-colors';
+const COLOR_PICKER_HIDDEN_INPUT_CLASS =
+  'absolute inset-0 cursor-pointer opacity-0';
 
 const getPillClass = (isActive: boolean, fullWidth = false) => {
   const base = `rounded-full px-4 py-2 text-xs font-semibold border transition-colors ${fullWidth ? 'w-full text-center' : ''}`;
@@ -2760,8 +2766,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   const bgType = heroCfg.backgroundType;
                                   const isGradient = bgType === 'Gradient';
 
-                                  const dotBase =
-                                    'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+                                  const dotBase = COLOR_PICKER_BUTTON_CLASS;
                                   const dotBorder = (isSelected: boolean) =>
                                     isSelected ? 'border-indigo-600' : 'border-gray-200 hover:border-gray-300';
 
@@ -2786,8 +2791,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                   const brandDots = heroLandingBrandSwatches.slice(0, 3);
                                   const hasThird = Boolean(normalizeHex(productStore.gradientMid));
-                                  const thirdSmallBase =
-                                    'h-7 w-7 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+                                  const thirdSmallBase = COLOR_PICKER_BUTTON_CLASS;
 
                                   return (
                                     <>
@@ -2866,7 +2870,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                       setHeroGradientAssignTarget('mid');
                                                       markSectionTouched('product-setup');
                                                     }}
-                                                    className="h-7 w-7 rounded-full border border-gray-200 bg-white text-[12px] font-semibold text-gray-600 hover:border-gray-300"
+                                                    className="h-9 w-9 rounded-full border border-gray-200 bg-white text-[12px] font-semibold text-gray-600 hover:border-gray-300"
                                                     aria-label="Add third gradient color"
                                                   >
                                                     +
@@ -2935,7 +2939,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                     applyHeroColor(e.target.value);
                                                     setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
                                                   }}
-                                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                                  className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                                                   aria-label="Custom color picker"
                                                 />
                                               </label>
@@ -4295,7 +4299,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     productStore.setCustomLightColor('');
                                     markSectionTouched('product-setup');
                                   }}
-                                  className={`h-12 w-12 rounded-full border-2 bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+                                  className={`${COLOR_PICKER_BUTTON_CLASS} ${
                                     !productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4304,7 +4308,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   aria-label="No accent color"
                                 />
                                 <label
-                                  className={`relative inline-block h-12 w-12 rounded-full border-2 bg-white transition-colors focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 cursor-pointer ${
+                                  className={`relative inline-block ${COLOR_PICKER_BUTTON_CLASS} cursor-pointer ${
                                     productStore.customLightColor
                                       ? 'border-indigo-600'
                                       : 'border-gray-200 hover:border-gray-300'
@@ -4319,7 +4323,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       productStore.setCustomLightColor(e.target.value.toUpperCase());
                                       markSectionTouched('product-setup');
                                     }}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                                     aria-label="Custom gel color picker"
                                   />
                                 </label>
@@ -4477,12 +4481,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
-                          className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                          className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                           style={{ background: (productStore.definition.physical as any)?.v?.capsuleContentColor?.hex || '#FFFFFF' }}
                         />
                         <input
                           type="color"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                           value={(productStore.definition.physical as any)?.v?.capsuleContentColor?.hex || '#FFFFFF'}
                           onChange={e => {
                             productStore.setPhysicalColor('capsuleContentColor', e.target.value);
@@ -4573,12 +4577,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
-                          className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                          className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                           style={{ background: (productStore.definition.physical as any)?.v?.gummyColor?.hex || '#FF6B6B' }}
                         />
                         <input
                           type="color"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                           value={(productStore.definition.physical as any)?.v?.gummyColor?.hex || '#FF6B6B'}
                           onChange={e => {
                             productStore.setPhysicalColor('gummyColor', e.target.value);
@@ -4684,12 +4688,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="flex items-center gap-4 mt-2">
                         <label className="relative">
                           <span
-                            className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                            className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                             style={{ background: (productStore.definition.physical as any)?.v?.liquidCustomColor?.hex || '#FFD700' }}
                           />
                           <input
                             type="color"
-                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                             value={(productStore.definition.physical as any)?.v?.liquidCustomColor?.hex || '#FFD700'}
                             onChange={e => {
                               productStore.setPhysicalColor('liquidCustomColor', e.target.value);
@@ -4792,12 +4796,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
-                          className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                          className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                           style={{ background: (productStore.definition.physical as any)?.v?.powderColor?.hex || '#F5F5DC' }}
                         />
                         <input
                           type="color"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                           value={(productStore.definition.physical as any)?.v?.powderColor?.hex || '#F5F5DC'}
                           onChange={e => {
                             productStore.setPhysicalColor('powderColor', e.target.value);
@@ -4951,12 +4955,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
-                          className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                          className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                           style={{ background: (productStore.definition.physical as any)?.v?.color?.hex || '#FFFFFF' }}
                         />
                         <input
                           type="color"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                           value={(productStore.definition.physical as any)?.v?.color?.hex || '#FFFFFF'}
                           onChange={e => {
                             productStore.setPhysicalColor('color', e.target.value);
@@ -5056,12 +5060,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
-                          className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                          className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                           style={{ background: (productStore.definition.physical as any)?.v?.color?.hex || '#333333' }}
                         />
                         <input
                           type="color"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                           value={(productStore.definition.physical as any)?.v?.color?.hex || '#333333'}
                           onChange={e => {
                             productStore.setPhysicalColor('color', e.target.value);
@@ -6413,12 +6417,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {/* Circular color swatch */}
                     <label className="relative">
                       <span
-                        className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                        className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                         style={{ background: (isProductMode ? productStore.backgroundColor : values.ecommerceBackgroundColor) || '#ffffff' }}
                       />
                       <input
                         type="color"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                         value={(isProductMode ? productStore.backgroundColor : values.ecommerceBackgroundColor) || '#ffffff'}
                         onChange={(e) => {
                           updateValue('ecommerceBackgroundColor', e.target.value);
@@ -6475,7 +6479,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {/* Circular color swatch */}
                           <label className="relative">
                             <span
-                              className="block h-10 w-10 rounded-full border-2 border-gray-200 cursor-pointer "
+                              className={`block ${COLOR_PICKER_SWATCH_VISUAL_CLASS} cursor-pointer`}
                               style={{
                                 background: (
                                   isProductMode
@@ -6486,7 +6490,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             />
                             <input
                               type="color"
-                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                               value={(
                                 isProductMode
                                   ? (cfg.key === 'ecommerceGradientStart' ? productStore.gradientStart : productStore.gradientEnd)
@@ -8104,7 +8108,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
                               markSectionTouched('customClothes');
                             }}
-                            className="h-9 w-9 cursor-pointer rounded-lg border border-gray-200 bg-white p-0"
+                            className={`${COLOR_PICKER_BUTTON_CLASS} cursor-pointer border-gray-200 hover:border-gray-300 p-0`}
                           />
                           <input
                             type="text"
@@ -8809,9 +8813,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="space-y-2">
                         <p className="text-[11px] uppercase tracking-wide text-gray-500">Solid background color</p>
                         <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
-                          <label className="relative h-10 w-10 shrink-0 cursor-pointer">
+                          <label className="relative h-9 w-9 shrink-0 cursor-pointer">
                             <div
-                              className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
+                              className="h-full w-full rounded-full ring-1 ring-borderSubtle"
                               style={{ background: values.ecommerceBackgroundColor }}
                             />
                             <input
@@ -8821,7 +8825,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 updateValue('ecommerceBackgroundColor', e.target.value);
                                 markSectionTouched('ecommerce');
                               }}
-                              className="absolute inset-0 opacity-0 cursor-pointer"
+                              className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                             />
                           </label>
                           <input
@@ -8845,16 +8849,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <div key={cfg.key} className="space-y-2">
                               <p className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</p>
                               <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
-                                <label className="relative h-10 w-10 shrink-0 cursor-pointer">
+                                <label className="relative h-9 w-9 shrink-0 cursor-pointer">
                                   <div
-                                    className="h-10 w-10 rounded-full ring-1 ring-borderSubtle"
+                                    className="h-full w-full rounded-full ring-1 ring-borderSubtle"
                                     style={{ background: cfg.value }}
                                   />
                                   <input
                                     type="color"
                                     value={cfg.value}
                                     onChange={(e) => handleGradientColorChange(cfg.key as 'ecommerceGradientStart' | 'ecommerceGradientEnd', e.target.value)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                              className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
                                   />
                                 </label>
                                 <input
