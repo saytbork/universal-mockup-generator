@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
+import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail, type UserRecord } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
 import { bucket } from '../server/lib/firebaseAdmin.js';
@@ -22,6 +22,11 @@ const parseBody = async (req: VercelRequest) => {
   } catch {
     return {};
   }
+};
+
+const normalizePlan = (plan?: string | null): string => {
+  const raw = String(plan ?? '').trim().toLowerCase();
+  return raw || 'free';
 };
 
 const hasKV =
@@ -444,20 +449,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('Image generation failed.');
     }
     
-    // Apply watermark only for anonymous trial users in production (not preview, not admin, not paid users)
-    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser && !isPreview;
+    // Determine user's plan for quality/watermark decisions
+    const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
+    const userPlan = userRecord ? normalizePlan(userRecord.plan) : 'anonymous';
+    const isFreePlan = userPlan === 'free' && !isUnlimited && !isAdminUser;
+    
+    // Apply watermark for anonymous trial users AND free plan users
+    const shouldApplyWatermark = (isAnonymousTrial || isFreePlan) && !isAdminUser && !isPreview;
     const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
 
-    // 🔥 Upload to Firebase Storage instead of returning base64
-    const buffer = Buffer.from(maybeWatermarkedImage, 'base64');
-    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.png`;
+    // 🔥 Reduce quality for free plan users (not paying subscribers)
+    // Free plan: reduced resolution + JPEG compression for lower storage costs
+    // Paid plans: full PNG quality
+    let buffer: Buffer;
+    let contentType = 'image/png';
+    if (isFreePlan && !isPreview) {
+      console.log('[QUALITY] Applying reduced quality for free plan user');
+      buffer = await sharp(Buffer.from(maybeWatermarkedImage, 'base64'))
+        .resize(1536, 1536, { fit: 'inside', withoutEnlargement: true }) // Max 1536px
+        .jpeg({ quality: 75, mozjpeg: true }) // JPEG with 75% quality
+        .toBuffer();
+      contentType = 'image/jpeg';
+    } else {
+      buffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    }
+    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${isFreePlan ? 'jpg' : 'png'}`;
     const file = bucket.file(fileName);
 
     await file.save(buffer, {
       metadata: {
-        contentType: 'image/png',
+        contentType,
         cacheControl: 'public, max-age=31536000, immutable',
       },
     });
@@ -509,7 +532,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const user = await getUser(authenticatedEmail!);
+    // Use userRecord fetched earlier (no need to call getUser again)
+    const user = userRecord!; // Non-null assertion safe since isAnonymousTrial is false
     if (creditResult?.bucket !== 'admin') {
       await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
