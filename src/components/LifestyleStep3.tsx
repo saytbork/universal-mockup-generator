@@ -16,6 +16,7 @@ import EcommerceStep3, { type EcommerceGenerationSettings, type EcommerceSlotGen
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
+import ChipSelectGroup from './ChipSelectGroup';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
@@ -7899,8 +7900,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     { value: 'male', label: 'Male' },
                                     { value: 'female', label: 'Female' }
                                   ]}
-                                  selected={values.fullAutomationGenderPreference || 'any'}
-                                  onChange={(val) => {
+                                  selectedValue={values.fullAutomationGenderPreference || 'any'}
+                                  onChange={(val: string) => {
                                     updateValue('fullAutomationGenderPreference', val as 'any' | 'male' | 'female');
                                     markSectionTouched('creator');
                                   }}
