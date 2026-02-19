@@ -215,15 +215,26 @@ Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coveri
             // ================================================================
             // Skip ALL manual controls. Rely ENTIRELY on DiversityRandomizer.
             // No age anchors, no ethnicity mapping, no body type, no hair controls.
+            // EXCEPT: Respect gender preference if specified
+            const genderPref = options.fullAutomationGenderPreference || 'any';
+            const genderInstruction = genderPref === 'any' 
+                ? 'randomized age (18-80), gender, ethnicity'
+                : genderPref === 'male'
+                ? 'randomized age (18-80), MALE gender, ethnicity'
+                : 'randomized age (18-80), FEMALE gender, ethnicity';
+            
             parts.push(`
 UGC_FULL_AUTOMATION_ACTIVE.
 Maximum natural entropy mode enabled.
 Ignore all manually selected creator attributes (age, gender, ethnicity, body type, hair, eye color, facial expression, skin tone, wardrobe, props).
-Generate a completely unique human subject with randomized age (18-80), gender, ethnicity, facial structure, body type, wardrobe, and environment.
+Generate a completely unique human subject with ${genderInstruction}, facial structure, body type, wardrobe, and environment.
 Subject must be a distinct real individual with authentic imperfections and natural variation.
             `.trim().replace(/\s+/g, ' '));
             
             console.log('[IDENTITY BUILDER] UGC FULL AUTOMATION: Maximum entropy mode, skipping ALL manual controls');
+            if (genderPref !== 'any') {
+                console.log(`[IDENTITY BUILDER] Gender preference: ${genderPref}`);
+            }
             
             // Create unique seed for each generation
             const diversitySeed = createDiversitySeed(
@@ -298,22 +309,14 @@ Subject must be a distinct real individual with authentic imperfections and natu
 
             // Early return - skip all manual control logic below
             return parts.filter(Boolean).join('. ').trim();
-        } else if (options.randomCharacterActive) {
-            // ================================================================
-            // RANDOM CHARACTER MODE OVERRIDE
-            // ================================================================
-            // Inject explicit prompt instruction to ignore manual controls
-            // Identity will be FULLY randomized by DiversityRandomizer
-            parts.push(`
-RANDOM_CREATOR_OVERRIDE_ACTIVE.
-Ignore all manually selected creator attributes (age, gender, ethnicity, body type, hair, eye color, facial expression).
-Generate a completely new human subject with varied age (18-80), gender, ethnicity, facial structure, body type, and wardrobe.
-Ensure no resemblance to previous renders.
-Subject must be a unique real individual every generation.
-            `.trim().replace(/\s+/g, ' '));
-            
-            console.log('[IDENTITY BUILDER] Random Character MODE: skipping manual controls, full DiversityRandomizer override');
-        } else {
+        }
+
+        // ================================================================
+        // SKIP ALL MANUAL CONTROLS FOR RANDOM CHARACTER & FULL AUTOMATION
+        // ================================================================
+        const shouldSkipManualControls = options.randomCharacterActive || options.fullAutomationMode;
+
+        if (!shouldSkipManualControls) {
             // ================================================================
             // AGE ANCHOR (CRITICAL - PREVENTS YOUTHFUL RENDERING)
             // ================================================================
@@ -512,21 +515,21 @@ Captured by smartphone so fine edges may appear soft or broken.
                 if (identityParts.length > 0) {
                     parts.push(identityParts.join(', '));
                 }
-            } // END: Skip manual controls if randomCharacterActive
+        } // END: Skip manual controls if shouldSkipManualControls (Random Character OR Full Automation)
 
-            // ================================================================
-            // DIVERSITY RANDOMIZATION (V2: Prevent AI Clone Syndrome)
-            // ================================================================
-            // Create unique seed for each generation to prevent repetitive faces
-            const diversitySeed = createDiversitySeed(
-                options.userId || 'user',
-                options.timestamp || Date.now()
-            );
-            const randomizer = new DiversityRandomizer(diversitySeed);
+        // ================================================================
+        // DIVERSITY RANDOMIZATION (V2: Prevent AI Clone Syndrome)
+        // ================================================================
+        // Create unique seed for each generation to prevent repetitive faces
+        const diversitySeed = createDiversitySeed(
+            options.userId || 'user',
+            options.timestamp || Date.now()
+        );
+        const randomizer = new DiversityRandomizer(diversitySeed);
 
-            // ALWAYS randomize facial structure (user has no control over this)
-            const facialStructure = randomizer.getFacialStructure();
-            parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
+        // ALWAYS randomize facial structure (user has no control over this)
+        const facialStructure = randomizer.getFacialStructure();
+        parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
 
             // CAMERA ANGLE RANDOMIZATION: ONLY in UGC mode AND only if NOT already specified
             // Lifestyle mode uses professional camera setup from canonicalScene.ts
@@ -814,8 +817,8 @@ Captured by smartphone so fine edges may appear soft or broken.
         // ====================================================================
         // EXPRESSION & POSE
         // ====================================================================
-        // SKIP if randomCharacterActive (expression will be randomized by DiversityRandomizer)
-        if (!options.randomCharacterActive) {
+        // SKIP if shouldSkipManualControls (expression will be randomized by DiversityRandomizer)
+        if (!shouldSkipManualControls) {
             if (personDetails?.facialExpression) {
                 parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
             }

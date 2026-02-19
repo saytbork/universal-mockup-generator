@@ -261,7 +261,7 @@ function withInterpretationNote(
 function isMacroFraming(state: ProductStudioState, next?: { distance?: ProductStudioState['distance']; angle?: ProductStudioState['angle'] }): boolean {
     const distance = next?.distance ?? state.distance;
     const angle = next?.angle ?? state.angle;
-    return distance === 'macro' || angle === 'detail';
+    return distance === 'macro' || angle === 'detail_closeup';
 }
 
 function isInteractionIncompatibleWithMacro(interaction: ProductStudioState['interaction']): boolean {

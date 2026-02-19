@@ -869,11 +869,6 @@ export function mapLifestyleToPromptOptions(
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
     
     // ========================================================================
-    // RANDOM CHARACTER MODE (Override: ignores manual controls)
-    // ========================================================================
-    mapped.randomCharacterActive = Boolean(sceneState.isRandomCharacterEnabled);
-    
-    // ========================================================================
     // UGC FULL AUTOMATION MODE (Maximum entropy: ignores ALL manual controls)
     // ========================================================================
     // ONLY active when:
@@ -884,6 +879,14 @@ export function mapLifestyleToPromptOptions(
         Boolean(sceneState.isRandomFullAutomationEnabled) &&
         Boolean(sceneState.ugcRealMode) &&
         !hasModelReference;
+    
+    // Set alias for identity builder
+    mapped.fullAutomationMode = mapped.randomFullAutomationActive;
+    
+    // Pass gender preference for Full Automation mode
+    if (mapped.randomFullAutomationActive) {
+        mapped.fullAutomationGenderPreference = sceneState.fullAutomationGenderPreference || 'any';
+    }
     
     if (!identityContinuityRequested) {
         delete (mapped as any).identityLock;

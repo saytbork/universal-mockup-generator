@@ -1,11 +1,13 @@
 import { parameterMap } from "../parameterMap";
+import type { CompositionModeKey } from "../parameterMap.types";
 
 const uniqueParts = (parts: (string | undefined)[]) =>
   Array.from(new Set(parts.filter(Boolean) as string[])).join(", ");
 
 export function buildComposition(params: any): string {
+  const compKey = (params.compositionMode || params.composition) as CompositionModeKey | undefined;
   const composition =
-    parameterMap.compositionMode?.[params.compositionMode || params.composition] ??
+    (compKey ? parameterMap.compositionMode?.[compKey] : undefined) ??
     params.compositionMode ??
     params.composition ??
     "";

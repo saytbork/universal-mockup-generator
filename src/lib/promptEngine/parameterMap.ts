@@ -32,8 +32,13 @@ export const cameraPresets = {
 export const parameterMap: ParameterMap = {
   cameraAngles: {
     fullBody: "full length shot of the subject, showing outfit, posture and action",
+    "Full body": "full length shot of the subject, showing outfit, posture and action",
     closeUp: "tight close up of the subject's face",
+    Close: "tight close up of the subject's face",
     extremeCloseUp: "extreme close up of a specific facial feature",
+    "Extreme close-up": "extreme close up of a specific facial feature",
+    Medium: "medium shot of the subject",
+    Wide: "wide shot showing the subject in environment",
     extremeLongShot: "extreme long shot showing the subject within the full environment",
     highAngleShot: "high angle shot looking down at the subject",
     birdsEyeView: "bird's eye view from top down",

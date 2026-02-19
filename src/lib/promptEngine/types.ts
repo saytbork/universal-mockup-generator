@@ -287,6 +287,8 @@ export interface PromptOptions {
     identityVariationToken?: string;        // Token for auto mode (regenerated each render)
     randomCharacterActive?: boolean;        // Random Character override (ignores manual controls)
     randomFullAutomationActive?: boolean;   // UGC Full Automation (maximum entropy, ignores ALL manual controls)
+    fullAutomationMode?: boolean;           // Alias for randomFullAutomationActive (used in identity builder)
+    fullAutomationGenderPreference?: 'any' | 'male' | 'female'; // Optional gender filter for Full Automation mode
     fullEntropyOverride?: boolean;          // Internal flag: when true, skip ALL manual mappings in builders
 
     // UGC Real Mode
