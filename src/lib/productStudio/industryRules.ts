@@ -70,10 +70,11 @@ export const industryRules: Record<
       'soft-wellness-morning',
       'editorial-table',
     ],
-    productStateWhitelist: ['static', 'dispensed', 'pouring', 'spilled'],
+    productStateWhitelist: ['static', 'dispensed', 'pouring'],
     productStateWhitelistByIntent: {
       conversion: ['static', 'dispensed'],
-      'editorial-ritual': ['static', 'dispensed', 'pouring', 'spilled'],
+      'editorial-ritual': ['static', 'dispensed', 'pouring'],
+      campaign: ['static', 'pouring'],
     },
     interactionWhitelistByIntent: {
       conversion: [
@@ -87,6 +88,12 @@ export const industryRules: Record<
         'holding',
         'two-hand-hold',
         'framed-presentation',
+      ],
+      campaign: [
+        'none',
+        'holding',
+        'two-hand-hold',
+        'presenting',
       ],
     },
   },

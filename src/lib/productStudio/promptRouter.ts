@@ -3,7 +3,7 @@ import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
 import { isWinePrestigeMode } from './winePrestige';
 import { industryRules } from './industryRules';
-import { resolveCoffeeIntent } from './resolveCoffeeIntent';
+import { resolveCoffeeIndustryIntent, type CoffeeIndustryIntent } from './resolveCoffeeIntent';
 import {
   getIndustryDefaultInteraction,
   getPhotoModeCapabilities,
@@ -233,10 +233,58 @@ function resolveSupplementsAllowedProductStates(state: ProductStudioState): Prod
   return base;
 }
 
+function resolveCoffeeIndustryLayer(
+  state: ProductStudioState
+): {
+  intent: CoffeeIndustryIntent;
+  variant: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
+  lightingTemperatureProfile: string;
+  shadowProfile: string;
+  contrastProfile: string;
+  compositionProfile: string;
+  compositionCoverage: string;
+} {
+  const intent = resolveCoffeeIndustryIntent(state.photoMode || '', state.visualIntent);
+
+  if (intent === 'campaign') {
+    return {
+      intent,
+      variant: 'coffee-color-pop-luxury',
+      lightingTemperatureProfile: 'studio-color-separation',
+      shadowProfile: 'refined-contrast',
+      contrastProfile: 'high',
+      compositionProfile: 'color-pop-luxury',
+      compositionCoverage: '80–90%',
+    };
+  }
+
+  if (intent === 'conversion') {
+    return {
+      intent,
+      variant: 'coffee-premium-minimal',
+      lightingTemperatureProfile: 'neutral-daylight',
+      shadowProfile: 'controlled-soft',
+      contrastProfile: 'medium-high',
+      compositionProfile: 'product-forward',
+      compositionCoverage: '75–85%',
+    };
+  }
+
+  return {
+    intent: 'editorial-ritual',
+    variant: 'coffee-editorial-ritual',
+    lightingTemperatureProfile: 'warm-ambient',
+    shadowProfile: 'soft-deep',
+    contrastProfile: 'medium',
+    compositionProfile: 'ritual-balance',
+    compositionCoverage: '60–70%',
+  };
+}
+
 function resolveIndustryProductState(
   state: ProductStudioState,
   industryProfile: IndustryProfile,
-  resolvedCoffeeIntent?: 'conversion' | 'editorial-ritual'
+  resolvedCoffeeIntent?: CoffeeIndustryIntent
 ): ProductStateMotion {
   if (industryProfile === 'wine') {
     return state.stateMotion === 'opened' ? 'opened' : 'static';
@@ -338,14 +386,14 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = resolveIndustryProfile(state.visualProfile);
-  const resolvedCoffeeIntent =
-    industryProfile === 'coffee' ? resolveCoffeeIntent(state.photoMode || '') : undefined;
+  const coffeeLayer =
+    industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
   const resolvedAllowedMotions = getResolvedAllowedMotions(
     state.photoMode,
     industryProfile,
     state.definition.type,
-    resolvedCoffeeIntent
+    coffeeLayer?.intent
   );
   const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
     ? state.stateMotion
@@ -381,7 +429,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const winePrestigeV2Mode = false;
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
-    visualIntent: industryProfile === 'coffee' ? resolvedCoffeeIntent : state.visualIntent,
+    visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
     visualProfile: industryProfile,
     world: inferStudioWorld(state),
     motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
@@ -431,6 +479,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
     specialEffect: SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined,
     visualStyle: VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined,
+    ...(coffeeLayer
+      ? {
+          coffeeIndustryLayer: true,
+          coffeeVariant: coffeeLayer.variant,
+          coffeeCompositionCoverage: coffeeLayer.compositionCoverage,
+        }
+      : {}),
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];
@@ -456,20 +511,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
 
   if (industryProfile === 'coffee') {
-    const resolvedIntent = resolvedCoffeeIntent || 'editorial-ritual';
+    const resolvedIntent = coffeeLayer?.intent || 'editorial-ritual';
     v2State.visualIntent = resolvedIntent;
-
-    if (resolvedIntent === 'conversion') {
-      v2State.lightingTemperatureProfile = 'neutral-daylight';
-      v2State.shadowProfile = 'controlled-soft';
-      v2State.contrastProfile = 'medium-high';
-      v2State.compositionProfile = 'product-forward';
-    } else if (resolvedIntent === 'editorial-ritual') {
-      v2State.lightingTemperatureProfile = 'warm-ambient';
-      v2State.shadowProfile = 'soft-deep';
-      v2State.contrastProfile = 'medium';
-      v2State.compositionProfile = 'ritual-balance';
-    }
+    v2State.lightingTemperatureProfile = coffeeLayer?.lightingTemperatureProfile;
+    v2State.shadowProfile = coffeeLayer?.shadowProfile;
+    v2State.contrastProfile = coffeeLayer?.contrastProfile;
+    v2State.compositionProfile = coffeeLayer?.compositionProfile;
 
     allowedInteractions = rules?.interactionWhitelistByIntent?.[resolvedIntent] || ['none'];
   } else if (industryProfile === 'wine') {
@@ -529,6 +576,9 @@ const COFFEE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
   /\bWINE_[A-Z0-9_]*\b/,
   /\bwine-prestige\b/i,
   /\bwine-glass-priority\b/i,
+  /\bCORK_RENDERING\b/i,
+  /\bBOTTLE_TILT_RULE\b/i,
+  /\bwine translucency\b/i,
 ];
 
 const WINE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [

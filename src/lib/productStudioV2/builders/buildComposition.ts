@@ -57,21 +57,29 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   }
 
   if (state?.visualProfile === 'coffee') {
-    if (state.visualIntent === 'conversion') {
+    if (state.coffeeVariant === 'coffee-premium-minimal' || state.visualIntent === 'conversion') {
       return [
-        'STUDIO_COMPOSITION_MODEL: coffee-conversion.',
-        'COFFEE_COMPOSITION_PROFILE: product-forward framing.',
-        'COFFEE_VERTICAL_DOMINANCE: strong and stable.',
-        'COFFEE_LAYOUT_RULE: keep hero product dominance with clean supporting context.',
+        'STUDIO_COMPOSITION_MODEL: coffee-premium-minimal.',
+        'COFFEE_COMPOSITION_DOMINANCE: premium-minimal vertical coverage target 75–85%.',
+        'COFFEE_LAYOUT_RULE: product-forward framing with clean contextual support and intentional negative space.',
         ...interactionBias,
       ].join(' ');
     }
 
-    if (state.visualIntent === 'editorial-ritual') {
+    if (state.coffeeVariant === 'coffee-color-pop-luxury' || state.visualIntent === 'campaign') {
+      return [
+        'STUDIO_COMPOSITION_MODEL: coffee-color-pop-luxury.',
+        'COFFEE_COMPOSITION_DOMINANCE: color-pop-luxury vertical coverage target 80–90%.',
+        'COFFEE_LAYOUT_RULE: premium campaign framing with controlled contextual props and dominant foreground authority.',
+        ...interactionBias,
+      ].join(' ');
+    }
+
+    if (state.coffeeVariant === 'coffee-editorial-ritual' || state.visualIntent === 'editorial-ritual') {
       return [
         'STUDIO_COMPOSITION_MODEL: coffee-editorial-ritual.',
-        'COFFEE_COMPOSITION_PROFILE: ritual-balance.',
-        'COFFEE_ENVIRONMENTAL_BREATHING: allowed with elegant negative space.',
+        'COFFEE_COMPOSITION_DOMINANCE: editorial-ritual vertical coverage target 60–70%.',
+        'COFFEE_ENVIRONMENTAL_BREATHING: allowed with intentional negative space and ritual balance.',
         'COFFEE_LAYOUT_RULE: balanced ritual composition preserving product readability.',
         ...interactionBias,
       ].join(' ');

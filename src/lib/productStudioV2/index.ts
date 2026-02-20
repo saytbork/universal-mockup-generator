@@ -2,6 +2,7 @@ import { resolveStudioAuthority } from './authority/studioAuthorityResolver.ts';
 import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts';
 import { buildIntent } from './builders/buildIntent.ts';
 import { buildWorld } from './builders/buildWorld.ts';
+import { buildCoffeeIndustryLayer } from './builders/buildCoffeeIndustryLayer.ts';
 import { buildComposition } from './builders/buildComposition.ts';
 import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
@@ -39,6 +40,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const blocks = [
     buildIntent(authority, state),
     buildWorld(authority, effectiveState.world, state),
+    buildCoffeeIndustryLayer(authority, state),
     buildComposition(authority, state), // Pass state for bundle detection
     buildCameraOverrides(effectiveState),
     buildMotion(authority, state),

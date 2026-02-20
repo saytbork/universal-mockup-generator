@@ -30,7 +30,7 @@ import {
   isWinePrestigeMode,
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
-import { resolveCoffeeIntent } from '@/lib/productStudio/resolveCoffeeIntent';
+import { resolveCoffeeIndustryIntent } from '@/lib/productStudio/resolveCoffeeIntent';
 import { getPhotoModeCameraCapability, getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
@@ -5390,7 +5390,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           {(() => {
-            const coffeeIntent = resolveCoffeeIntent(String(productStore.photoMode || ''));
+            const coffeeIntent = resolveCoffeeIndustryIntent(
+              String(productStore.photoMode || ''),
+              String(productStore.visualIntent || '')
+            );
             const allOptions = [
               { value: 'static', label: 'Static', detail: 'Closed and stationary.' },
               { value: 'opened', label: 'Opened', detail: 'Open container. No motion.' },
@@ -6175,7 +6178,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           {(() => {
-            const coffeeIntent = resolveCoffeeIntent(String(productStore.photoMode || ''));
+            const coffeeIntent = resolveCoffeeIndustryIntent(
+              String(productStore.photoMode || ''),
+              String(productStore.visualIntent || '')
+            );
             const industryAllowedInteractions =
               industryProfile === 'coffee'
                 ? activeIndustryRules?.interactionWhitelistByIntent?.[coffeeIntent] ?? ['none']

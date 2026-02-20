@@ -233,7 +233,7 @@ export function resolveStateMotionByCapability(
   industryProfile: IndustryProfile,
   stateMotion: ProductStateMotion,
   stateMotionCapability: StateMotionCapability,
-  options?: { coffeeIntent?: 'conversion' | 'editorial-ritual' }
+  options?: { coffeeIntent?: 'conversion' | 'editorial-ritual' | 'campaign' }
 ): ProductStateMotion {
   if (stateMotionCapability === 'static-only') return 'static';
   if (
@@ -241,6 +241,9 @@ export function resolveStateMotionByCapability(
     options?.coffeeIntent === 'editorial-ritual'
   ) {
     return stateMotion;
+  }
+  if (industryProfile === 'coffee' && options?.coffeeIntent === 'campaign') {
+    return ['static', 'pouring'].includes(stateMotion) ? stateMotion : 'static';
   }
   if (stateMotionCapability === 'extended') return stateMotion;
 
@@ -261,7 +264,7 @@ export function resolveStateMotionByCapability(
 export function getIndustryAllowedMotions(
   industryProfile: IndustryProfile,
   productType: ProductType,
-  coffeeIntent?: 'conversion' | 'editorial-ritual'
+  coffeeIntent?: 'conversion' | 'editorial-ritual' | 'campaign'
 ): ProductStateMotion[] {
   if (industryProfile === 'wine') return ['static', 'opened'];
 
@@ -288,7 +291,7 @@ export function getResolvedAllowedMotions(
   photoMode: PhotoMode,
   industryProfile: IndustryProfile,
   productType: ProductType,
-  coffeeIntent?: 'conversion' | 'editorial-ritual'
+  coffeeIntent?: 'conversion' | 'editorial-ritual' | 'campaign'
 ): ProductStateMotion[] {
   const { stateMotionCapability } = getPhotoModeCapabilities(photoMode);
   const industryAllowed = getIndustryAllowedMotions(industryProfile, productType, coffeeIntent);
@@ -298,7 +301,11 @@ export function getResolvedAllowedMotions(
 
   if (stateMotionCapability === 'static-only') return ['static'];
   if (stateMotionCapability === 'limited') {
-    const filtered = industryAllowed.filter((motion) => limitedEnvelope.includes(motion));
+    const envelope =
+      industryProfile === 'coffee' && (coffeeIntent === 'editorial-ritual' || coffeeIntent === 'campaign')
+        ? [...limitedEnvelope, 'pouring']
+        : limitedEnvelope;
+    const filtered = industryAllowed.filter((motion) => envelope.includes(motion));
     return filtered.length > 0 ? filtered : ['static'];
   }
 

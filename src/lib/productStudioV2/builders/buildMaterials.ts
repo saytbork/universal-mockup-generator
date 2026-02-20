@@ -1,6 +1,15 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
 export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.visualProfile === 'coffee') {
+    return [
+      'STUDIO_MATERIAL_MODEL: coffee-ceramic-priority.',
+      'COFFEE_MATERIAL_RESPONSE: matte porcelain reflection rolloff with controlled soft highlights.',
+      'COFFEE_LIQUID_SURFACE: dark core absorption with soft surface diffusion and meniscus coherence.',
+      'COFFEE_GLASS_GUARD: no wine-style glass refraction priority and no cork rendering logic.',
+    ].join(' ');
+  }
+
   if (state?.winePrestigeMode) {
     const whiteWineSignal = `${String(state.wineContextPreset || '')} ${String(state.wineMoodModifier || '')} ${String(state.photoMode || '')}`
       .toLowerCase()

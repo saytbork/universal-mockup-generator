@@ -47,6 +47,9 @@ export interface StudioUIState {
   advancedControls?: boolean;
   visualProfile?: string;
   visualIntent?: string;
+  coffeeIndustryLayer?: boolean;
+  coffeeVariant?: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
+  coffeeCompositionCoverage?: string;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
   photoMode?: string;

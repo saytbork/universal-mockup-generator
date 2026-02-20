@@ -14,7 +14,10 @@ const EXTRA_MODE_ALIASES: Record<string, string> = {
   'warm-window-wood': 'editorial-table',
 };
 
-export function resolveCoffeeIntent(photoMode: string): 'conversion' | 'editorial-ritual' {
+export type CoffeeIntent = 'conversion' | 'editorial-ritual';
+export type CoffeeIndustryIntent = CoffeeIntent | 'campaign';
+
+export function resolveCoffeeIntent(photoMode: string): CoffeeIntent {
   const rules = industryRules.coffee;
   const normalized = normalizeMode(photoMode);
   const resolved = EXTRA_MODE_ALIASES[normalized] || normalized;
@@ -28,4 +31,13 @@ export function resolveCoffeeIntent(photoMode: string): 'conversion' | 'editoria
   }
 
   return 'editorial-ritual';
+}
+
+export function resolveCoffeeIndustryIntent(
+  photoMode: string,
+  visualIntent?: string
+): CoffeeIndustryIntent {
+  const normalizedIntent = String(visualIntent || '').trim().toLowerCase();
+  if (normalizedIntent === 'campaign') return 'campaign';
+  return resolveCoffeeIntent(photoMode);
 }
