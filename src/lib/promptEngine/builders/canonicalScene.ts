@@ -17,6 +17,12 @@ export interface SceneNarrativeSections {
     identity?: string;
 }
 
+interface SceneNarrativeExtras {
+    identity?: string;
+    constraints?: string;
+    lifestyleProfessionalBias?: string;
+}
+
 const creationModeCopy: Record<string, string> = {
     // Keep lifestyle wording free of explicit "human" to avoid leaking into product-mode guards
     lifestyle: 'Lifestyle environment with the product integrated naturally into the scene.',
@@ -80,7 +86,7 @@ export class SceneNarrativeBuilder {
 
     build(
         options: PromptOptions,
-        extras: { identity?: string; constraints?: string } = {}
+        extras: SceneNarrativeExtras = {}
     ): SceneNarrativeSections {
         const creationIntent = this.buildCreationIntent(options);
         const creationMode = this.buildCreationMode(options);
@@ -88,7 +94,10 @@ export class SceneNarrativeBuilder {
         const formulationStory = this.buildFormulationStory(options);
         const ecommerceBuilder = this.buildEcommerceBuilder(options);
         const cameraFraming = this.buildCameraFraming(options, extras.constraints);
-        const environmentLightingMood = this.buildEnvironmentLightingMood(options);
+        const environmentLightingMood = this.buildEnvironmentLightingMood(
+            options,
+            extras.lifestyleProfessionalBias
+        );
 
         return {
             creationIntent,
@@ -610,7 +619,10 @@ export class SceneNarrativeBuilder {
         return parts.join(' ');
     }
 
-    private buildEnvironmentLightingMood(options: PromptOptions): string {
+    private buildEnvironmentLightingMood(
+        options: PromptOptions,
+        lifestyleProfessionalBias?: string
+    ): string {
         const isProductMode =
             options.creationIntent === 'product' ||
             options.contentStyle === 'product' ||
@@ -700,6 +712,7 @@ export class SceneNarrativeBuilder {
                 : '';
 
         const narrativeParts = [
+            lifestyleProfessionalBias ? lifestyleProfessionalBias : '',
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',

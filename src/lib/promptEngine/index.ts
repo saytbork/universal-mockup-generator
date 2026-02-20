@@ -51,8 +51,9 @@ import { FinalizeBuilder } from './builders/finalize';
 	import { ClothingBuilder } from './builders/clothing';
 	import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 	import { CompositionDetailsBuilder } from './builders/compositionDetails';
-	import { SceneStructureBuilder } from './builders/sceneStructure';
-	import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { SceneStructureBuilder } from './builders/sceneStructure';
+import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { LifestyleProfessionalBiasBuilder } from './builders/lifestyleProfessionalBias';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
@@ -465,6 +466,7 @@ export class PromptEngine {
     private compositionDetailsBuilder = new CompositionDetailsBuilder();
     private sceneStructureBuilder = new SceneStructureBuilder(); // NEW: Structure Layer
     private visualGrammarBuilder = new VisualGrammarBuilder();   // Priority 1.5: Grammar Layer
+    private lifestyleProfessionalBiasBuilder = new LifestyleProfessionalBiasBuilder();
     private ecommerceNarrativeBuilder = new EcommerceNarrativeBuilder();
 
     /**
@@ -786,10 +788,12 @@ export class PromptEngine {
         // ====================================================================
         // STEP 4: Canonical Scene
         // ====================================================================
+        const lifestyleProfessionalBiasSection = this.lifestyleProfessionalBiasBuilder.build(options);
         const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
-            constraints: constraintsSection
+            constraints: constraintsSection,
+            lifestyleProfessionalBias: lifestyleProfessionalBiasSection,
         });
         console.log('[PROMPT ENGINE] Step 4: Canonical Scene - built');
 
