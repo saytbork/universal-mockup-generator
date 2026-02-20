@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { extractDominantColors } from './colorExtractor';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
+import { getPhotoModeCapabilities } from './capabilityResolver';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -319,9 +320,10 @@ function interactionNeedsHands(interaction: ProductStudioState['interaction']): 
 }
 
 function getPhotoModeAllowedInteractions(photoMode: PhotoMode): ProductStudioState['interaction'][] | null {
-    const allowed = PHOTO_MODE_SCHEMAS[photoMode]?.allowedInteractions;
-    if (!allowed || allowed.length === 0) return null;
-    return [...allowed] as ProductStudioState['interaction'][];
+    const schema = PHOTO_MODE_SCHEMAS[photoMode];
+    const { interactionCapability } = getPhotoModeCapabilities(photoMode, schema);
+    if (interactionCapability === 'none') return ['none'];
+    return null;
 }
 
 function getFallbackInteraction(allowed: ProductStudioState['interaction'][] | null): ProductStudioState['interaction'] {

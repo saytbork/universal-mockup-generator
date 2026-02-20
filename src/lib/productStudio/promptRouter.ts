@@ -4,6 +4,13 @@ import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/i
 import { isWinePrestigeMode } from './winePrestige';
 import { industryRules } from './industryRules';
 import { resolveCoffeeIntent } from './resolveCoffeeIntent';
+import {
+  getIndustryDefaultInteraction,
+  getPhotoModeCapabilities,
+  resolveAllowedInteractionsByCapability,
+  resolveInteractionByCapability,
+  resolveStateMotionByCapability,
+} from './capabilityResolver';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
@@ -307,6 +314,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const resolvedCoffeeIntent =
     industryProfile === 'coffee' ? resolveCoffeeIntent(state.photoMode || '') : undefined;
   const resolvedProductState = resolveIndustryProductState(state, industryProfile, resolvedCoffeeIntent);
+  const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
+  const capabilityResolvedProductState = resolveStateMotionByCapability(
+    industryProfile,
+    resolvedProductState,
+    photoModeCapabilities.stateMotionCapability,
+    { coffeeIntent: resolvedCoffeeIntent }
+  );
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
   const shouldAssignWineFields = industryProfile === 'wine';
@@ -322,7 +336,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     visualIntent: industryProfile === 'coffee' ? resolvedCoffeeIntent : state.visualIntent,
     visualProfile: industryProfile,
     world: inferStudioWorld(state),
-    motion: inferStudioMotionFromStateMotion(state, resolvedProductState),
+    motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
     composition: inferStudioComposition(state),
     ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
@@ -413,16 +427,34 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     allowedInteractions = rules?.interactionWhitelist || ['none'];
   }
 
+  const capabilityAllowedInteractions = resolveAllowedInteractionsByCapability(
+    allowedInteractions as ProductStudioState['interaction'][],
+    photoModeCapabilities.interactionCapability
+  );
+  const defaultInteraction = getIndustryDefaultInteraction(
+    industryProfile,
+    capabilityAllowedInteractions
+  );
   const resolvedInteractionInput = industryProfile === 'wine' ? 'none' : state.interaction;
   const interactionKey = String(resolvedInteractionInput || '').trim();
   const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
-  const currentInteractionCanonical = interactionCandidates[0] || 'none';
+  const preferredCandidate =
+    interactionCandidates.find((candidate) => capabilityAllowedInteractions.includes(candidate as ProductStudioState['interaction'])) ||
+    (interactionCandidates[0] as ProductStudioState['interaction']) ||
+    'none';
+  const sanitizedInteractionCanonical = industryProfile === 'wine'
+    ? 'none'
+    : resolveInteractionByCapability(
+        preferredCandidate as ProductStudioState['interaction'],
+        capabilityAllowedInteractions,
+        photoModeCapabilities.interactionCapability,
+        defaultInteraction
+      );
   const interactionAllowed =
-    interactionCandidates.some((candidate) => allowedInteractions.includes(candidate));
-  const sanitizedInteractionCanonical = interactionAllowed
-    ? interactionCandidates.find((candidate) => allowedInteractions.includes(candidate)) || 'none'
-    : 'none';
-  if (!interactionAllowed) {
+    interactionCandidates.some((candidate) =>
+      capabilityAllowedInteractions.includes(candidate as ProductStudioState['interaction'])
+    ) && sanitizedInteractionCanonical === preferredCandidate;
+  if (!interactionAllowed && industryProfile !== 'wine') {
     console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
   }
   v2State.interaction = sanitizedInteractionCanonical;

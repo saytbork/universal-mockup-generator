@@ -310,7 +310,11 @@ export interface EnvironmentPhotoModeSchema {
     constraints: string[];
     /** Required placement for this Photo Mode. Hard-fail if mismatched. */
     requiredPlacement?: 'surface' | 'held' | 'supported' | 'air' | 'any';
-    /** Allowed interactions for this Photo Mode. Hard-fail if not in list. */
+    /** Interaction capability for this Photo Mode (capability layer; does not define industry authority). */
+    interactionCapability?: 'none' | 'optional' | 'required';
+    /** Motion capability for this Photo Mode (capability layer; does not define industry authority). */
+    stateMotionCapability?: 'static-only' | 'limited' | 'extended';
+    /** @deprecated Use interactionCapability + resolver hierarchy. */
     allowedInteractions?: ('none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction')[];
     /** 
      * Studio worlds: false (no persons, no hands, no presence)

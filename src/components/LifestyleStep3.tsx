@@ -31,6 +31,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIntent } from '@/lib/productStudio/resolveCoffeeIntent';
+import { getResolvedAllowedInteractions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -6180,8 +6181,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               industryProfile === 'coffee'
                 ? activeIndustryRules?.interactionWhitelistByIntent?.[coffeeIntent] ?? ['none']
                 : activeIndustryRules?.interactionWhitelist ?? ['none'];
-            const photoModeAllowedInteractions =
-              PHOTO_MODE_SCHEMAS[productStore.photoMode]?.allowedInteractions;
+            const resolvedAllowedInteractions = getResolvedAllowedInteractions(
+              productStore.photoMode,
+              industryAllowedInteractions as ProductStudioState['interaction'][]
+            );
             const interactionOptionMap: Record<
               string,
               {
@@ -6231,7 +6234,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 stateValue: 'two-hand-hold',
               },
             };
-            const visibleInteractionOptions = industryAllowedInteractions
+            const visibleInteractionOptions = resolvedAllowedInteractions
               .map((interactionId) => {
                 const option = interactionOptionMap[interactionId];
                 if (!option) return null;
@@ -6240,11 +6243,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ...option,
                 };
               })
-              .filter((option) =>
-                option &&
-                (!photoModeAllowedInteractions ||
-                  photoModeAllowedInteractions.includes(option.stateValue))
-              )
               .filter(Boolean) as Array<{
                 value: string;
                 label: string;
