@@ -1,4 +1,4 @@
-import type { IndustryProfile } from './types';
+import type { IndustryProfile, ProductStateMotion } from './types';
 
 export const industryRules: Record<
   IndustryProfile,
@@ -7,6 +7,8 @@ export const industryRules: Record<
     editorialPhotoModes?: string[];
     interactionWhitelist?: string[];
     interactionWhitelistByIntent?: Record<string, string[]>;
+    productStateWhitelist?: ProductStateMotion[];
+    productStateWhitelistByIntent?: Record<string, ProductStateMotion[]>;
     allowedPhotoModes?: string[];
     allowedProductTypes?: string[];
     allowedSpecialEffects?: string[];
@@ -14,6 +16,7 @@ export const industryRules: Record<
   }
 > = {
   supplements: {
+    productStateWhitelist: ['static', 'opened', 'dispensed', 'falling', 'spilled', 'pouring'],
     interactionWhitelist: [
       'none',
       'holding',
@@ -24,6 +27,7 @@ export const industryRules: Record<
     ],
   },
   wine: {
+    productStateWhitelist: ['static', 'opened'],
     interactionWhitelist: [
       'none',
       'holding',
@@ -52,6 +56,7 @@ export const industryRules: Record<
     ],
   },
   beauty: {
+    productStateWhitelist: ['static'],
     interactionWhitelist: ['none'],
   },
   coffee: {
@@ -65,6 +70,11 @@ export const industryRules: Record<
       'soft-wellness-morning',
       'editorial-table',
     ],
+    productStateWhitelist: ['static', 'dispensed', 'pouring', 'spilled'],
+    productStateWhitelistByIntent: {
+      conversion: ['static', 'dispensed'],
+      'editorial-ritual': ['static', 'dispensed', 'pouring', 'spilled'],
+    },
     interactionWhitelistByIntent: {
       conversion: [
         'none',

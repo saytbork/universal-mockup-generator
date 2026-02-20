@@ -1,4 +1,4 @@
-import type { IndustryProfile, ProductAsset, ProductStudioState } from './types';
+import type { IndustryProfile, ProductAsset, ProductStateMotion, ProductStudioState } from './types';
 import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
 import { isWinePrestigeMode } from './winePrestige';
@@ -46,7 +46,10 @@ function inferStudioComposition(state: ProductStudioState): StudioUIState['compo
   return 'hero';
 }
 
-function inferStudioMotion(state: ProductStudioState): StudioUIState['motion'] {
+function inferStudioMotionFromStateMotion(
+  state: ProductStudioState,
+  stateMotion: ProductStateMotion
+): StudioUIState['motion'] {
   if (state.photoMode === 'Textured Bed / Scatter Base') {
     return 'static';
   }
@@ -56,9 +59,9 @@ function inferStudioMotion(state: ProductStudioState): StudioUIState['motion'] {
       .toLowerCase();
     if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
   }
-  if (state.stateMotion === 'falling') return 'falling';
-  if (state.stateMotion === 'dispensed') return 'dispensed';
-  if (state.stateMotion === 'pouring' || state.stateMotion === 'spilled') return 'pouring';
+  if (stateMotion === 'falling') return 'falling';
+  if (stateMotion === 'dispensed') return 'dispensed';
+  if (stateMotion === 'pouring' || stateMotion === 'spilled') return 'pouring';
   return 'static';
 }
 
@@ -203,6 +206,49 @@ function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile
   return visualProfile as IndustryProfile;
 }
 
+function resolveSupplementsAllowedProductStates(state: ProductStudioState): ProductStateMotion[] {
+  const base: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
+
+  if (state.definition.type === 'capsules') {
+    base.push('falling');
+  }
+
+  if (state.definition.type === 'powder') {
+    base.push('spilled');
+  }
+
+  if (state.definition.type === 'drops') {
+    base.push('pouring');
+  }
+
+  return base;
+}
+
+function resolveIndustryProductState(
+  state: ProductStudioState,
+  industryProfile: IndustryProfile,
+  resolvedCoffeeIntent?: 'conversion' | 'editorial-ritual'
+): ProductStateMotion {
+  if (industryProfile === 'wine') {
+    return state.stateMotion === 'opened' ? 'opened' : 'static';
+  }
+
+  if (industryProfile === 'coffee') {
+    const allowed = (industryRules.coffee.productStateWhitelistByIntent?.[resolvedCoffeeIntent || 'editorial-ritual'] ||
+      industryRules.coffee.productStateWhitelist ||
+      ['static']) as ProductStateMotion[];
+    return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
+  }
+
+  if (industryProfile === 'supplements') {
+    const allowed = resolveSupplementsAllowedProductStates(state);
+    return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
+  }
+
+  const genericAllowed = (industryRules[industryProfile]?.productStateWhitelist || ['static']) as ProductStateMotion[];
+  return genericAllowed.includes(state.stateMotion) ? state.stateMotion : 'static';
+}
+
 function inferCameraSystemOverride(state: ProductStudioState): string {
   const byKey: Record<ProductStudioState['cameraSystem'], string> = {
     dslr_mirrorless: 'DSLR / mirrorless camera system',
@@ -258,6 +304,9 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = resolveIndustryProfile(state.visualProfile);
+  const resolvedCoffeeIntent =
+    industryProfile === 'coffee' ? resolveCoffeeIntent(state.photoMode || '') : undefined;
+  const resolvedProductState = resolveIndustryProductState(state, industryProfile, resolvedCoffeeIntent);
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
   const shouldAssignWineFields = industryProfile === 'wine';
@@ -270,10 +319,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const winePrestigeV2Mode = false;
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
-    visualIntent: state.visualIntent,
+    visualIntent: industryProfile === 'coffee' ? resolvedCoffeeIntent : state.visualIntent,
     visualProfile: industryProfile,
     world: inferStudioWorld(state),
-    motion: inferStudioMotion(state),
+    motion: inferStudioMotionFromStateMotion(state, resolvedProductState),
     composition: inferStudioComposition(state),
     ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
@@ -340,7 +389,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
 
   if (industryProfile === 'coffee') {
-    const resolvedIntent = resolveCoffeeIntent(v2State.photoMode || '');
+    const resolvedIntent = resolvedCoffeeIntent || 'editorial-ritual';
     v2State.visualIntent = resolvedIntent;
 
     if (resolvedIntent === 'conversion') {
@@ -402,6 +451,11 @@ const WINE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
   /\bFRAMING_BIAS\b/i,
   /\bHAND_[A-Z0-9_]*\b/i,
   /\bFRAMING_[A-Z0-9_]*\b/i,
+  /\bPOUR(?:ING)?\b/i,
+  /\bSPILL(?:ED|ING)?\b/i,
+  /\bFALL(?:ING)?\b/i,
+  /\bDISPENS(?:E|ED|ING)\b/i,
+  /\bGRAVITY\b/i,
 ];
 
 function sanitizePromptForIndustry(prompt: string, industryProfile: IndustryProfile): string {

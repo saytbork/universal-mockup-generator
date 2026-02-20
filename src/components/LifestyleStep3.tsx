@@ -5388,6 +5388,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="primary"
       >
         <div className="space-y-5">
+          {(() => {
+            const coffeeIntent = resolveCoffeeIntent(String(productStore.photoMode || ''));
+            const allOptions = [
+              { value: 'static', label: 'Static', detail: 'Closed and stationary.' },
+              { value: 'opened', label: 'Opened', detail: 'Open container. No motion.' },
+              { value: 'spilled', label: 'Spilled', detail: 'Contents spilled on surface.' },
+              { value: 'dispensed', label: 'Dispensed', detail: 'Controlled amount released.' },
+              { value: 'pouring', label: 'Pouring', detail: 'Stream falling downward.' },
+              { value: 'falling', label: 'Falling', detail: 'Discrete items falling mid-air.' },
+            ] as const;
+
+            const supplementsAllowedByType = (() => {
+              const type = productStore.definition.type;
+              const allowed = new Set<ProductStateMotion>(['static', 'opened', 'dispensed']);
+              if (type === 'capsules') allowed.add('falling');
+              if (type === 'powder') allowed.add('spilled');
+              if (type === 'drops') allowed.add('pouring');
+              return Array.from(allowed);
+            })();
+
+            const allowedProductStates =
+              industryProfile === 'coffee'
+                ? (activeIndustryRules?.productStateWhitelistByIntent?.[coffeeIntent] ??
+                  activeIndustryRules?.productStateWhitelist ??
+                  ['static'])
+                : industryProfile === 'supplements'
+                  ? supplementsAllowedByType
+                  : (activeIndustryRules?.productStateWhitelist ?? ['static']);
+
+            const visibleStateOptions = allOptions.filter((option) =>
+              allowedProductStates.includes(option.value as ProductStateMotion)
+            );
+
+            return (
+              <>
           <p className="text-sm text-gray-500">
             Product State & Motion describe what the product is doing. Product Interaction describes what hands are doing.
           </p>
@@ -5395,57 +5430,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>PRODUCT STATE & MOTION</p>
             <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { value: 'static', label: 'Static', detail: 'Closed and stationary.' },
-                  { value: 'opened', label: 'Opened', detail: 'Open container. No motion.' },
-                  { value: 'spilled', label: 'Spilled', detail: 'Contents spilled on surface.' },
-                  { value: 'dispensed', label: 'Dispensed', detail: 'Controlled amount released.' },
-                  { value: 'pouring', label: 'Pouring', detail: 'Stream falling downward.' },
-                  { value: 'falling', label: 'Falling', detail: 'Discrete items falling mid-air.' },
-                ] as const
-              ).map(option => {
-                const type = productStore.definition.type;
-                const isTypicalForType = (() => {
-                  switch (type) {
-                    case 'capsules':
-                      return (
-                        option.value === 'static' ||
-                        option.value === 'opened' ||
-                        option.value === 'spilled' ||
-                        option.value === 'dispensed' ||
-                        option.value === 'falling'
-                      );
-                    case 'gummies':
-                      return (
-                        option.value === 'static' ||
-                        option.value === 'opened' ||
-                        option.value === 'spilled' ||
-                        option.value === 'dispensed' ||
-                        option.value === 'falling'
-                      );
-                    case 'drops':
-                      return (
-                        option.value === 'static' ||
-                        option.value === 'opened' ||
-                        option.value === 'spilled' ||
-                        option.value === 'dispensed'
-                      );
-                    case 'powder':
-                      return (
-                        option.value === 'static' ||
-                        option.value === 'opened' ||
-                        option.value === 'spilled' ||
-                        option.value === 'pouring' ||
-                        option.value === 'dispensed'
-                      );
-                    default:
-                      // For less-structured types (skincare/device/custom), allow selection.
-                      // The engine will reinterpret to a physically plausible snapshot at build time.
-                      return false;
-                  }
-                })();
-
+              {visibleStateOptions.map(option => {
                 return (
                   <Chip
                     key={option.value}
@@ -5454,11 +5439,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-state-motion');
                     }}
                     selected={productStore.stateMotion === (option.value as ProductStateMotion)}
-                    tooltip={
-                      isTypicalForType
-                        ? option.detail
-                        : `${option.detail} (May be reinterpreted for Product Type “${type}”.)`
-                    }
+                    tooltip={option.detail}
                   >
                     {option.label}
                   </Chip>
@@ -5466,14 +5447,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               })}
             </div>
             <SelectedOptionFooter
-              options={[
-                { value: 'static', label: 'Static', description: 'Closed and stationary.' },
-                { value: 'opened', label: 'Opened', description: 'Open container. No motion.' },
-                { value: 'spilled', label: 'Spilled', description: 'Contents spilled on surface.' },
-                { value: 'dispensed', label: 'Dispensed', description: 'Controlled amount released.' },
-                { value: 'pouring', label: 'Pouring', description: 'Stream falling downward.' },
-                { value: 'falling', label: 'Falling', description: 'Discrete items falling mid-air.' },
-              ]}
+              options={visibleStateOptions.map((option) => ({
+                value: option.value,
+                label: option.label,
+                description: option.detail,
+              }))}
               selectedValue={productStore.stateMotion}
             />
             {getInterpretationNote('stateMotion') && (
@@ -5483,6 +5461,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               Physics rules: gravity downward only, no floating, irregular distribution, natural motion freeze.
             </p>
           </div>
+              </>
+            );
+          })()}
         </div>
       </SmoothAccordion>
       )}
