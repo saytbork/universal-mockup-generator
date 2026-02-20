@@ -5,7 +5,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
     if (mood === 'coffee-cinematic-luxury') {
       return [
-        'COFFEE_LIGHTING_MODEL: cinematic-directional-warm.',
+        'COFFEE_LIGHTING_PROFILE: cinematic-directional-warm.',
         'COFFEE_LIGHTING_TEMPERATURE: warm-ritual.',
         'COFFEE_SHADOW_PROFILE: deep-layered-soft.',
         'COFFEE_CONTRAST_PROFILE: cinematic-depth.',
@@ -13,7 +13,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
       ].join(' ');
     }
     return [
-      `STUDIO_LIGHTING_MODEL: coffee-${mood}.`,
+      `STUDIO_LIGHTING_PROFILE: coffee-${mood}.`,
       `COFFEE_LIGHTING_TEMPERATURE: ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
       `COFFEE_SHADOW_PROFILE: ${state.shadowProfile || 'controlled-soft'}.`,
       `COFFEE_CONTRAST_PROFILE: ${state.contrastProfile || 'medium'}.`,
@@ -33,7 +33,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   const parts: string[] = [];
   
   if (override) {
-    parts.push(`STUDIO_LIGHTING_MODEL: ${override}.`);
+    parts.push(`STUDIO_LIGHTING_PROFILE: ${override}.`);
   } else {
     const lightingModel = (() => {
       if (photoMode === 'underwater split') {
@@ -49,7 +49,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
       return 'conversion softbox wrap with label-priority separation';
     })();
 
-    parts.push(`STUDIO_LIGHTING_MODEL: ${lightingModel}.`);
+    parts.push(`STUDIO_LIGHTING_PROFILE: ${lightingModel}.`);
   }
 
   // Accent/gel light color injection (from Pro Mode controls)

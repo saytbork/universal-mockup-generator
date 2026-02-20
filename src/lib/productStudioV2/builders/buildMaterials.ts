@@ -3,8 +3,8 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.visualProfile === 'coffee') {
     return [
-      'STUDIO_MATERIAL_MODEL: coffee-ceramic-priority.',
-      'COFFEE_MATERIAL_RESPONSE: Micro specular edge on liquid rim. Soft ceramic highlight rolloff. Controlled reflective hotspots. No plastic gloss. High realism surface diffusion.',
+      'STUDIO_MATERIAL_PROFILE: coffee-ceramic-priority.',
+      'COFFEE_MATERIAL_PROFILE: Micro specular edge on liquid rim. Soft ceramic highlight rolloff. Controlled reflective hotspots. No plastic gloss. High realism surface diffusion.',
       'COFFEE_LIQUID_SURFACE: dark core absorption with soft surface diffusion and meniscus coherence.',
       'COFFEE_GLASS_GUARD: no wine-style glass refraction priority and no cork rendering logic.',
     ].join(' ');
@@ -30,5 +30,5 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
     return 'clean conversion-grade surfaces optimized for label clarity and edge integrity';
   })();
 
-  return `STUDIO_MATERIAL_MODEL: ${materialModel}.`;
+  return `STUDIO_MATERIAL_PROFILE: ${materialModel}.`;
 }

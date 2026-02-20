@@ -59,7 +59,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   if (state?.visualProfile === 'coffee') {
     if (state.coffeeMoodProfile === 'coffee-cinematic-luxury' || state.coffeeVariant === 'coffee-cinematic-luxury') {
       return [
-        'STUDIO_COMPOSITION_MODEL: coffee-cinematic-luxury.',
+        'STUDIO_COMPOSITION_PROFILE: coffee-cinematic-luxury.',
         'COFFEE_COMPOSITION_DOMINANCE: 88–92%.',
         'COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%.',
         'COFFEE_LAYOUT_RULE: ritual framing. Hero dominance with ritual framing. Foreground authority. Controlled negative space. Depth layering foreground-mid-background.',
@@ -72,7 +72,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
     if (state.coffeeVariant === 'coffee-premium-minimal' || state.visualIntent === 'conversion') {
       return [
-        'STUDIO_COMPOSITION_MODEL: coffee-premium-minimal.',
+        'STUDIO_COMPOSITION_PROFILE: coffee-premium-minimal.',
         'COFFEE_COMPOSITION_DOMINANCE: premium-minimal vertical coverage target 75–85%.',
         'COFFEE_LAYOUT_RULE: product-forward framing with clean contextual support and intentional negative space.',
         ...interactionBias,
@@ -81,7 +81,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
     if (state.coffeeVariant === 'coffee-color-pop-luxury' || state.visualIntent === 'campaign') {
       return [
-        'STUDIO_COMPOSITION_MODEL: coffee-color-pop-luxury.',
+        'STUDIO_COMPOSITION_PROFILE: coffee-color-pop-luxury.',
         'COFFEE_COMPOSITION_DOMINANCE: color-pop-luxury vertical coverage target 80–90%.',
         'COFFEE_LAYOUT_RULE: premium campaign framing with controlled contextual props and dominant foreground authority.',
         ...interactionBias,
@@ -90,7 +90,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
     if (state.coffeeVariant === 'coffee-editorial-ritual' || state.visualIntent === 'editorial-ritual') {
       return [
-        'STUDIO_COMPOSITION_MODEL: coffee-editorial-ritual.',
+        'STUDIO_COMPOSITION_PROFILE: coffee-editorial-ritual.',
         'COFFEE_COMPOSITION_DOMINANCE: editorial-ritual vertical coverage target 60–70%.',
         'COFFEE_ENVIRONMENTAL_BREATHING: allowed with intentional negative space and ritual balance.',
         'COFFEE_LAYOUT_RULE: balanced ritual composition preserving product readability.',
@@ -131,7 +131,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : 'VERTICAL_BALANCE: neutral.';
 
   return [
-    `STUDIO_COMPOSITION_MODEL: ${authority.composition}.`,
+    `STUDIO_COMPOSITION_PROFILE: ${authority.composition}.`,
     splashAdMode ? 'SPLASH_AD_COMPOSITION_OVERRIDE: Product First composition is mandatory.' : '',
     splashAdMode ? 'SYMMETRY_LOCK: Disabled. Do not force centered symmetry.' : '',
     splashAdMode && !heroMode

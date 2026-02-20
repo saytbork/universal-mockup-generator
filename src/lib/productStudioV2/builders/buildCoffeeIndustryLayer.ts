@@ -2,7 +2,7 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 
 const COFFEE_PREMIUM_MOOD_PROFILES: Record<NonNullable<StudioUIState['coffeeMoodProfile']>, string> = {
   'coffee-cinematic-luxury':
-    'COFFEE_MOOD_PROFILE: coffee-cinematic-luxury. COFFEE_LIGHTING_MODEL: cinematic-directional-warm. COFFEE_LIGHTING_TEMPERATURE: warm-ritual. COFFEE_SHADOW_PROFILE: deep-layered-soft. COFFEE_CONTRAST_PROFILE: cinematic-depth. COFFEE_STEAM_VISIBILITY: volumetric-backlit. COFFEE_COMPOSITION_DOMINANCE: 88–92%. COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%. COFFEE_CONTEXT_DEPTH: high. COFFEE_FALLOFF_STYLE: dark-to-warm-gradient.',
+    'COFFEE_MOOD_PROFILE: coffee-cinematic-luxury.',
   'ritual-editorial':
     'COFFEE_MOOD_PROFILE: ritual-editorial. temperatureBias=warm-ambient. contrastDepth=medium. shadowSoftness=soft-deep. steamVisibilityLevel=medium. productDominanceRatio=60–70%.',
   'premium-minimal':
@@ -78,8 +78,8 @@ function buildSteamBlock(state: StudioUIState): string {
     'No chaotic turbulence.',
     'Subtle atmospheric glow.',
     cinematic
-      ? 'STEAM_LIGHTING_RESPONSE: steam scattering follows COFFEE_LIGHTING_MODEL cinematic-directional-warm and warm rim backlight cues.'
-      : `STEAM_LIGHTING_RESPONSE: steam scattering follows coffee lighting model ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
+      ? 'STEAM_LIGHTING_RESPONSE: steam scattering follows COFFEE_LIGHTING_PROFILE cinematic-directional-warm and warm rim backlight cues.'
+      : `STEAM_LIGHTING_RESPONSE: steam scattering follows coffee lighting profile ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
   ].join(' ');
 }
 
@@ -131,7 +131,6 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
     `COFFEE_TEMPERATURE_FEEL: ${temperatureFeel}.`,
     'COFFEE_SERVE_STYLE_OPTIONS: cup-only | cup-and-bag | espresso-machine.',
     `COFFEE_SERVE_STYLE: ${serveStyle}.`,
-    cinematic ? 'COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%.' : '',
     cinematic ? 'COFFEE_CONTEXT_DEPTH: high.' : '',
     cinematic ? 'COFFEE_FALLOFF_STYLE: dark-to-warm-gradient.' : '',
     hasProductReference
@@ -180,7 +179,6 @@ export function buildCoffeeIndustryLayer(
     cinematic ? 'DEPTH_STYLE: shallow foreground separation.' : '',
     `COFFEE_COMPOSITION_PROFILE: ${state.compositionProfile || 'ritual-balance'}.`,
     coverage ? `COFFEE_COMPOSITION_COVERAGE: ${coverage}.` : '',
-    cinematic ? 'COFFEE_COMPOSITION_DOMINANCE: 88–92%.' : '',
     state.coffeeVariant === 'coffee-cinematic-luxury'
       ? 'COFFEE_MOTION_RULES: cinematic luxury allows static or controlled-stream ritual pouring only. No chaotic splash energy.'
       : state.coffeeVariant === 'coffee-premium-minimal'
