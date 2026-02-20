@@ -2,6 +2,7 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 import { studioMotionIsDynamic } from '../authority/studioAuthorityResolver.ts';
 
 export function buildPhysics(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.winePrestigeMode) return '';
   if (!authority.permissions.allowSplash) return '';
   if (!studioMotionIsDynamic(authority.motion)) return '';
   const splashAdMode = Boolean(state?.splashAdMode);

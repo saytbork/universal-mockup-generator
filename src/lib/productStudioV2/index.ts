@@ -23,20 +23,28 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
 
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
-  const authority = resolveStudioAuthority(state);
+  const winePrestigeMode = Boolean(state.winePrestigeMode);
+  const effectiveState: StudioUIState = winePrestigeMode
+    ? {
+        ...state,
+        motion: 'static',
+        world: 'studio',
+      }
+    : state;
+  const authority = resolveStudioAuthority(effectiveState);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority);
 
   const blocks = [
-    buildIntent(authority),
-    buildWorld(authority, state.world),
+    buildIntent(authority, state),
+    buildWorld(authority, effectiveState.world, state),
     buildComposition(authority, state), // Pass state for bundle detection
-    buildMotion(authority),
-    buildPhysics(authority, state),
-    buildModifiers(modifiers),
+    buildMotion(authority, state),
+    winePrestigeMode ? '' : buildPhysics(authority, state),
+    buildModifiers(modifiers, state),
     buildLighting(authority, state),
-    buildMaterials(authority),
-    buildGeometry(authority),
+    buildMaterials(authority, state),
+    buildGeometry(authority, state),
     ...protectionLayer,
   ];
 

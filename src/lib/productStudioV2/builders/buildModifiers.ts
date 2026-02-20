@@ -1,7 +1,15 @@
 import type { StudioModifier } from '../modifiers/studioModifierRegistry.ts';
 import { getStudioModifierDefinition } from '../modifiers/studioModifierRegistry.ts';
+import type { StudioUIState } from '../types/studioTypes.ts';
 
-export function buildModifiers(modifiers: StudioModifier[]): string {
+export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIState): string {
+  if (state?.winePrestigeMode) {
+    const mood = String(state.wineMoodModifier || '').trim();
+    return mood && mood !== 'None'
+      ? `STUDIO_MODIFIERS: wine-prestige. WINE_PRESTIGE_MODIFIER: ${mood}.`
+      : 'STUDIO_MODIFIERS: wine-prestige.';
+  }
+
   if (modifiers.length === 0) {
     return 'STUDIO_MODIFIERS: none.';
   }

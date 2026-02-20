@@ -1,4 +1,5 @@
-import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
+import { getWineEnvironmentNarrative } from '../../productStudio/winePrestige';
+import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
 const WORLD_LABELS: Record<StudioAuthorityBundle['world'], string> = {
   studio: 'controlled studio environment with bounded physical set interactions',
@@ -7,7 +8,19 @@ const WORLD_LABELS: Record<StudioAuthorityBundle['world'], string> = {
   'beach-daylight': 'sunlit tropical shoreline environment with turquoise water and clean white sand',
 };
 
-export function buildWorld(authority: StudioAuthorityBundle, explicitWorld?: StudioAuthorityBundle['world']): string {
+export function buildWorld(
+  authority: StudioAuthorityBundle,
+  explicitWorld?: StudioAuthorityBundle['world'],
+  state?: StudioUIState
+): string {
+  if (state?.winePrestigeMode) {
+    const preset = String(state.wineContextPreset || '').trim() || 'Dark Luxury Studio';
+    return [
+      'STUDIO_WORLD: wine-prestige refined environment.',
+      getWineEnvironmentNarrative(preset),
+      'WINE_ENVIRONMENT_LOCK: isolate from ecommerce compression worlds, splash tank worlds, and generic studio fallback worlds.',
+    ].join(' ');
+  }
   if (!explicitWorld && authority.world !== 'beach-daylight') return '';
   return `STUDIO_WORLD: ${WORLD_LABELS[authority.world]}.`;
 }

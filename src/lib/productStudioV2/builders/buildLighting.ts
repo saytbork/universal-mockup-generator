@@ -1,6 +1,18 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.winePrestigeMode) {
+    const tone = String(state.wineLightingTone || '').trim() || 'Warm Lateral';
+    return [
+      'STUDIO_LIGHTING_MODEL: wine-prestige.',
+      `WINE_LIGHTING_TONE: ${tone}.`,
+      'LIGHTING_MODEL: warm lateral key light, soft shadow falloff, controlled specular highlights, low-intensity rim separation, and subtle ambient fill (never flat).',
+      'TONE_MAPPING: slight warmth bias with deep shadow preservation and strict highlight control. Do not overexpose label typography.',
+      'LIGHTING_DETAIL: allow crisp micro-edge highlights on droplets/reflections while preserving product geometry lock.',
+      'HARD_DISABLES: hyper-clinical lighting and flat ecommerce lighting are forbidden.',
+    ].join(' ');
+  }
+
   const override = String(state?.lightingModelOverride || '').trim();
   const photoMode = String(state?.photoMode || '').trim().toLowerCase();
   const isBeachFoamMode = photoMode === 'beach foam splash';

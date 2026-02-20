@@ -545,6 +545,21 @@ export type PropDensity = 'none' | 'low' | 'medium' | 'dense';
 export type VisualIntent = 'conversion' | 'campaign';
 export type EnergyLevel = 'low' | 'medium' | 'high';
 export type ControlTier = 'basic' | 'pro';
+export type VisualProfile = 'default' | 'wine-prestige';
+export type WineEnvironmentPreset =
+    | 'Vineyard Golden Hour'
+    | 'Oak Barrel Cellar'
+    | 'Fine Dining Table'
+    | 'Dark Luxury Studio'
+    | 'Winery / Vineyard';
+export type WineLightingTone = 'Warm Lateral' | 'Golden Ambient' | 'Cellar Dramatic' | 'Candle Intimate';
+export type WineMoodModifier =
+    | 'None'
+    | 'Vintage Film Grain'
+    | 'Terroir Mood Tone'
+    | 'Deep Burgundy Contrast Boost'
+    | 'Soft Barrel Ambient Haze'
+    | 'Elegant Reflection Layer';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -683,6 +698,11 @@ export type ProductStudioState = {
     // ========================================================================
     // 5️⃣ CREATIVE DIRECTION (AESTHETICS ONLY)
     // ========================================================================
+    category: string;
+    contextPreset: string;
+    visualProfile: VisualProfile;
+    wineLightingTone: WineLightingTone;
+    wineMoodModifier: WineMoodModifier;
     visualIntent: VisualIntent;
     energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;

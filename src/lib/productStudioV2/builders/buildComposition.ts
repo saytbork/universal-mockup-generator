@@ -1,6 +1,20 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.winePrestigeMode) {
+    return [
+      'STUDIO_COMPOSITION_MODEL: wine-prestige.',
+      'CAMERA_SYSTEM_OVERRIDE: 85mm premium portrait prime lens compression. DISTORTION=0. DEPTH_STYLE=cinematic natural falloff. BACKGROUND_BLUR=optical, never gaussian.',
+      'COMPOSITION_OVERRIDE: Product-first composition is mandatory.',
+      'RULE_OF_THIRDS_DEFAULT: enabled.',
+      'ASYMMETRICAL_BALANCE: allowed.',
+      'NEGATIVE_SPACE_POLICY: elegant breathing room is mandatory.',
+      'CENTER_SYMMETRY_LOCK: disabled unless explicitly selected by user.',
+      'FRAME_CONSTRAINT: vertical product coverage target 75–80%. Never apply ecommerce compression framing.',
+      'CAMERA_RESTRICTIONS: top-down camera forbidden. ultra-wide lens forbidden. orthographic look forbidden.',
+    ].join(' ');
+  }
+
   const heroMode = authority.composition === 'hero';
   const macroMode = authority.composition === 'macro';
   const ingredientStackMode = authority.composition === 'ingredient-stack';

@@ -48,7 +48,11 @@ import type {
     PhotoMode,
     PhotoModeConfig,
     ProductPlacement,
+    VisualProfile,
+    WineLightingTone,
+    WineMoodModifier,
 } from './types';
+import { isWinePrestigeMode, WINE_ENVIRONMENT_PRESETS } from './winePrestige';
 
 
 // ============================================================================
@@ -643,6 +647,11 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     ambientLighting: 'clinical-softbox',
 
     // 5️⃣ CREATIVE DIRECTION
+    category: '',
+    contextPreset: '',
+    visualProfile: 'default',
+    wineLightingTone: 'Warm Lateral',
+    wineMoodModifier: 'None',
     visualIntent: 'conversion',
     energyLevel: 'low',
     creativityLevel: 1,
@@ -790,6 +799,11 @@ type ProductStudioActions = {
     setSceneType: (sceneType: SceneType) => void;
 
     // Creativity
+    setCategory: (category: string) => void;
+    setContextPreset: (preset: string) => void;
+    setVisualProfile: (profile: VisualProfile) => void;
+    setWineLightingTone: (tone: WineLightingTone) => void;
+    setWineMoodModifier: (modifier: WineMoodModifier) => void;
     setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
     setEnergyLevel: (level: ProductStudioState['energyLevel']) => void;
     setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
@@ -1232,6 +1246,29 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set(() => ({ sceneType })),
 
     // Creativity
+    setCategory: (category) => set({ category: String(category || '').trim() }),
+    setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
+    setVisualProfile: (profile) =>
+        set((state) => {
+            const normalized = (profile === 'wine-prestige' ? 'wine-prestige' : 'default') as VisualProfile;
+            if (normalized === 'default') {
+                return {
+                    visualProfile: 'default',
+                    category: '',
+                    contextPreset: '',
+                };
+            }
+            const fallbackPreset = state.contextPreset || WINE_ENVIRONMENT_PRESETS[0];
+            return {
+                visualProfile: 'wine-prestige',
+                category: state.category || 'Wine',
+                contextPreset: fallbackPreset,
+                visualIntent: 'campaign',
+                composition: state.composition === 'centered' ? 'thirds' : state.composition,
+            };
+        }),
+    setWineLightingTone: (tone) => set({ wineLightingTone: tone }),
+    setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
     setVisualIntent: (intent) => set({ visualIntent: intent }),
     setEnergyLevel: (energyLevel) => set({ energyLevel }),
     setCreativityLevel: (level) => set({ creativityLevel: level }),
@@ -1656,13 +1693,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+            const wineModeActive = isWinePrestigeMode(state);
+            const splashBlockedInWineMode =
+                wineModeActive &&
+                (resolvedMode === 'Splash Shot' ||
+                    resolvedMode === 'Beach Foam Splash' ||
+                    resolvedMode === 'Pool Water');
+            const effectiveMode: PhotoMode = splashBlockedInWineMode ? 'Dark Premium Studio' : resolvedMode;
             const hadEnvironmentEnabled = state.environmentContext != null;
             const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
             // Preserve environment only when the user is already in Lifestyle mode.
             // This prevents any stale env state from forcing Studio -> Lifestyle on photo mode changes.
             const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle;
-            const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
-            const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);
+            const schema = PHOTO_MODE_SCHEMAS[effectiveMode];
+            const allowedInteractions = getPhotoModeAllowedInteractions(effectiveMode);
             let resolvedPlacement: ProductPlacement = state.placement;
             let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
             let resolvedHandsHolding = state.handsHolding;
@@ -1672,7 +1716,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             // Only these 3 modes use ingredients field:
             const ingredientModes = ['Ingredient Stack', 'Ingredient Flat Lay', 'Ice Cubes'];
             const wasIngredientMode = ingredientModes.includes(state.photoMode);
-            const isIngredientMode = ingredientModes.includes(resolvedMode);
+            const isIngredientMode = ingredientModes.includes(effectiveMode);
             const shouldClearProps = wasIngredientMode && !isIngredientMode;
 
 
@@ -1711,7 +1755,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
 
             const common: Partial<ProductStudioState> = {
-                photoMode: resolvedMode,
+                photoMode: effectiveMode,
                 placement: resolvedPlacement,
                 // Preserve environment once user enables it from PHOTO TYPE.
                 environmentContext: shouldUseEnvironment
@@ -1725,9 +1769,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             };
 
             // Keep motion coherent with photo mode compatibility matrix.
-            const allowedMotions = getAllowedMotionsForPhotoMode(resolvedMode);
+            const allowedMotions = getAllowedMotionsForPhotoMode(effectiveMode);
             if (allowedMotions && !allowedMotions.includes(state.stateMotion)) {
-                common.stateMotion = getFallbackMotionForPhotoMode(resolvedMode);
+                common.stateMotion = getFallbackMotionForPhotoMode(effectiveMode);
                 common.definition = applyCanonicalPhysicalForMotion(
                     state.definition,
                     common.stateMotion
@@ -1735,7 +1779,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 Object.assign(common, withInterpretationNote(state, 'stateMotion', 'Photo Mode requires a different product motion. Motion was adjusted automatically.'));
             }
 
-            if (resolvedMode === 'Hero Landing Page' && !shouldUseEnvironment) {
+            if (effectiveMode === 'Hero Landing Page' && !shouldUseEnvironment) {
                 const merged = {
                     ...common,
                     proMode: false,
@@ -1751,11 +1795,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (shouldUseEnvironment) {
                 return {
                     ...common,
+                    ...(splashBlockedInWineMode
+                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                        : {}),
                 };
             }
 
             return {
                 ...common,
+                ...(splashBlockedInWineMode
+                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                    : {}),
             };
         }),
     updatePhotoModeSubSetting: (mode, category, value) =>

@@ -55,6 +55,10 @@ export interface StudioUIState {
   splashAdMode?: boolean;
   splashFreezeMoment?: string;
   splashMotionIntensity?: string;
+  winePrestigeMode?: boolean;
+  wineContextPreset?: string;
+  wineLightingTone?: string;
+  wineMoodModifier?: string;
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;

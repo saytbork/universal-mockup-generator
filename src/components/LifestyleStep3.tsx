@@ -25,6 +25,7 @@ import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceRes
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
+import { WINE_ENVIRONMENT_PRESETS, WINE_LIGHTING_TONES, WINE_MODIFIERS, isWinePrestigeMode } from '@/lib/productStudio/winePrestige';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -259,6 +260,7 @@ interface LifestyleStep3Props {
 export interface Step3Values {
   sceneType?: 'studio-branding' | 'lifestyle-real';
   contentStyle?: 'ugc' | 'product' | 'brand';
+  visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
   personIncluded?: boolean;
   placement?: ProductPlacement;
   // Creator/Person
@@ -1034,6 +1036,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
+    visualMode: 'default',
     // Creator/Person
     age: 30, // Numeric age
     noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
@@ -1258,6 +1261,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
   // ============================================================================
   const productStore = useProductStudioStore();
+  const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const interpretationNotes = productStore.interpretationNotes || {};
   const getInterpretationNote = (key: string): string | null => {
     const entry = (interpretationNotes as any)[key];
@@ -1795,6 +1799,81 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     [values, updateValue]
   );
 
+  const setVisualMode = useCallback((mode: NonNullable<Step3Values['visualMode']>) => {
+    setValues(prev => {
+      if (mode === 'ugc' && hasModelReference) {
+        return { ...prev, visualMode: 'default', ugcRealMode: false };
+      }
+
+      const next: Step3Values = {
+        ...prev,
+        visualMode: mode,
+        ugcRealMode: mode === 'ugc',
+        ritualModeEnabled: mode === 'ritual',
+        ecommerceSidePlacementFlag: mode === 'hero',
+        formulationStoryEnabled: mode === 'formulation',
+        formulationExpertEnabled: mode === 'formulation',
+      };
+
+      if (mode === 'ugc') {
+        next.creationIntent = 'ugc';
+        next.creationMode = 'Lifestyle UGC';
+        next.environment = 'none';
+        next.customEnvironment = '';
+        next.environmentContext = { macro: 'none', micro: '' };
+        next.ugcImperfectionLevel = 'high';
+        next.personCount = 'single';
+        next.editSecondaryPerson = false;
+        next.facialExpression = 'Soft Smile';
+        next.eyeDirection = 'Looking at camera';
+        next.ritualHideProduct = false;
+        next.ritualNoObjects = false;
+        next.ritualActivities = [];
+        next.ritualCustom = '';
+        (next as any).sceneContinuity = false;
+        (next as any).cinematicLook = false;
+        (next as any).storytellingConsistency = false;
+      } else {
+        if (prev.visualMode === 'ugc') {
+          ALL_UGC_LAYER_FIELDS.forEach(layer => {
+            (next as any)[layer] = [];
+          });
+          if (next.environment === 'none') {
+            next.environment = 'Kitchen';
+            next.environmentContext = { macro: 'Kitchen', micro: 'Countertop' };
+          }
+        }
+        if (next.creationIntent === 'ugc') {
+          next.creationIntent = 'brand';
+        }
+        if (next.creationMode === 'Lifestyle UGC') {
+          next.creationMode = 'Aesthetic Builder';
+        }
+      }
+
+      if (mode !== 'ritual') {
+        next.ritualHideProduct = false;
+        next.ritualNoObjects = false;
+        next.ritualCoupleStaging = 'Together (side-by-side)';
+        next.ritualPosture = 'Auto';
+        next.ritualActivities = [];
+        next.ritualCustom = '';
+      }
+
+      if (mode !== 'hero') {
+        next.sidePlacement = SIDE_PLACEMENT_OPTIONS[1];
+      }
+
+      if (mode !== 'formulation') {
+        next.expertName = '';
+        next.expertCredentials = '';
+      }
+
+      enforceSingleSelectLayers(next);
+      return next;
+    });
+  }, [hasModelReference]);
+
   const toggleBooleanFlag = <K extends keyof Step3Values>(key: K) => {
     const current = values[key];
     if (typeof current === 'boolean') {
@@ -1847,7 +1926,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         ? 'lifestyle-real'
         : 'studio-branding';
     const contentStyle: 'ugc' | 'product' | 'brand' =
-      values.ugcRealMode || values.creationIntent === 'ugc'
+      values.visualMode === 'ugc'
         ? 'ugc'
         : values.sceneIntent === 'ecommerce'
           ? 'product'
@@ -1923,9 +2002,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Initial Safety Check for hasModelReference
   useEffect(() => {
-    if (hasModelReference && (values.ugcRealMode || values.creatorPreset || values.sameCreatorAcrossScenes)) {
+    if (hasModelReference && (values.visualMode === 'ugc' || values.creatorPreset || values.sameCreatorAcrossScenes)) {
       setValues(prev => {
-        const newValues = { ...prev, ugcRealMode: false, creatorPreset: null, sameCreatorAcrossScenes: false };
+        const newValues = { ...prev, visualMode: 'default', ugcRealMode: false, creatorPreset: null, sameCreatorAcrossScenes: false };
         ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
@@ -1933,27 +2012,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         return newValues;
       });
     }
-  }, [hasModelReference, values.ugcRealMode, values.creatorPreset, values.sameCreatorAcrossScenes]);
+  }, [hasModelReference, values.visualMode, values.creatorPreset, values.sameCreatorAcrossScenes]);
 
   useEffect(() => {
-    if (!values.ugcRealMode) {
+    if (values.visualMode !== 'ugc') {
       setOpenUgcLayerId(null);
     }
-  }, [values.ugcRealMode]);
+  }, [values.visualMode]);
 
   useEffect(() => {
-    if (values.ugcRealMode && (!values.ugcCaptureStyleBase || values.ugcCaptureStyleBase.length === 0)) {
+    if (values.visualMode === 'ugc' && (!values.ugcCaptureStyleBase || values.ugcCaptureStyleBase.length === 0)) {
       updateValue('ugcCaptureStyleBase', ['torso-level-handheld'] as Step3Values['ugcCaptureStyleBase']);
     }
-  }, [values.ugcRealMode, values.ugcCaptureStyleBase, updateValue]);
+  }, [values.visualMode, values.ugcCaptureStyleBase, updateValue]);
 
   // HARD RULE: UGC Real Mode cannot coexist with neutral background canvas overlay.
   useEffect(() => {
-    if (!values.ugcRealMode) return;
+    if (values.visualMode !== 'ugc') return;
     if (values.ecommerceSidePlacementFlag) {
       updateValue('ecommerceSidePlacementFlag', false);
     }
-  }, [values.ugcRealMode, values.ecommerceSidePlacementFlag, updateValue]);
+  }, [values.visualMode, values.ecommerceSidePlacementFlag, updateValue]);
 
   // ============================================================================
   // SCENE INTENT - SINGLE SOURCE OF TRUTH
@@ -1965,7 +2044,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Derived from sceneIntent - no longer computed independently
   const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
-  const isUGCMode = values.ugcRealMode;
+  const isUGCMode = values.visualMode === 'ugc';
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
@@ -2054,10 +2133,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
 
   useEffect(() => {
-    if (values.ugcRealMode && values.sceneIntent !== 'environment') {
+    if (values.visualMode === 'ugc' && values.sceneIntent !== 'environment') {
       enableEnvironment();
     }
-  }, [values.ugcRealMode, values.sceneIntent, enableEnvironment]);
+  }, [values.visualMode, values.sceneIntent, enableEnvironment]);
 
   // When App toggles out of Product Placement, force this builder back to environment mode.
   useEffect(() => {
@@ -2249,24 +2328,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Note: Ecommerce canvas is not a sceneIntent; do not switch modes from compositionMode.
 
   useEffect(() => {
-    if (!values.formulationStoryEnabled) {
+    if (values.visualMode !== 'formulation') {
       return;
-    }
-
-    if (values.ugcRealMode) {
-      updateValue('ugcRealMode', false);
     }
 
     ALL_UGC_LAYER_FIELDS.forEach(layer => {
       updateValue(layer, []);
     });
-  }, [values.formulationStoryEnabled, values.ugcRealMode, updateValue]);
-
-  useEffect(() => {
-    if (values.ugcRealMode && values.formulationStoryEnabled) {
-      updateValue('formulationStoryEnabled', false);
-    }
-  }, [values.ugcRealMode, values.formulationStoryEnabled, updateValue]);
+  }, [values.visualMode, updateValue]);
   return (
     <div className={embedded ? 'w-full space-y-5' : 'w-full max-w-2xl mx-auto space-y-5 p-5'}>
       {!embedded && (
@@ -2422,6 +2491,100 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 productStore.sceneType === 'lifestyle-real' ||
                 productStore.sceneType === 'studio-hero') && (
                   <>
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">VISUAL INTENT</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Chip
+                          selected={!winePrestigeModeActive}
+                          onClick={() => {
+                            productStore.setVisualProfile('default');
+                            markSectionTouched('product-setup');
+                          }}
+                          tooltip="Default studio/lifestyle pipeline"
+                        >
+                          Default
+                        </Chip>
+                        <Chip
+                          selected={winePrestigeModeActive}
+                          onClick={() => {
+                            if (winePrestigeModeActive) {
+                              productStore.setVisualProfile('default');
+                            } else {
+                              productStore.setVisualProfile('wine-prestige');
+                              if (!String(productStore.contextPreset || '').trim()) productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
+                              if (
+                                productStore.photoMode === 'Splash Shot' ||
+                                productStore.photoMode === 'Beach Foam Splash' ||
+                                productStore.photoMode === 'Pool Water' ||
+                                productStore.photoMode === 'Underwater Split'
+                              ) {
+                                productStore.setPhotoMode('Dark Premium Studio');
+                              }
+                            }
+                            markSectionTouched('product-setup');
+                          }}
+                          tooltip="Dedicated cinematic premium wine profile"
+                        >
+                          🍷 Wine Prestige
+                        </Chip>
+                      </div>
+                      {winePrestigeModeActive && (
+                        <div className="mt-4 space-y-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment Preset</p>
+                            <div className="flex flex-wrap gap-2">
+                              {WINE_ENVIRONMENT_PRESETS.map((preset) => (
+                                <Chip
+                                  key={preset}
+                                  selected={String(productStore.contextPreset || '').trim() === preset}
+                                  onClick={() => {
+                                    productStore.setContextPreset(preset);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                >
+                                  {preset}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
+                            <div className="flex flex-wrap gap-2">
+                              {WINE_LIGHTING_TONES.map((tone) => (
+                                <Chip
+                                  key={tone}
+                                  selected={productStore.wineLightingTone === tone}
+                                  onClick={() => {
+                                    productStore.setWineLightingTone(tone);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                >
+                                  {tone}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Modifier</p>
+                            <div className="flex flex-wrap gap-2">
+                              {WINE_MODIFIERS.map((modifier) => (
+                                <Chip
+                                  key={modifier}
+                                  selected={productStore.wineMoodModifier === modifier}
+                                  onClick={() => {
+                                    productStore.setWineMoodModifier(modifier);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                >
+                                  {modifier}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
                     {true && (
                       <>
@@ -2548,6 +2711,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
                               // REMOVED: 'Botanical Water Garden' - already in Visual Style group (line 2439)
                             ];
+                            const filteredSpecialEffectsOptions = winePrestigeModeActive
+                              ? specialEffectsOptions.filter(({ mode }) =>
+                                  mode !== 'Splash Shot' &&
+                                  mode !== 'Beach Foam Splash' &&
+                                  mode !== 'Pool Water' &&
+                                  mode !== 'Underwater Split'
+                                )
+                              : specialEffectsOptions;
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2733,7 +2904,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                   </div>
                                   <div className="flex flex-wrap gap-3">
-                                    {specialEffectsOptions.map(({ label, mode }) => (
+                                    {filteredSpecialEffectsOptions.map(({ label, mode }) => (
                                       <Chip
                                         key={label}
                                         selected={productStore.photoMode === mode}
@@ -3488,7 +3659,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             )}
 
-                            {productStore.photoMode === 'Splash Shot' && (
+                            {productStore.photoMode === 'Splash Shot' && !winePrestigeModeActive && (
                               <div className="space-y-3">
                                 <div>
                                   <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
@@ -7348,7 +7519,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="space-y-2">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
-                        {values.ugcRealMode && (
+                        {values.visualMode === 'ugc' && (
                           <p className="text-[11px] text-gray-500 dark:text-white/40">
                             Raw Domestic UGC: multiple people are supported, but results may be less consistent.
                           </p>
@@ -7834,7 +8005,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               isOpen={openAccordionId === 'realism'}
               onToggle={() => toggleSection('realism')}
               isTouched={hasAnyUgcLayerSelection}
-              isActive={values.ugcRealMode}
+              isActive={values.visualMode === 'ugc'}
               variant="expert"
             >
               <div id="ugc-real-mode">
@@ -7846,30 +8017,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-xs text-gray-500">Careless front-camera capture at home</p>
                       </div>
                       <Toggle
-                        checked={values.ugcRealMode}
+                        checked={values.visualMode === 'ugc'}
                         aria-label="Enable Raw Domestic UGC"
                         onCheckedChange={(newValue) => {
-                          updateValue('ugcRealMode', newValue);
-                          if (newValue) {
-                            updateValue('creationIntent', 'ugc');
-                            updateValue('creationMode', 'Lifestyle UGC');
-                            updateValue('environment', 'none');
-                            updateValue('customEnvironment', '');
-                            updateValue('ugcImperfectionLevel', 'high');
-                            updateValue('personCount', 'single');
-                            updateValue('editSecondaryPerson', false);
-                            updateValue('formulationStoryEnabled', false);
-                            updateValue('facialExpression', 'Soft Smile');
-                            updateValue('eyeDirection', 'Looking at camera');
-                          } else {
-                            updateValue('creationIntent', 'brand');
-                            updateValue('creationMode', 'Aesthetic Builder');
-                          }
+                          setVisualMode(newValue ? 'ugc' : 'default');
                         }}
                       />
                     </div>
 
-                    {values.ugcRealMode && (
+                    {values.visualMode === 'ugc' && (
                       <>
                         {/* UGC Full Automation Toggle */}
                         <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 space-y-2">
@@ -8100,16 +8256,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <p className="text-[11px] text-gray-500">Pick any hex color (e.g. #FFAA00).</p>
                         </div>
                         <div className="ml-auto flex items-center gap-2">
-                          <input
-                            type="color"
-                            aria-label="Custom clothes color picker"
-                            value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000'}
-                            onChange={(e) => {
-                              updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
-                              markSectionTouched('customClothes');
-                            }}
-                            className={`${COLOR_PICKER_BUTTON_CLASS} cursor-pointer border-gray-200 hover:border-gray-300 p-0`}
-                          />
+                          <label className={`relative inline-block ${COLOR_PICKER_BUTTON_CLASS} cursor-pointer border-gray-200 hover:border-gray-300`}>
+                            <span
+                              className="block h-full w-full rounded-full"
+                              style={{ background: isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000' }}
+                            />
+                            <input
+                              type="color"
+                              aria-label="Custom clothes color picker"
+                              value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000'}
+                              onChange={(e) => {
+                                updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
+                                markSectionTouched('customClothes');
+                              }}
+                              className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
+                            />
+                          </label>
                           <input
                             type="text"
                             inputMode="text"
@@ -8227,12 +8389,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               variant="primary"
             >
               <div className="space-y-3">
-                {values.ugcRealMode && (
+                {values.visualMode === 'ugc' && (
                   <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-500">
                     Raw Domestic UGC still honors your environment choice—it just interprets it as incidental and unstaged. Pick any room; the engine keeps it messy, domestic, and low intent.
                   </div>
                 )}
-                {!values.ugcRealMode && (
+                {values.visualMode !== 'ugc' && (
                   <div className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-[11px] text-gray-600">
                     Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
                   </div>
@@ -8253,7 +8415,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ))}
                 </div>
 
-                {!values.ugcRealMode && (
+                {values.visualMode !== 'ugc' && (
                   <>
                     <p className="text-xs uppercase tracking-wider text-indigo-600 pt-2">OUTDOOR</p>
                     <div className="flex flex-wrap gap-2">
@@ -8302,7 +8464,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 isOpen={openAccordionId === 'ritual'}
                 onToggle={() => toggleSection('ritual')}
                 isTouched={touchedSections.has('ritual')}
-                isActive={values.ritualModeEnabled}
+                isActive={values.visualMode === 'ritual'}
                 variant="primary"
               >
                 <div className="space-y-5">
@@ -8312,24 +8474,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <p className="text-xs text-gray-500">Generate wellness / lifestyle rituals. Optionally hide the product completely.</p>
                     </div>
                     <Toggle
-                      checked={values.ritualModeEnabled}
+                      checked={values.visualMode === 'ritual'}
                       aria-label="Enable Ritual Mode"
                       onCheckedChange={(next) => {
-                        updateValue('ritualModeEnabled', next);
-                        if (!next) {
-                          updateValue('ritualHideProduct', false);
-                          updateValue('ritualNoObjects', false);
-                          updateValue('ritualCoupleStaging', 'Together (side-by-side)');
-                          updateValue('ritualPosture', 'Auto');
-                          updateValue('ritualActivities', []);
-                          updateValue('ritualCustom', '');
-                        }
+                        setVisualMode(next ? 'ritual' : 'default');
                         markSectionTouched('ritual');
                       }}
                     />
                   </div>
 
-                  {values.ritualModeEnabled && (
+                  {values.visualMode === 'ritual' && (
                     <>
                       <div className="rounded-2xl border border-gray-200 bg-white p-5">
                         <div className="flex items-center justify-between gap-3">
@@ -8460,7 +8614,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               isTouched={touchedSections.has('lighting')}
               variant="primary"
             >
-              {values.ugcRealMode ? (
+              {values.visualMode === 'ugc' ? (
                 <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
                   Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
                 </div>
@@ -8749,23 +8903,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             tooltip="Neutral background + placement (Lifestyle)"
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}
-            isActive={values.ecommerceSidePlacementFlag}
+            isActive={values.visualMode === 'hero'}
             variant="expert"
           >
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable hero canvas</span>
                 <Toggle
-                  checked={values.ecommerceSidePlacementFlag}
+                  checked={values.visualMode === 'hero'}
                   aria-label="Enable hero canvas"
                   onCheckedChange={(next) => {
-                    updateValue('ecommerceSidePlacementFlag', next);
+                    setVisualMode(next ? 'hero' : 'default');
                     markSectionTouched('ecommerce');
                   }}
                 />
               </div>
 
-              {values.ecommerceSidePlacementFlag && (
+              {values.visualMode === 'hero' && (
                 <>
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
@@ -8917,23 +9071,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             tooltip="Align brand expert, research, and product goals"
             isOpen={openAccordionId === 'formulationStory'}
             onToggle={() => toggleSection('formulationStory')}
-            isActive={values.formulationStoryEnabled}
+            isActive={values.visualMode === 'formulation'}
             variant="expert"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable Formulation Story</span>
                 <Toggle
-                  checked={values.formulationStoryEnabled}
+                  checked={values.visualMode === 'formulation'}
                   aria-label="Enable formulation story"
                   onCheckedChange={(next) => {
-                    updateValue('formulationStoryEnabled', next);
+                    setVisualMode(next ? 'formulation' : 'default');
                     markSectionTouched('formulationStory');
                   }}
                 />
               </div>
 
-              {values.formulationStoryEnabled && (
+              {values.visualMode === 'formulation' && (
                 <div className="space-y-3">
                   <div className={SECTION_GROUP_CLASS}>
                     <label className="text-xs uppercase tracking-wider text-indigo-600">Expert Name</label>

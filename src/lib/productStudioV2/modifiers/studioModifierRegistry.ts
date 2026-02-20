@@ -66,6 +66,10 @@ export function getAllowedStudioModifiers(
   authority: StudioAuthorityBundle,
   state: StudioUIState
 ): StudioModifier[] {
+  if (state.winePrestigeMode) {
+    return [];
+  }
+
   const requested = Array.isArray(state.requestedModifiers) ? state.requestedModifiers : [];
   const requestedSet = new Set(requested.map((entry) => String(entry).trim()).filter(Boolean));
 

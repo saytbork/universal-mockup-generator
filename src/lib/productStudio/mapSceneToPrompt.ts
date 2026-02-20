@@ -35,6 +35,7 @@ import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
 import { resolveAtmosphere, type CanonicalScene, type CanonicalSceneIngredient } from '../prompt/atmosphereResolver';
 import { validateAtmosphere } from '../prompt/atmosphereValidator';
 import { buildAtmosphereDebugTree } from '../prompt/atmosphereDebugTree';
+import { getWineEnvironmentNarrative, isWinePrestigeMode } from './winePrestige';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -271,6 +272,36 @@ export type ScenePromptResult = {
   splashMode?: string;
   randomSeed: string;
 };
+
+function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptResult {
+  const environmentNarrative = getWineEnvironmentNarrative(
+    String(state.contextPreset || '').trim() || 'Dark Luxury Studio'
+  );
+  const moodModifier = String((state as any).wineMoodModifier || '').trim();
+  const lightingTone = String((state as any).wineLightingTone || '').trim() || 'Warm Lateral';
+
+  const parts = [
+    'SCENE TYPE: wine-prestige.',
+    'CONTENT STYLE: premium.',
+    'CREATION INTENT: brand-prestige.',
+    'WINE PRESTIGE NARRATIVE BASE: Premium wine presentation. Atmosphere-driven composition. Emphasize depth, texture, silence, and material richness. The bottle is integrated naturally within a refined environment. Preserve exact label fidelity and geometry. Use cinematic lens compression and warm lateral lighting. Avoid commercial splash energy. Focus on elegance, mood, and premium brand perception.',
+    environmentNarrative,
+    'COMPOSITION: Product-first composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. Never force rigid center unless explicitly selected.',
+    'CAMERA SYSTEM: 85mm premium portrait prime. DISTORTION=0. DEPTH_STYLE=cinematic natural falloff. BACKGROUND_BLUR=optical (never gaussian). Top-down camera forbidden. Ultra-wide lens forbidden.',
+    `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, soft shadow falloff, controlled specular highlights, low-intensity rim separation, subtle ambient fill, slight warmth bias, deep shadow preservation, and no overexposed label.`,
+    'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
+    moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
+    'HARD DISABLES: splash engine disabled, splash physics disabled, studio product motion disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
+    'LOCKS: GEOMETRY_LOCK=true. LABEL_LOCK=true. TEXT_PRESERVATION=strict. Preserve exact product proportions and label fidelity.',
+  ].filter(Boolean);
+
+  return {
+    prompt: normalizePromptText(parts.join(' ')),
+    mode: 'HERO_NEUTRAL',
+    splashMode: undefined,
+    randomSeed: 'wine-prestige',
+  };
+}
 
 const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Hero Landing Page': 'HERO_NEUTRAL',
@@ -629,6 +660,10 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 }
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
+  if (isWinePrestigeMode(state)) {
+    return buildWinePrestigeLegacyPrompt(state);
+  }
+
   const randomizer = createRandomizer();
   const splashShotConfig = resolveSplashShotConfig(state);
   const splashAdMode =
