@@ -44,6 +44,8 @@ export interface StudioUIState {
   motion: StudioMotion;
   composition: StudioComposition;
   advancedControls?: boolean;
+  visualProfile?: string;
+  visualIntent?: string;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
   photoMode?: string;
@@ -72,6 +74,10 @@ export interface StudioUIState {
   interaction?: string;
   specialEffect?: string;
   visualStyle?: string;
+  lightingTemperatureProfile?: string;
+  shadowProfile?: string;
+  contrastProfile?: string;
+  compositionProfile?: string;
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;

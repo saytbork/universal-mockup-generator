@@ -26,6 +26,26 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     ].join(' ');
   }
 
+  if (state?.visualProfile === 'coffee') {
+    if (state.visualIntent === 'conversion') {
+      return [
+        'STUDIO_COMPOSITION_MODEL: coffee-conversion.',
+        'COFFEE_COMPOSITION_PROFILE: product-forward framing.',
+        'COFFEE_VERTICAL_DOMINANCE: strong and stable.',
+        'COFFEE_LAYOUT_RULE: keep hero product dominance with clean supporting context.',
+      ].join(' ');
+    }
+
+    if (state.visualIntent === 'editorial-ritual') {
+      return [
+        'STUDIO_COMPOSITION_MODEL: coffee-editorial-ritual.',
+        'COFFEE_COMPOSITION_PROFILE: ritual-balance.',
+        'COFFEE_ENVIRONMENTAL_BREATHING: allowed with elegant negative space.',
+        'COFFEE_LAYOUT_RULE: balanced ritual composition preserving product readability.',
+      ].join(' ');
+    }
+  }
+
   const heroMode = authority.composition === 'hero';
   const macroMode = authority.composition === 'macro';
   const ingredientStackMode = authority.composition === 'ingredient-stack';

@@ -60,19 +60,19 @@ describe('promptRouter interaction isolation', () => {
     expect(v2State.interaction).toBe('none');
   });
 
-  test('coffee allows coffee interaction', () => {
+  test('coffee allows whitelisted coffee interaction', () => {
     const state = buildState({
       visualProfile: 'coffee',
-      interaction: 'steam' as any,
+      interaction: 'holding' as any,
     });
 
     const v2State = toStudioV2State(state);
 
-    expect(v2State.interaction).toBe('steam');
+    expect(v2State.interaction).toBe('holding');
   });
 
   test('returns a fresh V2 object each call', () => {
-    const state = buildState({ visualProfile: 'coffee', interaction: 'steam' as any });
+    const state = buildState({ visualProfile: 'coffee', interaction: 'holding' as any });
     const first = toStudioV2State(state);
     const second = toStudioV2State(state);
     expect(first).not.toBe(second);

@@ -3,6 +3,10 @@ import type { IndustryProfile } from './types';
 export const industryRules: Record<
   IndustryProfile,
   {
+    allowedIntents?: string[];
+    conversionPhotoModes?: string[];
+    editorialPhotoModes?: string[];
+    interactionWhitelist?: string[];
     interactions?: string[];
     allowedPhotoModes?: string[];
     allowedProductTypes?: string[];
@@ -51,6 +55,23 @@ export const industryRules: Record<
     interactions: ['none'],
   },
   coffee: {
+    allowedIntents: ['conversion', 'editorial-ritual'],
+    conversionPhotoModes: [
+      'hero-landing',
+      'color-pop-hero',
+      'ingredient-stack',
+    ],
+    editorialPhotoModes: [
+      'golden-hour-lifestyle',
+      'soft-wellness-morning',
+      'editorial-table',
+    ],
+    interactionWhitelist: [
+      'none',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+    ],
     interactions: [
       'none',
       'cupHold',

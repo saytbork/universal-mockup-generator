@@ -171,6 +171,13 @@ const SPECIAL_EFFECT_MODES = new Set([
   'Wet Rock Ripples',
 ]);
 
+const COFFEE_CONVERSION_FALLBACK_MODE = 'Hero Landing Page';
+const COFFEE_EDITORIAL_MODE_MAP: Record<string, string> = {
+  'golden-hour-lifestyle': 'Golden Sunset Backlit',
+  'soft-wellness-morning': 'Soft Wellness Morning',
+  'editorial-table': 'Warm Window Wood',
+};
+
 const INTERACTION_STATE_TO_CANONICAL_CANDIDATES: Record<string, string[]> = {
   none: ['none'],
   'capsule-display': ['capsuleDisplay'],
@@ -199,6 +206,14 @@ function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile
   if (visualProfile === 'wine-prestige') return 'wine';
   if (visualProfile === 'default') return 'supplements';
   return visualProfile as IndustryProfile;
+}
+
+function normalizeModeKey(value: unknown): string {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function inferCameraSystemOverride(state: ProductStudioState): string {
@@ -255,6 +270,7 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
+  const industryProfile = resolveIndustryProfile(state.visualProfile);
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
   const shouldAssignWineFields = state.visualProfile === 'wine';
@@ -267,6 +283,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
+    visualIntent: state.visualIntent,
+    visualProfile: industryProfile,
     world: inferStudioWorld(state),
     motion: inferStudioMotion(state),
     composition: inferStudioComposition(state),
@@ -312,9 +330,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     visualStyle: VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined,
   } as StudioUIState;
 
-  const industryProfile = resolveIndustryProfile(state.visualProfile);
   const rules = industryRules[industryProfile];
-  const allowedInteractions = Array.isArray(rules?.interactions) ? rules.interactions : ['none'];
+  const allowedInteractions = Array.isArray(rules?.interactionWhitelist)
+    ? rules.interactionWhitelist
+    : Array.isArray(rules?.interactions)
+      ? rules.interactions
+      : ['none'];
 
   if (rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
     v2State.photoMode = rules.allowedPhotoModes[0];
@@ -335,16 +356,52 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     v2State.visualStyle = rules.allowedVisualStyles[0];
   }
 
+  if (industryProfile === 'coffee') {
+    const normalizedPhotoMode = normalizeModeKey(v2State.photoMode || '');
+    const normalizedPhotoModeKeys = new Set([normalizedPhotoMode]);
+    if (normalizedPhotoMode.endsWith('-page')) {
+      normalizedPhotoModeKeys.add(normalizedPhotoMode.replace(/-page$/, ''));
+    }
+    const conversionKeys = new Set((rules?.conversionPhotoModes || []).map((mode) => normalizeModeKey(mode)));
+    const editorialKeys = new Set((rules?.editorialPhotoModes || []).map((mode) => normalizeModeKey(mode)));
+    let resolvedIntent = v2State.visualIntent || 'conversion';
+
+    if (Array.from(normalizedPhotoModeKeys).some((mode) => conversionKeys.has(mode))) {
+      resolvedIntent = 'conversion';
+    } else if (Array.from(normalizedPhotoModeKeys).some((mode) => editorialKeys.has(mode))) {
+      resolvedIntent = 'editorial-ritual';
+    } else {
+      const fallbackEditorialMode = COFFEE_EDITORIAL_MODE_MAP[rules?.editorialPhotoModes?.[0] || ''];
+      const fallbackConversionMode = COFFEE_CONVERSION_FALLBACK_MODE;
+      const fallbackMode = fallbackEditorialMode || fallbackConversionMode;
+      v2State.photoMode = fallbackMode;
+      resolvedIntent = fallbackEditorialMode ? 'editorial-ritual' : 'conversion';
+    }
+
+    v2State.visualIntent = resolvedIntent;
+
+    if (resolvedIntent === 'conversion') {
+      v2State.lightingTemperatureProfile = 'neutral-daylight';
+      v2State.shadowProfile = 'controlled-soft';
+      v2State.contrastProfile = 'medium-high';
+      v2State.compositionProfile = 'product-forward';
+    } else if (resolvedIntent === 'editorial-ritual') {
+      v2State.lightingTemperatureProfile = 'warm-ambient';
+      v2State.shadowProfile = 'soft-deep';
+      v2State.contrastProfile = 'medium';
+      v2State.compositionProfile = 'ritual-balance';
+    }
+  }
+
   const interactionKey = String(state.interaction || '').trim();
   const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
-  const currentInteractionCanonical =
-    interactionCandidates.find((candidate) => allowedInteractions.includes(candidate)) ||
-    interactionCandidates[0] ||
-    'none';
-  const sanitizedInteractionCanonical = allowedInteractions.includes(currentInteractionCanonical)
-    ? currentInteractionCanonical
+  const currentInteractionCanonical = interactionCandidates[0] || 'none';
+  const interactionAllowed =
+    interactionCandidates.some((candidate) => allowedInteractions.includes(candidate));
+  const sanitizedInteractionCanonical = interactionAllowed
+    ? interactionCandidates.find((candidate) => allowedInteractions.includes(candidate)) || 'none'
     : 'none';
-  if (sanitizedInteractionCanonical !== currentInteractionCanonical) {
+  if (!interactionAllowed) {
     console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
   }
   v2State.interaction = sanitizedInteractionCanonical;

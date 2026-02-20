@@ -1,6 +1,27 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.visualProfile === 'coffee') {
+    if (state.visualIntent === 'conversion') {
+      return [
+        'STUDIO_LIGHTING_MODEL: coffee-conversion.',
+        'COFFEE_LIGHTING_RIG: neutral daylight key with controlled soft fill and disciplined highlight rolloff.',
+        'COFFEE_LIGHTING_TEMPERATURE: neutral-daylight.',
+        'COFFEE_SHADOW_PROFILE: controlled-soft.',
+        'COFFEE_CONTRAST_PROFILE: medium-high.',
+      ].join(' ');
+    }
+    if (state.visualIntent === 'editorial-ritual') {
+      return [
+        'STUDIO_LIGHTING_MODEL: coffee-editorial-ritual.',
+        'COFFEE_LIGHTING_RIG: warm lateral ambient key with soft fill recovery and premium atmospheric falloff.',
+        'COFFEE_LIGHTING_TEMPERATURE: warm-ambient.',
+        'COFFEE_SHADOW_PROFILE: soft-deep.',
+        'COFFEE_CONTRAST_PROFILE: medium.',
+      ].join(' ');
+    }
+  }
+
   if (state?.winePrestigeMode) {
     const tone = String(state.wineLightingTone || '').trim() || 'Warm Lateral';
     const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
