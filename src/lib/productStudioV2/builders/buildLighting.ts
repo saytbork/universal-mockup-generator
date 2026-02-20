@@ -2,34 +2,14 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.visualProfile === 'coffee') {
-    if (state.coffeeVariant === 'coffee-premium-minimal' || state.visualIntent === 'conversion') {
-      return [
-        'STUDIO_LIGHTING_MODEL: coffee-premium-minimal.',
-        'COFFEE_LIGHTING_RIG: neutral daylight key with controlled soft fill and disciplined highlight rolloff.',
-        'COFFEE_LIGHTING_TEMPERATURE: neutral-daylight.',
-        'COFFEE_SHADOW_PROFILE: controlled-soft.',
-        'COFFEE_CONTRAST_PROFILE: medium-high.',
-      ].join(' ');
-    }
-    if (state.coffeeVariant === 'coffee-color-pop-luxury' || state.visualIntent === 'campaign') {
-      return [
-        'STUDIO_LIGHTING_MODEL: coffee-color-pop-luxury.',
-        'COFFEE_LIGHTING_RIG: refined studio key with higher contrast, controlled specular response, and premium color separation.',
-        'COFFEE_LIGHTING_TEMPERATURE: studio-color-separation.',
-        'COFFEE_SHADOW_PROFILE: refined-contrast.',
-        'COFFEE_CONTRAST_PROFILE: high.',
-      ].join(' ');
-    }
-    if (state.coffeeVariant === 'coffee-editorial-ritual' || state.visualIntent === 'editorial-ritual') {
-      return [
-        'STUDIO_LIGHTING_MODEL: coffee-editorial-ritual.',
-        'COFFEE_LIGHTING_RIG: warm lateral ambient key with soft fill recovery and premium atmospheric falloff.',
-        'COFFEE_LIGHTING_TEMPERATURE: warm-ambient.',
-        'COFFEE_SHADOW_PROFILE: soft-deep.',
-        'COFFEE_CONTRAST_PROFILE: medium.',
-        'COFFEE_SHADOW_GRADIENT_DEPTH: slightly increased for editorial ritual mood.',
-      ].join(' ');
-    }
+    const mood = state.coffeeMoodProfile || 'ritual-editorial';
+    return [
+      `STUDIO_LIGHTING_MODEL: coffee-${mood}.`,
+      `COFFEE_LIGHTING_TEMPERATURE: ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
+      `COFFEE_SHADOW_PROFILE: ${state.shadowProfile || 'controlled-soft'}.`,
+      `COFFEE_CONTRAST_PROFILE: ${state.contrastProfile || 'medium'}.`,
+      'COFFEE_LIGHTING_FINE: lighting refinement follows coffee mood profile and steam visibility level.',
+    ].join(' ');
   }
 
   if (state?.winePrestigeMode) {

@@ -53,8 +53,8 @@ describe('coffee industry isolation', () => {
     expect(first.motion).toBe('static');
 
     expect(prompt).toContain('COFFEE_LIQUID_PHYSICS:');
-    expect(prompt).toContain('COFFEE_MATERIAL_MODEL:');
-    expect(prompt).toContain('COFFEE_ATMOSPHERIC_LAYER:');
+    expect(prompt).toContain('NO_GLASS_PRIORITY:');
+    expect(prompt).toContain('STEAM_BEHAVIOR:');
     expect(prompt).toContain('COFFEE_COMPOSITION_PROFILE:');
     expect(prompt).not.toContain('WINE_');
     expect(prompt).not.toContain('wine-prestige');

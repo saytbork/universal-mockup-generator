@@ -289,6 +289,64 @@ function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUI
   return 'prestige';
 }
 
+const COFFEE_ENVIRONMENT_VARIATIONS: Array<
+  NonNullable<StudioUIState['coffeeEnvironmentVariation']>
+> = [
+  'warm-wood-table',
+  'stone-counter',
+  'black-studio',
+  'minimal-gradient',
+  'sunlit-window',
+  'modern-cafe',
+  'dark-concrete',
+  'architectural-shadow',
+  'linen-surface',
+  'marble-bar',
+];
+
+let lastCoffeeEnvironmentIndex = -1;
+
+function pickRandomCoffeeEnvironment(): NonNullable<StudioUIState['coffeeEnvironmentVariation']> {
+  if (COFFEE_ENVIRONMENT_VARIATIONS.length === 1) return COFFEE_ENVIRONMENT_VARIATIONS[0];
+  let nextIndex = Math.floor(Math.random() * COFFEE_ENVIRONMENT_VARIATIONS.length);
+  if (nextIndex === lastCoffeeEnvironmentIndex) {
+    nextIndex = (nextIndex + 1) % COFFEE_ENVIRONMENT_VARIATIONS.length;
+  }
+  lastCoffeeEnvironmentIndex = nextIndex;
+  return COFFEE_ENVIRONMENT_VARIATIONS[nextIndex];
+}
+
+function resolveCoffeeEnvironmentVariation(
+  selectedPreset: string
+): {
+  variation: NonNullable<StudioUIState['coffeeEnvironmentVariation']>;
+  autoRandomize: boolean;
+} {
+  const normalized = normalize(selectedPreset);
+  const presetMap: Array<[RegExp, NonNullable<StudioUIState['coffeeEnvironmentVariation']>]> = [
+    [/warm|wood|table/, 'warm-wood-table'],
+    [/stone|counter/, 'stone-counter'],
+    [/black.*studio/, 'black-studio'],
+    [/minimal|gradient/, 'minimal-gradient'],
+    [/sunlit|window|morning/, 'sunlit-window'],
+    [/cafe|coffee shop/, 'modern-cafe'],
+    [/dark|concrete/, 'dark-concrete'],
+    [/architectural|shadow/, 'architectural-shadow'],
+    [/linen|fabric/, 'linen-surface'],
+    [/marble|bar/, 'marble-bar'],
+  ];
+
+  if (!normalized || normalized === 'none') {
+    return { variation: pickRandomCoffeeEnvironment(), autoRandomize: true };
+  }
+
+  for (const [pattern, variation] of presetMap) {
+    if (pattern.test(normalized)) return { variation, autoRandomize: false };
+  }
+
+  return { variation: pickRandomCoffeeEnvironment(), autoRandomize: true };
+}
+
 function resolveSupplementsAllowedProductStates(state: ProductStudioState): ProductStateMotion[] {
   const base: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
 
@@ -312,6 +370,12 @@ function resolveCoffeeIndustryLayer(
 ): {
   intent: CoffeeIndustryIntent;
   variant: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
+  moodProfile: NonNullable<StudioUIState['coffeeMoodProfile']>;
+  environmentVariation: NonNullable<StudioUIState['coffeeEnvironmentVariation']>;
+  autoRandomizeEnvironment: boolean;
+  temperatureProfile: NonNullable<StudioUIState['coffeeTemperatureProfile']>;
+  steamVisibility: NonNullable<StudioUIState['coffeeSteamVisibility']>;
+  espressoMode: boolean;
   lightingTemperatureProfile: string;
   shadowProfile: string;
   contrastProfile: string;
@@ -319,11 +383,30 @@ function resolveCoffeeIndustryLayer(
   compositionCoverage: string;
 } {
   const intent = resolveCoffeeIndustryIntent(state.photoMode || '', state.visualIntent);
+  const environment = resolveCoffeeEnvironmentVariation(String(state.contextPreset || '').trim());
+  const coffeeSignals = `${String(state.contextPreset || '')} ${String((state as any).props || '')} ${String(state.photoMode || '')}`.toLowerCase();
+  const temperatureProfile: NonNullable<StudioUIState['coffeeTemperatureProfile']> =
+    /\bice|iced|cold\b/.test(coffeeSignals) ? 'cold' : 'hot';
+  const espressoMode = /\bespresso|ristretto|shot\b/.test(coffeeSignals);
+  const steamVisibility: NonNullable<StudioUIState['coffeeSteamVisibility']> =
+    temperatureProfile === 'hot'
+      ? intent === 'editorial-ritual'
+        ? 'medium'
+        : intent === 'campaign'
+          ? 'subtle'
+          : 'subtle'
+      : 'none';
 
   if (intent === 'campaign') {
     return {
       intent,
       variant: 'coffee-color-pop-luxury',
+      moodProfile: 'color-pop-luxury',
+      environmentVariation: environment.variation,
+      autoRandomizeEnvironment: environment.autoRandomize,
+      temperatureProfile,
+      steamVisibility,
+      espressoMode,
       lightingTemperatureProfile: 'studio-color-separation',
       shadowProfile: 'refined-contrast',
       contrastProfile: 'high',
@@ -333,20 +416,40 @@ function resolveCoffeeIndustryLayer(
   }
 
   if (intent === 'conversion') {
+    const moodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
+      environment.variation === 'minimal-gradient' ? 'modern-commercial' : 'premium-minimal';
     return {
       intent,
       variant: 'coffee-premium-minimal',
+      moodProfile,
+      environmentVariation: environment.variation,
+      autoRandomizeEnvironment: environment.autoRandomize,
+      temperatureProfile,
+      steamVisibility,
+      espressoMode,
       lightingTemperatureProfile: 'neutral-daylight',
       shadowProfile: 'controlled-soft',
       contrastProfile: 'medium-high',
-      compositionProfile: 'product-forward',
+      compositionProfile: moodProfile === 'modern-commercial' ? 'commercial-clean' : 'product-forward',
       compositionCoverage: '75–85%',
     };
   }
 
+  const moodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
+    environment.variation === 'dark-concrete' || environment.variation === 'architectural-shadow'
+      ? 'dark-architectural'
+      : environment.variation === 'sunlit-window'
+        ? 'morning-natural'
+        : 'ritual-editorial';
   return {
     intent: 'editorial-ritual',
     variant: 'coffee-editorial-ritual',
+    moodProfile,
+    environmentVariation: environment.variation,
+    autoRandomizeEnvironment: environment.autoRandomize,
+    temperatureProfile,
+    steamVisibility,
+    espressoMode,
     lightingTemperatureProfile: 'warm-ambient',
     shadowProfile: 'soft-deep',
     contrastProfile: 'medium',
@@ -574,6 +677,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       ? {
           coffeeIndustryLayer: true,
           coffeeVariant: coffeeLayer.variant,
+          coffeeMoodProfile: coffeeLayer.moodProfile,
+          coffeeEnvironmentVariation: coffeeLayer.environmentVariation,
+          autoRandomizeCoffeeEnvironment: coffeeLayer.autoRandomizeEnvironment,
+          coffeeTemperatureProfile: coffeeLayer.temperatureProfile,
+          coffeeSteamVisibility: coffeeLayer.steamVisibility,
+          coffeeEspressoMode: coffeeLayer.espressoMode,
           coffeeCompositionCoverage: coffeeLayer.compositionCoverage,
         }
       : {}),

@@ -49,6 +49,28 @@ export interface StudioUIState {
   visualIntent?: string;
   coffeeIndustryLayer?: boolean;
   coffeeVariant?: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
+  coffeeMoodProfile?:
+    | 'ritual-editorial'
+    | 'premium-minimal'
+    | 'color-pop-luxury'
+    | 'dark-architectural'
+    | 'morning-natural'
+    | 'modern-commercial';
+  coffeeEnvironmentVariation?:
+    | 'warm-wood-table'
+    | 'stone-counter'
+    | 'black-studio'
+    | 'minimal-gradient'
+    | 'sunlit-window'
+    | 'modern-cafe'
+    | 'dark-concrete'
+    | 'architectural-shadow'
+    | 'linen-surface'
+    | 'marble-bar';
+  autoRandomizeCoffeeEnvironment?: boolean;
+  coffeeTemperatureProfile?: 'hot' | 'cold';
+  coffeeSteamVisibility?: 'none' | 'subtle' | 'medium' | 'high';
+  coffeeEspressoMode?: boolean;
   coffeeCompositionCoverage?: string;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
