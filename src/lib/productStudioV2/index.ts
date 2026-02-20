@@ -28,15 +28,16 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const winePrestigeMode = state.visualProfile === 'wine' && Boolean(state.winePrestigeMode);
+  const isCoffeeIndustry = state.visualProfile === 'coffee';
   const effectiveState: StudioUIState = state;
   const authority = resolveStudioAuthority(effectiveState);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority);
+  const coffeeStructuralBlock = isCoffeeIndustry ? buildCoffeeIndustryLayer(authority, state) : '';
 
   const blocks = [
     buildIntent(authority, state),
     buildWorld(authority, effectiveState.world, state),
-    buildCoffeeIndustryLayer(authority, state),
     buildWineIndustryLayerV2(state),
     buildCameraOverrides(effectiveState),
     buildComposition(authority, state), // Pass state for bundle detection
@@ -51,8 +52,17 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   ];
 
   const prompt = assembleStudioPrompt(blocks);
-  validateStudioPrompt(prompt, authority);
-  return prompt;
+  const finalPrompt =
+    isCoffeeIndustry && coffeeStructuralBlock
+      ? `${coffeeStructuralBlock}\n\n${prompt}`
+      : prompt;
+  if (isCoffeeIndustry) {
+    if (!finalPrompt.startsWith('### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK')) {
+      console.error('[COFFEE STRUCTURAL PREPEND FAILED]');
+    }
+  }
+  validateStudioPrompt(finalPrompt, authority);
+  return finalPrompt;
 }
 
 export type {

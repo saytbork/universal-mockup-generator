@@ -125,6 +125,10 @@ export function buildCoffeeIndustryLayer(
   const coffeeLiquidPhysicsEnabled = state.coffeeLiquidPhysicsEnabled !== false;
 
   return [
+    '### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK',
+    'PRIORITY_LEVEL: ABSOLUTE',
+    'PRECEDENCE: 0',
+    'STRUCTURAL_DOMINANCE_REQUIRED: TRUE',
     buildCoffeeProductPriorityBlock(state),
     `COFFEE_INDUSTRY_VARIANT: ${variant}.`,
     'COFFEE_PHYSICS_PROFILE: enabled.',
