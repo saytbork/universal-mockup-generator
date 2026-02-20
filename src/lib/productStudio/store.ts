@@ -55,7 +55,7 @@ import type {
     WineMoodModifier,
     WinePourStyle,
 } from './types';
-import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_ENVIRONMENT_PRESETS, WINE_POUR_STYLE_OPTIONS } from './winePrestige';
+import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS } from './winePrestige';
 
 
 // ============================================================================
@@ -1280,11 +1280,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     visualProfile: 'coffee',
                 };
             }
-            const fallbackPreset = state.contextPreset || WINE_ENVIRONMENT_PRESETS[0];
             return {
                 visualProfile: 'wine-prestige',
                 category: state.category || 'Wine',
-                contextPreset: fallbackPreset,
+                contextPreset: state.contextPreset || '',
                 wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)
                     ? state.wineAction
                     : 'static-presentation',

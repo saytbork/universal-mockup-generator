@@ -39,20 +39,20 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
   if (state?.winePrestigeMode) {
+    const action = String(state.wineAction || 'static-presentation').trim();
     return [
-      'STUDIO_COMPOSITION_MODEL: wine-prestige.',
-      'WINE_ACTION: static-presentation.',
+      'STUDIO_COMPOSITION_MODEL: wine-premium.',
+      `WINE_ACTION: ${action}.`,
       'COMPOSITION_OVERRIDE: Product First composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',
       'ASYMMETRICAL_BALANCE: allowed.',
       'NEGATIVE_SPACE_POLICY: elegant breathing room is mandatory.',
-      'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).',
+      action === 'static-presentation'
+        ? 'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).'
+        : 'BOTTLE_TILT_RULE: controlled pour supports gentle tilt in physically valid range.',
       'GLASS_PLACEMENT_RULE: glass may be foreground or midground with refined separation.',
       'BACKGROUND_SEPARATION: dark premium separation is allowed.',
       'CENTER_SYMMETRY_LOCK: disabled unless explicitly selected by user.',
-      'FRAME_CONSTRAINT: vertical product coverage target 75–80%. Never apply ecommerce compression framing.',
-      'CAMERA_RESTRICTIONS: top-down camera forbidden. ultra-wide lens forbidden. orthographic look forbidden.',
-      'CROP_RESTRICTIONS: aggressive crop forbidden.',
     ].join(' ');
   }
 

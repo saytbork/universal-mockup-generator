@@ -1319,9 +1319,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     if (nextProfile === 'wine') {
       productStore.setVisualProfile('wine-prestige');
-      if (!String(productStore.contextPreset || '').trim()) {
-        productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
-      }
     } else if (nextProfile === 'coffee') {
       productStore.setVisualProfile('coffee');
       resetIndustryFields(nextProfile, productStore);

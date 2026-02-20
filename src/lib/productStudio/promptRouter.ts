@@ -1,7 +1,6 @@
 import type { IndustryProfile, ProductAsset, ProductStateMotion, ProductStudioState } from './types';
 import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
-import { isWinePrestigeMode } from './winePrestige';
 import { industryRules } from './industryRules';
 import { resolveCoffeeIndustryIntent, type CoffeeIndustryIntent } from './resolveCoffeeIntent';
 import {
@@ -213,6 +212,81 @@ function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile
   if (visualProfile === 'wine-prestige') return 'wine';
   if (visualProfile === 'default') return 'supplements';
   return visualProfile as IndustryProfile;
+}
+
+const WINE_ENVIRONMENT_VARIATIONS: Array<
+  NonNullable<StudioUIState['wineEnvironmentVariation']>
+> = [
+  'vineyard',
+  'dark-cellar',
+  'marble-bar',
+  'minimal-gradient',
+  'black-studio',
+  'modern-kitchen',
+  'luxury-dining',
+  'moody-backlight',
+  'sunlit-table',
+  'architectural-shadow',
+];
+
+let lastWineEnvironmentIndex = -1;
+
+function pickRandomWineEnvironment(): NonNullable<StudioUIState['wineEnvironmentVariation']> {
+  if (WINE_ENVIRONMENT_VARIATIONS.length === 1) return WINE_ENVIRONMENT_VARIATIONS[0];
+  let nextIndex = Math.floor(Math.random() * WINE_ENVIRONMENT_VARIATIONS.length);
+  if (nextIndex === lastWineEnvironmentIndex) {
+    nextIndex = (nextIndex + 1) % WINE_ENVIRONMENT_VARIATIONS.length;
+  }
+  lastWineEnvironmentIndex = nextIndex;
+  return WINE_ENVIRONMENT_VARIATIONS[nextIndex];
+}
+
+function resolveWineEnvironmentVariation(
+  selectedPreset: string
+): {
+  variation: NonNullable<StudioUIState['wineEnvironmentVariation']>;
+  autoRandomize: boolean;
+} {
+  const normalized = normalize(selectedPreset);
+
+  const presetMap: Array<[RegExp, NonNullable<StudioUIState['wineEnvironmentVariation']>]> = [
+    [/vineyard|winery/, 'vineyard'],
+    [/cellar|barrel/, 'dark-cellar'],
+    [/marble|bar/, 'marble-bar'],
+    [/minimal|gradient/, 'minimal-gradient'],
+    [/black.*studio|dark luxury studio/, 'black-studio'],
+    [/kitchen/, 'modern-kitchen'],
+    [/dining|table/, 'luxury-dining'],
+    [/moody|backlit|backlight/, 'moody-backlight'],
+    [/sunlit/, 'sunlit-table'],
+    [/architectural|shadow/, 'architectural-shadow'],
+  ];
+
+  if (!normalized || normalized === 'none') {
+    return { variation: pickRandomWineEnvironment(), autoRandomize: true };
+  }
+
+  for (const [pattern, variation] of presetMap) {
+    if (pattern.test(normalized)) {
+      return { variation, autoRandomize: false };
+    }
+  }
+
+  return { variation: pickRandomWineEnvironment(), autoRandomize: true };
+}
+
+function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUIState['wineMoodProfile']> {
+  const moodModifier = normalize(state.wineMoodModifier);
+  const visualIntent = normalize(state.visualIntent);
+  const contextPreset = normalize(state.contextPreset);
+
+  if (visualIntent === 'conversion') return 'ecommerce';
+  if (moodModifier.includes('vintage') || moodModifier.includes('terroir')) return 'editorial';
+  if (moodModifier.includes('burgundy') || moodModifier.includes('barrel') || contextPreset.includes('cellar')) {
+    return 'dark-luxury';
+  }
+  if (moodModifier.includes('reflection') || contextPreset.includes('minimal')) return 'modern-minimal';
+  return 'prestige';
 }
 
 function resolveSupplementsAllowedProductStates(state: ProductStudioState): ProductStateMotion[] {
@@ -431,8 +505,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const splashAdMode =
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
-  const winePrestigeMode = industryProfile === 'wine' && isWinePrestigeMode(state);
+  const winePrestigeMode = industryProfile === 'wine';
   const winePrestigeV2Mode = false;
+  const wineEnvironment = winePrestigeMode
+    ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
+    : null;
+  const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
     visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
@@ -464,6 +542,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(splashAdMode ? { splashAdMode: true } : {}),
     ...(winePrestigeMode ? { winePrestigeMode: true } : {}),
     ...(winePrestigeV2Mode ? { winePrestigeV2Mode: true } : {}),
+    ...(wineEnvironment
+      ? {
+          wineEnvironmentVariation: wineEnvironment.variation,
+          autoRandomizeWineEnvironment: wineEnvironment.autoRandomize,
+        }
+      : {}),
+    ...(wineMoodProfile ? { wineMoodProfile } : {}),
     ...(shouldAssignWineFields
       ? {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),

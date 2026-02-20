@@ -27,8 +27,7 @@ describe('Studio V2 wine tilt rules', () => {
       winePrestigeV2Mode: true,
     });
 
-    expect(prompt).toContain('WINE_ACTION: static-presentation.');
-    expect(prompt).toContain('BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).');
-    expect(prompt).not.toContain('between 5° and 12°');
+    expect(prompt).toContain('WINE_ACTION: controlled-pour.');
+    expect(prompt).toContain('BOTTLE_TILT_RULE: controlled pour supports gentle tilt in physically valid range.');
   });
 });

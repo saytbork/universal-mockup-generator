@@ -3,6 +3,7 @@ import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts
 import { buildIntent } from './builders/buildIntent.ts';
 import { buildWorld } from './builders/buildWorld.ts';
 import { buildCoffeeIndustryLayer } from './builders/buildCoffeeIndustryLayer.ts';
+import { buildWineIndustryLayerV2 } from './builders/buildWineIndustryLayerV2.ts';
 import { buildComposition } from './builders/buildComposition.ts';
 import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
@@ -27,12 +28,7 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const winePrestigeMode = state.visualProfile === 'wine' && Boolean(state.winePrestigeMode);
-  const effectiveState: StudioUIState = winePrestigeMode
-    ? {
-        ...state,
-        world: 'studio',
-      }
-    : state;
+  const effectiveState: StudioUIState = state;
   const authority = resolveStudioAuthority(effectiveState);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority);
@@ -41,13 +37,14 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildIntent(authority, state),
     buildWorld(authority, effectiveState.world, state),
     buildCoffeeIndustryLayer(authority, state),
+    buildWineIndustryLayerV2(state),
     buildCameraOverrides(effectiveState),
     buildComposition(authority, state), // Pass state for bundle detection
     buildMotion(authority, state),
     winePrestigeMode ? '' : buildPhysics(authority, state),
     buildModifiers(modifiers, state),
-    buildMaterials(authority, state),
     buildLighting(authority, state),
+    buildMaterials(authority, state),
     buildPackaging(state),
     buildGeometry(authority, state),
     ...protectionLayer,

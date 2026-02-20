@@ -67,6 +67,19 @@ export interface StudioUIState {
   wineContextPreset?: string;
   wineLightingTone?: string;
   wineMoodModifier?: string;
+  wineMoodProfile?: 'prestige' | 'editorial' | 'ecommerce' | 'dark-luxury' | 'modern-minimal';
+  wineEnvironmentVariation?:
+    | 'vineyard'
+    | 'dark-cellar'
+    | 'marble-bar'
+    | 'minimal-gradient'
+    | 'black-studio'
+    | 'modern-kitchen'
+    | 'luxury-dining'
+    | 'moody-backlight'
+    | 'sunlit-table'
+    | 'architectural-shadow';
+  autoRandomizeWineEnvironment?: boolean;
   wineAction?: 'static-presentation' | 'controlled-pour';
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
   cameraSystem?: string;
