@@ -137,6 +137,8 @@ export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
 
 export interface PromptOptions {
     // Core
+    visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
+    sceneType?: 'studio-branding' | 'lifestyle-real' | string;
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
     ugcStyle?: 'optimized' | 'natural' | 'raw';
@@ -223,6 +225,7 @@ export interface PromptOptions {
     lifestyleHardRestrictions?: string;
 
     compositionMode?: string;
+    productProminence?: 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';
     framing?: string;
     allowHeadroom?: boolean;
     allowTorso?: boolean;
@@ -349,6 +352,10 @@ export interface PromptSegment {
  * They are mutually exclusive with UGC mode
  */
 export function isUgcModeActive(options: PromptOptions): boolean {
+    if (options.visualMode) {
+        return options.visualMode === 'ugc';
+    }
+
     // FORCE disable UGC if Ritual Mode or Formulation Story is active
     const isLifestyleOnlyFeatureActive = 
         Boolean(options.ritualModeActive) || Boolean(options.formulationStory);

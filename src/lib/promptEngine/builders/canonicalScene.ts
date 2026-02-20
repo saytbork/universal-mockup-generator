@@ -402,7 +402,7 @@ export class SceneNarrativeBuilder {
             ].join(' ');
         }
         if (!isProductMode && options.sceneIntent === 'environment') {
-            return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
+            return 'Lifestyle composition in a real environment, guided strictly by selected composition and camera controls.';
         }
         const mode = options.creationMode;
         const copy = creationModeCopy[mode] || (isProductMode ? creationModeCopy.studio : creationModeCopy.lifestyle);
@@ -555,6 +555,9 @@ export class SceneNarrativeBuilder {
         });
         const parts: string[] = [];
         const suppressCameraDescriptors = isUgcVisualMode;
+        const selectedComposition =
+            String((options as any).compositionModeStructural || '').trim() ||
+            String(options.compositionMode || '').trim();
 
         if (options.sceneStructure?.cameraLock) {
             const lock = options.sceneStructure.cameraLock;
@@ -579,6 +582,9 @@ export class SceneNarrativeBuilder {
         }
         if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
+        }
+        if (selectedComposition) {
+            parts.push(`Composition: ${selectedComposition}.`);
         }
         const verticalFillRule = String((options as any).verticalFillRule || '').trim();
         if (verticalFillRule) {
@@ -681,7 +687,7 @@ export class SceneNarrativeBuilder {
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
         const compositionModeStructural = (options as any).compositionModeStructural || '';
-        const cameraDeviceSemantic = isLifestyleUgc ? '' : ((options as any).cameraDeviceSemantic || '');
+        const cameraDeviceSemantic = '';
 
         const environmentPhrase = formatEnvironmentPhrase(environmentText);
         const backgroundLine =

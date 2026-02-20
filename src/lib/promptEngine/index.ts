@@ -311,11 +311,7 @@ function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: Pro
 
 function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
     const selfieActive = isSelfieActive(options);
-    const ugcActive =
-        options.contentStyle === 'ugc' ||
-        options.creationIntent === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive);
+    const ugcActive = options.visualMode === 'ugc';
     return ugcActive && selfieActive;
 }
 
@@ -357,20 +353,11 @@ function applyModeResolution(prompt: string, options: PromptOptions): string {
     return prependModeResolutionGuardrail(sanitized);
 }
 
-function enforceSingleCameraBlock(prompt: string): string {
+function assertSingleCameraBlock(prompt: string): string {
     const cameraPattern = /\bCamera:\s*[^.]*\./g;
     const matches = prompt.match(cameraPattern) || [];
     if (matches.length <= 1) return prompt;
-
-    console.warn(`[PROMPT ENGINE] Multiple Camera blocks detected (${matches.length}). Keeping first block only.`);
-    let seen = false;
-    return prompt.replace(cameraPattern, (segment) => {
-        if (!seen) {
-            seen = true;
-            return segment;
-        }
-        return '';
-    }).replace(/\s+/g, ' ').trim();
+    throw new Error(`Camera injection conflict: expected exactly one Camera block, found ${matches.length}`);
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -675,7 +662,7 @@ export class PromptEngine {
         // If we reach here, we're in lifestyle pipeline (sceneType-driven, no fallback).
         console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LIFESTYLE PIPELINE');
 
-        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
+        const ugcSelfieDominant = options.visualMode === 'ugc' && isSelfie;
         options.ugcSelfieDominant = ugcSelfieDominant;
 
         if (ugcSelfieDominant) {
@@ -783,7 +770,7 @@ export class PromptEngine {
                 .trim();
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
-            finalPrompt = enforceSingleCameraBlock(finalPrompt);
+            finalPrompt = assertSingleCameraBlock(finalPrompt);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -866,7 +853,7 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
-        finalPrompt = enforceSingleCameraBlock(finalPrompt);
+        finalPrompt = assertSingleCameraBlock(finalPrompt);
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
@@ -969,7 +956,7 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
-        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfieActive(options);
+        const ugcSelfieDominant = options.visualMode === 'ugc' && isSelfieActive(options);
         options.ugcSelfieDominant = ugcSelfieDominant;
 
         const shouldIncludeIdentity =

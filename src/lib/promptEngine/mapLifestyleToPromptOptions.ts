@@ -1287,6 +1287,7 @@ export function mapLifestyleToPromptOptions(
             | 'model-first'
             | 'fifty-fifty'
             | undefined) ?? 'product-first';
+    mapped.productProminence = productProminenceKey;
 
     const creationModeStructural = isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
@@ -1297,7 +1298,7 @@ export function mapLifestyleToPromptOptions(
                 'fifty-fifty': 'Lifestyle composition in a real environment with equal emphasis on person and product.',
             } as const)[productProminenceKey] ??
             'Lifestyle composition in a real environment with the product clearly visible.'
-            : 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
+            : 'Lifestyle composition in a real environment with contextual subject grounding.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space layout with pure white background, heavy negative space for UX overlays, and no environmental narrative.'
             : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
@@ -1330,13 +1331,13 @@ export function mapLifestyleToPromptOptions(
         : isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
             ? ({
-                balanced: 'Balanced framing: product and person share attention; environment supports the moment without stealing focus.',
-                'product-first': 'Product-first framing: product in the foreground hero position; person supports the story; environment stays contextual.',
+                balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
+                'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
                 'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
                 'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
             } as const)[productProminenceKey] ??
             'Product visible framing: keep product readable and present.'
-            : 'Environment-first layout with human-first framing and contextual surroundings.'
+            : 'Balanced lifestyle composition with contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
             : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
@@ -2310,7 +2311,7 @@ export function mapLifestyleToPromptOptions(
         delete (mapped as any).ageGroup;
         mapped.creationModeStructural =
             mapped.creationModeStructural ||
-            'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
+            'Lifestyle composition in a real environment with contextual subject grounding.';
         if (isUGCMode) {
             mapped.cameraDeviceSemantic =
                 mapped.cameraDeviceSemantic ||
