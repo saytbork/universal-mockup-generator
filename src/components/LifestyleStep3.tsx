@@ -2713,7 +2713,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
                               { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
                               { label: 'Routine Carousel', mode: 'Routine Carousel' },
-                              { label: 'Hands Application Clean', mode: 'Hands Application Clean' },
                               { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
                             ];
 
@@ -2780,7 +2779,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
                               'Ingredient Flat Lay': 'Top-down flat lay with controlled spacing.',
                               'Routine Carousel': 'Carousel-friendly product sequence styling.',
-                              'Hands Application Clean': 'Clean cropped hand interaction (no identity).',
                               'Macro Dew Label': 'Macro close-up emphasizing label texture and detail.',
                               'Clinical Lab Counter': 'Clinical countertop with lab-grade cleanliness.',
                               'Minimal Bathroom Vanity': 'Clean bathroom counter vibe (minimal context).',
