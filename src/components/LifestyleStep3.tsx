@@ -6176,10 +6176,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <div className="space-y-5">
           {(() => {
             const coffeeIntent = resolveCoffeeIntent(String(productStore.photoMode || ''));
-            const allowedInteractions =
+            const industryAllowedInteractions =
               industryProfile === 'coffee'
                 ? activeIndustryRules?.interactionWhitelistByIntent?.[coffeeIntent] ?? ['none']
                 : activeIndustryRules?.interactionWhitelist ?? ['none'];
+            const photoModeAllowedInteractions =
+              PHOTO_MODE_SCHEMAS[productStore.photoMode]?.allowedInteractions;
             const interactionOptionMap: Record<
               string,
               {
@@ -6229,7 +6231,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 stateValue: 'two-hand-hold',
               },
             };
-            const visibleInteractionOptions = allowedInteractions
+            const visibleInteractionOptions = industryAllowedInteractions
               .map((interactionId) => {
                 const option = interactionOptionMap[interactionId];
                 if (!option) return null;
@@ -6238,6 +6240,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ...option,
                 };
               })
+              .filter((option) =>
+                option &&
+                (!photoModeAllowedInteractions ||
+                  photoModeAllowedInteractions.includes(option.stateValue))
+              )
               .filter(Boolean) as Array<{
                 value: string;
                 label: string;
