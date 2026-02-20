@@ -440,7 +440,7 @@ Avoid oversized or floating product overlays.
   'product-first': `
 Product slightly closer to the camera but still physically integrated in the hand.
 Keep the person in mid-ground, not heavily blurred.
-Maintain flat focus across the frame; no background separation, no bokeh, no portrait mode.
+Maintain flat focus across the frame; no background separation, no bokeh. Avoid shallow consumer blur effects.
 `,
   'model-first': `
 Keep the person in the foreground with clear focus and prominence.
@@ -5291,7 +5291,7 @@ If the model attempts to create a scene or environment, override it and force a 
             finalPrompt,
             'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
             'The label/logo must be fully readable (no blur, no glare, no occlusion).',
-            'Do NOT use shallow depth of field, portrait mode, bokeh, or background separation. Keep a single-plane image with flat focus.',
+            'Do NOT use shallow depth of field, bokeh, or background separation. Avoid shallow consumer blur effects. Keep a single-plane image with flat focus.',
             'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
           ].join(' ');
         } else if (isProPhotographer) {

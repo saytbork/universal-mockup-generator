@@ -4,7 +4,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   if (state?.winePrestigeMode) {
     return [
       'STUDIO_COMPOSITION_MODEL: wine-prestige.',
-      'CAMERA_SYSTEM_OVERRIDE: 85mm premium portrait prime lens compression. DISTORTION=0. DEPTH_STYLE=cinematic natural falloff. BACKGROUND_BLUR=optical, never gaussian.',
+      'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur".',
       'COMPOSITION_OVERRIDE: Product-first composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',
       'ASYMMETRICAL_BALANCE: allowed.',

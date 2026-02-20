@@ -6,7 +6,7 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
  */
 export function buildGeometry(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.winePrestigeMode) {
-    return 'GEOMETRY_LOCK: Product references are provided in normalized frames matching the output aspect ratio. Each product maintains exact width-to-height ratio, proportions, and label geometry. Render with 85mm premium portrait prime optical behavior and zero distortion. Never stretch, compress, warp, or alter geometry. Preserve strict label/text fidelity and reference integrity.';
+    return 'GEOMETRY_LOCK: Product references are provided in normalized frames matching the output aspect ratio. Each product maintains exact width-to-height ratio, proportions, and label geometry. Render with 85mm premium telephoto prime optical behavior and zero distortion. Never stretch, compress, warp, or alter geometry. Preserve strict label/text fidelity and reference integrity.';
   }
   // Product references are pre-normalized to target aspect ratio with light padding
   // Model must respect these exact proportions without geometric distortion

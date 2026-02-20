@@ -204,10 +204,10 @@ export function buildProductPrompt(state: ProductStudioState, product: ProductAs
     // Aspect ratio enforcement
     const aspectMap: Record<string, string> = {
         '1:1': 'square 1:1 aspect ratio composition',
-        '4:5': 'portrait 4:5 aspect ratio composition',
+        '4:5': 'vertical 4:5 aspect ratio composition',
         '9:16': 'vertical 9:16 aspect ratio composition',
         '16:9': 'landscape 16:9 aspect ratio composition',
-        '3:4': 'portrait 3:4 aspect ratio composition',
+        '3:4': 'vertical 3:4 aspect ratio composition',
     };
     segments.push(aspectMap[state.aspectRatio] || 'square composition');
 
