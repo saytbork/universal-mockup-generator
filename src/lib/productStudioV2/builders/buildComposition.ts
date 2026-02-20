@@ -57,6 +57,19 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   }
 
   if (state?.visualProfile === 'coffee') {
+    if (state.coffeeMoodProfile === 'coffee-cinematic-luxury' || state.coffeeVariant === 'coffee-cinematic-luxury') {
+      return [
+        'STUDIO_COMPOSITION_MODEL: coffee-cinematic-luxury.',
+        'COFFEE_COMPOSITION_DOMINANCE: 88–92%.',
+        'COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%.',
+        'COFFEE_LAYOUT_RULE: ritual framing. Hero dominance with ritual framing. Foreground authority. Controlled negative space. Depth layering foreground-mid-background.',
+        'VERTICAL_SUBJECT_DOMINANCE: Strong.',
+        'LATERAL_SPREAD: Controlled.',
+        'NEGATIVE_SPACE_POLICY: Intentional minimal.',
+        ...interactionBias,
+      ].join(' ');
+    }
+
     if (state.coffeeVariant === 'coffee-premium-minimal' || state.visualIntent === 'conversion') {
       return [
         'STUDIO_COMPOSITION_MODEL: coffee-premium-minimal.',

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
 import { SwitchToggle } from '@/components/ui/SwitchToggle';
 import type {
@@ -45,11 +45,17 @@ type CoffeePackagingModuleProps = {
 
 const INTENT_OPTIONS: Array<{ label: string; value: CoffeePackagingIntent; mood: CoffeeMoodModifier }> = [
   { label: 'PDP Clean', value: 'pdp-clean', mood: 'premium-minimal' },
-  { label: 'Premium Campaign', value: 'premium-campaign', mood: 'color-pop-luxury' },
+  { label: 'Premium Campaign', value: 'premium-campaign', mood: 'coffee-cinematic-luxury' },
   { label: 'Dark Roast Luxury', value: 'dark-roast-luxury', mood: 'dark-architectural' },
   { label: 'Modern Minimal', value: 'modern-minimal', mood: 'modern-commercial' },
   { label: 'Cold Brew Fresh', value: 'cold-brew-fresh', mood: 'morning-natural' },
   { label: 'Bundle Hero', value: 'bundle-hero', mood: 'ritual-editorial' },
+];
+
+const MOOD_OPTIONS: Array<{ label: string; value: CoffeeMoodModifier }> = [
+  { label: 'Premium Minimal', value: 'premium-minimal' },
+  { label: 'Color Pop Luxury', value: 'color-pop-luxury' },
+  { label: 'Cinematic Luxury', value: 'coffee-cinematic-luxury' },
 ];
 
 const SURFACE_OPTIONS: Array<{ label: string; value: SurfaceStyle; preset: string }> = [
@@ -92,12 +98,25 @@ export function CoffeePackagingModule({
   onPropsValueChange,
 }: CoffeePackagingModuleProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const selectedMood = useMemo<CoffeeMoodModifier>(() => {
+    if (MOOD_OPTIONS.some((option) => option.value === coffeeMoodModifier)) {
+      return coffeeMoodModifier;
+    }
+    return 'coffee-cinematic-luxury';
+  }, [coffeeMoodModifier]);
+
+  useEffect(() => {
+    if (coffeeMoodModifier !== selectedMood) {
+      onCoffeeMoodModifierChange(selectedMood);
+    }
+  }, [coffeeMoodModifier, onCoffeeMoodModifierChange, selectedMood]);
+
   const selectedIntent = useMemo(() => {
     const fromTag = extractTag(propsValue, 'intent', '');
     if (fromTag) return fromTag as CoffeePackagingIntent;
-    const fromMood = INTENT_OPTIONS.find((option) => option.mood === coffeeMoodModifier);
-    return fromMood?.value || 'pdp-clean';
-  }, [coffeeMoodModifier, propsValue]);
+    const fromMood = INTENT_OPTIONS.find((option) => option.mood === selectedMood);
+    return fromMood?.value || 'premium-campaign';
+  }, [propsValue, selectedMood]);
 
   const beansScatter = extractTag(propsValue, 'beans', 'low') as BeansScatterLevel;
   const cupAccent = extractTag(propsValue, 'cup', 'side') as CupAccentLevel;
@@ -119,6 +138,21 @@ export function CoffeePackagingModule({
 
       {isOpen && (
         <div className="mt-4 space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood</p>
+            <div className="flex flex-wrap gap-2">
+              {MOOD_OPTIONS.map((option) => (
+                <Chip
+                  key={option.value}
+                  selected={selectedMood === option.value}
+                  onClick={() => onCoffeeMoodModifierChange(option.value)}
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Coffee Intent</p>
             <div className="flex flex-wrap gap-2">

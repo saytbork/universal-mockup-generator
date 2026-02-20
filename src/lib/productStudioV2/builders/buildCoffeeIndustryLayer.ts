@@ -1,25 +1,39 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
+const COFFEE_PREMIUM_MOOD_PROFILES: Record<NonNullable<StudioUIState['coffeeMoodProfile']>, string> = {
+  'coffee-cinematic-luxury':
+    'COFFEE_MOOD_PROFILE: coffee-cinematic-luxury. COFFEE_LIGHTING_MODEL: cinematic-directional-warm. COFFEE_LIGHTING_TEMPERATURE: warm-ritual. COFFEE_SHADOW_PROFILE: deep-layered-soft. COFFEE_CONTRAST_PROFILE: cinematic-depth. COFFEE_STEAM_VISIBILITY: volumetric-backlit. COFFEE_COMPOSITION_DOMINANCE: 88–92%. COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%. COFFEE_CONTEXT_DEPTH: high. COFFEE_FALLOFF_STYLE: dark-to-warm-gradient.',
+  'ritual-editorial':
+    'COFFEE_MOOD_PROFILE: ritual-editorial. temperatureBias=warm-ambient. contrastDepth=medium. shadowSoftness=soft-deep. steamVisibilityLevel=medium. productDominanceRatio=60–70%.',
+  'premium-minimal':
+    'COFFEE_MOOD_PROFILE: premium-minimal. temperatureBias=neutral-warm. contrastDepth=medium-high. shadowSoftness=clean-soft. steamVisibilityLevel=subtle. productDominanceRatio=75–85%.',
+  'color-pop-luxury':
+    'COFFEE_MOOD_PROFILE: color-pop-luxury. temperatureBias=studio-balanced. contrastDepth=high. shadowSoftness=refined-contrast. steamVisibilityLevel=subtle. productDominanceRatio=80–90%.',
+  'dark-architectural':
+    'COFFEE_MOOD_PROFILE: dark-architectural. temperatureBias=warm-low-key. contrastDepth=high. shadowSoftness=deep-structured. steamVisibilityLevel=medium. productDominanceRatio=68–80%.',
+  'morning-natural':
+    'COFFEE_MOOD_PROFILE: morning-natural. temperatureBias=morning-neutral-warm. contrastDepth=medium. shadowSoftness=natural-soft. steamVisibilityLevel=subtle. productDominanceRatio=64–76%.',
+  'modern-commercial':
+    'COFFEE_MOOD_PROFILE: modern-commercial. temperatureBias=neutral-commercial. contrastDepth=controlled-high. shadowSoftness=clean-controlled. steamVisibilityLevel=none. productDominanceRatio=78–88%.',
+};
+
 function buildCoffeeMoodBlock(state: StudioUIState): string {
   const mood = state.coffeeMoodProfile || 'ritual-editorial';
-  const moodMap: Record<NonNullable<StudioUIState['coffeeMoodProfile']>, string> = {
-    'ritual-editorial':
-      'COFFEE_MOOD_PROFILE: ritual-editorial. temperatureBias=warm-ambient. contrastDepth=medium. shadowSoftness=soft-deep. steamVisibilityLevel=medium. productDominanceRatio=60–70%.',
-    'premium-minimal':
-      'COFFEE_MOOD_PROFILE: premium-minimal. temperatureBias=neutral-warm. contrastDepth=medium-high. shadowSoftness=clean-soft. steamVisibilityLevel=subtle. productDominanceRatio=75–85%.',
-    'color-pop-luxury':
-      'COFFEE_MOOD_PROFILE: color-pop-luxury. temperatureBias=studio-balanced. contrastDepth=high. shadowSoftness=refined-contrast. steamVisibilityLevel=subtle. productDominanceRatio=80–90%.',
-    'dark-architectural':
-      'COFFEE_MOOD_PROFILE: dark-architectural. temperatureBias=warm-low-key. contrastDepth=high. shadowSoftness=deep-structured. steamVisibilityLevel=medium. productDominanceRatio=68–80%.',
-    'morning-natural':
-      'COFFEE_MOOD_PROFILE: morning-natural. temperatureBias=morning-neutral-warm. contrastDepth=medium. shadowSoftness=natural-soft. steamVisibilityLevel=subtle. productDominanceRatio=64–76%.',
-    'modern-commercial':
-      'COFFEE_MOOD_PROFILE: modern-commercial. temperatureBias=neutral-commercial. contrastDepth=controlled-high. shadowSoftness=clean-controlled. steamVisibilityLevel=none. productDominanceRatio=78–88%.',
-  };
-  return moodMap[mood];
+  return COFFEE_PREMIUM_MOOD_PROFILES[mood];
 }
 
 function buildCoffeeEnvironmentBlock(state: StudioUIState): string {
+  if (state.coffeeMoodProfile === 'coffee-cinematic-luxury') {
+    return [
+      'COFFEE_ENVIRONMENT_VARIATION: Dark wood ritual surface.',
+      'Warm bar ambience.',
+      'Depth falloff background.',
+      'Soft blur layering.',
+      'autoRandomizeCoffeeEnvironment=false.',
+      'COFFEE_ENVIRONMENT_SCOPE: controls only surface/background/context depth/spatial integration.',
+    ].join(' ');
+  }
+
   const variation = state.coffeeEnvironmentVariation || 'minimal-gradient';
   const variationMap: Record<NonNullable<StudioUIState['coffeeEnvironmentVariation']>, string> = {
     'warm-wood-table':
@@ -54,12 +68,24 @@ function buildSteamBlock(state: StudioUIState): string {
   if (temp !== 'hot') {
     return 'STEAM_BEHAVIOR: temperature is cold; visible steam suppressed.';
   }
-  const visibility = state.coffeeSteamVisibility || 'subtle';
-  return `STEAM_BEHAVIOR: temperature is hot; ${visibility} upward volumetric steam only. Never lateral drift. Never chaotic motion. Gravity compliant.`;
+  const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
+  const visibility = cinematic ? 'volumetric-backlit' : state.coffeeSteamVisibility || 'subtle';
+  return [
+    `COFFEE_STEAM_VISIBILITY: ${visibility}.`,
+    'STEAM_BEHAVIOR: Volumetric upward diffusion.',
+    'Backlit rim interaction.',
+    'Soft density gradient.',
+    'No chaotic turbulence.',
+    'Subtle atmospheric glow.',
+    cinematic
+      ? 'STEAM_LIGHTING_RESPONSE: steam scattering follows COFFEE_LIGHTING_MODEL cinematic-directional-warm and warm rim backlight cues.'
+      : `STEAM_LIGHTING_RESPONSE: steam scattering follows coffee lighting model ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
+  ].join(' ');
 }
 
 function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const hasProductReference = Boolean(state.productReferencePresent);
+  const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
   const packagingIntent = state.coffeePackagingIntent || 'pdp-clean';
   const isPdpCleanIntent = packagingIntent === 'pdp-clean' || state.visualIntent === 'conversion';
   const intentMap: Record<string, string> = {
@@ -82,6 +108,7 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const iceMode = state.coffeeIceMode || 'off';
   const surfaceStyle = state.coffeeSurfaceStyle || 'neutral-gradient';
   const temperatureFeel = state.coffeeTemperatureFeel || 'neutral-commercial';
+  const serveStyle = state.coffeeServeStyle || (cinematic ? 'cup-only' : 'cup-and-bag');
 
   return [
     'COFFEE_VISUAL_INTENT_BIAS: campaign.',
@@ -102,6 +129,11 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
     `COFFEE_ACCENTS: beansScatter=${beans}; cupAccent=${cup}; steamLevel=${state.coffeeSteamVisibility || 'subtle'}; espressoSplash=${splash}; iceMode=${iceMode}.`,
     `COFFEE_SURFACE_STYLE: ${surfaceStyle}.`,
     `COFFEE_TEMPERATURE_FEEL: ${temperatureFeel}.`,
+    'COFFEE_SERVE_STYLE_OPTIONS: cup-only | cup-and-bag | espresso-machine.',
+    `COFFEE_SERVE_STYLE: ${serveStyle}.`,
+    cinematic ? 'COFFEE_PRODUCT_DOMINANCE_RATIO: 88–92%.' : '',
+    cinematic ? 'COFFEE_CONTEXT_DEPTH: high.' : '',
+    cinematic ? 'COFFEE_FALLOFF_STYLE: dark-to-warm-gradient.' : '',
     hasProductReference
       ? 'COFFEE_REFERENCE_LOCK: product reference exists; packaging context overrides beverage context and cup-dominant rendering is disabled.'
       : 'COFFEE_REFERENCE_LOCK: no product reference detected; beverage-only fallback remains disabled.',
@@ -118,6 +150,7 @@ export function buildCoffeeIndustryLayer(
 
   const variant = state.coffeeVariant || 'coffee-editorial-ritual';
   const coverage = String(state.coffeeCompositionCoverage || '').trim();
+  const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
   const cremaBehavior = state.coffeeEspressoMode
     ? 'CREMA_BEHAVIOR: espresso mode active; micro-bubble crema texture with irregular natural foam distribution. No wine translucency.'
     : 'CREMA_BEHAVIOR: non-espresso mode; minimal crema emphasis with natural surface coherence.';
@@ -137,13 +170,20 @@ export function buildCoffeeIndustryLayer(
       : 'COFFEE_LIQUID_PHYSICS: disabled by user control.',
     cremaBehavior,
     buildSteamBlock(state),
-    'NO_GLASS_PRIORITY: ceramic priority materials with matte reflection rolloff. No glass refraction dominance.',
+    'NO_GLASS_PRIORITY: ceramic priority materials with controlled reflective response. No glass refraction dominance.',
     buildCoffeeMoodBlock(state),
     buildCoffeeEnvironmentBlock(state),
-    'COFFEE_LENS_BIAS: 50mm natural perspective preferred; user camera selection remains authoritative.',
+    cinematic
+      ? 'COFFEE_LENS_BIAS: 50mm or 70mm slight compression.'
+      : 'COFFEE_LENS_BIAS: 50mm natural perspective preferred; user camera selection remains authoritative.',
+    cinematic ? 'COFFEE_CAMERA_ANGLE: 35–45° ritual hero.' : '',
+    cinematic ? 'DEPTH_STYLE: shallow foreground separation.' : '',
     `COFFEE_COMPOSITION_PROFILE: ${state.compositionProfile || 'ritual-balance'}.`,
     coverage ? `COFFEE_COMPOSITION_COVERAGE: ${coverage}.` : '',
-    state.coffeeVariant === 'coffee-premium-minimal'
+    cinematic ? 'COFFEE_COMPOSITION_DOMINANCE: 88–92%.' : '',
+    state.coffeeVariant === 'coffee-cinematic-luxury'
+      ? 'COFFEE_MOTION_RULES: cinematic luxury allows static or controlled-stream ritual pouring only. No chaotic splash energy.'
+      : state.coffeeVariant === 'coffee-premium-minimal'
       ? 'COFFEE_MOTION_RULES: conversion mode allows static or dispensed only. No chaotic splash energy.'
       : state.coffeeVariant === 'coffee-color-pop-luxury'
         ? 'COFFEE_MOTION_RULES: campaign mode allows static or controlled-stream pouring only. No gravity violation and no floating particles.'

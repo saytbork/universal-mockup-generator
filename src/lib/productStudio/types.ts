@@ -589,6 +589,7 @@ export type CoffeeMode = 'studio' | 'ritual';
 export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
 export type CoffeeMoodModifier =
     | 'auto'
+    | 'coffee-cinematic-luxury'
     | 'ritual-editorial'
     | 'premium-minimal'
     | 'color-pop-luxury'

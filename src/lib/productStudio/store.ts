@@ -666,7 +666,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     coffeeMode: 'studio',
     coffeeAction: 'static',
     coffeeLightingTone: 'auto',
-    coffeeMoodModifier: 'auto',
+    coffeeMoodModifier: 'coffee-cinematic-luxury',
     coffeeSteamLevel: 'auto',
     coffeeLiquidPhysics: true,
     visualIntent: 'conversion',
@@ -1292,6 +1292,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     wineAction: 'static-presentation',
                     coffeeMode: 'studio',
                     coffeeAction: 'static',
+                    coffeeMoodModifier: 'coffee-cinematic-luxury',
                 };
             }
             if (normalizedProfile === 'coffee') {
@@ -1299,6 +1300,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     visualProfile: 'coffee',
                     coffeeMode: state.coffeeMode || 'studio',
                     coffeeAction: state.coffeeAction || 'static',
+                    coffeeMoodModifier: state.coffeeMoodModifier || 'coffee-cinematic-luxury',
                 };
             }
             return {

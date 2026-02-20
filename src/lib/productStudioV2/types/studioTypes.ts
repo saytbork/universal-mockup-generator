@@ -55,8 +55,13 @@ export interface StudioUIState {
   coffeeSteam?: 'none' | 'subtle' | 'visible';
   coffeeLiquidPhysics?: boolean;
   coffeeIndustryLayer?: boolean;
-  coffeeVariant?: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
+  coffeeVariant?:
+    | 'coffee-editorial-ritual'
+    | 'coffee-premium-minimal'
+    | 'coffee-color-pop-luxury'
+    | 'coffee-cinematic-luxury';
   coffeeMoodProfile?:
+    | 'coffee-cinematic-luxury'
     | 'ritual-editorial'
     | 'premium-minimal'
     | 'color-pop-luxury'
@@ -98,6 +103,7 @@ export interface StudioUIState {
     | 'concrete-minimal'
     | 'pure-white-pdp';
   coffeeTemperatureFeel?: 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
+  coffeeServeStyle?: 'cup-only' | 'cup-and-bag' | 'espresso-machine';
   productReferencePresent?: boolean;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;

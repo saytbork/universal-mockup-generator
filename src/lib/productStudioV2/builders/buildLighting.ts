@@ -3,6 +3,15 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.visualProfile === 'coffee') {
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
+    if (mood === 'coffee-cinematic-luxury') {
+      return [
+        'COFFEE_LIGHTING_MODEL: cinematic-directional-warm.',
+        'COFFEE_LIGHTING_TEMPERATURE: warm-ritual.',
+        'COFFEE_SHADOW_PROFILE: deep-layered-soft.',
+        'COFFEE_CONTRAST_PROFILE: cinematic-depth.',
+        'COFFEE_LIGHTING_FINE: cinematic ritual shaping with deep layered gradients and warm directional falloff.',
+      ].join(' ');
+    }
     return [
       `STUDIO_LIGHTING_MODEL: coffee-${mood}.`,
       `COFFEE_LIGHTING_TEMPERATURE: ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,

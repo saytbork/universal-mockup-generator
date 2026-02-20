@@ -18,7 +18,7 @@ export type ProductStoreType = {
   setCoffeeLightingTone?: (tone: 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast') => void;
   setCoffeeMoodModifier?: (
     modifier:
-      | 'auto'
+      | 'coffee-cinematic-luxury'
       | 'ritual-editorial'
       | 'premium-minimal'
       | 'color-pop-luxury'
@@ -28,7 +28,18 @@ export type ProductStoreType = {
   ) => void;
   setCoffeeSteamLevel?: (level: 'auto' | 'none' | 'subtle' | 'visible') => void;
   setCoffeeLiquidPhysics?: (enabled: boolean) => void;
+  props?: string;
+  setProps?: (props: string) => void;
 };
+
+function stripCoffeeProps(input: string): string {
+  return String(input || '')
+    .split('|')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .filter((segment) => !/^coffee:/i.test(segment))
+    .join(' | ');
+}
 
 export function resetIndustryFields(nextProfile: IndustryProfile, store: ProductStoreType) {
   if (nextProfile !== 'wine') {
@@ -42,8 +53,11 @@ export function resetIndustryFields(nextProfile: IndustryProfile, store: Product
     store.setCoffeeMode?.('studio');
     store.setCoffeeAction?.('static');
     store.setCoffeeLightingTone?.('auto');
-    store.setCoffeeMoodModifier?.('auto');
+    store.setCoffeeMoodModifier?.('coffee-cinematic-luxury');
     store.setCoffeeSteamLevel?.('auto');
     store.setCoffeeLiquidPhysics?.(true);
+    if (store.setProps) {
+      store.setProps(stripCoffeeProps(store.props || ''));
+    }
   }
 }
