@@ -9,6 +9,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     authority.world === 'splash-tank' ||
     authority.world === 'beach-daylight' ||
     authority.world === 'underwater';
+  const splashAdMode = Boolean(state?.splashAdMode);
   
   // BUNDLE MODE DETECTION: Check if bundle is enabled with product references
   // When bundle mode is active, use relaxed framing (not tight 85-92%)
@@ -33,11 +34,18 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
   return [
     `STUDIO_COMPOSITION_MODEL: ${authority.composition}.`,
+    splashAdMode ? 'SPLASH_AD_COMPOSITION_OVERRIDE: Product First composition is mandatory.' : '',
+    splashAdMode ? 'SYMMETRY_LOCK: Disabled. Do not force centered symmetry.' : '',
+    splashAdMode && !heroMode
+      ? 'FRAME_CONSTRAINT: SPLASH_AD framing. Product vertical coverage must remain within 75–80% to preserve breathing room for lateral energy.'
+      : '',
     heroMode
       ? hasBundleReference
         ? 'FRAME_CONSTRAINT: Close-up framing without altering proportions. Products maintain exact aspect ratios.'
-        : splashMode
-          ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
+        : splashAdMode
+          ? 'FRAME_CONSTRAINT: SPLASH_AD framing. Product vertical coverage must remain within 75–80% to preserve breathing room for lateral energy.'
+          : splashMode
+            ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
           : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
       : '',
     macroMode
@@ -60,6 +68,8 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : authority.permissions.allowVerticalDominance
         ? 'No lateral splash expansion allowed.'
         : 'Lateral splash expansion follows world constraints.',
+    splashAdMode ? 'SPLASH_AD_FRAMING_LOCK: Do not apply ecommerce-style compression framing.' : '',
+    splashAdMode ? 'SPLASH_AD_DIRECTIONALITY: Asymmetric dominant splash direction is required.' : '',
     ingredientStackMode
       ? 'CRITICAL_COMPOSITION_GUARD: If composition resembles flat lay, overhead layout, or top-down table shot, regenerate using front-facing perspective.'
       : '',

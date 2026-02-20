@@ -32,7 +32,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildWorld(authority, state.world),
     buildComposition(authority, state), // Pass state for bundle detection
     buildMotion(authority),
-    buildPhysics(authority),
+    buildPhysics(authority, state),
     buildModifiers(modifiers),
     buildLighting(authority, state),
     buildMaterials(authority),

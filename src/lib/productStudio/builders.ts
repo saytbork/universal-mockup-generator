@@ -201,9 +201,9 @@ function stripCategoryPriorsFromPrompt(prompt: string): string {
         .replace(/\bcosmetic jar\b/gi, ' ')
         .replace(/\bpackaging type\b/gi, ' ')
         // Replace aggressive frame constraint with proportional version
-        .replace(/The product must fill most of the vertical frame \(85.?(?:92|88)% height coverage\)\.?/gi, 
+        .replace(/The product must fill(?: most of)?(?: the)? vertical frame(?: height)? \((?:75.?80|85.?(?:92|88))%[^)]*\)\.?/gi, 
                  'Close-up framing without altering object proportions.')
-        .replace(/Tight hero framing(?: for splash mode)?\. The product must fill most of the vertical frame \(85.?(?:92|88)% height coverage\)\./gi,
+        .replace(/(?:Tight hero framing(?: for splash mode)?|SPLASH_AD framing)\. The product must fill(?: most of)?(?: the)? vertical frame(?: height)? \((?:75.?80|85.?(?:92|88))%[^)]*\)\./gi,
                  'Close-up framing without altering object proportions.')
         // Cleanup
         .replace(/\s+/g, ' ')
@@ -1371,17 +1371,25 @@ function buildPhotoModeFeatureParts(state: ProductStudioState): string[] {
         );
     } else if (mode === 'Splash Shot') {
         const motionIntensity = String(cfg.splashShot.motionIntensity || '').trim();
-        const impactDriven = motionIntensity === 'Dynamic' || motionIntensity === 'Explosive';
+        const splashAdMode = motionIntensity === 'Explosive';
+        const dynamicSplashMode = motionIntensity === 'Dynamic';
         const productStability =
-            impactDriven && cfg.splashShot.productStability === 'Fully grounded'
-                ? 'Slight interaction'
-                : cfg.splashShot.productStability;
+            splashAdMode
+                ? 'Fully grounded'
+                : dynamicSplashMode && cfg.splashShot.productStability === 'Fully grounded'
+                    ? 'Slight interaction'
+                    : cfg.splashShot.productStability;
         features.push(
             `splashMedium=${cfg.splashShot.splashMedium}`,
             `motionIntensity=${motionIntensity || cfg.splashShot.motionIntensity}`,
             `freezeMoment=${cfg.splashShot.freezeMoment}`,
             `productStability=${productStability}`,
-            'maxVerticalDisplacement=10% frame height',
+            `splashAdProfile=${splashAdMode ? 'SPLASH_AD' : 'Standard Splash'}`,
+            `maxVerticalDisplacement=${
+                splashAdMode && cfg.splashShot.freezeMoment === 'Peak'
+                    ? '15% frame height'
+                    : '10% frame height'
+            }`,
             'splashFlow=single dominant directional flow'
         );
     } else if (mode === 'Foam & Texture') {
@@ -1779,14 +1787,18 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     const hasReference = hasReferenceProductImage(state);
     if (isHeroPhotoMode(state.photoMode)) {
         const splashMode = isSplashPhotoMode(state.photoMode);
+        const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
+        const splashAdMode = splashMode && splashMotionIntensity === 'Explosive';
         if (hasReference) {
             // Proportional framing - don't force % coverage that causes stretching
             core.push('FRAME_CONSTRAINT: Close-up framing without altering object proportions. Minimal side margins. No excessive lateral negative space.');
         } else {
             // Original aggressive constraint (OK for generative mode)
             core.push(
-                splashMode
-                    ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
+                splashAdMode
+                    ? 'FRAME_CONSTRAINT: SPLASH_AD framing. The product must fill 75–80% of vertical frame height to preserve lateral splash energy.'
+                    : splashMode
+                        ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
                     : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
             );
         }

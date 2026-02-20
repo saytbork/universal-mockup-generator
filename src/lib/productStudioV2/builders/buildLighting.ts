@@ -4,6 +4,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   const override = String(state?.lightingModelOverride || '').trim();
   const photoMode = String(state?.photoMode || '').trim().toLowerCase();
   const isBeachFoamMode = photoMode === 'beach foam splash';
+  const splashAdMode = Boolean(state?.splashAdMode);
   const parts: string[] = [];
   
   if (override) {
@@ -32,6 +33,12 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
     const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
     parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow.`);
+  }
+
+  if (splashAdMode) {
+    parts.push(
+      'SPLASH_AD_LIGHTING: slightly elevated contrast ratio, crisp specular highlights, and micro edge highlights on droplets. Preserve product geometry lock and reference integrity.'
+    );
   }
 
   return parts.join(' ');

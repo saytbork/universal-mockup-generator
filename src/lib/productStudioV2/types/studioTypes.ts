@@ -52,6 +52,9 @@ export interface StudioUIState {
   customLightColor?: string;
   lightColorTemp?: string;
   accentLightIntensity?: number;
+  splashAdMode?: boolean;
+  splashFreezeMoment?: string;
+  splashMotionIntensity?: string;
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;

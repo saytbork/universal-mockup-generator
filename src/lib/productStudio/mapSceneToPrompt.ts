@@ -510,8 +510,18 @@ function resolveSplashShotConfig(state: ProductStudioState): ProductStudioState[
     };
   }
   const motionIntensity = String(splashShot.motionIntensity || '').trim();
-  const requiresImpactPhysics = motionIntensity === 'Dynamic' || motionIntensity === 'Explosive';
-  if (!requiresImpactPhysics || splashShot.productStability !== 'Fully grounded') {
+  const splashAdMode = motionIntensity === 'Explosive';
+  if (splashAdMode) {
+    if (splashShot.productStability !== 'Fully grounded') {
+      console.warn('[SPLASH_AD] ProductStability override: forcing Fully grounded for Explosive Splash Shot.');
+    }
+    return {
+      ...splashShot,
+      productStability: 'Fully grounded',
+    };
+  }
+  const dynamicSplashMode = motionIntensity === 'Dynamic';
+  if (!dynamicSplashMode || splashShot.productStability !== 'Fully grounded') {
     return splashShot;
   }
   return {
@@ -570,11 +580,14 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
     case 'Splash Shot':
       {
         const splash = resolveSplashShotConfig(state);
+        const splashAdMode = splash.motionIntensity === 'Explosive';
+        const splashAdPeakMode = splashAdMode && splash.freezeMoment === 'Peak';
         add('splashMedium', splash.splashMedium);
         add('motionIntensity', splash.motionIntensity);
         add('freezeMoment', splash.freezeMoment);
         add('productStability', splash.productStability);
-        add('maxVerticalDisplacement', '10% frame height');
+        add('splashAdProfile', splashAdMode ? 'SPLASH_AD' : 'Standard Splash');
+        add('maxVerticalDisplacement', splashAdPeakMode ? '15% frame height' : '10% frame height');
         add('splashFlow', 'Single dominant directional flow');
       }
       break;
@@ -617,6 +630,11 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   const randomizer = createRandomizer();
+  const splashShotConfig = resolveSplashShotConfig(state);
+  const splashAdMode =
+    String(state.photoMode || '').trim() === 'Splash Shot' &&
+    splashShotConfig.motionIntensity === 'Explosive';
+  const splashAdPeakMode = splashAdMode && splashShotConfig.freezeMoment === 'Peak';
   const authorities = resolveAuthorities(state);
   const visualIntent = authorities.visualIntent === 'clinical' || authorities.visualIntent === 'luxury'
     ? 'conversion'
@@ -1306,6 +1324,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'detail close-up'
       : campaignAngle;
   const forcedCameraFraming =
+    splashAdMode
+      ? 'product-first asymmetric splash composition with one dominant directional flow; disable centered symmetry; preserve hero readability with breathing room for lateral energy'
+      :
     !isCampaignIntent
       ? (disableSquareLateralSpreadForSplitWater
         ? 'centered dominance with vertical subject emphasis and natural edge-to-edge water continuation; no neutral side fill, no white lateral bands, no artificial padding'
@@ -1318,6 +1339,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'full-bleed macro crop with natural edge detail, no side-fill extension'
       : campaignFraming;
   const forcedCameraDistance =
+    splashAdMode
+      ? 'standard framing with additional breathing room for splash propagation'
+      :
     !isCampaignIntent
       ? (isConversionSquareOptimized ? 'slightly closer framing' : 'standard framing')
       : mode === 'INGREDIENT_FLAT_LAY'
@@ -1492,7 +1516,10 @@ No studio-style suspension shadows underwater.
     : '';
   const splashPhysicsBlock =
     isSplashPhysicsContext(String(state.photoMode || ''), authorities)
-      ? buildSplashPhysicsModel(authorities)
+      ? buildSplashPhysicsModel(authorities, {
+        splashAdMode,
+        freezeMoment: splashShotConfig.freezeMoment,
+      })
       : '';
   const resolvedSpecialEffects = (() => {
     const provided = Array.isArray((state as any).specialEffects)
@@ -1675,6 +1702,9 @@ No studio-style suspension shadows underwater.
     buildCompositionAuthorityBlock(authorities.composition),
     buildMotionAuthorityBlock(authorities.motion),
     splashPhysicsBlock,
+    splashAdMode
+      ? 'SPLASH_AD_VISUAL_PRIORITY: Kinetic authority, directional dominance, volumetric contrast, and energy hierarchy take precedence. Keep label readable without compressing splash energy.'
+      : '',
     buildProductStateBlock(authorities.motion),
     gravitationalBlock,
     viewpointDirectiveText,
@@ -1706,6 +1736,7 @@ No studio-style suspension shadows underwater.
       qualityProfile: state.qualityProfile,
       authority: authorities,
       ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
+      ...(splashAdMode ? { splashAdMode: true, splashAdPeakMode } : {}),
       strictRigLock: strictLightingRigLock,
     }),
     lightCoherenceBlock,

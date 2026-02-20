@@ -12,9 +12,35 @@ export function isSplashPhysicsContext(photoMode: string, authority: AuthorityRe
   return modeTriggered || authority.environment === 'underwater' || authority.environment === 'splash-tank';
 }
 
-export function buildSplashPhysicsModel(authority: AuthorityResolution): string {
+type SplashPhysicsOptions = {
+  splashAdMode?: boolean;
+  freezeMoment?: string;
+};
+
+export function buildSplashPhysicsModel(authority: AuthorityResolution, options: SplashPhysicsOptions = {}): string {
   if (authority.visualIntent === 'clinical') return '';
   if (authority.motion === 'static') return '';
+  const splashAdMode = options.splashAdMode === true;
+  const splashAdPeakMode = splashAdMode && String(options.freezeMoment || '').trim() === 'Peak';
+
+  if (splashAdMode) {
+    return [
+      'SPLASH_PHYSICS_MODEL:',
+      'SPLASH_AD_PROFILE: active.',
+      'Liquid origin = base impact + angular displacement vector.',
+      'Product stability is forced to Fully grounded for explosive splash authority.',
+      'Collision coherence: liquid obeys solid geometry with physically coherent deflection and wrap behavior.',
+      'Gravity vector consistency is mandatory across droplets and sheets.',
+      'Forbid floating droplets without force continuation.',
+      'Forbid geometry penetration.',
+      'Allow asymmetric lateral propagation with one dominant splash direction.',
+      'Allow controlled chaotic droplet fragmentation, irregular edge breakup, and secondary droplet separation.',
+      splashAdPeakMode
+        ? 'FreezeMoment=Peak: increase fragmentation allowance, raise splash height ceiling up to 15% frame height, and prioritize volumetric contrast while preserving hero readability.'
+        : 'Maintain splash height with natural kinetic decay; no forced compression framing.',
+      'Kinetic decay follows natural distance falloff only; do not impose radial bounding or over-restrict lateral spread.',
+    ].join(' ');
+  }
 
   return [
     'SPLASH_PHYSICS_MODEL:',

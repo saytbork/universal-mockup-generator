@@ -123,6 +123,11 @@ function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requ
 
 function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
+  const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
+  const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
+  const splashAdMode =
+    String(state.photoMode || '').trim() === 'Splash Shot' &&
+    splashMotionIntensity === 'Explosive';
   return {
     creativeIntent: inferStudioIntent(state),
     world: inferStudioWorld(state),
@@ -141,6 +146,9 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(state.customLightColor ? { customLightColor: state.customLightColor } : {}),
     ...(state.lightColorTemp ? { lightColorTemp: state.lightColorTemp } : {}),
     ...(state.accentLightIntensity !== undefined ? { accentLightIntensity: state.accentLightIntensity } : {}),
+    ...(splashMotionIntensity ? { splashMotionIntensity } : {}),
+    ...(splashFreezeMoment ? { splashFreezeMoment } : {}),
+    ...(splashAdMode ? { splashAdMode: true } : {}),
   } as StudioUIState;
 }
 

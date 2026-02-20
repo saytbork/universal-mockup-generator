@@ -121,8 +121,16 @@ const normalizeSplashShotConfig = (
     splashShot: PhotoModeConfig['splashShot']
 ): PhotoModeConfig['splashShot'] => {
     const motionIntensity = String(splashShot.motionIntensity || '').trim();
-    const requiresImpactPhysics = motionIntensity === 'Dynamic' || motionIntensity === 'Explosive';
-    if (!requiresImpactPhysics) return splashShot;
+    const splashAdMode = motionIntensity === 'Explosive';
+    if (splashAdMode) {
+        if (splashShot.productStability === 'Fully grounded') return splashShot;
+        return {
+            ...splashShot,
+            productStability: 'Fully grounded',
+        };
+    }
+    const dynamicSplashMode = motionIntensity === 'Dynamic';
+    if (!dynamicSplashMode) return splashShot;
     if (splashShot.productStability !== 'Fully grounded') return splashShot;
     return {
         ...splashShot,
