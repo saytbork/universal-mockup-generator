@@ -4904,14 +4904,14 @@ If the model attempts to create a scene or environment, override it and force a 
     const finalPrompt = removeConflictingIdentityPhrases(prompt);
 
     // DEBUG: Log final prompt for validation
-    console.log('🚀 FINAL PROMPT GENERATED:', {
+    console.log('[FINAL PROMPT GENERATED]:', {
       length: finalPrompt.length,
       isLifestyle: isUgcStyle,
       personIncluded,
       hasPreservation: hasUploadedProduct && isUgcStyle,
       mode: options.creationMode,
     });
-    console.log('📝 Prompt Preview (first 800 chars):', finalPrompt.substring(0, 800));
+    console.log('[Prompt Preview (first 800 chars)]:', finalPrompt.substring(0, 800));
 
     return finalPrompt;
   }
@@ -5573,7 +5573,7 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           return;
         }
-        // 🔥 Use imageUrl directly from Firebase Storage
+        // Use imageUrl directly from Firebase Storage
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
         if (!imageUrl) {
           throw new Error('Image generation failed or returned no image URL.');
@@ -5582,7 +5582,7 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        // 🔥 NO processing - use Firebase URL directly
+        // NO processing - use Firebase URL directly
         setGeneratedImageUrl(imageUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         

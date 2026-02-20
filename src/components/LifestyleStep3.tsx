@@ -2538,7 +2538,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           }}
                           tooltip="Dedicated cinematic premium wine profile"
                         >
-                          🍷 Wine Prestige
+                          Wine Prestige
                         </Chip>
                       </div>
                       {winePrestigeModeActive && (
@@ -8109,7 +8109,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div>
                                 <p className="text-xs uppercase tracking-wider text-indigo-600 mb-1">Active Mode</p>
                                 <p className="text-xs text-gray-700">
-                                  🤖 Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
+                                  Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
                                 </p>
                               </div>
                               

@@ -635,7 +635,7 @@ export class PromptEngine {
         // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
         // ====================================================================
         if (activeEngine === 'studio') {
-            console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
+            console.log('[CLEANUP-INSTRUMENT] BRANCH: STUDIO FAST-PATH');
             console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
 
             const studioPromptParts = Array.isArray((options as any).studioPromptParts)
@@ -660,7 +660,7 @@ export class PromptEngine {
         }
 
         // If we reach here, we're in lifestyle pipeline (sceneType-driven, no fallback).
-        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LIFESTYLE PIPELINE');
+        console.log('[CLEANUP-INSTRUMENT] BRANCH: LIFESTYLE PIPELINE');
 
         const ugcSelfieDominant = options.visualMode === 'ugc' && isSelfie;
         options.ugcSelfieDominant = ugcSelfieDominant;
@@ -936,7 +936,7 @@ export class PromptEngine {
         // ====================================================================
         // MANDATORY DEBUG LOGGING
         // ====================================================================
-        console.log('🚀 PromptEngine v2 - Build Complete:', {
+        console.log('PromptEngine v2 - Build Complete:', {
             length: finalPrompt.length,
             creationIntent: options.creationIntent,
             creationMode: options.creationMode,

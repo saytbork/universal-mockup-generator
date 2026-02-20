@@ -8,13 +8,13 @@ interface CreativitySelectorProps {
 }
 
 const MODE_ICONS: Record<CreativeMode, string> = {
-    high_end_studio: '✨',
-    vibrant_brand_explosion: '🎨',
-    minimal_editorial: '◻️',
-    natural_organic: '🌿',
-    scientific_clean: '🔬',
-    lifestyle_cinematic: '🎬',
-    playful_bold: '🎯'
+    high_end_studio: 'HS',
+    vibrant_brand_explosion: 'VB',
+    minimal_editorial: 'ME',
+    natural_organic: 'NO',
+    scientific_clean: 'SC',
+    lifestyle_cinematic: 'LC',
+    playful_bold: 'PB'
 };
 
 export function CreativitySelector({ value, onChange }: CreativitySelectorProps) {

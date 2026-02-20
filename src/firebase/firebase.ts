@@ -21,9 +21,9 @@ try {
     storageBucket: firebaseConfig.storageBucket || "MISSING",
     appId: firebaseConfig.appId ? "***loaded***" : "MISSING",
   };
-  console.log("🔥 Firebase config loaded:", safeConfig);
+  console.log("[Firebase config loaded]:", safeConfig);
 } catch (e) {
-  console.log("🔥 Firebase config error:", e);
+  console.log("[Firebase config error]:", e);
 }
 
 export const app = !getApps().length
