@@ -39,28 +39,21 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
   if (state?.winePrestigeMode) {
-    const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
-    const wineAction = String(state.wineAction || 'static-presentation').trim();
-    const isDynamicWineAction = wineAction === 'controlled-pour' || wineAction === 'pour';
-    const pourStyle = String(state.winePourStyle || 'mid-flow-elegance').trim();
     return [
       'STUDIO_COMPOSITION_MODEL: wine-prestige.',
       'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur".',
-      winePrestigeV2Mode ? `POUR_STYLE: ${pourStyle}.` : 'WINE_ACTION: static-presentation.',
+      'WINE_ACTION: static-presentation.',
       'COMPOSITION_OVERRIDE: Product First composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',
       'ASYMMETRICAL_BALANCE: allowed.',
       'NEGATIVE_SPACE_POLICY: elegant breathing room is mandatory.',
-      isDynamicWineAction
-        ? 'BOTTLE_TILT_RULE: dynamic pour action allows controlled bottle tilt between 5° and 12° max.'
-        : 'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).',
+      'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).',
       'GLASS_PLACEMENT_RULE: glass may be foreground or midground with refined separation.',
       'BACKGROUND_SEPARATION: dark premium separation is allowed.',
       'CENTER_SYMMETRY_LOCK: disabled unless explicitly selected by user.',
       'FRAME_CONSTRAINT: vertical product coverage target 75–80%. Never apply ecommerce compression framing.',
       'CAMERA_RESTRICTIONS: top-down camera forbidden. ultra-wide lens forbidden. orthographic look forbidden.',
       'CROP_RESTRICTIONS: aggressive crop forbidden.',
-      ...interactionBias,
     ].join(' ');
   }
 

@@ -6182,7 +6182,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
-      {isEcommerceMode && (
+      {isEcommerceMode && industryProfile !== 'wine' && (
       <SmoothAccordion
         icon={Hand}
         title="06 / Product Interaction"

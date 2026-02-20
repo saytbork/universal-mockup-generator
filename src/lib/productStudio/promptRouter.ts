@@ -1,7 +1,7 @@
 import type { IndustryProfile, ProductAsset, ProductStudioState } from './types';
 import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
-import { isWinePrestigeMode, isWinePrestigeV2Mode } from './winePrestige';
+import { isWinePrestigeMode } from './winePrestige';
 import { industryRules } from './industryRules';
 import { resolveCoffeeIntent } from './resolveCoffeeIntent';
 
@@ -267,7 +267,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = industryProfile === 'wine' && isWinePrestigeMode(state);
-  const winePrestigeV2Mode = industryProfile === 'wine' && isWinePrestigeV2Mode(state);
+  const winePrestigeV2Mode = false;
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
     visualIntent: state.visualIntent,
@@ -299,7 +299,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
-          ...(state.wineAction ? { wineAction: state.wineAction } : {}),
+          wineAction: 'static-presentation',
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
         }
       : {}),
@@ -364,7 +364,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     allowedInteractions = rules?.interactionWhitelist || ['none'];
   }
 
-  const interactionKey = String(state.interaction || '').trim();
+  const resolvedInteractionInput = industryProfile === 'wine' ? 'none' : state.interaction;
+  const interactionKey = String(resolvedInteractionInput || '').trim();
   const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
   const currentInteractionCanonical = interactionCandidates[0] || 'none';
   const interactionAllowed =
@@ -395,12 +396,23 @@ const COFFEE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
   /\bwine-glass-priority\b/i,
 ];
 
+const WINE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
+  /\bINTERACTION_[A-Z0-9_]*\b/i,
+  /\bHAND_POSITIONING\b/i,
+  /\bFRAMING_BIAS\b/i,
+  /\bHAND_[A-Z0-9_]*\b/i,
+  /\bFRAMING_[A-Z0-9_]*\b/i,
+];
+
 function sanitizePromptForIndustry(prompt: string, industryProfile: IndustryProfile): string {
-  if (industryProfile !== 'coffee') return prompt;
+  if (industryProfile !== 'coffee' && industryProfile !== 'wine') return prompt;
+
+  const forbiddenPatterns =
+    industryProfile === 'coffee' ? COFFEE_FORBIDDEN_PROMPT_PATTERNS : WINE_FORBIDDEN_PROMPT_PATTERNS;
 
   const sanitized = prompt
     .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => !COFFEE_FORBIDDEN_PROMPT_PATTERNS.some((pattern) => pattern.test(sentence)))
+    .filter((sentence) => !forbiddenPatterns.some((pattern) => pattern.test(sentence)))
     .join(' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
