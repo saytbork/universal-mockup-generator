@@ -171,6 +171,30 @@ const SPECIAL_EFFECT_MODES = new Set([
   'Wet Rock Ripples',
 ]);
 
+const INTERACTION_STATE_TO_CANONICAL_CANDIDATES: Record<string, string[]> = {
+  none: ['none'],
+  'capsule-display': ['capsuleDisplay'],
+  'applying-opening': ['applyingOpening', 'pouringWine', 'pouringEspresso'],
+  holding: ['holding', 'holdingBottle', 'cupHold'],
+  'supported-hold': ['supportedHold', 'glassForeground'],
+  'two-hand-hold': ['cheers'],
+  'passive-presence': ['steam'],
+  'resting-interaction': ['beansScatter'],
+  'framed-presentation': ['spoonStir'],
+  capsuleDisplay: ['capsuleDisplay'],
+  applyingOpening: ['applyingOpening'],
+  supportedHold: ['supportedHold'],
+  holdingBottle: ['holdingBottle'],
+  glassForeground: ['glassForeground'],
+  pouringWine: ['pouringWine'],
+  cheers: ['cheers'],
+  cupHold: ['cupHold'],
+  pouringEspresso: ['pouringEspresso'],
+  steam: ['steam'],
+  beansScatter: ['beansScatter'],
+  spoonStir: ['spoonStir'],
+};
+
 function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile']): IndustryProfile {
   if (visualProfile === 'wine-prestige') return 'wine';
   if (visualProfile === 'default') return 'supplements';
@@ -290,6 +314,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
 
   const industryProfile = resolveIndustryProfile(state.visualProfile);
   const rules = industryRules[industryProfile];
+  const allowedInteractions = Array.isArray(rules?.interactions) ? rules.interactions : ['none'];
 
   if (rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
     v2State.photoMode = rules.allowedPhotoModes[0];
@@ -309,6 +334,20 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   if (rules?.allowedVisualStyles && v2State.visualStyle && !rules.allowedVisualStyles.includes(v2State.visualStyle)) {
     v2State.visualStyle = rules.allowedVisualStyles[0];
   }
+
+  const interactionKey = String(state.interaction || '').trim();
+  const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
+  const currentInteractionCanonical =
+    interactionCandidates.find((candidate) => allowedInteractions.includes(candidate)) ||
+    interactionCandidates[0] ||
+    'none';
+  const sanitizedInteractionCanonical = allowedInteractions.includes(currentInteractionCanonical)
+    ? currentInteractionCanonical
+    : 'none';
+  if (sanitizedInteractionCanonical !== currentInteractionCanonical) {
+    console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
+  }
+  v2State.interaction = sanitizedInteractionCanonical;
 
   return v2State;
 }

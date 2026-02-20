@@ -3,6 +3,8 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.winePrestigeMode) {
     const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
+    const wineAction = String(state.wineAction || 'static-presentation').trim();
+    const isDynamicWineAction = wineAction === 'controlled-pour' || wineAction === 'pour';
     const pourStyle = String(state.winePourStyle || 'mid-flow-elegance').trim();
     return [
       'STUDIO_COMPOSITION_MODEL: wine-prestige.',
@@ -12,7 +14,9 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       'RULE_OF_THIRDS_DEFAULT: enabled.',
       'ASYMMETRICAL_BALANCE: allowed.',
       'NEGATIVE_SPACE_POLICY: elegant breathing room is mandatory.',
-      'BOTTLE_TILT_RULE: bottle angled slightly between 5° and 15° tilt max.',
+      isDynamicWineAction
+        ? 'BOTTLE_TILT_RULE: dynamic pour action allows controlled bottle tilt between 5° and 12° max.'
+        : 'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).',
       'GLASS_PLACEMENT_RULE: glass may be foreground or midground with refined separation.',
       'BACKGROUND_SEPARATION: dark premium separation is allowed.',
       'CENTER_SYMMETRY_LOCK: disabled unless explicitly selected by user.',

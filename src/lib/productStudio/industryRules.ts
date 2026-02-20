@@ -3,14 +3,30 @@ import type { IndustryProfile } from './types';
 export const industryRules: Record<
   IndustryProfile,
   {
+    interactions?: string[];
     allowedPhotoModes?: string[];
     allowedProductTypes?: string[];
     allowedSpecialEffects?: string[];
     allowedVisualStyles?: string[];
   }
 > = {
-  supplements: {},
+  supplements: {
+    interactions: [
+      'none',
+      'capsuleDisplay',
+      'applyingOpening',
+      'holding',
+      'supportedHold',
+    ],
+  },
   wine: {
+    interactions: [
+      'none',
+      'holdingBottle',
+      'glassForeground',
+      'pouringWine',
+      'cheers',
+    ],
     allowedPhotoModes: [
       'Hero Landing Page',
       'Color Pop Hero',
@@ -31,8 +47,19 @@ export const industryRules: Record<
       'Botanical Water Garden',
     ],
   },
-  beauty: {},
-  coffee: {},
+  beauty: {
+    interactions: ['none'],
+  },
+  coffee: {
+    interactions: [
+      'none',
+      'cupHold',
+      'pouringEspresso',
+      'steam',
+      'beansScatter',
+      'spoonStir',
+    ],
+  },
   luxury: {},
   tech: {},
   general: {},

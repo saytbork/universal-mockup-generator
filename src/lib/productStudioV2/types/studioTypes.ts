@@ -69,6 +69,7 @@ export interface StudioUIState {
   rotationOverride?: string;
   framingGuideOverride?: string;
   productType?: string;
+  interaction?: string;
   specialEffect?: string;
   visualStyle?: string;
   bundle?: {

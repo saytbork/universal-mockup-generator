@@ -6109,63 +6109,126 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           {(() => {
-            const interactionSchema = PHOTO_MODE_SCHEMAS[productStore.photoMode as PhotoMode];
-            const modeAllowsPersonPresence = interactionSchema?.allowsPersonPresence !== false;
-            const modeAllowedInteractions = interactionSchema?.allowedInteractions ?? null;
-            const interactionCompatibleModes = (Object.entries(PHOTO_MODE_SCHEMAS) as Array<[PhotoMode, NonNullable<typeof interactionSchema>]>)
-              .filter(([, schema]) => {
-                if (!schema) return false;
-                if (schema.allowsPersonPresence === false) return false;
-                const allowed = Array.isArray(schema.allowedInteractions) ? schema.allowedInteractions : [];
-                return allowed.some((interaction) => interaction !== 'none');
+            const allowedInteractions = activeIndustryRules?.interactions ?? ['none'];
+            const interactionOptionMap: Record<
+              string,
+              {
+                label: string;
+                detail: string;
+                stateValue: ProductStudioState['interaction'];
+              }
+            > = {
+              none: {
+                label: 'None',
+                detail: 'No hands. No skin. No human shadows.',
+                stateValue: 'none',
+              },
+              capsuleDisplay: {
+                label: 'Capsule Display',
+                detail: '2–4 capsules in palm + bottle visible. No pouring.',
+                stateValue: 'capsule-display',
+              },
+              applyingOpening: {
+                label: 'Applying / Opening',
+                detail: 'One clear action: twist/open. No consumption.',
+                stateValue: 'applying-opening',
+              },
+              holding: {
+                label: 'Holding',
+                detail: 'One hand holds the product naturally. No gesture.',
+                stateValue: 'holding',
+              },
+              supportedHold: {
+                label: 'Supported Hold',
+                detail: 'Product rests on an open palm. No pressure.',
+                stateValue: 'supported-hold',
+              },
+              holdingBottle: {
+                label: 'Holding Bottle',
+                detail: 'Hand holds the bottle with stable premium presentation.',
+                stateValue: 'holding',
+              },
+              glassForeground: {
+                label: 'Glass Foreground',
+                detail: 'Glass appears in foreground with controlled hand support.',
+                stateValue: 'supported-hold',
+              },
+              pouringWine: {
+                label: 'Pouring Wine',
+                detail: 'Controlled pour action with premium composition.',
+                stateValue: 'applying-opening',
+              },
+              cheers: {
+                label: 'Cheers',
+                detail: 'Two-glass cheers moment with clean composition.',
+                stateValue: 'two-hand-hold',
+              },
+              cupHold: {
+                label: 'Cup Hold',
+                detail: 'Natural coffee cup hold with product-first balance.',
+                stateValue: 'holding',
+              },
+              pouringEspresso: {
+                label: 'Pouring Espresso',
+                detail: 'Controlled espresso pour, no splash chaos.',
+                stateValue: 'applying-opening',
+              },
+              steam: {
+                label: 'Steam',
+                detail: 'Hands present while steam texture leads mood.',
+                stateValue: 'passive-presence',
+              },
+              beansScatter: {
+                label: 'Beans Scatter',
+                detail: 'Coffee bean context with passive hand contact.',
+                stateValue: 'resting-interaction',
+              },
+              spoonStir: {
+                label: 'Spoon Stir',
+                detail: 'Stirring gesture with controlled framing.',
+                stateValue: 'framed-presentation',
+              },
+            };
+            const visibleInteractionOptions = allowedInteractions
+              .map((interactionId) => {
+                const option = interactionOptionMap[interactionId];
+                if (!option) return null;
+                return {
+                  value: interactionId,
+                  ...option,
+                };
               })
-              .map(([mode]) => mode);
+              .filter(Boolean) as Array<{
+                value: string;
+                label: string;
+                detail: string;
+                stateValue: ProductStudioState['interaction'];
+              }>;
+            const selectedInteractionValue =
+              visibleInteractionOptions.find((option) => option.stateValue === productStore.interaction)?.value || 'none';
 
             return (
               <>
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
             <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { value: 'none', label: 'None', detail: 'No hands. No skin. No human shadows.' },
-                  { value: 'passive-presence', label: 'Passive Presence', detail: 'Hands visible in frame, not touching the product.' },
-                  { value: 'cropped-hand', label: 'Cropped Hand', detail: 'Partial hand for scale only. No grip. No action.' },
-                  { value: 'supported-hold', label: 'Supported Hold', detail: 'Product rests on an open palm. No pressure.' },
-                  { value: 'holding', label: 'Holding', detail: 'One hand holds the product naturally. No gesture.' },
-                  { value: 'two-hand-hold', label: 'Two-Hand Hold', detail: 'Both hands hold the product centered. Calm and careful.' },
-                  { value: 'presenting', label: 'Presenting', detail: 'Shown to camera with label readable. No push to lens.' },
-                  { value: 'framed-presentation', label: 'Framed Presentation', detail: 'Hands frame the product editorially. No offer-to-lens.' },
-                  { value: 'applying-opening', label: 'Applying / Opening', detail: 'One clear action: twist/open. No consumption.' },
-                  { value: 'capsule-display', label: 'Capsule Display', detail: '2–4 capsules in palm + bottle visible. No pouring.' },
-                  { value: 'resting-interaction', label: 'Resting Interaction', detail: 'Product rests against hand/wrist. Passive contact.' },
-                ] as const
-              ).map(option => {
-                const isCapsuleRestricted = option.value === 'capsule-display' && productStore.definition.type !== 'capsules';
-                const blockedByPhotoMode =
-                  (!modeAllowsPersonPresence && option.value !== 'none') ||
-                  (Array.isArray(modeAllowedInteractions) && !modeAllowedInteractions.includes(option.value as ProductStudioState['interaction']));
-                const isDisabled = isCapsuleRestricted || blockedByPhotoMode;
-
+              {visibleInteractionOptions.map(option => {
                 return (
                   <Chip
                     key={option.value}
                     onClick={() => {
-                      if (isDisabled) return;
-
                       // Auto-switch to 'held' if selecting a holding interaction
-                      if (!['none', 'passive-presence', 'cropped-hand'].includes(option.value)) {
+                      if (option.stateValue !== 'none') {
                         productStore.setPlacement('held');
                       }
 
-                      productStore.setInteraction(option.value as any);
-                      productStore.setHandsHolding(option.value !== 'none');
-                      updateValue('productStudioInteraction', option.value as any);
-                      updateValue('handsHolding', option.value !== 'none');
+                      productStore.setInteraction(option.stateValue);
+                      productStore.setHandsHolding(option.stateValue !== 'none');
+                      updateValue('productStudioInteraction', option.stateValue as any);
+                      updateValue('handsHolding', option.stateValue !== 'none');
                       markSectionTouched('product-interaction');
                     }}
-                    selected={productStore.interaction === (option.value as any)}
-                    disabled={isDisabled}
+                    selected={selectedInteractionValue === option.value}
                     tooltip={option.detail}
                   >
                     {option.label}
@@ -6174,55 +6237,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               })}
             </div>
             <SelectedOptionFooter
-              options={[
-                { value: 'none', label: 'None', description: 'No hands. No skin. No human shadows.' },
-                { value: 'passive-presence', label: 'Passive Presence', description: 'Hands visible in frame, not touching the product.' },
-                { value: 'cropped-hand', label: 'Cropped Hand', description: 'Partial hand for scale only. No grip. No action.' },
-                { value: 'supported-hold', label: 'Supported Hold', description: 'Product rests on an open palm. No pressure.' },
-                { value: 'holding', label: 'Holding', description: 'One hand holds the product naturally. No gesture.' },
-                { value: 'two-hand-hold', label: 'Two-Hand Hold', description: 'Both hands hold the product centered. Calm and careful.' },
-                { value: 'presenting', label: 'Presenting', description: 'Shown to camera with label readable. No push to lens.' },
-                { value: 'framed-presentation', label: 'Framed Presentation', description: 'Hands frame the product editorially. No offer-to-lens.' },
-                { value: 'applying-opening', label: 'Applying / Opening', description: 'One clear action: twist/open. No consumption.' },
-                { value: 'capsule-display', label: 'Capsule Display', description: '2–4 capsules in palm + bottle visible. No pouring.' },
-                { value: 'resting-interaction', label: 'Resting Interaction', description: 'Product rests against hand/wrist. Passive contact.' },
-              ]}
-              selectedValue={productStore.interaction as any}
+              options={visibleInteractionOptions.map((option) => ({
+                value: option.value,
+                label: option.label,
+                description: option.detail,
+              }))}
+              selectedValue={selectedInteractionValue}
             />
             {getInterpretationNote('interaction') && (
               <InterpretationNote message={getInterpretationNote('interaction')!} />
-            )}
-            {productStore.definition.type !== 'capsules' && (
-              <p className="text-[11px] text-gray-500 mt-2">
-                Capsule Display is only available when Product Type is Capsules.
-              </p>
-            )}
-            {!modeAllowsPersonPresence && (
-              <div className="mt-2 space-y-2">
-                <p className="text-[11px] text-amber-600">
-                  The current Photo Mode allows only `None` interaction. Switch mode to enable hand interactions.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {interactionCompatibleModes.map((mode) => (
-                    <Chip
-                      key={mode}
-                      onClick={() => {
-                        productStore.setPhotoMode(mode);
-                        markSectionTouched('product-setup');
-                        markSectionTouched('product-interaction');
-                      }}
-                      selected={productStore.photoMode === mode}
-                    >
-                      {mode}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-            {modeAllowsPersonPresence && Array.isArray(modeAllowedInteractions) && (
-              <p className="text-[11px] text-gray-500 mt-2">
-                Available in this Photo Mode: {modeAllowedInteractions.join(', ')}.
-              </p>
             )}
           </div>
               </>

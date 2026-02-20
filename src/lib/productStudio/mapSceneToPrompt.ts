@@ -280,6 +280,8 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
   const moodModifier = String((state as any).wineMoodModifier || '').trim();
   const lightingTone = String((state as any).wineLightingTone || '').trim() || 'Warm Lateral';
   const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
+  const wineAction = String((state as any).wineAction || 'static-presentation').trim();
+  const isDynamicWineAction = wineAction === 'controlled-pour' || wineAction === 'pour';
   const pourStyle = String((state as any).winePourStyle || 'mid-flow-elegance').trim();
   const whiteWineSignal = `${String(state.contextPreset || '')} ${String((state as any).wineMoodModifier || '')} ${String(state.photoMode || '')}`
     .toLowerCase()
@@ -297,9 +299,13 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
     winePrestigeV2Mode
       ? 'WINE_PRESTIGE_V2_NARRATIVE: Premium wine presentation with controlled cinematic pouring action. Emphasize elegance, depth, and refined atmosphere. The wine flows smoothly from the bottle in a continuous ribbon with natural gravity-driven motion. No explosive splash behavior. Focus on material richness, glass refraction, liquid translucency, and warm lateral lighting. Preserve exact label fidelity and bottle geometry. The composition should feel sophisticated, intimate, and premium.'
       : '',
-    `WINE_ACTION: ${String((state as any).wineAction || 'static-presentation')}.`,
+    `WINE_ACTION: ${wineAction}.`,
     winePrestigeV2Mode ? `POUR_STYLE: ${pourStyle}.` : '',
-    'COMPOSITION: Product First composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. Bottle tilt between 5° and 15° max. Glass can be foreground or midground. Never force rigid center unless explicitly selected.',
+    `COMPOSITION: Product First composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. ${
+      isDynamicWineAction
+        ? 'Dynamic pour action allows bottle tilt between 5° and 12° max.'
+        : 'Static presentation requires vertical bottle orientation (0° tilt, perfectly upright).'
+    } Glass can be foreground or midground. Never force rigid center unless explicitly selected.`,
     'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur". Top-down camera forbidden. Ultra-wide lens forbidden.',
     `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
     whiteWineSignal
