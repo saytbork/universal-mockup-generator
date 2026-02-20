@@ -1,6 +1,43 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
+function buildInteractionCompositionBias(interaction?: string): string[] {
+  const value = String(interaction || '').trim();
+  if (!value) return [];
+
+  if (value === 'holding') {
+    return [
+      'INTERACTION_COMPOSITION_BIAS: slight human-axis shift enabled.',
+      'INTERACTION_COMPOSITION_BIAS: strict centering reduced.',
+    ];
+  }
+
+  if (value === 'two-hand-hold' || value === 'cheers') {
+    return [
+      'INTERACTION_COMPOSITION_BIAS: center stability enforced.',
+      'INTERACTION_COMPOSITION_BIAS: environmental spread reduced.',
+    ];
+  }
+
+  if (value === 'presenting') {
+    return [
+      'INTERACTION_COMPOSITION_BIAS: label-forward bias increased.',
+      'INTERACTION_COMPOSITION_BIAS: foreground depth separation increased.',
+    ];
+  }
+
+  if (value === 'framed-presentation') {
+    return [
+      'INTERACTION_COMPOSITION_BIAS: environmental negative space allowed.',
+      'INTERACTION_COMPOSITION_BIAS: vertical dominance reduced.',
+    ];
+  }
+
+  return [];
+}
+
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  const interactionBias = buildInteractionCompositionBias(state?.interaction);
+
   if (state?.winePrestigeMode) {
     const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
     const wineAction = String(state.wineAction || 'static-presentation').trim();
@@ -23,6 +60,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       'FRAME_CONSTRAINT: vertical product coverage target 75–80%. Never apply ecommerce compression framing.',
       'CAMERA_RESTRICTIONS: top-down camera forbidden. ultra-wide lens forbidden. orthographic look forbidden.',
       'CROP_RESTRICTIONS: aggressive crop forbidden.',
+      ...interactionBias,
     ].join(' ');
   }
 
@@ -33,6 +71,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
         'COFFEE_COMPOSITION_PROFILE: product-forward framing.',
         'COFFEE_VERTICAL_DOMINANCE: strong and stable.',
         'COFFEE_LAYOUT_RULE: keep hero product dominance with clean supporting context.',
+        ...interactionBias,
       ].join(' ');
     }
 
@@ -42,6 +81,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
         'COFFEE_COMPOSITION_PROFILE: ritual-balance.',
         'COFFEE_ENVIRONMENTAL_BREATHING: allowed with elegant negative space.',
         'COFFEE_LAYOUT_RULE: balanced ritual composition preserving product readability.',
+        ...interactionBias,
       ].join(' ');
     }
   }
@@ -118,5 +158,6 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     ingredientStackMode
       ? 'CRITICAL_COMPOSITION_GUARD: If composition resembles flat lay, overhead layout, or top-down table shot, regenerate using front-facing perspective.'
       : '',
+    ...interactionBias,
   ].join(' ');
 }

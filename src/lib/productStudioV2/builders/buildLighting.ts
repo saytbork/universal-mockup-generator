@@ -18,6 +18,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
         'COFFEE_LIGHTING_TEMPERATURE: warm-ambient.',
         'COFFEE_SHADOW_PROFILE: soft-deep.',
         'COFFEE_CONTRAST_PROFILE: medium.',
+        'COFFEE_SHADOW_GRADIENT_DEPTH: slightly increased for editorial ritual mood.',
       ].join(' ');
     }
   }

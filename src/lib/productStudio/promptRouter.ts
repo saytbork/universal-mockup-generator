@@ -3,6 +3,7 @@ import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
 import { isWinePrestigeMode, isWinePrestigeV2Mode } from './winePrestige';
 import { industryRules } from './industryRules';
+import { resolveCoffeeIntent } from './resolveCoffeeIntent';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
@@ -171,49 +172,35 @@ const SPECIAL_EFFECT_MODES = new Set([
   'Wet Rock Ripples',
 ]);
 
-const COFFEE_CONVERSION_FALLBACK_MODE = 'Hero Landing Page';
-const COFFEE_EDITORIAL_MODE_MAP: Record<string, string> = {
-  'golden-hour-lifestyle': 'Golden Sunset Backlit',
-  'soft-wellness-morning': 'Soft Wellness Morning',
-  'editorial-table': 'Warm Window Wood',
-};
-
 const INTERACTION_STATE_TO_CANONICAL_CANDIDATES: Record<string, string[]> = {
   none: ['none'],
-  'capsule-display': ['capsuleDisplay'],
-  'applying-opening': ['applyingOpening', 'pouringWine', 'pouringEspresso'],
-  holding: ['holding', 'holdingBottle', 'cupHold'],
-  'supported-hold': ['supportedHold', 'glassForeground'],
-  'two-hand-hold': ['cheers'],
-  'passive-presence': ['steam'],
-  'resting-interaction': ['beansScatter'],
-  'framed-presentation': ['spoonStir'],
-  capsuleDisplay: ['capsuleDisplay'],
-  applyingOpening: ['applyingOpening'],
-  supportedHold: ['supportedHold'],
-  holdingBottle: ['holdingBottle'],
-  glassForeground: ['glassForeground'],
-  pouringWine: ['pouringWine'],
+  'capsule-display': ['capsule-display'],
+  'applying-opening': ['applying-opening'],
+  holding: ['holding'],
+  'supported-hold': ['holding'],
+  'two-hand-hold': ['two-hand-hold', 'cheers'],
+  presenting: ['presenting'],
+  'passive-presence': ['none'],
+  'resting-interaction': ['none'],
+  'framed-presentation': ['framed-presentation'],
+  capsuleDisplay: ['capsule-display'],
+  applyingOpening: ['applying-opening'],
+  supportedHold: ['holding'],
+  holdingBottle: ['holding'],
+  glassForeground: ['two-hand-hold'],
+  pouringWine: ['framed-presentation'],
   cheers: ['cheers'],
-  cupHold: ['cupHold'],
-  pouringEspresso: ['pouringEspresso'],
-  steam: ['steam'],
-  beansScatter: ['beansScatter'],
-  spoonStir: ['spoonStir'],
+  cupHold: ['holding'],
+  pouringEspresso: ['framed-presentation'],
+  steam: ['framed-presentation'],
+  beansScatter: ['framed-presentation'],
+  spoonStir: ['framed-presentation'],
 };
 
 function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile']): IndustryProfile {
   if (visualProfile === 'wine-prestige') return 'wine';
   if (visualProfile === 'default') return 'supplements';
   return visualProfile as IndustryProfile;
-}
-
-function normalizeModeKey(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 function inferCameraSystemOverride(state: ProductStudioState): string {
@@ -273,7 +260,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const industryProfile = resolveIndustryProfile(state.visualProfile);
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
-  const shouldAssignWineFields = state.visualProfile === 'wine';
+  const shouldAssignWineFields = industryProfile === 'wine';
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
@@ -331,11 +318,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];
-  const allowedInteractions = Array.isArray(rules?.interactionWhitelist)
-    ? rules.interactionWhitelist
-    : Array.isArray(rules?.interactions)
-      ? rules.interactions
-      : ['none'];
+  let allowedInteractions = ['none'];
 
   if (rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
     v2State.photoMode = rules.allowedPhotoModes[0];
@@ -357,27 +340,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
 
   if (industryProfile === 'coffee') {
-    const normalizedPhotoMode = normalizeModeKey(v2State.photoMode || '');
-    const normalizedPhotoModeKeys = new Set([normalizedPhotoMode]);
-    if (normalizedPhotoMode.endsWith('-page')) {
-      normalizedPhotoModeKeys.add(normalizedPhotoMode.replace(/-page$/, ''));
-    }
-    const conversionKeys = new Set((rules?.conversionPhotoModes || []).map((mode) => normalizeModeKey(mode)));
-    const editorialKeys = new Set((rules?.editorialPhotoModes || []).map((mode) => normalizeModeKey(mode)));
-    let resolvedIntent = v2State.visualIntent || 'conversion';
-
-    if (Array.from(normalizedPhotoModeKeys).some((mode) => conversionKeys.has(mode))) {
-      resolvedIntent = 'conversion';
-    } else if (Array.from(normalizedPhotoModeKeys).some((mode) => editorialKeys.has(mode))) {
-      resolvedIntent = 'editorial-ritual';
-    } else {
-      const fallbackEditorialMode = COFFEE_EDITORIAL_MODE_MAP[rules?.editorialPhotoModes?.[0] || ''];
-      const fallbackConversionMode = COFFEE_CONVERSION_FALLBACK_MODE;
-      const fallbackMode = fallbackEditorialMode || fallbackConversionMode;
-      v2State.photoMode = fallbackMode;
-      resolvedIntent = fallbackEditorialMode ? 'editorial-ritual' : 'conversion';
-    }
-
+    const resolvedIntent = resolveCoffeeIntent(v2State.photoMode || '');
     v2State.visualIntent = resolvedIntent;
 
     if (resolvedIntent === 'conversion') {
@@ -391,6 +354,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       v2State.contrastProfile = 'medium';
       v2State.compositionProfile = 'ritual-balance';
     }
+
+    allowedInteractions = rules?.interactionWhitelistByIntent?.[resolvedIntent] || ['none'];
+  } else if (industryProfile === 'wine') {
+    allowedInteractions = rules?.interactionWhitelist || ['none'];
+  } else if (industryProfile === 'supplements') {
+    allowedInteractions = rules?.interactionWhitelist || ['none'];
+  } else {
+    allowedInteractions = rules?.interactionWhitelist || ['none'];
   }
 
   const interactionKey = String(state.interaction || '').trim();

@@ -30,6 +30,7 @@ import {
   isWinePrestigeMode,
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
+import { resolveCoffeeIntent } from '@/lib/productStudio/resolveCoffeeIntent';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -1272,7 +1273,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const productStore = useProductStudioStore();
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const industryProfile: IndustryProfile =
-    productStore.visualProfile === 'wine-prestige' ? 'wine' : 'supplements';
+    productStore.visualProfile === 'wine-prestige'
+      ? 'wine'
+      : productStore.visualProfile === 'default'
+        ? 'supplements'
+        : (productStore.visualProfile as IndustryProfile);
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
     'natural-light',
@@ -6176,7 +6181,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-5">
           {(() => {
-            const allowedInteractions = activeIndustryRules?.interactions ?? ['none'];
+            const coffeeIntent = resolveCoffeeIntent(String(productStore.photoMode || ''));
+            const allowedInteractions =
+              industryProfile === 'coffee'
+                ? activeIndustryRules?.interactionWhitelistByIntent?.[coffeeIntent] ?? ['none']
+                : activeIndustryRules?.interactionWhitelist ?? ['none'];
             const interactionOptionMap: Record<
               string,
               {
@@ -6190,12 +6199,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 detail: 'No hands. No skin. No human shadows.',
                 stateValue: 'none',
               },
-              capsuleDisplay: {
+              'capsule-display': {
                 label: 'Capsule Display',
                 detail: '2–4 capsules in palm + bottle visible. No pouring.',
                 stateValue: 'capsule-display',
               },
-              applyingOpening: {
+              'applying-opening': {
                 label: 'Applying / Opening',
                 detail: 'One clear action: twist/open. No consumption.',
                 stateValue: 'applying-opening',
@@ -6205,55 +6214,25 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 detail: 'One hand holds the product naturally. No gesture.',
                 stateValue: 'holding',
               },
-              supportedHold: {
-                label: 'Supported Hold',
-                detail: 'Product rests on an open palm. No pressure.',
-                stateValue: 'supported-hold',
+              'two-hand-hold': {
+                label: 'Two-hand Hold',
+                detail: 'Stable two-hand support with controlled framing.',
+                stateValue: 'two-hand-hold',
               },
-              holdingBottle: {
-                label: 'Holding Bottle',
-                detail: 'Hand holds the bottle with stable premium presentation.',
-                stateValue: 'holding',
+              presenting: {
+                label: 'Presenting',
+                detail: 'Hands present product clearly toward camera.',
+                stateValue: 'presenting',
               },
-              glassForeground: {
-                label: 'Glass Foreground',
-                detail: 'Glass appears in foreground with controlled hand support.',
-                stateValue: 'supported-hold',
-              },
-              pouringWine: {
-                label: 'Pouring Wine',
-                detail: 'Controlled pour action with premium composition.',
-                stateValue: 'applying-opening',
+              'framed-presentation': {
+                label: 'Framed Presentation',
+                detail: 'Environmental framing with premium product readability.',
+                stateValue: 'framed-presentation',
               },
               cheers: {
                 label: 'Cheers',
                 detail: 'Two-glass cheers moment with clean composition.',
                 stateValue: 'two-hand-hold',
-              },
-              cupHold: {
-                label: 'Cup Hold',
-                detail: 'Natural coffee cup hold with product-first balance.',
-                stateValue: 'holding',
-              },
-              pouringEspresso: {
-                label: 'Pouring Espresso',
-                detail: 'Controlled espresso pour, no splash chaos.',
-                stateValue: 'applying-opening',
-              },
-              steam: {
-                label: 'Steam',
-                detail: 'Hands present while steam texture leads mood.',
-                stateValue: 'passive-presence',
-              },
-              beansScatter: {
-                label: 'Beans Scatter',
-                detail: 'Coffee bean context with passive hand contact.',
-                stateValue: 'resting-interaction',
-              },
-              spoonStir: {
-                label: 'Spoon Stir',
-                detail: 'Stirring gesture with controlled framing.',
-                stateValue: 'framed-presentation',
               },
             };
             const visibleInteractionOptions = allowedInteractions

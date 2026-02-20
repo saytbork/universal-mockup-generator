@@ -3,11 +3,10 @@ import type { IndustryProfile } from './types';
 export const industryRules: Record<
   IndustryProfile,
   {
-    allowedIntents?: string[];
     conversionPhotoModes?: string[];
     editorialPhotoModes?: string[];
     interactionWhitelist?: string[];
-    interactions?: string[];
+    interactionWhitelistByIntent?: Record<string, string[]>;
     allowedPhotoModes?: string[];
     allowedProductTypes?: string[];
     allowedSpecialEffects?: string[];
@@ -15,20 +14,21 @@ export const industryRules: Record<
   }
 > = {
   supplements: {
-    interactions: [
+    interactionWhitelist: [
       'none',
-      'capsuleDisplay',
-      'applyingOpening',
       'holding',
-      'supportedHold',
+      'two-hand-hold',
+      'presenting',
+      'capsule-display',
+      'applying-opening',
     ],
   },
   wine: {
-    interactions: [
+    interactionWhitelist: [
       'none',
-      'holdingBottle',
-      'glassForeground',
-      'pouringWine',
+      'holding',
+      'two-hand-hold',
+      'presenting',
       'cheers',
     ],
     allowedPhotoModes: [
@@ -52,10 +52,9 @@ export const industryRules: Record<
     ],
   },
   beauty: {
-    interactions: ['none'],
+    interactionWhitelist: ['none'],
   },
   coffee: {
-    allowedIntents: ['conversion', 'editorial-ritual'],
     conversionPhotoModes: [
       'hero-landing',
       'color-pop-hero',
@@ -66,20 +65,20 @@ export const industryRules: Record<
       'soft-wellness-morning',
       'editorial-table',
     ],
-    interactionWhitelist: [
-      'none',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-    ],
-    interactions: [
-      'none',
-      'cupHold',
-      'pouringEspresso',
-      'steam',
-      'beansScatter',
-      'spoonStir',
-    ],
+    interactionWhitelistByIntent: {
+      conversion: [
+        'none',
+        'holding',
+        'two-hand-hold',
+        'presenting',
+      ],
+      'editorial-ritual': [
+        'none',
+        'holding',
+        'two-hand-hold',
+        'framed-presentation',
+      ],
+    },
   },
   luxury: {},
   tech: {},
