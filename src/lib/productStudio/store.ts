@@ -49,10 +49,12 @@ import type {
     PhotoModeConfig,
     ProductPlacement,
     VisualProfile,
+    WineAction,
     WineLightingTone,
     WineMoodModifier,
+    WinePourStyle,
 } from './types';
-import { isWinePrestigeMode, WINE_ENVIRONMENT_PRESETS } from './winePrestige';
+import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_ENVIRONMENT_PRESETS, WINE_POUR_STYLE_OPTIONS } from './winePrestige';
 
 
 // ============================================================================
@@ -652,6 +654,8 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     visualProfile: 'default',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'None',
+    wineAction: 'static-presentation',
+    winePourStyle: 'mid-flow-elegance',
     visualIntent: 'conversion',
     energyLevel: 'low',
     creativityLevel: 1,
@@ -802,6 +806,8 @@ type ProductStudioActions = {
     setCategory: (category: string) => void;
     setContextPreset: (preset: string) => void;
     setVisualProfile: (profile: VisualProfile) => void;
+    setWineAction: (action: WineAction) => void;
+    setWinePourStyle: (style: WinePourStyle) => void;
     setWineLightingTone: (tone: WineLightingTone) => void;
     setWineMoodModifier: (modifier: WineMoodModifier) => void;
     setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
@@ -1256,6 +1262,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     visualProfile: 'default',
                     category: '',
                     contextPreset: '',
+                    wineAction: 'static-presentation',
                 };
             }
             const fallbackPreset = state.contextPreset || WINE_ENVIRONMENT_PRESETS[0];
@@ -1263,10 +1270,30 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 visualProfile: 'wine-prestige',
                 category: state.category || 'Wine',
                 contextPreset: fallbackPreset,
+                wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)
+                    ? state.wineAction
+                    : 'static-presentation',
+                winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(state.winePourStyle as WinePourStyle)
+                    ? state.winePourStyle
+                    : 'mid-flow-elegance',
                 visualIntent: 'campaign',
                 composition: state.composition === 'centered' ? 'thirds' : state.composition,
             };
         }),
+    setWineAction: (action) =>
+        set((state) => {
+            const normalized: WineAction = action === 'controlled-pour' ? 'controlled-pour' : 'static-presentation';
+            const next: Partial<ProductStudioState> = { wineAction: normalized };
+            if (state.visualProfile === 'wine-prestige' && normalized === 'controlled-pour') {
+                next.stateMotion = 'static';
+            }
+            return next;
+        }),
+    setWinePourStyle: (style) => set({
+        winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(style as WinePourStyle)
+            ? style
+            : 'mid-flow-elegance',
+    }),
     setWineLightingTone: (tone) => set({ wineLightingTone: tone }),
     setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
     setVisualIntent: (intent) => set({ visualIntent: intent }),

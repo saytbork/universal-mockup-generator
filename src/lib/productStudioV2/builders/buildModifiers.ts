@@ -5,9 +5,31 @@ import type { StudioUIState } from '../types/studioTypes.ts';
 export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIState): string {
   if (state?.winePrestigeMode) {
     const mood = String(state.wineMoodModifier || '').trim();
-    return mood && mood !== 'None'
-      ? `STUDIO_MODIFIERS: wine-prestige. WINE_PRESTIGE_MODIFIER: ${mood}.`
-      : 'STUDIO_MODIFIERS: wine-prestige.';
+    const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
+    const pourStyle = String(state.winePourStyle || 'mid-flow-elegance').trim();
+    const maybeMood = mood && mood !== 'None' ? `WINE_PRESTIGE_MODIFIER: ${mood}.` : '';
+    const v2PourModel = winePrestigeV2Mode
+      ? [
+          'WINE_POUR_MODEL:',
+          'Origin: bottle neck.',
+          'Flow type: laminar fluid stream.',
+          'Continuous ribbon flow.',
+          'No fragmentation unless impact occurs.',
+          'Gravity vector strict.',
+          'Viscosity slightly elevated.',
+          'Surface tension visible.',
+          'When stream hits glass: internal wave formation with micro splash inside glass only.',
+          'No external droplets. No chaotic splash. No outward explosion.',
+          `POUR_STYLE: ${pourStyle}.`,
+          pourStyle === 'peak-glass-impact'
+            ? 'Peak glass impact mode: allow internal glass turbulence only, never external splash.'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      : '';
+
+    return ['STUDIO_MODIFIERS: wine-prestige.', maybeMood, v2PourModel].filter(Boolean).join(' ');
   }
 
   if (modifiers.length === 0) {

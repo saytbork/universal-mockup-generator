@@ -3,10 +3,15 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.winePrestigeMode) {
     const tone = String(state.wineLightingTone || '').trim() || 'Warm Lateral';
+    const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
     return [
       'STUDIO_LIGHTING_MODEL: wine-prestige.',
       `WINE_LIGHTING_TONE: ${tone}.`,
-      'LIGHTING_MODEL: warm lateral key light, soft shadow falloff, controlled specular highlights, low-intensity rim separation, and subtle ambient fill (never flat).',
+      'LIGHTING_MODEL: warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights, and subtle ambient fill (never flat).',
+      winePrestigeV2Mode
+        ? 'WINE_POUR_HIGHLIGHT_TRACKING: track controlled highlights along the flowing wine stream.'
+        : '',
+      'LIGHTING_PRIORITY: liquid glow > bottle silhouette > label.',
       'TONE_MAPPING: slight warmth bias with deep shadow preservation and strict highlight control. Do not overexpose label typography.',
       'LIGHTING_DETAIL: allow crisp micro-edge highlights on droplets/reflections while preserving product geometry lock.',
       'HARD_DISABLES: hyper-clinical lighting and flat ecommerce lighting are forbidden.',

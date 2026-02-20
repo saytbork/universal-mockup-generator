@@ -1,8 +1,10 @@
 import type {
   ProductStudioState,
+  WineAction,
   WineEnvironmentPreset,
   WineLightingTone,
   WineMoodModifier,
+  WinePourStyle,
 } from './types';
 
 export const WINE_ENVIRONMENT_PRESETS: WineEnvironmentPreset[] = [
@@ -28,6 +30,14 @@ export const WINE_MODIFIERS: WineMoodModifier[] = [
   'Elegant Reflection Layer',
 ];
 
+export const WINE_ACTION_OPTIONS: WineAction[] = ['static-presentation', 'controlled-pour'];
+
+export const WINE_POUR_STYLE_OPTIONS: WinePourStyle[] = [
+  'slow-ribbon',
+  'mid-flow-elegance',
+  'peak-glass-impact',
+];
+
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
 export function isWinePrestigeMode(state: Pick<ProductStudioState, 'category' | 'contextPreset' | 'visualProfile'>): boolean {
@@ -39,6 +49,12 @@ export function isWinePrestigeMode(state: Pick<ProductStudioState, 'category' | 
     contextPreset === 'winery / vineyard' ||
     visualProfile === 'wine-prestige'
   );
+}
+
+export function isWinePrestigeV2Mode(
+  state: Pick<ProductStudioState, 'visualProfile' | 'wineAction'>
+): boolean {
+  return normalize(state.visualProfile) === 'wine-prestige' && normalize(state.wineAction) === 'controlled-pour';
 }
 
 export function getWineEnvironmentNarrative(preset: string): string {

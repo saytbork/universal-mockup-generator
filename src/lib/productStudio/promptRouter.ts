@@ -1,7 +1,7 @@
 import type { ProductAsset, ProductStudioState } from './types';
 import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
-import { isWinePrestigeMode } from './winePrestige';
+import { isWinePrestigeMode, isWinePrestigeV2Mode } from './winePrestige';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 
@@ -130,6 +130,7 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = isWinePrestigeMode(state);
+  const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
   return {
     creativeIntent: inferStudioIntent(state),
     world: inferStudioWorld(state),
@@ -152,9 +153,12 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(splashFreezeMoment ? { splashFreezeMoment } : {}),
     ...(splashAdMode ? { splashAdMode: true } : {}),
     ...(winePrestigeMode ? { winePrestigeMode: true } : {}),
+    ...(winePrestigeV2Mode ? { winePrestigeV2Mode: true } : {}),
     ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
     ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
     ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
+    ...(state.wineAction ? { wineAction: state.wineAction } : {}),
+    ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
   } as StudioUIState;
 }
 

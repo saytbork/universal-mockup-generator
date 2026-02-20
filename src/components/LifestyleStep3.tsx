@@ -25,7 +25,14 @@ import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceRes
 import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
-import { WINE_ENVIRONMENT_PRESETS, WINE_LIGHTING_TONES, WINE_MODIFIERS, isWinePrestigeMode } from '@/lib/productStudio/winePrestige';
+import {
+  WINE_ACTION_OPTIONS,
+  WINE_ENVIRONMENT_PRESETS,
+  WINE_LIGHTING_TONES,
+  WINE_MODIFIERS,
+  WINE_POUR_STYLE_OPTIONS,
+  isWinePrestigeMode,
+} from '@/lib/productStudio/winePrestige';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -2537,6 +2544,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       {winePrestigeModeActive && (
                         <div className="mt-4 space-y-4">
                           <div>
+                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Action</p>
+                            <div className="flex flex-wrap gap-2">
+                              {WINE_ACTION_OPTIONS.map((action) => (
+                                <Chip
+                                  key={action}
+                                  selected={productStore.wineAction === action}
+                                  onClick={() => {
+                                    productStore.setWineAction(action);
+                                    markSectionTouched('product-setup');
+                                  }}
+                                >
+                                  {action === 'static-presentation' ? 'Static Presentation' : 'Controlled Pour'}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
                             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment Preset</p>
                             <div className="flex flex-wrap gap-2">
                               {WINE_ENVIRONMENT_PRESETS.map((preset) => (
@@ -2553,6 +2577,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               ))}
                             </div>
                           </div>
+                          {productStore.wineAction === 'controlled-pour' && (
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Pour Style</p>
+                              <div className="flex flex-wrap gap-2">
+                                {WINE_POUR_STYLE_OPTIONS.map((style) => (
+                                  <Chip
+                                    key={style}
+                                    selected={productStore.winePourStyle === style}
+                                    onClick={() => {
+                                      productStore.setWinePourStyle(style);
+                                      markSectionTouched('product-setup');
+                                    }}
+                                  >
+                                    {style === 'slow-ribbon'
+                                      ? 'Slow Ribbon'
+                                      : style === 'mid-flow-elegance'
+                                        ? 'Mid-flow Elegance'
+                                        : 'Peak Glass Impact'}
+                                  </Chip>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div>
                             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
                             <div className="flex flex-wrap gap-2">

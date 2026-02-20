@@ -56,9 +56,12 @@ export interface StudioUIState {
   splashFreezeMoment?: string;
   splashMotionIntensity?: string;
   winePrestigeMode?: boolean;
+  winePrestigeV2Mode?: boolean;
   wineContextPreset?: string;
   wineLightingTone?: string;
   wineMoodModifier?: string;
+  wineAction?: 'static-presentation' | 'controlled-pour';
+  winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;

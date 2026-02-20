@@ -560,6 +560,8 @@ export type WineMoodModifier =
     | 'Deep Burgundy Contrast Boost'
     | 'Soft Barrel Ambient Haze'
     | 'Elegant Reflection Layer';
+export type WineAction = 'static-presentation' | 'controlled-pour';
+export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -703,6 +705,8 @@ export type ProductStudioState = {
     visualProfile: VisualProfile;
     wineLightingTone: WineLightingTone;
     wineMoodModifier: WineMoodModifier;
+    wineAction: WineAction;
+    winePourStyle: WinePourStyle;
     visualIntent: VisualIntent;
     energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;

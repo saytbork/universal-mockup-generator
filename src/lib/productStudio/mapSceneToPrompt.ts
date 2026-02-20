@@ -35,7 +35,7 @@ import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
 import { resolveAtmosphere, type CanonicalScene, type CanonicalSceneIngredient } from '../prompt/atmosphereResolver';
 import { validateAtmosphere } from '../prompt/atmosphereValidator';
 import { buildAtmosphereDebugTree } from '../prompt/atmosphereDebugTree';
-import { getWineEnvironmentNarrative, isWinePrestigeMode } from './winePrestige';
+import { getWineEnvironmentNarrative, isWinePrestigeMode, isWinePrestigeV2Mode } from './winePrestige';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -279,6 +279,11 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
   );
   const moodModifier = String((state as any).wineMoodModifier || '').trim();
   const lightingTone = String((state as any).wineLightingTone || '').trim() || 'Warm Lateral';
+  const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
+  const pourStyle = String((state as any).winePourStyle || 'mid-flow-elegance').trim();
+  const whiteWineSignal = `${String(state.contextPreset || '')} ${String((state as any).wineMoodModifier || '')} ${String(state.photoMode || '')}`
+    .toLowerCase()
+    .includes('white');
 
   const parts = [
     'SCENE TYPE: wine-prestige.',
@@ -286,12 +291,36 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
     'CREATION INTENT: brand-prestige.',
     'WINE PRESTIGE NARRATIVE BASE: Premium wine presentation. Atmosphere-driven composition. Emphasize depth, texture, silence, and material richness. The bottle is integrated naturally within a refined environment. Preserve exact label fidelity and geometry. Use cinematic lens compression and warm lateral lighting. Avoid commercial splash energy. Focus on elegance, mood, and premium brand perception.',
     environmentNarrative,
-    'COMPOSITION: Product-first composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. Never force rigid center unless explicitly selected.',
+    winePrestigeV2Mode
+      ? 'WINE_PRESTIGE_VERSION: V2 Cinematic Pour Edition.'
+      : 'WINE_PRESTIGE_VERSION: V1 Static Presentation.',
+    winePrestigeV2Mode
+      ? 'WINE_PRESTIGE_V2_NARRATIVE: Premium wine presentation with controlled cinematic pouring action. Emphasize elegance, depth, and refined atmosphere. The wine flows smoothly from the bottle in a continuous ribbon with natural gravity-driven motion. No explosive splash behavior. Focus on material richness, glass refraction, liquid translucency, and warm lateral lighting. Preserve exact label fidelity and bottle geometry. The composition should feel sophisticated, intimate, and premium.'
+      : '',
+    `WINE_ACTION: ${String((state as any).wineAction || 'static-presentation')}.`,
+    winePrestigeV2Mode ? `POUR_STYLE: ${pourStyle}.` : '',
+    'COMPOSITION: Product First composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. Bottle tilt between 5° and 15° max. Glass can be foreground or midground. Never force rigid center unless explicitly selected.',
     'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur". Top-down camera forbidden. Ultra-wide lens forbidden.',
-    `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, soft shadow falloff, controlled specular highlights, low-intensity rim separation, subtle ambient fill, slight warmth bias, deep shadow preservation, and no overexposed label.`,
+    `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
+    whiteWineSignal
+      ? 'LIQUID_RENDERING: pale golden translucency, increased internal glow, lower opacity density, slight meniscus at glass contact, and realistic refractive distortion.'
+      : 'LIQUID_RENDERING: deep burgundy translucency, light absorption at the core, edge luminosity near the surface, slight meniscus at glass contact, and realistic refractive distortion.',
+    winePrestigeV2Mode
+      ? [
+        'WINE_POUR_MODEL: Origin at bottle neck.',
+        'Flow type laminar fluid stream with continuous ribbon flow.',
+        'No fragmentation unless impact occurs.',
+        'Strict gravity vector, slightly elevated viscosity, and visible surface tension.',
+        'When stream hits glass: internal wave formation and micro splash inside glass only.',
+        'No external droplets, no chaotic splash, no outward explosion.',
+        pourStyle === 'peak-glass-impact'
+          ? 'Peak glass impact: internal glass turbulence only; never external splash.'
+          : '',
+      ].filter(Boolean).join(' ')
+      : '',
     'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
     moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
-    'HARD DISABLES: splash engine disabled, splash physics disabled, studio product motion disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
+    'HARD DISABLES: splash engine disabled, studio product motion disabled, splash physics engine disabled, radial splash spread disabled, droplet fragmentation logic disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
     'LOCKS: GEOMETRY_LOCK=true. LABEL_LOCK=true. TEXT_PRESERVATION=strict. Preserve exact product proportions and label fidelity.',
   ].filter(Boolean);
 
