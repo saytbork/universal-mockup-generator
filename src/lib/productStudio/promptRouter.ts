@@ -17,7 +17,7 @@ const normalize = (value: unknown): string => String(value || '').trim().toLower
 
 function isStudioV2Enabled(): boolean {
   const flag = import.meta.env.VITE_USE_STUDIO_V2;
-  const enabled = flag === 'true';
+  const enabled = flag !== 'false';
   console.log(
     `[STUDIO ROUTER] flag v2=${flag ?? 'undefined'} source=vite enabled=${enabled}`
   );
