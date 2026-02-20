@@ -41,13 +41,13 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildIntent(authority, state),
     buildWorld(authority, effectiveState.world, state),
     buildCoffeeIndustryLayer(authority, state),
-    buildComposition(authority, state), // Pass state for bundle detection
     buildCameraOverrides(effectiveState),
+    buildComposition(authority, state), // Pass state for bundle detection
     buildMotion(authority, state),
     winePrestigeMode ? '' : buildPhysics(authority, state),
     buildModifiers(modifiers, state),
-    buildLighting(authority, state),
     buildMaterials(authority, state),
+    buildLighting(authority, state),
     buildPackaging(state),
     buildGeometry(authority, state),
     ...protectionLayer,

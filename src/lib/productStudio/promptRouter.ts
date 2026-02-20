@@ -414,7 +414,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       cameraRotation: inferRotationOverride(state),
       framingGuide: inferFramingGuideOverride(state),
     },
-    industryProfile
+    industryProfile,
+    {
+      wineCorkRemovalActive:
+        industryProfile === 'wine' &&
+        (capabilityResolvedProductState === 'opened' || capabilityResolvedProductState === 'pouring'),
+      distortionRiskThreshold: 0.75,
+    }
   );
   for (const warning of resolvedCamera.warnings) {
     console.warn(`[CAMERA SAFETY] ${warning}`);

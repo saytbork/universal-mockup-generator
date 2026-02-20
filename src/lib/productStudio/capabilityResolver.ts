@@ -121,7 +121,11 @@ export function resolveCameraByCapability(
     cameraRotation?: string;
     framingGuide?: string;
   },
-  industryProfile: IndustryProfile
+  industryProfile: IndustryProfile,
+  options?: {
+    wineCorkRemovalActive?: boolean;
+    distortionRiskThreshold?: number;
+  }
 ): {
   cameraSystem: string;
   cameraAngle: string;
@@ -148,19 +152,25 @@ export function resolveCameraByCapability(
 
   const warnings: string[] = [];
   if (industryProfile === 'wine') {
-    if (/top-?down/i.test(base.cameraAngle)) {
-      base.cameraAngle = '45° hero';
-      warnings.push('Wine safety: top-down angle not allowed. Reverted to 45° hero.');
+    const corkRemovalActive = Boolean(options?.wineCorkRemovalActive);
+    const distortionRiskThreshold = Number(options?.distortionRiskThreshold ?? 0.75);
+    const normalizedDistance = String(base.cameraDistance || '').toLowerCase();
+    const normalizedAngle = String(base.cameraAngle || '').toLowerCase();
+    const normalizedRotation = String(base.cameraRotation || '').toLowerCase();
+
+    const numericRotation = Number(normalizedRotation.replace(/[^\d.-]/g, '')) || 0;
+    const wideRisk = /wide/.test(normalizedDistance);
+    const tiltRisk = numericRotation > 10 ? 0.35 : 0;
+    const angleRisk = /low angle|high angle/.test(normalizedAngle) ? 0.25 : 0;
+    const distortionRisk = (wideRisk ? 0.6 : 0) + tiltRisk + angleRisk;
+
+    if (corkRemovalActive && /top-?down/i.test(normalizedAngle)) {
+      base.cameraAngle = 'High angle';
+      warnings.push('Wine safety: top-down blocked during cork-removal action. Clamped angle to High angle.');
     }
-    if (/wide/i.test(base.cameraDistance)) {
+    if (distortionRisk > distortionRiskThreshold && /wide/.test(normalizedDistance)) {
       base.cameraDistance = 'Standard';
-      warnings.push('Wine safety: ultra-wide distance not allowed. Reverted to Standard.');
-    }
-    if (/macro/i.test(base.cameraDistance) || /detail close-up/i.test(base.cameraAngle) || /macro/i.test(base.cameraSystem)) {
-      base.cameraSystem = 'DSLR / mirrorless camera system';
-      base.cameraAngle = '45° hero';
-      base.cameraDistance = 'Standard';
-      warnings.push('Wine safety: macro extreme close-up not allowed. Reverted to safe camera values.');
+      warnings.push('Wine safety: wide distance exceeded distortion threshold. Clamped distance to Standard.');
     }
   }
 
