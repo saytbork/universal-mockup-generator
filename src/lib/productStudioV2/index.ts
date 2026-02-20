@@ -10,6 +10,7 @@ import { buildLighting } from './builders/buildLighting.ts';
 import { buildMaterials } from './builders/buildMaterials.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
+import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
@@ -45,6 +46,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildLighting(authority, state),
     buildMaterials(authority, state),
     buildGeometry(authority, state),
+    buildCameraOverrides(state),
     ...protectionLayer,
   ];
 

@@ -122,8 +122,63 @@ function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requ
   return Array.from(requested) as StudioUIState['requestedModifiers'];
 }
 
-function toStudioV2State(state: ProductStudioState): StudioUIState {
+function inferCameraSystemOverride(state: ProductStudioState): string {
+  const byKey: Record<ProductStudioState['cameraSystem'], string> = {
+    dslr_mirrorless: 'DSLR / mirrorless camera system',
+    macro: 'Macro lens camera system',
+    telephoto: 'Telephoto compression camera system',
+  };
+  const uiLabel = String(state.cameraUiSystemLabel || '').trim();
+  return uiLabel || byKey[state.cameraSystem];
+}
+
+function inferAngleOverride(state: ProductStudioState): string {
+  const byKey: Record<ProductStudioState['angle'], string> = {
+    eye_level: 'Eye level',
+    '45_hero': '45° hero',
+    top_down: 'Top-down flat lay',
+    low_angle: 'Low angle',
+    high_angle: 'High angle',
+    detail_closeup: 'Detail close-up',
+  };
+  const uiLabel = String(state.cameraUiAngleLabel || '').trim();
+  return uiLabel || byKey[state.angle];
+}
+
+function inferDistanceOverride(state: ProductStudioState): string {
+  const byKey: Record<ProductStudioState['distance'], string> = {
+    wide: 'Wide',
+    standard: 'Standard',
+    tight: 'Tight',
+    macro: 'Macro',
+  };
+  const uiLabel = String(state.cameraUiDistanceLabel || '').trim();
+  return uiLabel || byKey[state.distance];
+}
+
+function inferRotationOverride(state: ProductStudioState): string {
+  const uiLabel = String(state.cameraUiRotationLabel || '').trim();
+  if (uiLabel) return uiLabel;
+  return `${state.rotation}°`;
+}
+
+function inferFramingGuideOverride(state: ProductStudioState): string {
+  const byKey: Record<ProductStudioState['framing'], string> = {
+    centered_hero: 'Centered hero',
+    rule_of_thirds: 'Rule of thirds',
+    left_negative: 'Left negative space',
+    right_negative: 'Right negative space',
+    grid_ready: 'Grid-ready',
+  };
+  const uiLabel = String(state.cameraUiFramingLabel || '').trim();
+  return uiLabel || byKey[state.framing];
+}
+
+export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
+  const advancedControls =
+    state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+  const shouldAssignWineFields = state.visualProfile === 'wine';
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
@@ -136,6 +191,7 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     world: inferStudioWorld(state),
     motion: inferStudioMotion(state),
     composition: inferStudioComposition(state),
+    ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
     aspectRatio: state.aspectRatio,
     photoMode: state.photoMode,
@@ -154,11 +210,24 @@ function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(splashAdMode ? { splashAdMode: true } : {}),
     ...(winePrestigeMode ? { winePrestigeMode: true } : {}),
     ...(winePrestigeV2Mode ? { winePrestigeV2Mode: true } : {}),
-    ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
-    ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
-    ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
-    ...(state.wineAction ? { wineAction: state.wineAction } : {}),
-    ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
+    ...(shouldAssignWineFields
+      ? {
+          ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
+          ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
+          ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
+          ...(state.wineAction ? { wineAction: state.wineAction } : {}),
+          ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
+        }
+      : {}),
+    ...(advancedControls
+      ? {
+          cameraSystemOverride: inferCameraSystemOverride(state),
+          angleOverride: inferAngleOverride(state),
+          distanceOverride: inferDistanceOverride(state),
+          rotationOverride: inferRotationOverride(state),
+          framingGuideOverride: inferFramingGuideOverride(state),
+        }
+      : {}),
   } as StudioUIState;
 }
 

@@ -43,6 +43,7 @@ export interface StudioUIState {
   world?: StudioWorld;
   motion: StudioMotion;
   composition: StudioComposition;
+  advancedControls?: boolean;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
   photoMode?: string;
@@ -62,6 +63,11 @@ export interface StudioUIState {
   wineMoodModifier?: string;
   wineAction?: 'static-presentation' | 'controlled-pour';
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+  cameraSystemOverride?: string;
+  angleOverride?: string;
+  distanceOverride?: string;
+  rotationOverride?: string;
+  framingGuideOverride?: string;
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;
