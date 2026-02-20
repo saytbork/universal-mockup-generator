@@ -53,9 +53,21 @@ describe('coffee industry isolation', () => {
     expect(first.motion).toBe('static');
 
     expect(prompt).toContain('COFFEE_LIQUID_PHYSICS:');
+    expect(prompt).toContain('COFFEE_PACKAGING_MODE: enforced.');
+    expect(prompt).toContain('PRIMARY_SUBJECT_RULE:');
+    expect(prompt).toContain('CONTEXT_RULE:');
+    expect(prompt).toContain('PROHIBITIONS:');
+    expect(prompt).toContain('ACCENT_SCALE_RULE:');
+    expect(prompt).toContain('PRODUCT_ENFORCEMENT: true.');
     expect(prompt).toContain('NO_GLASS_PRIORITY:');
     expect(prompt).toContain('STEAM_BEHAVIOR:');
     expect(prompt).toContain('COFFEE_COMPOSITION_PROFILE:');
+    expect(prompt).not.toContain('PRODUCT TYPE:');
+    expect(prompt).not.toContain('PACKAGING:');
+    expect(prompt).not.toContain('PHYSICAL SCALE:');
+    expect(prompt).not.toContain('Studio Worlds');
+    expect(prompt).not.toContain('Brand Worlds');
+    expect(prompt).not.toContain('Lifestyle Worlds');
     expect(prompt).not.toContain('WINE_');
     expect(prompt).not.toContain('wine-prestige');
     expect(prompt).not.toContain('wine-glass-priority');

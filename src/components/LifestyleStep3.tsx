@@ -1269,6 +1269,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       : productStore.visualProfile === 'default'
         ? 'supplements'
         : (productStore.visualProfile as IndustryProfile);
+  const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
     'natural-light',
@@ -1309,6 +1310,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     if (nextProfile === 'wine') {
       productStore.setVisualProfile('wine-prestige');
+      resetIndustryFields(nextProfile, productStore);
     } else if (nextProfile === 'coffee') {
       productStore.setVisualProfile('coffee');
       resetIndustryFields(nextProfile, productStore);
@@ -2657,17 +2659,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {industryProfile === 'coffee' && industryModuleRegistry.coffee && (
                       <industryModuleRegistry.coffee
-                        coffeeMode={productStore.coffeeMode}
                         coffeeAction={productStore.coffeeAction}
                         contextPreset={productStore.contextPreset}
                         coffeeLightingTone={productStore.coffeeLightingTone}
                         coffeeMoodModifier={productStore.coffeeMoodModifier}
                         coffeeSteamLevel={productStore.coffeeSteamLevel}
                         coffeeLiquidPhysics={productStore.coffeeLiquidPhysics}
-                        onCoffeeModeChange={(mode) => {
-                          productStore.setCoffeeMode(mode);
-                          markSectionTouched('product-setup');
-                        }}
+                        propsValue={productStore.props}
                         onCoffeeActionChange={(action) => {
                           productStore.setCoffeeAction(action);
                           markSectionTouched('product-setup');
@@ -2690,6 +2688,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         }}
                         onCoffeeLiquidPhysicsChange={(enabled) => {
                           productStore.setCoffeeLiquidPhysics(enabled);
+                          markSectionTouched('product-setup');
+                        }}
+                        onPropsValueChange={(next) => {
+                          productStore.setProps(next);
                           markSectionTouched('product-setup');
                         }}
                       />
@@ -2741,6 +2743,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Cozy Indoors', value: 'cozy-indoors' },
                               { label: 'Ring Light', value: 'ring-light' },
                             ];
+                            const filteredLightingOptions = isCoffeeIndustry
+                              ? lightingOptions.filter(
+                                  ({ value }) =>
+                                    value === 'natural-light' ||
+                                    value === 'overcast' ||
+                                    value === 'cozy-indoors'
+                                )
+                              : lightingOptions;
 
                             // Photo Mode is single-select across all groups.
                             // Clean up legacy "effects:" overlays so switching modes doesn't keep injecting modifiers.
@@ -2866,125 +2876,127 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
 
-                                <div className="space-y-6">
-                                  <div>
-                                    <p className={GROUP_LABEL_CLASS}>VISUAL STYLE</p>
-                                    <p className="text-[11px] text-gray-500 mt-1">Overall aesthetic and brand mood.</p>
+                                {!isCoffeeIndustry && (
+                                  <div className="space-y-6">
+                                    <div>
+                                      <p className={GROUP_LABEL_CLASS}>VISUAL STYLE</p>
+                                      <p className="text-[11px] text-gray-500 mt-1">Overall aesthetic and brand mood.</p>
+                                    </div>
+                                    <div className="space-y-5">
+                                      <div className="space-y-3">
+                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
+                                        <div className="flex flex-wrap gap-3">
+                                          {visualStyleOptions.filter(x =>
+                                            x.mode === 'Clinical Lab Counter' ||
+                                            x.mode === 'Minimal Bathroom Vanity' ||
+                                            x.mode === 'Dark Premium Studio' ||
+                                            x.mode === 'Tech Clean Studio'
+                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
+                                            <Chip
+                                              key={label}
+                                              selected={productStore.photoMode === mode}
+                                              description={CHIP_TOOLTIPS[mode] || label}
+                                              onClick={() => {
+                                                applyPhotoMode(mode);
+                                              }}
+                                            >
+                                              <span className="truncate max-w-full">{label}</span>
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-3">
+                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
+                                        <div className="flex flex-wrap gap-3">
+                                          {visualStyleOptions.filter(x =>
+                                            x.mode === 'Monochrome Brand' ||
+                                            x.mode === 'Brand Campaign' ||
+                                            x.mode === 'Creator Premium Simulation'
+                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
+                                            <Chip
+                                              key={label}
+                                              selected={productStore.photoMode === mode}
+                                              description={CHIP_TOOLTIPS[mode] || label}
+                                              onClick={() => {
+                                                applyPhotoMode(mode);
+                                              }}
+                                            >
+                                              <span className="truncate max-w-full">{label}</span>
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-3">
+                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
+                                        <div className="flex flex-wrap gap-3">
+                                          {visualStyleOptions.filter(x =>
+                                            x.mode === 'Soft Wellness Morning' ||
+                                            x.mode === 'Outdoor Energy Boost'
+                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
+                                            <Chip
+                                              key={label}
+                                              selected={productStore.photoMode === mode}
+                                              description={CHIP_TOOLTIPS[mode] || label}
+                                              onClick={() => {
+                                                applyPhotoMode(mode);
+                                              }}
+                                            >
+                                              <span className="truncate max-w-full">{label}</span>
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-3">
+                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
+                                        <div className="flex flex-wrap gap-3">
+                                          {visualStyleOptions.filter(x =>
+                                            x.mode === 'Sunlit Stone Editorial' ||
+                                            x.mode === 'Golden Sunset Backlit' ||
+                                            x.mode === 'Bathroom Daylight Clean' ||
+                                            x.mode === 'Warm Window Wood'
+                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
+                                            <Chip
+                                              key={label}
+                                              selected={productStore.photoMode === mode}
+                                              description={CHIP_TOOLTIPS[mode] || label}
+                                              onClick={() => {
+                                                applyPhotoMode(mode);
+                                              }}
+                                            >
+                                              <span className="truncate max-w-full">{label}</span>
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-3">
+                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
+                                        <div className="flex flex-wrap gap-3">
+                                          {visualStyleOptions.filter(x =>
+                                            x.mode === 'Sky Float Minimal' ||
+                                            x.mode === 'Wet Rock Ripples' ||
+                                            x.mode === 'Sand Palm Shadows' ||
+                                            x.mode === 'Botanical Water Garden'
+                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
+                                            <Chip
+                                              key={label}
+                                              selected={productStore.photoMode === mode}
+                                              description={CHIP_TOOLTIPS[mode] || label}
+                                              onClick={() => {
+                                                applyPhotoMode(mode);
+                                              }}
+                                            >
+                                              <span className="truncate max-w-full">{label}</span>
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="space-y-5">
-                                    <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {visualStyleOptions.filter(x =>
-                                          x.mode === 'Clinical Lab Counter' ||
-                                          x.mode === 'Minimal Bathroom Vanity' ||
-                                          x.mode === 'Dark Premium Studio' ||
-                                          x.mode === 'Tech Clean Studio'
-                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {visualStyleOptions.filter(x =>
-                                          x.mode === 'Monochrome Brand' ||
-                                          x.mode === 'Brand Campaign' ||
-                                          x.mode === 'Creator Premium Simulation'
-                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {visualStyleOptions.filter(x =>
-                                          x.mode === 'Soft Wellness Morning' ||
-                                          x.mode === 'Outdoor Energy Boost'
-                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {visualStyleOptions.filter(x =>
-                                          x.mode === 'Sunlit Stone Editorial' ||
-                                          x.mode === 'Golden Sunset Backlit' ||
-                                          x.mode === 'Bathroom Daylight Clean' ||
-                                          x.mode === 'Warm Window Wood'
-                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {visualStyleOptions.filter(x =>
-                                          x.mode === 'Sky Float Minimal' ||
-                                          x.mode === 'Wet Rock Ripples' ||
-                                          x.mode === 'Sand Palm Shadows' ||
-                                          x.mode === 'Botanical Water Garden'
-                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                                )}
 
                                 <div className="space-y-6">
                                   <div>
@@ -2992,7 +3004,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style.</p>
                                   </div>
                                   <div className="flex flex-wrap gap-3">
-                                    {lightingOptions.map(({ label, value }) => (
+                                    {filteredLightingOptions.map(({ label, value }) => (
                                       <Chip
                                         key={value}
                                         selected={productStore.lighting === value}
@@ -3016,26 +3028,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
 
-                                <div className="space-y-6">
-                                  <div>
-                                    <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
-                                    <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
+                                {!isCoffeeIndustry && (
+                                  <div className="space-y-6">
+                                    <div>
+                                      <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
+                                      <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                      {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
+                                        <Chip
+                                          key={label}
+                                          selected={productStore.photoMode === mode}
+                                          description={CHIP_TOOLTIPS[mode] || label}
+                                          onClick={() => {
+                                            applyPhotoMode(mode);
+                                          }}
+                                        >
+                                          <span className="truncate max-w-full">{label}</span>
+                                        </Chip>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className="flex flex-wrap gap-3">
-                                    {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
-                                      <Chip
-                                        key={label}
-                                        selected={productStore.photoMode === mode}
-                                        description={CHIP_TOOLTIPS[mode] || label}
-                                        onClick={() => {
-                                          applyPhotoMode(mode);
-                                        }}
-                                      >
-                                        <span className="truncate max-w-full">{label}</span>
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
+                                )}
                               </div>
                             );
                           })()}
@@ -4230,6 +4244,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </>
                 )}
 
+              {!isCoffeeIndustry && (
+                <>
               {/* ═══════════════════════════════════════════════════════════
                       2. PRODUCT CONTEXT — What is the product?
                       Always visible in both Basic and Pro
@@ -4344,6 +4360,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   ))}
                 </div>
               </div>
+                </>
+              )}
 
               {/* ADVANCED CONTROLS — global control layer, decoupled from environment/photo type */}
               <div className={SECTION_GROUP_CLASS}>

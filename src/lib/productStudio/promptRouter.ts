@@ -388,7 +388,53 @@ function resolveCoffeeIndustryLayer(
   compositionProfile: string;
   compositionCoverage: string;
   liquidPhysicsEnabled: boolean;
+  packagingIntent:
+    | 'pdp-clean'
+    | 'premium-campaign'
+    | 'dark-roast-luxury'
+    | 'modern-minimal'
+    | 'cold-brew-fresh'
+    | 'bundle-hero';
+  beansScatter: 'low' | 'medium' | 'high';
+  cupAccent: 'none' | 'side' | 'behind-small';
+  espressoSplash: 'off' | 'controlled';
+  iceMode: 'off' | 'cold';
+  surfaceStyle:
+    | 'neutral-gradient'
+    | 'dark-stone'
+    | 'matte-wood'
+    | 'concrete-minimal'
+    | 'pure-white-pdp';
+  temperatureFeel: 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
 } {
+  const propsText = String((state as any).props || '');
+  const extractCoffeeTag = (key: string, fallback: string): string => {
+    const match = propsText.match(new RegExp(`coffee:${key}=([a-z0-9-]+)`, 'i'));
+    return match?.[1]?.toLowerCase() || fallback;
+  };
+
+  const packagingIntent = extractCoffeeTag('intent', 'pdp-clean') as
+    | 'pdp-clean'
+    | 'premium-campaign'
+    | 'dark-roast-luxury'
+    | 'modern-minimal'
+    | 'cold-brew-fresh'
+    | 'bundle-hero';
+  const beansScatter = extractCoffeeTag('beans', 'low') as 'low' | 'medium' | 'high';
+  const cupAccent = extractCoffeeTag('cup', 'side') as 'none' | 'side' | 'behind-small';
+  const espressoSplash = extractCoffeeTag('splash', 'off') as 'off' | 'controlled';
+  const iceMode = extractCoffeeTag('ice', 'off') as 'off' | 'cold';
+  const surfaceStyle = extractCoffeeTag('surface', 'neutral-gradient') as
+    | 'neutral-gradient'
+    | 'dark-stone'
+    | 'matte-wood'
+    | 'concrete-minimal'
+    | 'pure-white-pdp';
+  const temperatureFeel = extractCoffeeTag('temp', 'neutral-commercial') as
+    | 'warm-roast'
+    | 'neutral-commercial'
+    | 'cool-cold-brew';
+
   const mode: 'studio' | 'ritual' = state.coffeeMode === 'ritual' ? 'ritual' : 'studio';
   const intent: CoffeeIndustryIntent = resolveCoffeeIndustryIntent(state.photoMode || '', state.visualIntent);
   const environment = resolveCoffeeEnvironmentVariation(String(state.contextPreset || '').trim());
@@ -467,6 +513,13 @@ function resolveCoffeeIndustryLayer(
       compositionProfile: 'color-pop-luxury',
       compositionCoverage: '80–90%',
       liquidPhysicsEnabled,
+      packagingIntent,
+      beansScatter,
+      cupAccent,
+      espressoSplash,
+      iceMode,
+      surfaceStyle,
+      temperatureFeel,
     };
   }
 
@@ -496,6 +549,13 @@ function resolveCoffeeIndustryLayer(
       compositionProfile: moodProfile === 'modern-commercial' ? 'commercial-clean' : 'product-forward',
       compositionCoverage: '75–85%',
       liquidPhysicsEnabled,
+      packagingIntent,
+      beansScatter,
+      cupAccent,
+      espressoSplash,
+      iceMode,
+      surfaceStyle,
+      temperatureFeel,
     };
   }
 
@@ -530,6 +590,13 @@ function resolveCoffeeIndustryLayer(
     compositionProfile: 'ritual-balance',
     compositionCoverage: '60–70%',
     liquidPhysicsEnabled,
+    packagingIntent,
+    beansScatter,
+    cupAccent,
+    espressoSplash,
+    iceMode,
+    surfaceStyle,
+    temperatureFeel,
   };
 }
 
@@ -767,6 +834,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           coffeeLiquidPhysicsEnabled: coffeeLayer.liquidPhysicsEnabled,
           coffeeEspressoMode: coffeeLayer.espressoMode,
           coffeeCompositionCoverage: coffeeLayer.compositionCoverage,
+          coffeePackagingIntent: coffeeLayer.packagingIntent,
+          coffeeBeansScatter: coffeeLayer.beansScatter,
+          coffeeCupAccent: coffeeLayer.cupAccent,
+          coffeeEspressoSplash: coffeeLayer.espressoSplash,
+          coffeeIceMode: coffeeLayer.iceMode,
+          coffeeSurfaceStyle: coffeeLayer.surfaceStyle,
+          coffeeTemperatureFeel: coffeeLayer.temperatureFeel,
+          productReferencePresent: Array.isArray(state.products) && state.products.length > 0,
         }
       : {}),
   } as StudioUIState;
@@ -903,6 +978,9 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   console.log('[STUDIO ROUTER] v2-state', v2State);
   const v2Prompt = generateStudioPromptV2(v2State);
   const prompt = sanitizePromptForIndustry(v2Prompt, v2State.visualProfile as IndustryProfile);
+  if (v2State.visualProfile === 'coffee' && !/\bCOFFEE_PACKAGING_MODE\b/.test(prompt)) {
+    console.warn('[COFFEE PACKAGING GUARD MISSING]');
+  }
   return mapV2ToScenePromptResult(prompt);
 }
 
