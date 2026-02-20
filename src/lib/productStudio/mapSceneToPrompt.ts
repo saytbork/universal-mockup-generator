@@ -499,6 +499,27 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   return `Secondary props: ${picks.join(', ')}.`;
 }
 
+function resolveSplashShotConfig(state: ProductStudioState): ProductStudioState['photoModeConfig']['splashShot'] {
+  const splashShot = state.photoModeConfig?.splashShot;
+  if (!splashShot) {
+    return {
+      splashMedium: 'Liquid',
+      motionIntensity: 'Dynamic',
+      freezeMoment: 'Mid-splash',
+      productStability: 'Slight interaction',
+    };
+  }
+  const motionIntensity = String(splashShot.motionIntensity || '').trim();
+  const requiresImpactPhysics = motionIntensity === 'Dynamic' || motionIntensity === 'Explosive';
+  if (!requiresImpactPhysics || splashShot.productStability !== 'Fully grounded') {
+    return splashShot;
+  }
+  return {
+    ...splashShot,
+    productStability: 'Slight interaction',
+  };
+}
+
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
   const mode = state.photoMode as PhotoMode;
   const cfg = state.photoModeConfig;
@@ -547,10 +568,15 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
       add('elevation', cfg.acrylicBlocks.elevation);
       break;
     case 'Splash Shot':
-      add('splashMedium', cfg.splashShot.splashMedium);
-      add('motionIntensity', cfg.splashShot.motionIntensity);
-      add('freezeMoment', cfg.splashShot.freezeMoment);
-      add('productStability', cfg.splashShot.productStability);
+      {
+        const splash = resolveSplashShotConfig(state);
+        add('splashMedium', splash.splashMedium);
+        add('motionIntensity', splash.motionIntensity);
+        add('freezeMoment', splash.freezeMoment);
+        add('productStability', splash.productStability);
+        add('maxVerticalDisplacement', '10% frame height');
+        add('splashFlow', 'Single dominant directional flow');
+      }
       break;
     case 'Foam & Texture':
       add('textureType', cfg.foamAndTexture.textureType);

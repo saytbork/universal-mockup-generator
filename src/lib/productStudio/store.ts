@@ -117,6 +117,19 @@ const DEFAULT_CUSTOM: CustomPhysical = {
     propsAutoBlocked: true,
 };
 
+const normalizeSplashShotConfig = (
+    splashShot: PhotoModeConfig['splashShot']
+): PhotoModeConfig['splashShot'] => {
+    const motionIntensity = String(splashShot.motionIntensity || '').trim();
+    const requiresImpactPhysics = motionIntensity === 'Dynamic' || motionIntensity === 'Explosive';
+    if (!requiresImpactPhysics) return splashShot;
+    if (splashShot.productStability !== 'Fully grounded') return splashShot;
+    return {
+        ...splashShot,
+        productStability: 'Slight interaction',
+    };
+};
+
 const mapQualityProfileToVisualIntent = (
     profile: OutputQualityProfile
 ): ProductStudioState['visualIntent'] => {
@@ -544,7 +557,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         splashMedium: 'Liquid',
         motionIntensity: 'Dynamic',
         freezeMoment: 'Mid-splash',
-        productStability: 'Fully grounded',
+        productStability: 'Slight interaction',
     },
     foamAndTexture: {
         textureType: 'Foam',
@@ -1775,10 +1788,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     ...state.photoModeConfig.acrylicBlocks,
                     ...(patch.acrylicBlocks ?? {}),
                 },
-                splashShot: {
+                splashShot: normalizeSplashShotConfig({
                     ...state.photoModeConfig.splashShot,
                     ...(patch.splashShot ?? {}),
-                },
+                }),
                 foamAndTexture: {
                     ...state.photoModeConfig.foamAndTexture,
                     ...(patch.foamAndTexture ?? {}),

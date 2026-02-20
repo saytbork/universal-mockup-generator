@@ -371,7 +371,7 @@ const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['profess
 };
 
 const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStoryOptions | undefined => {
-    if (!sceneState.formulationStoryEnabled) {
+    if ((sceneState.visualMode || 'default') !== 'formulation') {
         return undefined;
     }
     const focus = EXPERT_ROLE_FOCUS_MAP[sceneState.expertRole] ?? 'custom';
@@ -758,6 +758,15 @@ export function mapLifestyleToPromptOptions(
 
     const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
     const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
+    const visualMode = (sceneState.visualMode || 'default') as NonNullable<Step3Values['visualMode']>;
+    const isUGCMode = visualMode === 'ugc';
+    const isRitualMode = visualMode === 'ritual';
+    const isHeroMode = visualMode === 'hero';
+    const isFormulationMode = visualMode === 'formulation';
+    const resolvedSceneType: 'studio-branding' | 'lifestyle-real' =
+        sceneState.sceneType === 'studio-branding' || sceneState.sceneType === 'lifestyle-real'
+            ? sceneState.sceneType
+            : 'lifestyle-real';
     const personIncludedSignal =
         (sceneState as any).personIncluded === true ||
         sceneState.noPerson === false;
@@ -766,7 +775,7 @@ export function mapLifestyleToPromptOptions(
         contentStyleRaw === 'ugc' ||
         personIncludedSignal === true;
 
-    if (!forceLifestyleEngine && sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
+    if (!forceLifestyleEngine && isUGCMode && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
         throw new Error('Invalid state: ugcRealMode + ecommerce sceneIntent');
     }
@@ -782,7 +791,7 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
     }
-    if (sceneState.formulationStoryEnabled && sceneState.noPerson) {
+    if (isFormulationMode && sceneState.noPerson) {
         console.error('[INVALID STATE BLOCKED] Formulation Story requires person enabled');
         throw new Error('Invalid state: formulation story enabled with noPerson=true');
     }
@@ -813,14 +822,20 @@ export function mapLifestyleToPromptOptions(
     }
 
     const activeEngine =
-        !forceLifestyleEngine && sceneState.sceneIntent === 'ecommerce'
+        resolvedSceneType === 'studio-branding' ||
+        (!forceLifestyleEngine && sceneState.sceneIntent === 'ecommerce')
             ? 'studio'
             : 'lifestyle';
     console.log('[ENGINE ACTIVE]', activeEngine);
 
     if (activeEngine === 'studio') {
         console.log('[PRODUCT MODE ACTIVE]');
-        return mapProductModeToPromptOptions(sceneState);
+        const studioMapped = mapProductModeToPromptOptions(sceneState);
+        return {
+            ...studioMapped,
+            sceneType: 'studio-branding',
+            visualMode: sceneState.visualMode || 'default',
+        };
     }
 
     // ========================================================================
@@ -838,21 +853,22 @@ export function mapLifestyleToPromptOptions(
         ...existingOptions,
         hasModelReference,
         identitySeed,
+        visualMode,
+        sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
     };
 
     // Formulation Story can optionally hide the product entirely (scene-only).
-    if (sceneState.formulationStoryEnabled && sceneState.formulationProductVisible === false) {
+    if (isFormulationMode && sceneState.formulationProductVisible === false) {
         (mapped as any).forceHideProduct = true;
     }
     const forceHideProductRequested = (mapped as any).forceHideProduct === true;
     const hasUploadedProductAsset = (existingOptions.productAssets?.length ?? 0) > 0;
-    const ritualHideProductRequested =
-        (sceneState as any).ritualModeEnabled === true && Boolean((sceneState as any).ritualHideProduct);
+    const ritualHideProductRequested = isRitualMode && Boolean((sceneState as any).ritualHideProduct);
 
     // Ritual Mode (Lifestyle-only)
-    if ((sceneState as any).ritualModeEnabled === true) {
+    if (isRitualMode) {
         (mapped as any).ritualModeActive = true;
         (mapped as any).ritualHideProduct = Boolean((sceneState as any).ritualHideProduct);
         (mapped as any).ritualNoObjects = Boolean((sceneState as any).ritualNoObjects);
@@ -882,7 +898,7 @@ export function mapLifestyleToPromptOptions(
     // 3. User explicitly enabled Full Automation
     mapped.randomFullAutomationActive =
         Boolean(sceneState.isRandomFullAutomationEnabled) &&
-        Boolean(sceneState.ugcRealMode) &&
+        isUGCMode &&
         !hasModelReference;
     
     // Set alias for identity builder
@@ -1034,7 +1050,7 @@ export function mapLifestyleToPromptOptions(
         rawCreationMode === 'ecommerce blank space' || rawCreationMode === 'ecom-blank';
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
-    const isUGCRealMode = !!sceneState.ugcRealMode;
+    const isUGCRealMode = !!isUGCMode;
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
     const is85Plus = isUGCRealMode && personAge >= 85;
@@ -1134,7 +1150,7 @@ export function mapLifestyleToPromptOptions(
         const editorialSkinRealism =
             // For older ages, avoid auto-upgrading to soft retouch (it collapses perceived age).
             ugcStyleKey === 'optimized' &&
-                !sceneState.ugcRealMode &&
+                !isUGCMode &&
                 personAge < 60 &&
                 (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
                 ? 'soft-retouch'
@@ -1223,7 +1239,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     const isUGCActive = isUGCRealMode;
-    const isFormulationActive = !!sceneState.formulationStoryEnabled;
+    const isFormulationActive = !!isFormulationMode;
 
     if (!isUGCActive) {
         const skinLabel = sceneState.skinRealism || 'Natural';
@@ -1250,7 +1266,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     // FRAMING/PERSPECTIVE (Manual)
-    if (!sceneState.ugcRealMode && sceneState.framing) {
+    if (!isUGCMode && sceneState.framing) {
         mapped.perspective = FRAMING_SEMANTIC_MAP[sceneState.framing] || sceneState.framing;
     }
 
@@ -1349,7 +1365,7 @@ export function mapLifestyleToPromptOptions(
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
     // ========================================================================
     const lifestyleUgcMode = creationModeKey === 'Lifestyle UGC';
-    if ((sceneState.ugcRealMode || lifestyleUgcMode) && !forceHideProductRequested) {
+    if ((isUGCMode || lifestyleUgcMode) && !forceHideProductRequested) {
         console.log('[MAP] UGC Real Mode ACTIVE - applying hard overrides');
 
         mapped.ugcRealModeActive = true;
@@ -1368,14 +1384,14 @@ export function mapLifestyleToPromptOptions(
     const normalizedFraming = normalizeSingleSelectLayer(sceneState.ugcFramingImperfections, 'ugcFramingImperfections');
     const normalizedAwkward = normalizeSingleSelectLayer(sceneState.ugcAwkwardContext, 'ugcAwkwardContext');
     const awkwardEnvironmentOverride =
-        sceneState.ugcRealMode && normalizedAwkward.length > 0
+        isUGCMode && normalizedAwkward.length > 0
             ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
             : null;
 
     const productInteractionLabel = (sceneState.productInteraction || '').trim();
     const normalizedPoseKey = normalizeKey(sceneState.pose);
     const foregroundProductFocusRequested =
-        !sceneState.ugcRealMode &&
+        !isUGCMode &&
         hasUploadedProductAsset &&
         !ritualHideProductRequested &&
         !forceHideProductRequested &&
@@ -1419,7 +1435,7 @@ export function mapLifestyleToPromptOptions(
     // IMPORTANT:
     // Only attach `ugcRealModeLayers` (and related layer fields) when Raw Domestic UGC is actually active.
     // Otherwise other builders (e.g. camera) treat the presence of this object as UGC-real-active and degrade optics.
-    if (sceneState.ugcRealMode) {
+    if (isUGCMode) {
         mapped.ugcCaptureStyleBase = normalizedCaptureBase;
         mapped.ugcCameraOperator = normalizedCameraOperator;
         mapped.ugcBodyPhonePosition = normalizedBodyPhone;
@@ -1523,9 +1539,9 @@ export function mapLifestyleToPromptOptions(
         mapped.productPlane = config.productPlane;
     }
 
-    if (!sceneState.ugcRealMode) {
+    if (!isUGCMode) {
         // Shot Type
-        const isEcommerceCanvasOverlayActive = sceneState.ecommerceSidePlacementFlag === true;
+        const isEcommerceCanvasOverlayActive = isHeroMode === true;
         const productProminenceKey =
             ((sceneState as any).productProminence as 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty' | undefined) ??
             ('product-first' as const);
@@ -1844,7 +1860,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // Ritual hero scenes should not inject a literal environment/location even if the user had one selected.
     // CanonicalScene will add the neutral hero canvas language; we must suppress setting/micro so other builders don't re-add rooms.
-    if ((mapped as any).ritualModeActive === true && sceneState.ecommerceSidePlacementFlag === true) {
+    if ((mapped as any).ritualModeActive === true && isHeroMode === true) {
         mapped.setting = '';
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';
@@ -1896,7 +1912,7 @@ export function mapLifestyleToPromptOptions(
         mapped.lastBackgroundId = existingOptions.backgroundVariationId;
     }
 
-    const sceneOrderChaosValue = (!sceneState.ugcRealMode && ugcStyleKey === 'optimized'
+    const sceneOrderChaosValue = (!isUGCMode && ugcStyleKey === 'optimized'
         ? 'clean'
         : (sceneState.sceneOrderChaos || 'Normal').toLowerCase()) as SceneOrderChaosLevel;
     mapped.sceneOrderChaos = sceneOrderChaosValue;
@@ -1963,7 +1979,7 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
 
-    if (sceneState.ugcRealMode && !isEcommerceBlankSpaceActive) {
+    if (isUGCMode && !isEcommerceBlankSpaceActive) {
         mapped.lighting = ugcHouseholdLighting;
         (mapped as any).timeLightingContext = mapped.lighting;
     }
@@ -2013,13 +2029,13 @@ export function mapLifestyleToPromptOptions(
 
     const isEcommerceCanvasActive =
         isEnvironmentSceneIntent &&
-        sceneState.ecommerceSidePlacementFlag === true;
+        isHeroMode === true;
 
     if (isEcommerceSceneIntent) {
         mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
         mapped.ecommerceSidePlacementFlag = true;
     } else if (isEcommerceCanvasActive) {
-        if (sceneState.ugcRealMode) {
+        if (isUGCMode) {
             console.error('[INVALID STATE BLOCKED] Hero canvas cannot be used in UGC Real Mode');
             throw new Error('Invalid state: hero canvas + ugcRealMode');
         }
@@ -2143,7 +2159,7 @@ export function mapLifestyleToPromptOptions(
     const isLifestyleNonUgc9x16 =
         isEnvironmentSceneIntent &&
         mapped.aspectRatio === '9:16' &&
-        sceneState.ugcRealMode !== true &&
+        isUGCMode !== true &&
         mapped.ugcRealModeActive !== true;
 
     if (isLifestyleNonUgc9x16) {
@@ -2167,7 +2183,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // FORMULATION STORY (Restored)
     // ========================================================================
-    mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
+    mapped.formulationExpertEnabled = isFormulationMode;
     mapped.formulationExpertName = sceneState.formulationName;
     const roleValue = sceneState.formulationRole === 'Custom'
         ? sceneState.formulationCustomRole
@@ -2217,7 +2233,7 @@ export function mapLifestyleToPromptOptions(
         );
 
         // Inject camera tilt for UGC Real Mode selfies
-        if (sceneState.ugcRealMode) {
+        if (isUGCMode) {
             const tilts = [6, -6, 10, -10];
             // Use the seed for deterministic randomness if available
             const seedNum = parseInt(sceneState.seed || '0', 10) || Math.floor(Math.random() * 1000);
@@ -2256,7 +2272,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
 
     // Rule: UGC Real Mode overrides everything
-    if (sceneState.ugcRealMode) {
+    if (isUGCMode) {
         // Block cinema cameras if they slipped through
         const proCameras = [
             'DSLR / mirrorless camera',

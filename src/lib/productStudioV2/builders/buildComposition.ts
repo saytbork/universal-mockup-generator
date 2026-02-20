@@ -5,12 +5,18 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   const macroMode = authority.composition === 'macro';
   const ingredientStackMode = authority.composition === 'ingredient-stack';
   const flatLayMode = authority.composition === 'flat-lay';
+  const splashMode =
+    authority.world === 'splash-tank' ||
+    authority.world === 'beach-daylight' ||
+    authority.world === 'underwater';
   
   // BUNDLE MODE DETECTION: Check if bundle is enabled with product references
   // When bundle mode is active, use relaxed framing (not tight 85-92%)
   const hasBundleReference = Boolean(state?.bundle?.enabled && state.bundle.primaryProductId);
   
-  const spreadRule = authority.permissions.allowHorizontalSpread
+  const spreadRule = splashMode
+    ? 'LATERAL_SPREAD: Allow natural side propagation from the impact vector; no artificial clipping.'
+    : authority.permissions.allowHorizontalSpread
     ? heroMode
       ? 'LATERAL_SPREAD: Restricted.'
       : macroMode
@@ -30,7 +36,9 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     heroMode
       ? hasBundleReference
         ? 'FRAME_CONSTRAINT: Close-up framing without altering proportions. Products maintain exact aspect ratios.'
-        : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
+        : splashMode
+          ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
+          : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
       : '',
     macroMode
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'
@@ -47,9 +55,11 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : '',
     spreadRule,
     verticalRule,
-    authority.permissions.allowVerticalDominance
-      ? 'No lateral splash expansion allowed.'
-      : 'Lateral splash expansion follows world constraints.',
+    splashMode
+      ? 'SPLASH_SPREAD_POLICY: Keep one dominant directional flow and allow physically coherent lateral spread.'
+      : authority.permissions.allowVerticalDominance
+        ? 'No lateral splash expansion allowed.'
+        : 'Lateral splash expansion follows world constraints.',
     ingredientStackMode
       ? 'CRITICAL_COMPOSITION_GUARD: If composition resembles flat lay, overhead layout, or top-down table shot, regenerate using front-facing perspective.'
       : '',

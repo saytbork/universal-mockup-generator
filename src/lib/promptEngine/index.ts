@@ -340,12 +340,13 @@ function enforcePreflightGuards(options: PromptOptions) {
             throw new Error(`[UGC IDENTITY LOCK] Mutated fields detected: ${mismatches.join(', ')}`);
         }
     }
-    if (options.creationIntent === 'ugc') {
+    const isUgcVisualMode = options.visualMode === 'ugc';
+    if (isUgcVisualMode || options.creationIntent === 'ugc') {
         const allowMissingEnvironment =
             options.creationMode === 'bg-replace' &&
-            options.ecommerceSidePlacementFlag === true &&
+            options.visualMode === 'hero' &&
             (Boolean(options.bgColor) || Boolean(options.bgGradient));
-        const allowMissingEnvironmentForRitual = Boolean(options.ritualModeActive);
+        const allowMissingEnvironmentForRitual = options.visualMode === 'ritual';
         if (!options.setting && !allowMissingEnvironment) {
             if (allowMissingEnvironmentForRitual) return;
             throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
@@ -395,7 +396,7 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
     const warnings: ValidationWarning[] = [];
 
     // GUARD 1: UGC + Ecommerce Blank Space
-    if (options.ugcRealModeActive && options.creationMode === 'ecom-blank') {
+    if (options.visualMode === 'ugc' && options.creationMode === 'ecom-blank') {
         warnings.push({
             type: 'conflict',
             message: '⚠️ CONFLICT: UGC Real Mode active + Ecommerce Blank Space. UGC takes precedence.'
@@ -403,7 +404,7 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
     }
 
     // GUARD 2: UGC + Studio/Editorial vocabulary (check in final prompt)
-    if (options.ugcRealModeActive && options.creationMode === 'studio') {
+    if (options.visualMode === 'ugc' && options.creationMode === 'studio') {
         warnings.push({
             type: 'conflict',
             message: '⚠️ CONFLICT: UGC Real Mode active + Studio mode. UGC overrides studio semantics.'
@@ -431,14 +432,6 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
         warnings.push({
             type: 'semantic',
             message: '⚠️ SEMANTIC: Product mode with person included. Consider UGC mode instead.'
-        });
-    }
-
-    // GUARD 5: FormulationStory + UGC should respect expert credibility
-    if (options.formulationExpertEnabled && options.ugcRealModeActive) {
-        warnings.push({
-            type: 'semantic',
-            message: '⚠️ SEMANTIC: Formulation Expert + UGC active. Expert maintains credibility with UGC imperfections.'
         });
     }
 
@@ -597,10 +590,28 @@ export class PromptEngine {
         // ====================================================================
         // CLEANUP INSTRUMENTATION — TEMPORARY (remove after usage mapping)
         // ====================================================================
+        const sceneType = String((options as any).sceneType || '').trim();
+        if (!sceneType) {
+            throw new Error('sceneType missing in PromptEngine');
+        }
+        if (sceneType === 'studio-branding') {
+            const studioGuard = options as any;
+            studioGuard.placementStyle = undefined;
+            studioGuard.placementCamera = undefined;
+            studioGuard.setting = '';
+            studioGuard.microLocation = '';
+            studioGuard.sceneEnvironment = undefined;
+            studioGuard.sceneEnvironmentDescriptor = undefined;
+            studioGuard.editorialProps = undefined;
+            if (/natural window/i.test(String(studioGuard.lighting || ''))) {
+                studioGuard.lighting = '';
+            }
+        }
+
         console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL START =====');
         console.log('[CLEANUP-INSTRUMENT] creationMode:', options.creationMode);
         console.log('[CLEANUP-INSTRUMENT] contentStyle:', options.contentStyle);
-        console.log('[CLEANUP-INSTRUMENT] sceneType:', (options as any).sceneType);
+        console.log('[CLEANUP-INSTRUMENT] sceneType:', sceneType);
         console.log('[CLEANUP-INSTRUMENT] setting/environment:', options.setting);
         console.log('[CLEANUP-INSTRUMENT] microLocation:', options.microLocation);
         console.log('[CLEANUP-INSTRUMENT] ugcRealModeActive:', options.ugcRealModeActive);
@@ -613,12 +624,8 @@ export class PromptEngine {
         // ====================================================================
         console.log('[PROMPT ENGINE] Step 1: Modes -', options.creationMode, options.creationIntent);
 
-        const forceLifestyleEngine =
-            options.creationMode === 'aesthetic' ||
-            options.contentStyle === 'ugc' ||
-            options.personIncluded === true;
         const activeEngine =
-            options.creationMode === 'studio' && !forceLifestyleEngine
+            sceneType === 'studio-branding'
                 ? 'studio'
                 : 'lifestyle';
         console.log('[ENGINE ACTIVE]', activeEngine);
@@ -651,8 +658,8 @@ export class PromptEngine {
             return finalStudioPrompt;
         }
 
-        // If we reach here, we're in LEGACY branch
-        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LEGACY PIPELINE');
+        // If we reach here, we're in lifestyle pipeline (sceneType-driven, no fallback).
+        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LIFESTYLE PIPELINE');
 
         const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
         options.ugcSelfieDominant = ugcSelfieDominant;
