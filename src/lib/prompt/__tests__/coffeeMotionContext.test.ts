@@ -37,9 +37,9 @@ function buildCoffeeState(overrides: Partial<ProductStudioState> = {}): ProductS
 }
 
 describe('coffee motion context', () => {
-  test('editorial-ritual allows pouring motion', () => {
+  test('editorial-ritual allows pouring motion only in extended photo modes', () => {
     const state = buildCoffeeState({
-      photoMode: 'Golden Hour Lifestyle' as any,
+      photoMode: 'Splash Shot',
       stateMotion: 'pouring',
     });
     const v2State = toStudioV2State(state);

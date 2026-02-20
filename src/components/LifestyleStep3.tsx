@@ -31,7 +31,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIntent } from '@/lib/productStudio/resolveCoffeeIntent';
-import { getResolvedAllowedInteractions } from '@/lib/productStudio/capabilityResolver';
+import { getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -5410,13 +5410,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             })();
 
             const allowedProductStates =
-              industryProfile === 'coffee'
-                ? (activeIndustryRules?.productStateWhitelistByIntent?.[coffeeIntent] ??
-                  activeIndustryRules?.productStateWhitelist ??
-                  ['static'])
-                : industryProfile === 'supplements'
-                  ? supplementsAllowedByType
-                  : (activeIndustryRules?.productStateWhitelist ?? ['static']);
+              getResolvedAllowedMotions(
+                productStore.photoMode,
+                industryProfile,
+                productStore.definition.type,
+                industryProfile === 'coffee' ? coffeeIntent : undefined
+              );
 
             const visibleStateOptions = allOptions.filter((option) =>
               allowedProductStates.includes(option.value as ProductStateMotion)

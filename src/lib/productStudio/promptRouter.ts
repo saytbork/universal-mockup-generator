@@ -7,9 +7,9 @@ import { resolveCoffeeIntent } from './resolveCoffeeIntent';
 import {
   getIndustryDefaultInteraction,
   getPhotoModeCapabilities,
+  getResolvedAllowedMotions,
   resolveAllowedInteractionsByCapability,
   resolveInteractionByCapability,
-  resolveStateMotionByCapability,
 } from './capabilityResolver';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
@@ -66,6 +66,7 @@ function inferStudioMotionFromStateMotion(
       .toLowerCase();
     if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
   }
+  if (stateMotion === 'opened') return 'opened';
   if (stateMotion === 'falling') return 'falling';
   if (stateMotion === 'dispensed') return 'dispensed';
   if (stateMotion === 'pouring' || stateMotion === 'spilled') return 'pouring';
@@ -256,6 +257,31 @@ function resolveIndustryProductState(
   return genericAllowed.includes(state.stateMotion) ? state.stateMotion : 'static';
 }
 
+function resolvePackagingBehavior(
+  industryProfile: IndustryProfile,
+  stateMotion: ProductStateMotion,
+  state: ProductStudioState
+): string {
+  if (industryProfile === 'wine') {
+    if (stateMotion === 'opened' || stateMotion === 'pouring') return 'wine-cork-removal';
+    return 'wine-cork';
+  }
+
+  if (industryProfile === 'supplements') {
+    if (state.definition.type === 'capsules') return 'supplement-plastic-cap';
+    if (state.definition.type === 'drops') return 'dropper-pipette';
+    if (state.definition.type === 'powder') return 'generic-screw-cap';
+    return 'generic-screw-cap';
+  }
+
+  if (industryProfile === 'coffee') {
+    if (state.definition.type === 'powder') return 'coffee-heat-seal';
+    return 'generic-screw-cap';
+  }
+
+  return 'generic-screw-cap';
+}
+
 function inferCameraSystemOverride(state: ProductStudioState): string {
   const byKey: Record<ProductStudioState['cameraSystem'], string> = {
     dslr_mirrorless: 'DSLR / mirrorless camera system',
@@ -313,13 +339,20 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const industryProfile = resolveIndustryProfile(state.visualProfile);
   const resolvedCoffeeIntent =
     industryProfile === 'coffee' ? resolveCoffeeIntent(state.photoMode || '') : undefined;
-  const resolvedProductState = resolveIndustryProductState(state, industryProfile, resolvedCoffeeIntent);
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
-  const capabilityResolvedProductState = resolveStateMotionByCapability(
+  const resolvedAllowedMotions = getResolvedAllowedMotions(
+    state.photoMode,
     industryProfile,
-    resolvedProductState,
-    photoModeCapabilities.stateMotionCapability,
-    { coffeeIntent: resolvedCoffeeIntent }
+    state.definition.type,
+    resolvedCoffeeIntent
+  );
+  const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
+    ? state.stateMotion
+    : 'static';
+  const packagingBehavior = resolvePackagingBehavior(
+    industryProfile,
+    capabilityResolvedProductState,
+    state
   );
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
@@ -458,6 +491,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
   }
   v2State.interaction = sanitizedInteractionCanonical;
+  v2State.packagingBehavior = packagingBehavior;
 
   return v2State;
 }

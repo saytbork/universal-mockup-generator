@@ -28,7 +28,6 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const effectiveState: StudioUIState = winePrestigeMode
     ? {
         ...state,
-        motion: 'static',
         world: 'studio',
       }
     : state;

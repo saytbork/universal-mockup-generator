@@ -12,6 +12,7 @@ export type StudioWorld =
 
 export type StudioMotion =
   | 'static'
+  | 'opened'
   | 'dispensed'
   | 'pouring'
   | 'falling';
@@ -72,6 +73,7 @@ export interface StudioUIState {
   framingGuideOverride?: string;
   productType?: string;
   interaction?: string;
+  packagingBehavior?: string;
   specialEffect?: string;
   visualStyle?: string;
   lightingTemperatureProfile?: string;

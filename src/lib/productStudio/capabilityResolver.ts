@@ -2,9 +2,11 @@ import type {
   EnvironmentPhotoModeSchema,
   IndustryProfile,
   PhotoMode,
+  ProductType,
   ProductStateMotion,
   ProductStudioState,
 } from './types';
+import { industryRules } from './industryRules';
 
 export type InteractionCapability = 'none' | 'optional' | 'required';
 export type StateMotionCapability = 'static-only' | 'limited' | 'extended';
@@ -133,8 +135,7 @@ export function resolveStateMotionByCapability(
   if (stateMotionCapability === 'static-only') return 'static';
   if (
     industryProfile === 'coffee' &&
-    options?.coffeeIntent === 'editorial-ritual' &&
-    stateMotionCapability !== 'static-only'
+    options?.coffeeIntent === 'editorial-ritual'
   ) {
     return stateMotion;
   }
@@ -152,4 +153,52 @@ export function resolveStateMotionByCapability(
   const allowed = limitedByIndustry[industryProfile] || ['static'];
   if (allowed.includes(stateMotion)) return stateMotion;
   return allowed.includes('static') ? 'static' : allowed[0];
+}
+
+export function getIndustryAllowedMotions(
+  industryProfile: IndustryProfile,
+  productType: ProductType,
+  coffeeIntent?: 'conversion' | 'editorial-ritual'
+): ProductStateMotion[] {
+  if (industryProfile === 'wine') return ['static', 'opened'];
+
+  if (industryProfile === 'coffee') {
+    return (
+      industryRules.coffee.productStateWhitelistByIntent?.[coffeeIntent || 'editorial-ritual'] ||
+      industryRules.coffee.productStateWhitelist ||
+      ['static']
+    ) as ProductStateMotion[];
+  }
+
+  if (industryProfile === 'supplements') {
+    const allowed: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
+    if (productType === 'capsules') allowed.push('falling');
+    if (productType === 'powder') allowed.push('spilled');
+    if (productType === 'drops') allowed.push('pouring');
+    return allowed;
+  }
+
+  return (industryRules[industryProfile]?.productStateWhitelist || ['static']) as ProductStateMotion[];
+}
+
+export function getResolvedAllowedMotions(
+  photoMode: PhotoMode,
+  industryProfile: IndustryProfile,
+  productType: ProductType,
+  coffeeIntent?: 'conversion' | 'editorial-ritual'
+): ProductStateMotion[] {
+  const { stateMotionCapability } = getPhotoModeCapabilities(photoMode);
+  const industryAllowed = getIndustryAllowedMotions(industryProfile, productType, coffeeIntent);
+
+  const limitedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
+  const extendedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed', 'pouring', 'spilled', 'falling'];
+
+  if (stateMotionCapability === 'static-only') return ['static'];
+  if (stateMotionCapability === 'limited') {
+    const filtered = industryAllowed.filter((motion) => limitedEnvelope.includes(motion));
+    return filtered.length > 0 ? filtered : ['static'];
+  }
+
+  const filtered = industryAllowed.filter((motion) => extendedEnvelope.includes(motion));
+  return filtered.length > 0 ? filtered : ['static'];
 }
