@@ -314,6 +314,16 @@ export interface EnvironmentPhotoModeSchema {
     interactionCapability?: 'none' | 'optional' | 'required';
     /** Motion capability for this Photo Mode (capability layer; does not define industry authority). */
     stateMotionCapability?: 'static-only' | 'limited' | 'extended';
+    /** Camera control capability for this Photo Mode (resolver layer). */
+    cameraCapability?: 'restricted' | 'guided' | 'free';
+    /** Optional safe default camera for capability resolver. */
+    defaultCamera?: {
+        cameraSystem: string;
+        cameraAngle: string;
+        cameraDistance: string;
+        cameraRotation: string;
+        framingGuide: string;
+    };
     /** @deprecated Use interactionCapability + resolver hierarchy. */
     allowedInteractions?: ('none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction')[];
     /** 

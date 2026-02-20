@@ -55,6 +55,6 @@ describe('wine interaction isolation', () => {
     expect(finalPrompt).toContain('WINE_ACTION: static-presentation');
     expect(finalPrompt).not.toContain('INTERACTION_');
     expect(finalPrompt).not.toContain('HAND_');
-    expect(finalPrompt).not.toContain('FRAMING_');
+    expect(finalPrompt).not.toContain('FRAMING_BIAS');
   });
 });

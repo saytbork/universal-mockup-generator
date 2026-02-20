@@ -31,7 +31,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIntent } from '@/lib/productStudio/resolveCoffeeIntent';
-import { getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
+import { getPhotoModeCameraCapability, getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -6360,6 +6360,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         variant="primary"
       >
         <div className="space-y-5">
+          {(() => {
+            const cameraCapability = getPhotoModeCameraCapability(productStore.photoMode);
+            const isRestrictedCamera = cameraCapability === 'restricted';
+            return (
+              <>
           <p className="text-sm text-gray-500">Professional photography controls.</p>
           <div className={SECTION_GROUP_CLASS}>
             <p className={GROUP_LABEL_CLASS}>CAMERA SYSTEM</p>
@@ -6407,7 +6412,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ).map(option => (
                   <Chip
                     key={option}
+                    disabled={isRestrictedCamera}
                     onClick={() => {
+                      if (isRestrictedCamera) return;
                       // Auto-switch to surface for flat lays
                       if (option === 'Top-down flat lay') {
                         productStore.setPlacement('surface');
@@ -6444,7 +6451,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
                   <Chip
                     key={option}
+                    disabled={isRestrictedCamera}
                     onClick={() => {
+                      if (isRestrictedCamera) return;
                       updateValue('productCameraDistance', option);
                       const distanceMap: Record<string, ProductStudioState['distance']> = {
                         Wide: 'wide',
@@ -6531,6 +6540,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
             </div>
           </div>
+              </>
+            );
+          })()}
         </div>
       </SmoothAccordion>
       )}

@@ -14,6 +14,14 @@ export type StateMotionCapability = 'static-only' | 'limited' | 'extended';
 type CapabilityConfig = {
   interactionCapability?: InteractionCapability;
   stateMotionCapability?: StateMotionCapability;
+  cameraCapability?: 'restricted' | 'guided' | 'free';
+  defaultCamera?: {
+    cameraSystem: string;
+    cameraAngle: string;
+    cameraDistance: string;
+    cameraRotation: string;
+    framingGuide: string;
+  };
 };
 
 const PHOTO_MODE_CAPABILITIES: Partial<Record<PhotoMode, CapabilityConfig>> = {
@@ -49,6 +57,42 @@ const PHOTO_MODE_CAPABILITIES: Partial<Record<PhotoMode, CapabilityConfig>> = {
   'Textured Bed / Scatter Base': { stateMotionCapability: 'static-only' },
 };
 
+const PHOTO_MODE_CAMERA_CAPABILITIES: Partial<Record<PhotoMode, CapabilityConfig>> = {
+  'Ingredient Stack': { cameraCapability: 'restricted' },
+  'Ingredient Flat Lay': { cameraCapability: 'restricted' },
+  'Macro Dew Label': { cameraCapability: 'restricted' },
+  'Clinical Lab Counter': { cameraCapability: 'restricted' },
+  'Minimal Bathroom Vanity': { cameraCapability: 'restricted' },
+  'Tech Clean Studio': { cameraCapability: 'restricted' },
+  'Sky Float Minimal': { cameraCapability: 'restricted' },
+  'Botanical Water Garden': { cameraCapability: 'restricted' },
+  'Textured Bed / Scatter Base': { cameraCapability: 'restricted' },
+  'Hero Landing Page': { cameraCapability: 'guided' },
+  'Color Pop Hero': { cameraCapability: 'guided' },
+  'Routine Carousel': { cameraCapability: 'guided' },
+  'Hands Application Clean': { cameraCapability: 'guided' },
+  'Dark Premium Studio': { cameraCapability: 'guided' },
+  'Monochrome Brand': { cameraCapability: 'guided' },
+  'Brand Campaign': { cameraCapability: 'guided' },
+  'Creator Premium Simulation': { cameraCapability: 'guided' },
+  'Soft Wellness Morning': { cameraCapability: 'guided' },
+  'Outdoor Energy Boost': { cameraCapability: 'guided' },
+  'Sunlit Stone Editorial': { cameraCapability: 'guided' },
+  'Golden Sunset Backlit': { cameraCapability: 'guided' },
+  'Warm Window Wood': { cameraCapability: 'guided' },
+  'Splash Shot': { cameraCapability: 'free' },
+  'Beach Foam Splash': { cameraCapability: 'free' },
+  'Pool Water': { cameraCapability: 'free' },
+};
+
+const DEFAULT_CAMERA = {
+  cameraSystem: 'DSLR / mirrorless camera system',
+  cameraAngle: '45° hero',
+  cameraDistance: 'Standard',
+  cameraRotation: '0°',
+  framingGuide: 'Centered hero',
+};
+
 function unique<T>(values: T[]): T[] {
   return Array.from(new Set(values));
 }
@@ -62,6 +106,65 @@ export function getPhotoModeCapabilities(
     interactionCapability: fromMap.interactionCapability || schema?.interactionCapability || 'optional',
     stateMotionCapability: fromMap.stateMotionCapability || schema?.stateMotionCapability || 'limited',
   };
+}
+
+export function getPhotoModeCameraCapability(photoMode: PhotoMode): 'restricted' | 'guided' | 'free' {
+  return PHOTO_MODE_CAMERA_CAPABILITIES[photoMode]?.cameraCapability || 'guided';
+}
+
+export function resolveCameraByCapability(
+  photoMode: PhotoMode,
+  userSelection: {
+    cameraSystem?: string;
+    cameraAngle?: string;
+    cameraDistance?: string;
+    cameraRotation?: string;
+    framingGuide?: string;
+  },
+  industryProfile: IndustryProfile
+): {
+  cameraSystem: string;
+  cameraAngle: string;
+  cameraDistance: string;
+  cameraRotation: string;
+  framingGuide: string;
+  warnings: string[];
+} {
+  const capability = getPhotoModeCameraCapability(photoMode);
+  const merged = {
+    cameraSystem: userSelection.cameraSystem || DEFAULT_CAMERA.cameraSystem,
+    cameraAngle: userSelection.cameraAngle || DEFAULT_CAMERA.cameraAngle,
+    cameraDistance: userSelection.cameraDistance || DEFAULT_CAMERA.cameraDistance,
+    cameraRotation: userSelection.cameraRotation || DEFAULT_CAMERA.cameraRotation,
+    framingGuide: userSelection.framingGuide || DEFAULT_CAMERA.framingGuide,
+  };
+
+  const base =
+    capability === 'restricted'
+      ? { ...DEFAULT_CAMERA }
+      : capability === 'guided'
+        ? { ...DEFAULT_CAMERA, ...merged }
+        : merged;
+
+  const warnings: string[] = [];
+  if (industryProfile === 'wine') {
+    if (/top-?down/i.test(base.cameraAngle)) {
+      base.cameraAngle = '45° hero';
+      warnings.push('Wine safety: top-down angle not allowed. Reverted to 45° hero.');
+    }
+    if (/wide/i.test(base.cameraDistance)) {
+      base.cameraDistance = 'Standard';
+      warnings.push('Wine safety: ultra-wide distance not allowed. Reverted to Standard.');
+    }
+    if (/macro/i.test(base.cameraDistance) || /detail close-up/i.test(base.cameraAngle) || /macro/i.test(base.cameraSystem)) {
+      base.cameraSystem = 'DSLR / mirrorless camera system';
+      base.cameraAngle = '45° hero';
+      base.cameraDistance = 'Standard';
+      warnings.push('Wine safety: macro extreme close-up not allowed. Reverted to safe camera values.');
+    }
+  }
+
+  return { ...base, warnings };
 }
 
 export function getIndustryDefaultInteraction(

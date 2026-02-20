@@ -1,19 +1,19 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
 export function buildCameraOverrides(state?: StudioUIState): string {
-  if (!state?.advancedControls) return '';
+  const cameraSystem = String(state?.cameraSystem || state?.cameraSystemOverride || '').trim();
+  const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
+  const distance = String(state?.cameraDistance || state?.distanceOverride || '').trim();
+  const rotation = String(state?.cameraRotation || state?.rotationOverride || '').trim();
+  const framingGuide = String(state?.framingGuide || state?.framingGuideOverride || '').trim();
 
-  const cameraSystem = String(state.cameraSystemOverride || '').trim() || 'DSLR / mirrorless camera system';
-  const angle = String(state.angleOverride || '').trim() || '45° hero';
-  const distance = String(state.distanceOverride || '').trim() || 'Standard';
-  const rotation = String(state.rotationOverride || '').trim() || '0°';
-  const framingGuide = String(state.framingGuideOverride || '').trim() || 'Centered hero';
+  if (!cameraSystem || !angle || !distance || !rotation || !framingGuide) return '';
 
   return [
-    `CAMERA_SYSTEM_OVERRIDE: ${cameraSystem}.`,
-    `ANGLE_OVERRIDE: ${angle}.`,
-    `DISTANCE_OVERRIDE: ${distance}.`,
-    `ROTATION_OVERRIDE: ${rotation}.`,
-    `FRAMING_GUIDE_OVERRIDE: ${framingGuide}.`,
+    `STUDIO_CAMERA_SYSTEM: ${cameraSystem}.`,
+    `STUDIO_CAMERA_ANGLE: ${angle}.`,
+    `STUDIO_CAMERA_DISTANCE: ${distance}.`,
+    `STUDIO_CAMERA_ROTATION: ${rotation}.`,
+    `STUDIO_FRAMING_GUIDE: ${framingGuide}.`,
   ].join(' ');
 }

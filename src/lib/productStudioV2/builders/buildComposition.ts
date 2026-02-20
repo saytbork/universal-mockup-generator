@@ -41,7 +41,6 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   if (state?.winePrestigeMode) {
     return [
       'STUDIO_COMPOSITION_MODEL: wine-prestige.',
-      'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur".',
       'WINE_ACTION: static-presentation.',
       'COMPOSITION_OVERRIDE: Product First composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',
@@ -94,21 +93,21 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   const hasBundleReference = Boolean(state?.bundle?.enabled && state.bundle.primaryProductId);
   
   const spreadRule = splashMode
-    ? 'LATERAL_SPREAD: Allow natural side propagation from the impact vector; no artificial clipping.'
+    ? 'SPLASH_SPATIAL_POLICY: Allow natural side propagation from the impact vector with coherent splash spread.'
     : authority.permissions.allowHorizontalSpread
     ? heroMode
-      ? 'LATERAL_SPREAD: Restricted.'
+      ? 'HORIZONTAL_BALANCE: controlled.'
       : macroMode
-        ? 'LATERAL_SPREAD: Restricted for macro framing.'
-      : 'Horizontal spread is permitted when needed for edge continuity.'
-    : 'Horizontal spread is disabled.';
+        ? 'HORIZONTAL_BALANCE: controlled for macro framing.'
+      : 'HORIZONTAL_BALANCE: open when needed for edge continuity.'
+    : 'HORIZONTAL_BALANCE: constrained.';
   const verticalRule = authority.permissions.allowVerticalDominance
-    ? 'Vertical subject dominance is enabled.'
+    ? 'VERTICAL_BALANCE: emphasized.'
     : heroMode
-      ? 'VERTICAL_SUBJECT_DOMINANCE: Strong.'
+      ? 'VERTICAL_BALANCE: hero emphasis.'
       : macroMode
-        ? 'VERTICAL_SUBJECT_DOMINANCE: Strong for macro close-up.'
-      : 'Vertical subject dominance is not forced.';
+        ? 'VERTICAL_BALANCE: macro emphasis.'
+      : 'VERTICAL_BALANCE: neutral.';
 
   return [
     `STUDIO_COMPOSITION_MODEL: ${authority.composition}.`,
@@ -123,8 +122,8 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
         : splashAdMode
           ? 'FRAME_CONSTRAINT: SPLASH_AD framing. Product vertical coverage must remain within 75–80% to preserve breathing room for lateral energy.'
           : splashMode
-            ? 'FRAME_CONSTRAINT: Tight hero framing for splash mode. The product must fill most of the vertical frame (85–88% height coverage). Minimal side margins while preserving splash readability.'
-          : 'FRAME_CONSTRAINT: Tight hero framing. The product must fill most of the vertical frame (85–92% height coverage). Minimal side margins. No excessive lateral negative space.'
+            ? 'FRAME_CONSTRAINT: Splash hero framing. Product fills most vertical frame (85–88% height) with controlled side margins.'
+          : 'FRAME_CONSTRAINT: Hero framing. Product fills most vertical frame (85–92% height) with controlled side margins.'
       : '',
     macroMode
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'

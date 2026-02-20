@@ -3,14 +3,15 @@ import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts
 import { buildIntent } from './builders/buildIntent.ts';
 import { buildWorld } from './builders/buildWorld.ts';
 import { buildComposition } from './builders/buildComposition.ts';
+import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
 import { buildPhysics } from './builders/buildPhysics.ts';
 import { buildModifiers } from './builders/buildModifiers.ts';
 import { buildLighting } from './builders/buildLighting.ts';
 import { buildMaterials } from './builders/buildMaterials.ts';
+import { buildPackaging } from './builders/buildPackaging.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
-import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
@@ -39,13 +40,14 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildIntent(authority, state),
     buildWorld(authority, effectiveState.world, state),
     buildComposition(authority, state), // Pass state for bundle detection
+    buildCameraOverrides(effectiveState),
     buildMotion(authority, state),
     winePrestigeMode ? '' : buildPhysics(authority, state),
     buildModifiers(modifiers, state),
     buildLighting(authority, state),
     buildMaterials(authority, state),
+    buildPackaging(state),
     buildGeometry(authority, state),
-    buildCameraOverrides(state),
     ...protectionLayer,
   ];
 

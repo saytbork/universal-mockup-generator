@@ -7,6 +7,7 @@ import { resolveCoffeeIntent } from './resolveCoffeeIntent';
 import {
   getIndustryDefaultInteraction,
   getPhotoModeCapabilities,
+  resolveCameraByCapability,
   getResolvedAllowedMotions,
   resolveAllowedInteractionsByCapability,
   resolveInteractionByCapability,
@@ -356,6 +357,20 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   );
   const advancedControls =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+  const resolvedCamera = resolveCameraByCapability(
+    state.photoMode,
+    {
+      cameraSystem: inferCameraSystemOverride(state),
+      cameraAngle: inferAngleOverride(state),
+      cameraDistance: inferDistanceOverride(state),
+      cameraRotation: inferRotationOverride(state),
+      framingGuide: inferFramingGuideOverride(state),
+    },
+    industryProfile
+  );
+  for (const warning of resolvedCamera.warnings) {
+    console.warn(`[CAMERA SAFETY] ${warning}`);
+  }
   const shouldAssignWineFields = industryProfile === 'wine';
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
@@ -376,6 +391,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     aspectRatio: state.aspectRatio,
     photoMode: state.photoMode,
     subjectOrientation: inferSubjectOrientation(state),
+    cameraSystem: resolvedCamera.cameraSystem,
+    cameraAngle: resolvedCamera.cameraAngle,
+    cameraDistance: resolvedCamera.cameraDistance,
+    cameraRotation: resolvedCamera.cameraRotation,
+    framingGuide: resolvedCamera.framingGuide,
     requestedModifiers,
     // Bundle state (for framing logic)
     ...(state.bundle?.enabled && state.bundle.primaryProductId
@@ -401,11 +421,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       : {}),
     ...(advancedControls
       ? {
-          cameraSystemOverride: inferCameraSystemOverride(state),
-          angleOverride: inferAngleOverride(state),
-          distanceOverride: inferDistanceOverride(state),
-          rotationOverride: inferRotationOverride(state),
-          framingGuideOverride: inferFramingGuideOverride(state),
+          cameraSystemOverride: resolvedCamera.cameraSystem,
+          angleOverride: resolvedCamera.cameraAngle,
+          distanceOverride: resolvedCamera.cameraDistance,
+          rotationOverride: resolvedCamera.cameraRotation,
+          framingGuideOverride: resolvedCamera.framingGuide,
         }
       : {}),
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
@@ -516,7 +536,6 @@ const WINE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
   /\bHAND_POSITIONING\b/i,
   /\bFRAMING_BIAS\b/i,
   /\bHAND_[A-Z0-9_]*\b/i,
-  /\bFRAMING_[A-Z0-9_]*\b/i,
   /\bPOUR(?:ING)?\b/i,
   /\bSPILL(?:ED|ING)?\b/i,
   /\bFALL(?:ING)?\b/i,

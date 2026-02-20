@@ -66,6 +66,11 @@ export interface StudioUIState {
   wineMoodModifier?: string;
   wineAction?: 'static-presentation' | 'controlled-pour';
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+  cameraSystem?: string;
+  cameraAngle?: string;
+  cameraDistance?: string;
+  cameraRotation?: string;
+  framingGuide?: string;
   cameraSystemOverride?: string;
   angleOverride?: string;
   distanceOverride?: string;
