@@ -29,6 +29,7 @@ import {
   WINE_ENVIRONMENT_PRESETS,
   isWinePrestigeMode,
 } from '@/lib/productStudio/winePrestige';
+import { industryRules } from '@/lib/productStudio/industryRules';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
 
@@ -1269,6 +1270,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const industryProfile: IndustryProfile =
     productStore.visualProfile === 'wine-prestige' ? 'wine' : 'supplements';
+  const activeIndustryRules = industryRules[industryProfile];
   const applyIndustryProfile = useCallback((nextProfile: IndustryProfile) => {
     if (nextProfile === 'wine') {
       productStore.setVisualProfile('wine-prestige');
@@ -2714,6 +2716,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   mode !== 'Underwater Split'
                                 )
                               : specialEffectsOptions;
+                            const filteredCompositionOptions = compositionOptions.filter(({ mode }) =>
+                              !activeIndustryRules?.allowedPhotoModes || activeIndustryRules.allowedPhotoModes.includes(mode)
+                            );
+                            const isAllowedVisualStyle = (mode: PhotoMode) =>
+                              !activeIndustryRules?.allowedVisualStyles || activeIndustryRules.allowedVisualStyles.includes(mode);
+                            const filteredIndustrySpecialEffectsOptions = filteredSpecialEffectsOptions.filter(({ mode }) =>
+                              !activeIndustryRules?.allowedSpecialEffects || activeIndustryRules.allowedSpecialEffects.includes(mode)
+                            );
 
                             return (
                               <div className="p-5 space-y-7">
@@ -2726,7 +2736,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div className="space-y-3">
                                       <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Core</p>
                                       <div className="flex flex-wrap gap-3">
-                                        {compositionOptions.map(({ label, mode }) => (
+                                        {filteredCompositionOptions.map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2757,7 +2767,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           x.mode === 'Minimal Bathroom Vanity' ||
                                           x.mode === 'Dark Premium Studio' ||
                                           x.mode === 'Tech Clean Studio'
-                                        ).map(({ label, mode }) => (
+                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2779,7 +2789,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           x.mode === 'Monochrome Brand' ||
                                           x.mode === 'Brand Campaign' ||
                                           x.mode === 'Creator Premium Simulation'
-                                        ).map(({ label, mode }) => (
+                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2800,7 +2810,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         {visualStyleOptions.filter(x =>
                                           x.mode === 'Soft Wellness Morning' ||
                                           x.mode === 'Outdoor Energy Boost'
-                                        ).map(({ label, mode }) => (
+                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2823,7 +2833,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           x.mode === 'Golden Sunset Backlit' ||
                                           x.mode === 'Bathroom Daylight Clean' ||
                                           x.mode === 'Warm Window Wood'
-                                        ).map(({ label, mode }) => (
+                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2846,7 +2856,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           x.mode === 'Wet Rock Ripples' ||
                                           x.mode === 'Sand Palm Shadows' ||
                                           x.mode === 'Botanical Water Garden'
-                                        ).map(({ label, mode }) => (
+                                        ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
@@ -2899,7 +2909,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                   </div>
                                   <div className="flex flex-wrap gap-3">
-                                    {filteredSpecialEffectsOptions.map(({ label, mode }) => (
+                                    {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
                                       <Chip
                                         key={label}
                                         selected={productStore.photoMode === mode}
@@ -4118,7 +4128,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
                 <div className="flex flex-wrap gap-2">
-                  {PRODUCT_TYPE_OPTIONS.map(option => (
+                  {PRODUCT_TYPE_OPTIONS.filter(option =>
+                    !activeIndustryRules?.allowedProductTypes || activeIndustryRules.allowedProductTypes.includes(option)
+                  ).map(option => (
                     <Chip
                       key={option}
                       onClick={() => {

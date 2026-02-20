@@ -1139,6 +1139,15 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.wardrobeStyle = ward;
         }
 
+        const normalizedSceneProps = [sceneState.props, sceneState.customProps]
+            .map((entry) => String(entry || '').trim())
+            .filter(Boolean)
+            .join(', ');
+        if (normalizedSceneProps) {
+            mapped.personProps = normalizedSceneProps;
+            mapped.personDetails.personProps = normalizedSceneProps;
+        }
+
         // APPEARANCE (Manual input)
         const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
         if (appearanceDescriptor) {

@@ -68,6 +68,9 @@ export interface StudioUIState {
   distanceOverride?: string;
   rotationOverride?: string;
   framingGuideOverride?: string;
+  productType?: string;
+  specialEffect?: string;
+  visualStyle?: string;
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;
