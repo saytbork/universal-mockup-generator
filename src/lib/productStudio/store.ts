@@ -1256,17 +1256,26 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
     setVisualProfile: (profile) =>
         set((state) => {
-            const normalized = (
+            const normalizedProfile = (
                 profile === 'wine-prestige' || profile === 'wine'
-                    ? 'wine-prestige'
-                    : 'default'
-            ) as VisualProfile;
-            if (normalized === 'default') {
+                    ? 'wine'
+                    : profile === 'coffee'
+                        ? 'coffee'
+                        : profile === 'supplements' || profile === 'default'
+                            ? 'supplements'
+                            : 'supplements'
+            ) as 'supplements' | 'wine' | 'coffee';
+            if (normalizedProfile === 'supplements') {
                 return {
                     visualProfile: 'default',
                     category: '',
                     contextPreset: '',
                     wineAction: 'static-presentation',
+                };
+            }
+            if (normalizedProfile === 'coffee') {
+                return {
+                    visualProfile: 'coffee',
                 };
             }
             const fallbackPreset = state.contextPreset || WINE_ENVIRONMENT_PRESETS[0];

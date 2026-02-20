@@ -1321,6 +1321,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       if (!String(productStore.contextPreset || '').trim()) {
         productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
       }
+    } else if (nextProfile === 'coffee') {
+      productStore.setVisualProfile('coffee');
+      resetIndustryFields(nextProfile, productStore);
     } else {
       productStore.setVisualProfile('default');
       resetIndustryFields(nextProfile, productStore);
@@ -2620,6 +2623,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           tooltip="Wine prestige industry module"
                         >
                           Wine Prestige
+                        </Chip>
+                        <Chip
+                          selected={industryProfile === 'coffee'}
+                          onClick={() => {
+                            applyIndustryProfile('coffee');
+                            markSectionTouched('product-setup');
+                          }}
+                          tooltip="Coffee ritual industry defaults"
+                        >
+                          Coffee Ritual
                         </Chip>
                       </div>
                     </div>
