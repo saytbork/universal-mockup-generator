@@ -24,7 +24,7 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
 
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
-  const winePrestigeMode = Boolean(state.winePrestigeMode);
+  const winePrestigeMode = state.visualProfile === 'wine' && Boolean(state.winePrestigeMode);
   const effectiveState: StudioUIState = winePrestigeMode
     ? {
         ...state,

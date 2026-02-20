@@ -266,8 +266,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const splashAdMode =
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
-  const winePrestigeMode = isWinePrestigeMode(state);
-  const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
+  const winePrestigeMode = industryProfile === 'wine' && isWinePrestigeMode(state);
+  const winePrestigeV2Mode = industryProfile === 'wine' && isWinePrestigeV2Mode(state);
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
     visualIntent: state.visualIntent,
@@ -389,6 +389,25 @@ function mapV2ToScenePromptResult(prompt: string): ScenePromptResult {
   };
 }
 
+const COFFEE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
+  /\bWINE_[A-Z0-9_]*\b/,
+  /\bwine-prestige\b/i,
+  /\bwine-glass-priority\b/i,
+];
+
+function sanitizePromptForIndustry(prompt: string, industryProfile: IndustryProfile): string {
+  if (industryProfile !== 'coffee') return prompt;
+
+  const sanitized = prompt
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => !COFFEE_FORBIDDEN_PROMPT_PATTERNS.some((pattern) => pattern.test(sentence)))
+    .join(' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  return sanitized;
+}
+
 export function routeStudioScenePrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   if (!isStudioV2Enabled()) {
     console.log('[STUDIO ROUTER] engine=legacy');
@@ -399,7 +418,8 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   const v2State = toStudioV2State(state);
   console.log('[STUDIO ROUTER] v2-state', v2State);
   const v2Prompt = generateStudioPromptV2(v2State);
-  return mapV2ToScenePromptResult(v2Prompt);
+  const prompt = sanitizePromptForIndustry(v2Prompt, v2State.visualProfile as IndustryProfile);
+  return mapV2ToScenePromptResult(prompt);
 }
 
 export { isStudioV2Enabled };
