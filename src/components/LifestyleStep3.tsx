@@ -30,6 +30,7 @@ import {
   isWinePrestigeMode,
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
+import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { WineModule } from '@/components/industry-modules/WineModule';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
 
@@ -1255,6 +1256,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     'productPaletteA'
   );
   const [productCreativeAdvancedOpen, setProductCreativeAdvancedOpen] = useState(false);
+  const [industryPreviewFade, setIndustryPreviewFade] = useState(false);
+  const industryPreviewFadeTimerRef = useRef<number | null>(null);
 
   // New strict states
   const [isCreatorPro, setIsCreatorPro] = useState(false);
@@ -1271,26 +1274,90 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const industryProfile: IndustryProfile =
     productStore.visualProfile === 'wine-prestige' ? 'wine' : 'supplements';
   const activeIndustryRules = industryRules[industryProfile];
+  const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
+    'natural-light',
+    'sunny-day',
+    'golden-hour',
+    'overcast',
+    'cozy-indoors',
+    'ring-light',
+    'mood-lighting',
+    'night-mode',
+    'flash-photo',
+    'clinical-softbox',
+  ];
   const applyIndustryProfile = useCallback((nextProfile: IndustryProfile) => {
+    const softState = applyIndustryProfileSoft(
+      {
+        visualIntent: productStore.visualIntent,
+        lighting: productStore.lighting,
+        composition: productStore.composition,
+        photoMode: productStore.photoMode,
+        wineLightingTone: productStore.wineLightingTone,
+        rotation: productStore.rotation,
+        cameraUiRotationLabel: productStore.cameraUiRotationLabel,
+      },
+      nextProfile
+    );
+
+    if (industryPreviewFadeTimerRef.current != null && typeof window !== 'undefined') {
+      window.clearTimeout(industryPreviewFadeTimerRef.current);
+    }
+    setIndustryPreviewFade(true);
+    if (typeof window !== 'undefined') {
+      industryPreviewFadeTimerRef.current = window.setTimeout(() => {
+        setIndustryPreviewFade(false);
+        industryPreviewFadeTimerRef.current = null;
+      }, 200);
+    }
+
     if (nextProfile === 'wine') {
       productStore.setVisualProfile('wine-prestige');
       if (!String(productStore.contextPreset || '').trim()) {
         productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
       }
-      if (
-        productStore.photoMode === 'Splash Shot' ||
-        productStore.photoMode === 'Beach Foam Splash' ||
-        productStore.photoMode === 'Pool Water' ||
-        productStore.photoMode === 'Underwater Split'
-      ) {
-        productStore.setPhotoMode('Dark Premium Studio');
-      }
-      return;
+    } else {
+      productStore.setVisualProfile('default');
+      resetIndustryFields(nextProfile, productStore);
     }
 
-    productStore.setVisualProfile('default');
-    resetIndustryFields(nextProfile, productStore);
+    if (softState.visualIntent && softState.visualIntent !== productStore.visualIntent) {
+      productStore.setVisualIntent(softState.visualIntent as ProductStudioState['visualIntent']);
+    }
+    if (
+      softState.lighting &&
+      softState.lighting !== productStore.lighting &&
+      allowedStudioLightingValues.includes(softState.lighting as ProductStudioState['lighting'])
+    ) {
+      productStore.setLighting(softState.lighting as ProductStudioState['lighting']);
+    }
+    if (softState.composition && softState.composition !== productStore.composition) {
+      productStore.setComposition(softState.composition as ProductStudioState['composition']);
+    }
+    if (softState.photoMode && softState.photoMode !== productStore.photoMode) {
+      productStore.setPhotoMode(softState.photoMode as ProductStudioState['photoMode']);
+    }
+    if (softState.wineLightingTone && softState.wineLightingTone !== productStore.wineLightingTone) {
+      productStore.setWineLightingTone(softState.wineLightingTone as ProductStudioState['wineLightingTone']);
+    }
+    if (typeof softState.rotation === 'number' && softState.rotation !== productStore.rotation) {
+      productStore.setRotation(softState.rotation as ProductStudioState['rotation']);
+    }
+    if (
+      softState.cameraUiRotationLabel &&
+      softState.cameraUiRotationLabel !== productStore.cameraUiRotationLabel
+    ) {
+      productStore.setCameraUiLabels({ rotation: softState.cameraUiRotationLabel });
+    }
   }, [productStore]);
+
+  useEffect(() => {
+    return () => {
+      if (industryPreviewFadeTimerRef.current != null && typeof window !== 'undefined') {
+        window.clearTimeout(industryPreviewFadeTimerRef.current);
+      }
+    };
+  }, []);
   const interpretationNotes = productStore.interpretationNotes || {};
   const getInterpretationNote = (key: string): string | null => {
     const entry = (interpretationNotes as any)[key];
@@ -6788,7 +6855,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )}
 
           {ecommerceOverlay && (
-            <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-5">
+            <div
+              className={`space-y-3 rounded-2xl border border-gray-200 bg-white p-5 transition-opacity duration-200 ${industryPreviewFade ? 'opacity-70' : 'opacity-100'}`}
+            >
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-widest text-indigo-600">Overlays</p>
                 <p className="text-sm text-gray-600">Text + icons are rendered by the app (not the image model).</p>
