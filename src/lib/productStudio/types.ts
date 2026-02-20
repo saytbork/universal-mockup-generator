@@ -545,7 +545,15 @@ export type PropDensity = 'none' | 'low' | 'medium' | 'dense';
 export type VisualIntent = 'conversion' | 'campaign';
 export type EnergyLevel = 'low' | 'medium' | 'high';
 export type ControlTier = 'basic' | 'pro';
-export type VisualProfile = 'default' | 'wine-prestige';
+export type IndustryProfile =
+    | 'supplements'
+    | 'wine'
+    | 'beauty'
+    | 'coffee'
+    | 'luxury'
+    | 'tech'
+    | 'general';
+export type VisualProfile = 'default' | 'wine-prestige' | IndustryProfile;
 export type WineEnvironmentPreset =
     | 'Vineyard Golden Hour'
     | 'Oak Barrel Cellar'

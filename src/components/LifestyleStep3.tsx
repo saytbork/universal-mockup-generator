@@ -18,7 +18,7 @@ import { Chip } from './ui/Chip';
 import { Toggle } from './ui/Toggle';
 import ChipSelectGroup from './ChipSelectGroup';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productStudio/placementResolver';
 import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceResolver';
@@ -26,13 +26,11 @@ import { normalizeOption } from '../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
 import {
-  WINE_ACTION_OPTIONS,
   WINE_ENVIRONMENT_PRESETS,
-  WINE_LIGHTING_TONES,
-  WINE_MODIFIERS,
-  WINE_POUR_STYLE_OPTIONS,
   isWinePrestigeMode,
 } from '@/lib/productStudio/winePrestige';
+import { WineModule } from '@/components/industry-modules/WineModule';
+import { resetIndustryFields } from '@/utils/resetIndustryFields';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -149,127 +147,6 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-type IndustryProfile = 'supplements' | 'wine';
-
-function WineModule({
-  productStore,
-  markSectionTouched,
-}: {
-  productStore: any;
-  markSectionTouched: (id: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(true);
-
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
-      <button
-        type="button"
-        onClick={() => setIsOpen(prev => !prev)}
-        className="w-full flex items-center justify-between text-left"
-      >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">WINE MODULE</p>
-        <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
-      </button>
-
-      {isOpen && (
-        <div className="mt-4 space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Action</p>
-            <div className="flex flex-wrap gap-2">
-              {WINE_ACTION_OPTIONS.map((action) => (
-                <Chip
-                  key={action}
-                  selected={productStore.wineAction === action}
-                  onClick={() => {
-                    productStore.setWineAction(action);
-                    markSectionTouched('product-setup');
-                  }}
-                >
-                  {action === 'static-presentation' ? 'Static Presentation' : 'Controlled Pour'}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment Preset</p>
-            <div className="flex flex-wrap gap-2">
-              {WINE_ENVIRONMENT_PRESETS.map((preset) => (
-                <Chip
-                  key={preset}
-                  selected={String(productStore.contextPreset || '').trim() === preset}
-                  onClick={() => {
-                    productStore.setContextPreset(preset);
-                    markSectionTouched('product-setup');
-                  }}
-                >
-                  {preset}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          {productStore.wineAction === 'controlled-pour' && (
-            <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Pour Style</p>
-              <div className="flex flex-wrap gap-2">
-                {WINE_POUR_STYLE_OPTIONS.map((style) => (
-                  <Chip
-                    key={style}
-                    selected={productStore.winePourStyle === style}
-                    onClick={() => {
-                      productStore.setWinePourStyle(style);
-                      markSectionTouched('product-setup');
-                    }}
-                  >
-                    {style === 'slow-ribbon'
-                      ? 'Slow Ribbon'
-                      : style === 'mid-flow-elegance'
-                        ? 'Mid-flow Elegance'
-                        : 'Peak Glass Impact'}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
-            <div className="flex flex-wrap gap-2">
-              {WINE_LIGHTING_TONES.map((tone) => (
-                <Chip
-                  key={tone}
-                  selected={productStore.wineLightingTone === tone}
-                  onClick={() => {
-                    productStore.setWineLightingTone(tone);
-                    markSectionTouched('product-setup');
-                  }}
-                >
-                  {tone}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Modifier</p>
-            <div className="flex flex-wrap gap-2">
-              {WINE_MODIFIERS.map((modifier) => (
-                <Chip
-                  key={modifier}
-                  selected={productStore.wineMoodModifier === modifier}
-                  onClick={() => {
-                    productStore.setWineMoodModifier(modifier);
-                    markSectionTouched('product-setup');
-                  }}
-                >
-                  {modifier}
-                </Chip>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1392,6 +1269,26 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const industryProfile: IndustryProfile =
     productStore.visualProfile === 'wine-prestige' ? 'wine' : 'supplements';
+  const applyIndustryProfile = useCallback((nextProfile: IndustryProfile) => {
+    if (nextProfile === 'wine') {
+      productStore.setVisualProfile('wine-prestige');
+      if (!String(productStore.contextPreset || '').trim()) {
+        productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
+      }
+      if (
+        productStore.photoMode === 'Splash Shot' ||
+        productStore.photoMode === 'Beach Foam Splash' ||
+        productStore.photoMode === 'Pool Water' ||
+        productStore.photoMode === 'Underwater Split'
+      ) {
+        productStore.setPhotoMode('Dark Premium Studio');
+      }
+      return;
+    }
+
+    productStore.setVisualProfile('default');
+    resetIndustryFields(nextProfile, productStore);
+  }, [productStore]);
   const interpretationNotes = productStore.interpretationNotes || {};
   const getInterpretationNote = (key: string): string | null => {
     const entry = (interpretationNotes as any)[key];
@@ -2633,11 +2530,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <Chip
                           selected={industryProfile === 'supplements'}
                           onClick={() => {
-                            productStore.setVisualProfile('default');
-                            productStore.setWineAction('static-presentation');
-                            productStore.setWinePourStyle('mid-flow-elegance');
-                            productStore.setWineLightingTone('Warm Lateral');
-                            productStore.setWineMoodModifier('None');
+                            applyIndustryProfile('supplements');
                             markSectionTouched('product-setup');
                           }}
                           tooltip="Supplements industry defaults"
@@ -2647,24 +2540,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <Chip
                           selected={industryProfile === 'wine'}
                           onClick={() => {
-                            if (industryProfile === 'wine') {
-                              productStore.setVisualProfile('default');
-                              productStore.setWineAction('static-presentation');
-                              productStore.setWinePourStyle('mid-flow-elegance');
-                              productStore.setWineLightingTone('Warm Lateral');
-                              productStore.setWineMoodModifier('None');
-                            } else {
-                              productStore.setVisualProfile('wine-prestige');
-                              if (!String(productStore.contextPreset || '').trim()) productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
-                              if (
-                                productStore.photoMode === 'Splash Shot' ||
-                                productStore.photoMode === 'Beach Foam Splash' ||
-                                productStore.photoMode === 'Pool Water' ||
-                                productStore.photoMode === 'Underwater Split'
-                              ) {
-                                productStore.setPhotoMode('Dark Premium Studio');
-                              }
-                            }
+                            applyIndustryProfile(industryProfile === 'wine' ? 'supplements' : 'wine');
                             markSectionTouched('product-setup');
                           }}
                           tooltip="Wine prestige industry module"
@@ -2676,8 +2552,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {industryProfile === 'wine' && (
                       <WineModule
-                        productStore={productStore}
-                        markSectionTouched={markSectionTouched}
+                        wineAction={productStore.wineAction}
+                        winePourStyle={productStore.winePourStyle}
+                        contextPreset={productStore.contextPreset}
+                        wineLightingTone={productStore.wineLightingTone}
+                        wineMoodModifier={productStore.wineMoodModifier}
+                        onWineActionChange={(action) => {
+                          productStore.setWineAction(action);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWinePourStyleChange={(style) => {
+                          productStore.setWinePourStyle(style);
+                          markSectionTouched('product-setup');
+                        }}
+                        onContextPresetChange={(preset) => {
+                          productStore.setContextPreset(preset);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineLightingToneChange={(tone) => {
+                          productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineMoodModifierChange={(modifier) => {
+                          productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
+                          markSectionTouched('product-setup');
+                        }}
                       />
                     )}
 

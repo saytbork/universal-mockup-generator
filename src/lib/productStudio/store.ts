@@ -1256,7 +1256,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
     setVisualProfile: (profile) =>
         set((state) => {
-            const normalized = (profile === 'wine-prestige' ? 'wine-prestige' : 'default') as VisualProfile;
+            const normalized = (
+                profile === 'wine-prestige' || profile === 'wine'
+                    ? 'wine-prestige'
+                    : 'default'
+            ) as VisualProfile;
             if (normalized === 'default') {
                 return {
                     visualProfile: 'default',
