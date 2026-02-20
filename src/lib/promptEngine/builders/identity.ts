@@ -20,8 +20,12 @@ const IDENTITY_CONTRACT_TEXT = `
 This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real individual. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
-const ANTI_DOLL_CONSTRAINT = `
+const UGC_REAL_GUARD = `
 CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited photo of a real human being, NOT a 3D render, CGI model, digital avatar, or AI-generated perfect face. REJECT: porcelain skin, flawless complexion, symmetrical features, doll-like appearance, mannequin face, synthetic smoothness, video game character, animated look, plastic appearance, wax figure, beauty filter, Instagram filter, FaceTune, professional retouching, airbrushing. MANDATORY: visible skin pores, natural skin texture, minor blemishes, subtle asymmetry, real human imperfections, natural skin tone variation, authentic facial structure. This is a REAL PERSON captured with a smartphone camera, not a computer-generated image.
+`.trim().replace(/\s+/g, ' ');
+
+const BRAND_EDITORIAL_GUARD = `
+BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Subtle commercial-grade skin retouching. Clean complexion (no exaggerated texture). Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -166,6 +170,9 @@ export class IdentityBuilder implements PromptBuilder {
         // CRITICAL: Use centralized helper to check UGC mode
         // Automatically excludes UGC if Ritual Mode or Formulation Story are active
         const isUgcMode = isUgcModeActive(options);
+        const brandEditorialStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
+        const identityMode = ugcRealModeActive === true ? 'ugc-real' : 'brand-editorial';
+        console.log('[IDENTITY MODE]', identityMode);
         
         const parts: string[] = [];
         const age = personDetails?.age || 30;
@@ -176,14 +183,16 @@ export class IdentityBuilder implements PromptBuilder {
         const primaryHairColorSpecified = Boolean(personDetails?.hairColor);
 
         // ====================================================================
-        // CRITICAL: ANTI-DOLL CONSTRAINT (ALWAYS FIRST - ALL MODES)
+        // IDENTITY GUARD MODE (MUTUALLY EXCLUSIVE)
         // ====================================================================
-        // Apply anti-doll protection in ALL modes when person is included
-        // Prevents CGI/synthetic/porcelain appearance in both UGC and Lifestyle modes
-        parts.push(ANTI_DOLL_CONSTRAINT);
-        parts.push(`
+        if (ugcRealModeActive === true) {
+            parts.push(UGC_REAL_GUARD);
+            parts.push(`
 SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights, subtle facial asymmetry, natural expression lines. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness, NO plastic appearance, NO wax figure look, NO video game character. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection. The face must have natural human texture and imperfections visible at all times.
-        `.trim().replace(/\s+/g, ' '));
+            `.trim().replace(/\s+/g, ' '));
+        } else if (brandEditorialStyle) {
+            parts.push(BRAND_EDITORIAL_GUARD);
+        }
 
         // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
@@ -1023,11 +1032,6 @@ Captured by smartphone so fine edges may appear soft or broken.
         if (personDetails?.personProps) {
             parts.push(sanitizePart(personDetails.personProps, isUgcMode));
         }
-
-        // Anti-doll constraint for ALL modes with people (not just UGC)
-        // This prevents CGI/doll-like faces in Lifestyle and Brand content too
-        // Previously only applied to UGC mode, causing doll-face in Lifestyle
-        parts.push(ANTI_DOLL_CONSTRAINT);
 
         const result = parts.filter(Boolean).join('. ').trim();
         console.log('[IDENTITY BUILDER OUTPUT]', result.substring(0, 200) + '...');

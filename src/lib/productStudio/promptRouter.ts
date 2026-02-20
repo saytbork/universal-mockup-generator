@@ -845,6 +845,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           distanceOverride: resolvedCamera.cameraDistance,
           rotationOverride: resolvedCamera.cameraRotation,
           framingGuideOverride: resolvedCamera.framingGuide,
+          ...(state.lens ? { lensOverride: state.lens } : {}),
+          ...(state.lightingRig ? { lightingRigOverride: state.lightingRig } : {}),
+          ...(state.finish ? { finishOverride: state.finish } : {}),
         }
       : {}),
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],

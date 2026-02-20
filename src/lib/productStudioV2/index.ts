@@ -25,6 +25,98 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
   return [buildUltraReal(authority)];
 }
 
+function stripPromptSentences(prompt: string, patterns: RegExp[]): string {
+  let next = prompt;
+  for (const pattern of patterns) {
+    next = next.replace(pattern, '');
+  }
+  return next.replace(/\s{2,}/g, ' ').trim();
+}
+
+function applyAdvancedOverridePhase(prompt: string, state: StudioUIState): string {
+  const lensOverride = String(state.lensOverride || '').trim();
+  const lightingRigOverride = String(state.lightingRigOverride || '').trim();
+  const finishOverride = String(state.finishOverride || '').trim();
+  const gelColor = String(state.customLightColor || '').trim().toUpperCase();
+  const gelIntensity = Number(state.accentLightIntensity ?? 50);
+  const hasAccentGel = Boolean(gelColor && gelColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(gelColor));
+  const advancedOverrideActive = Boolean(
+    state.advancedControls && (lensOverride || lightingRigOverride || finishOverride || hasAccentGel)
+  );
+
+  console.log('[ADVANCED_OVERRIDE_ACTIVE]', advancedOverrideActive);
+  if (!advancedOverrideActive) {
+    console.log('[RESOLVED_LENS]', '');
+    console.log('[RESOLVED_LIGHTING]', '');
+    console.log('[RESOLVED_FINISH]', '');
+    return prompt;
+  }
+
+  let nextPrompt = prompt;
+  let resolvedLens = '';
+  let resolvedLighting = '';
+  let resolvedFinish = '';
+
+  if (lensOverride) {
+    nextPrompt = stripPromptSentences(nextPrompt, [
+      /\bCOFFEE_LENS_BIAS:\s*[^.]*\.\s*/gi,
+      /\bLENS_PROFILE:\s*[^.]*\.\s*/gi,
+    ]);
+    resolvedLens = lensOverride;
+  }
+
+  if (lightingRigOverride) {
+    nextPrompt = stripPromptSentences(nextPrompt, [
+      /\bLIGHTING:\s*[^.]*\.\s*/gi,
+      /\bSTUDIO_LIGHTING_PROFILE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_LIGHTING_PROFILE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_LIGHTING_TEMPERATURE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_SHADOW_PROFILE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_CONTRAST_PROFILE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_LIGHTING_FINE:\s*[^.]*\.\s*/gi,
+      /\bACCENT LIGHT GEL:\s*[^.]*\.\s*/gi,
+      /\bACCENT_LIGHT_GEL:\s*[^.]*\.\s*/gi,
+    ]);
+    resolvedLighting = lightingRigOverride;
+  }
+
+  if (finishOverride) {
+    nextPrompt = stripPromptSentences(nextPrompt, [
+      /\bcinematicLook\s*=\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_FALLOFF_STYLE:\s*[^.]*\.\s*/gi,
+      /\bCOFFEE_CONTRAST_PROFILE:\s*[^.]*\.\s*/gi,
+      /\bCOLOR_GRADING:\s*[^.]*\.\s*/gi,
+    ]);
+    resolvedFinish = finishOverride;
+  }
+
+  const advancedParts: string[] = [];
+  if (resolvedLens) {
+    advancedParts.push(`LENS_PROFILE: ${resolvedLens}.`);
+  }
+  if (resolvedLighting) {
+    advancedParts.push(`STUDIO_LIGHTING_PROFILE: ${resolvedLighting}.`);
+  }
+  if (hasAccentGel && resolvedLighting && !/\bnatural-light\b/i.test(resolvedLighting)) {
+    advancedParts.push(`ACCENT_LIGHT_GEL: ${gelColor} at ${gelIntensity}% attached to resolved lighting.`);
+  }
+  if (resolvedFinish) {
+    advancedParts.push(`STUDIO_FINISH_PROFILE: ${resolvedFinish}.`);
+  }
+
+  // Ensure advanced override block is injected only once.
+  nextPrompt = nextPrompt.replace(/\bSTUDIO_ADVANCED_OVERRIDES:[\s\S]*?(?:\n\n|$)/gi, '').trim();
+  if (advancedParts.length > 0) {
+    nextPrompt = `${nextPrompt}\n\nSTUDIO_ADVANCED_OVERRIDES: ${advancedParts.join(' ')}`.trim();
+  }
+
+  console.log('[RESOLVED_LENS]', resolvedLens);
+  console.log('[RESOLVED_LIGHTING]', resolvedLighting);
+  console.log('[RESOLVED_FINISH]', resolvedFinish);
+
+  return nextPrompt;
+}
+
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const isWineIndustry = state.visualProfile === 'wine';
@@ -51,7 +143,8 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       ...protectionLayer,
     ];
     const prompt = assembleStudioPrompt(coffeeBlocks);
-    const finalPrompt = coffeeStructuralBlock ? `${coffeeStructuralBlock}\n\n${prompt}` : prompt;
+    const basePrompt = coffeeStructuralBlock ? `${coffeeStructuralBlock}\n\n${prompt}` : prompt;
+    const finalPrompt = applyAdvancedOverridePhase(basePrompt, state);
     if (!finalPrompt.startsWith('### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK')) {
       console.error('[COFFEE STRUCTURAL PREPEND FAILED]');
     }
@@ -75,7 +168,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       buildGeometry(authority, state),
       ...protectionLayer,
     ];
-    const finalPrompt = assembleStudioPrompt(wineBlocks);
+    const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(wineBlocks), state);
     validateStudioPrompt(finalPrompt, authority);
     return finalPrompt;
   }
@@ -94,7 +187,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildGeometry(authority, state),
     ...protectionLayer,
   ];
-  const finalPrompt = assembleStudioPrompt(studioBlocks);
+  const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(studioBlocks), state);
   validateStudioPrompt(finalPrompt, authority);
   return finalPrompt;
 }

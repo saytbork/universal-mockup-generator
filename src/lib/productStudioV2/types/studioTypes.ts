@@ -147,6 +147,9 @@ export interface StudioUIState {
   distanceOverride?: string;
   rotationOverride?: string;
   framingGuideOverride?: string;
+  lensOverride?: string;
+  lightingRigOverride?: string;
+  finishOverride?: string;
   productType?: string;
   interaction?: string;
   packagingBehavior?: string;
