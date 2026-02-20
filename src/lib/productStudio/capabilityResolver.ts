@@ -245,7 +245,9 @@ export function resolveStateMotionByCapability(
   stateMotionCapability: StateMotionCapability,
   options?: { coffeeIntent?: 'conversion' | 'editorial-ritual' | 'campaign' }
 ): ProductStateMotion {
-  if (stateMotionCapability === 'static-only') return 'static';
+  if (stateMotionCapability !== 'limited' && stateMotionCapability !== 'extended') {
+    return 'static';
+  }
   if (
     industryProfile === 'coffee' &&
     options?.coffeeIntent === 'editorial-ritual'
@@ -309,7 +311,9 @@ export function getResolvedAllowedMotions(
   const limitedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
   const extendedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed', 'pouring', 'spilled', 'falling'];
 
-  if (stateMotionCapability === 'static-only') return ['static'];
+  if (stateMotionCapability !== 'limited' && stateMotionCapability !== 'extended') {
+    return ['static'];
+  }
   if (stateMotionCapability === 'limited') {
     const envelope =
       industryProfile === 'coffee' && (coffeeIntent === 'editorial-ritual' || coffeeIntent === 'campaign')
