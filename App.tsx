@@ -5116,6 +5116,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const basePromptOptions: any = {
           ...options,
+          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isProductPlacement ? 'studio-branding' : 'lifestyle-real'),
           modelReferenceLockAccessories,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
           creationIntent: isProductPlacement ? 'product' : options.creationIntent,
@@ -5243,6 +5244,7 @@ If the model attempts to create a scene or environment, override it and force a 
           // Product mode uses minimal prompt options
           promptOptions = {
             ...basePromptOptions,
+            sceneType: 'studio-branding',
             contentStyle: 'product',
             creationIntent: 'product',
             sceneIntent: 'ecommerce',

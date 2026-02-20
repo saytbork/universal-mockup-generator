@@ -22,6 +22,7 @@ export interface PromptLayer {
 }
 
 export type SceneState = ProductStudioStep3Values & {
+  sceneType?: string;
   visualStyle?: string;
   visualIntent?: string;
   composition?: string;

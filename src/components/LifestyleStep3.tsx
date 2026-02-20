@@ -2003,8 +2003,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Initial Safety Check for hasModelReference
   useEffect(() => {
     if (hasModelReference && (values.visualMode === 'ugc' || values.creatorPreset || values.sameCreatorAcrossScenes)) {
-      setValues(prev => {
-        const newValues = { ...prev, visualMode: 'default', ugcRealMode: false, creatorPreset: null, sameCreatorAcrossScenes: false };
+      setValues((prev) => {
+        const newValues: Step3Values = {
+          ...prev,
+          visualMode: 'default',
+          ugcRealMode: false,
+          creatorPreset: null,
+          sameCreatorAcrossScenes: false,
+        };
         ALL_UGC_LAYER_FIELDS.forEach(layer => {
           (newValues as any)[layer] = [];
         });
