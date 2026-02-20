@@ -1390,7 +1390,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // ============================================================================
   const productStore = useProductStudioStore();
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
-  const [industryProfile, setIndustryProfile] = useState<IndustryProfile>('supplements');
+  const industryProfile: IndustryProfile =
+    productStore.visualProfile === 'wine-prestige' ? 'wine' : 'supplements';
   const interpretationNotes = productStore.interpretationNotes || {};
   const getInterpretationNote = (key: string): string | null => {
     const entry = (interpretationNotes as any)[key];
@@ -1419,10 +1420,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (angle === 'eye_level') return 'Eye level product';
     return '45° hero';
   };
-
-  useEffect(() => {
-    setIndustryProfile(winePrestigeModeActive ? 'wine' : 'supplements');
-  }, [winePrestigeModeActive]);
 
   useEffect(() => {
     if (!isProductMode) return;
@@ -2636,8 +2633,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <Chip
                           selected={industryProfile === 'supplements'}
                           onClick={() => {
-                            setIndustryProfile('supplements');
                             productStore.setVisualProfile('default');
+                            productStore.setWineAction('static-presentation');
+                            productStore.setWinePourStyle('mid-flow-elegance');
+                            productStore.setWineLightingTone('Warm Lateral');
+                            productStore.setWineMoodModifier('None');
                             markSectionTouched('product-setup');
                           }}
                           tooltip="Supplements industry defaults"
@@ -2648,10 +2648,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           selected={industryProfile === 'wine'}
                           onClick={() => {
                             if (industryProfile === 'wine') {
-                              setIndustryProfile('supplements');
                               productStore.setVisualProfile('default');
+                              productStore.setWineAction('static-presentation');
+                              productStore.setWinePourStyle('mid-flow-elegance');
+                              productStore.setWineLightingTone('Warm Lateral');
+                              productStore.setWineMoodModifier('None');
                             } else {
-                              setIndustryProfile('wine');
                               productStore.setVisualProfile('wine-prestige');
                               if (!String(productStore.contextPreset || '').trim()) productStore.setContextPreset(WINE_ENVIRONMENT_PRESETS[0]);
                               if (
