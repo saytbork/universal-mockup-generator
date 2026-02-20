@@ -534,7 +534,8 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
-        if (options.creationMode === 'lifestyle' && options.contentStyle === 'ugc' && options.ugcRealModeActive) {
+        const isUgcVisualMode = options.visualMode === 'ugc';
+        if (options.creationMode === 'lifestyle' && isUgcVisualMode) {
             return constraints ? constraints : '';
         }
 
@@ -548,14 +549,12 @@ export class SceneNarrativeBuilder {
             cameraType: (options as any).cameraType,
             placementCamera: (options as any).placementCamera,
             productAssets: options.productAssets,
+            visualMode: options.visualMode,
             ugcMode:
-                options.contentStyle === 'ugc' ||
-                options.creationIntent === 'ugc' ||
-                Boolean(options.ugcRealModeActive) ||
-                Boolean(options.rawDomesticUgcActive)
+                isUgcVisualMode
         });
         const parts: string[] = [];
-        const suppressCameraDescriptors = !!options.ugcRealModeActive;
+        const suppressCameraDescriptors = isUgcVisualMode;
 
         if (options.sceneStructure?.cameraLock) {
             const lock = options.sceneStructure.cameraLock;
@@ -593,7 +592,7 @@ export class SceneNarrativeBuilder {
             parts.push(
                 'Capture is professional and controlled: stabilized camera on tripod or rig, intentional framing, clean exposure, accurate color, and studio-grade lighting discipline. No motion wobble, no accidental framing, and no casual artifacts.'
             );
-        } else if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        } else if (!isUgcVisualMode) {
             parts.push(
                 'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
             );

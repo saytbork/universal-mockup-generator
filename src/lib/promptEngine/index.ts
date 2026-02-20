@@ -268,12 +268,7 @@ function stripModeResolutionGuardrail(prompt: string): string {
 }
 
 function isModeResolutionRestricted(options: PromptOptions): boolean {
-    return (
-        options.creationIntent === 'ugc' ||
-        options.contentStyle === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive)
-    );
+    return options.visualMode === 'ugc';
 }
 
 function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: PromptOptions): string {
@@ -341,7 +336,7 @@ function enforcePreflightGuards(options: PromptOptions) {
         }
     }
     const isUgcVisualMode = options.visualMode === 'ugc';
-    if (isUgcVisualMode || options.creationIntent === 'ugc') {
+    if (isUgcVisualMode) {
         const allowMissingEnvironment =
             options.creationMode === 'bg-replace' &&
             options.visualMode === 'hero' &&
@@ -355,8 +350,27 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function applyModeResolution(prompt: string, options: PromptOptions): string {
+    if (!isModeResolutionRestricted(options)) {
+        return stripModeResolutionGuardrail(prompt);
+    }
     const sanitized = sanitizeCameraAestheticsForRestrictedModes(prompt, options);
     return prependModeResolutionGuardrail(sanitized);
+}
+
+function enforceSingleCameraBlock(prompt: string): string {
+    const cameraPattern = /\bCamera:\s*[^.]*\./g;
+    const matches = prompt.match(cameraPattern) || [];
+    if (matches.length <= 1) return prompt;
+
+    console.warn(`[PROMPT ENGINE] Multiple Camera blocks detected (${matches.length}). Keeping first block only.`);
+    let seen = false;
+    return prompt.replace(cameraPattern, (segment) => {
+        if (!seen) {
+            seen = true;
+            return segment;
+        }
+        return '';
+    }).replace(/\s+/g, ' ').trim();
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -769,6 +783,7 @@ export class PromptEngine {
                 .trim();
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
+            finalPrompt = enforceSingleCameraBlock(finalPrompt);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -838,12 +853,8 @@ export class PromptEngine {
         let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
-        if (options.sceneIntent === 'environment' && options.creationIntent !== 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
-            console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
-            masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
-            masterSections.ecommerceBuilder = undefined;
-            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
-            finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
+        if (options.sceneIntent === 'environment' && options.visualMode === 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
+            console.warn('[PROMPT ENGINE] Environment guard triggered in UGC mode');
         }
 
         if (/data:image/i.test(finalPrompt)) {
@@ -855,6 +866,7 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
+        finalPrompt = enforceSingleCameraBlock(finalPrompt);
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid

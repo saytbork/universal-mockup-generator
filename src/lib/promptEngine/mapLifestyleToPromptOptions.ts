@@ -1485,7 +1485,7 @@ export function mapLifestyleToPromptOptions(
         const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
         const shouldForceEnvironmentSmartphone =
-            isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
+            isUGCMode && isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
         let effectiveCameraSemantic = shouldForceEnvironmentSmartphone
             ? 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.'
             : cameraDeviceSemantic;
@@ -1502,7 +1502,7 @@ export function mapLifestyleToPromptOptions(
         // ANTI-DOLL FIX: Strip cinematic language when person is included
         // Cinema/filmic aesthetic conflicts with raw/real person appearance
         const personIncluded = !sceneState.noPerson && sceneState.personIncluded !== false;
-        if (personIncluded && effectiveCameraSemantic) {
+        if (isUGCMode && personIncluded && effectiveCameraSemantic) {
             effectiveCameraSemantic = effectiveCameraSemantic
                 .replace(/cinema camera rig/gi, 'natural camera capture')
                 .replace(/cinematic/gi, 'natural')
@@ -2311,9 +2311,11 @@ export function mapLifestyleToPromptOptions(
         mapped.creationModeStructural =
             mapped.creationModeStructural ||
             'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
-        mapped.cameraDeviceSemantic =
-            mapped.cameraDeviceSemantic ||
-            'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
+        if (isUGCMode) {
+            mapped.cameraDeviceSemantic =
+                mapped.cameraDeviceSemantic ||
+                'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
+        }
     }
 
     // ========================================================================
