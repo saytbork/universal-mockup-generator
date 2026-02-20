@@ -61,19 +61,20 @@ function buildSteamBlock(state: StudioUIState): string {
 function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const hasProductReference = Boolean(state.productReferencePresent);
   const packagingIntent = state.coffeePackagingIntent || 'pdp-clean';
+  const isPdpCleanIntent = packagingIntent === 'pdp-clean' || state.visualIntent === 'conversion';
   const intentMap: Record<string, string> = {
     'pdp-clean':
-      'COFFEE_INTENT_PROFILE: PDP Clean. productDominanceTarget=85–90%. contextDepth=shallow. background=clean minimal. beansMax=low.',
+      'COFFEE_INTENT_PROFILE: PDP Clean. productDominanceTarget=85–90%. contextDepth=shallow. background=clean minimal. beansMax=low. STUDIO_PRODUCT_MOTION: static. ACCENT_POLICY: beansScatter=low. cupAccent=behind-small or off. steamLevel=subtle or off. espressoSplash=off. iceMode=off. MODIFIERS: none. TEXTURED_BED: disabled. POURING: disabled. SPLASH: disabled. COMPOSITION_RULE: front-facing or 45° hero. Clean minimal background. Shallow context depth. No aggressive art-direction. Maximum packaging readability.',
     'premium-campaign':
-      'COFFEE_INTENT_PROFILE: Premium Campaign. productDominanceTarget=80–90%. contrast=higher. shadowDepth=deeper. beansMax=medium. cupMax=small.',
+      'COFFEE_INTENT_PROFILE: Campaign. productDominanceTarget=80–90%. contrast=higher. shadowDepth=deeper. beansMax=medium. cupMax=small. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only. Never chaotic splash. ACCENT_POLICY: beansScatter=controlled. cupAccent=side or behind-small. steamLevel=subtle. espressoSplash=controlled (never covering packaging). iceMode=only if cold-brew intent. ACCENT_SCALE_RULE: Beans = decorative only. Cup = side support only. Steam = subtle and secondary. Splash must never touch label zone. LABEL_PROTECTION_RULE: Label area must remain clean, dry, readable. No liquid streaks. No foam. No residue. No decorative overlays. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
     'dark-roast-luxury':
-      'COFFEE_INTENT_PROFILE: Dark Roast Luxury. productDominanceTarget=80–90%. background=dark. highlights=controlled. steam=subtle-allowed.',
+      'COFFEE_INTENT_PROFILE: Campaign. Dark Roast Luxury. productDominanceTarget=80–90%. background=dark. highlights=controlled. steam=subtle-allowed. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only. Never chaotic splash. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
     'modern-minimal':
-      'COFFEE_INTENT_PROFILE: Modern Minimal. productDominanceTarget=80–88%. contextDepth=shallow. background=minimal.',
+      'COFFEE_INTENT_PROFILE: Campaign. Modern Minimal. productDominanceTarget=80–88%. contextDepth=shallow. background=minimal. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
     'cold-brew-fresh':
-      'COFFEE_INTENT_PROFILE: Cold Brew Fresh. productDominanceTarget=80–88%. allowIceCubes=true. allowCondensation=true. steam=off.',
+      'COFFEE_INTENT_PROFILE: Campaign. Cold Brew Fresh. productDominanceTarget=80–88%. allowIceCubes=true. allowCondensation=true. steam=off. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
     'bundle-hero':
-      'COFFEE_INTENT_PROFILE: Bundle Hero. productDominanceTarget=78–88%. multi-product hierarchy with packaging dominance preserved.',
+      'COFFEE_INTENT_PROFILE: Campaign. Bundle Hero. productDominanceTarget=78–88%. multi-product hierarchy with packaging dominance preserved. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
   };
   const beans = state.coffeeBeansScatter || 'low';
   const cup = state.coffeeCupAccent || 'side';
@@ -83,10 +84,18 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const temperatureFeel = state.coffeeTemperatureFeel || 'neutral-commercial';
 
   return [
+    'COFFEE_VISUAL_INTENT_BIAS: campaign.',
+    'COFFEE_INDUSTRY_LAYER: coffee-packaging-system.',
     'COFFEE_PACKAGING_MODE: enforced.',
-    'PRIMARY_SUBJECT_RULE: The uploaded product MUST be the dominant subject. Minimum visual dominance: 70%. In conversion mode: target 80–90%.',
-    'CONTEXT_RULE: Coffee-related elements (beans, cups, steam, surfaces) are secondary accents only. Contextual elements may not exceed 30% visual dominance.',
-    'PROHIBITIONS: Never render cup-only scene. Never replace packaging with beverage container. Never generate stock-style ritual composition. Never crop packaging out of frame. Never center the cup over the product.',
+    'PRIMARY_SUBJECT_RULE: The uploaded product packaging MUST be the dominant subject. Minimum visual dominance: 75%. In PDP / conversion mode: target 85–90%.',
+    'CONTEXT_RULE: Coffee-related elements (beans, cups, steam, kettle, ice, splashes, surfaces) are strictly secondary accents. Contextual elements may not exceed 25% visual dominance.',
+    'PROHIBITIONS: Never render cup-only scene. Never replace packaging with beverage container. Never generate stock-style ritual composition. Never crop packaging out of frame. Never center a cup in front of the product. Never allow contextual elements to overpower packaging. Never restyle the product into a different SKU variation.',
+    'PACKAGING_STRUCTURE_LOCK: The uploaded packaging must remain structurally identical to the reference image. Do NOT add spouts, valves, caps, pumps, closures, or top mechanisms. Do NOT modify seal type, zipper type, pouch geometry, material finish, packaging proportions, label layout, label typography, or closure system. If a structural detail is unclear, preserve the original silhouette exactly and never invent physical features.',
+    'STRUCTURAL_MUTATION_PROHIBITION: true.',
+    'COFFEE_GEOMETRY_LOCK: Maintain exact width-to-height proportions. Never stretch, compress, or reinterpret packaging geometry.',
+    isPdpCleanIntent
+      ? 'PDP_CLEAN_MODE: ecommerce-ready packaging-first execution enabled.'
+      : 'CAMPAIGN_MODE: creative packaging-first execution enabled.',
     'ACCENT_SCALE_RULE: Beans = decorative only. Cup = side support only. Steam = subtle and secondary.',
     'PRODUCT_ENFORCEMENT: true.',
     intentMap[packagingIntent] || intentMap['pdp-clean'],
@@ -97,6 +106,7 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
       ? 'COFFEE_REFERENCE_LOCK: product reference exists; packaging context overrides beverage context and cup-dominant rendering is disabled.'
       : 'COFFEE_REFERENCE_LOCK: no product reference detected; beverage-only fallback remains disabled.',
     'COFFEE_BOUNDING_RULE: enforce product bounding-box centrality.',
+    'CRITICAL: The exact uploaded product packaging must appear in the final image. It must remain structurally identical to the reference. No physical alterations are allowed. Do not invent new packaging features. Do not change closure systems. Do not modify the top seal. Do not reinterpret the packaging design.',
   ].join(' ');
 }
 
@@ -115,8 +125,8 @@ export function buildCoffeeIndustryLayer(
   const coffeeLiquidPhysicsEnabled = state.coffeeLiquidPhysicsEnabled !== false;
 
   return [
-    `COFFEE_INDUSTRY_LAYER: ${variant}.`,
     buildCoffeeProductPriorityBlock(state),
+    `COFFEE_INDUSTRY_VARIANT: ${variant}.`,
     'COFFEE_PHYSICS_PROFILE: enabled.',
     coffeeLiquidPhysicsEnabled
       ? 'COFFEE_LIQUID_PHYSICS: Opaque dark brown absorption core. Minimal translucency. Soft edge highlight near surface. Subtle meniscus at cup rim.'
