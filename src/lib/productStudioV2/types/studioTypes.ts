@@ -47,6 +47,13 @@ export interface StudioUIState {
   advancedControls?: boolean;
   visualProfile?: string;
   visualIntent?: string;
+  coffeeMode?: 'studio' | 'ritual';
+  coffeeMotion?: 'static' | 'controlled-pour';
+  coffeeEnvironment?: string;
+  coffeeLightingTone?: string;
+  coffeeMood?: string;
+  coffeeSteam?: 'none' | 'subtle' | 'visible';
+  coffeeLiquidPhysics?: boolean;
   coffeeIndustryLayer?: boolean;
   coffeeVariant?: 'coffee-editorial-ritual' | 'coffee-premium-minimal' | 'coffee-color-pop-luxury';
   coffeeMoodProfile?:
@@ -70,6 +77,7 @@ export interface StudioUIState {
   autoRandomizeCoffeeEnvironment?: boolean;
   coffeeTemperatureProfile?: 'hot' | 'cold';
   coffeeSteamVisibility?: 'none' | 'subtle' | 'medium' | 'high';
+  coffeeLiquidPhysicsEnabled?: boolean;
   coffeeEspressoMode?: boolean;
   coffeeCompositionCoverage?: string;
   lightingModelOverride?: string;

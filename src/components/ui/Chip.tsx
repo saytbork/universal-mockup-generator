@@ -14,6 +14,7 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   size?: ChipSize;
   tone?: 'default' | 'warm';
   tooltip?: string;
+  description?: string;
 }
 
 const baseClass =
@@ -35,7 +36,7 @@ const disabledClass =
   'opacity-70 cursor-not-allowed pointer-events-none bg-gray-50/80 text-gray-400 border-gray-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, className = '', children, ...props }, ref) => {
+  ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, description, className = '', children, ...props }, ref) => {
     const classes = [
       baseClass,
       sizeMap[size],
@@ -70,7 +71,9 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       return { kind: 'text' as const, value: String(children) };
     })();
 
-    const safeTooltip = typeof tooltip === 'string' ? tooltip : undefined;
+    const safeTooltip = typeof tooltip === 'string'
+      ? tooltip
+      : (typeof description === 'string' ? description : undefined);
     const inferredTitle =
       safeTooltip ??
       props.title ??

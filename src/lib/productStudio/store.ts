@@ -54,6 +54,11 @@ import type {
     WineLightingTone,
     WineMoodModifier,
     WinePourStyle,
+    CoffeeAction,
+    CoffeeMode,
+    CoffeeLightingTone,
+    CoffeeMoodModifier,
+    CoffeeSteamLevel,
 } from './types';
 import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS } from './winePrestige';
 
@@ -658,6 +663,12 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
     winePourStyle: 'mid-flow-elegance',
+    coffeeMode: 'studio',
+    coffeeAction: 'static',
+    coffeeLightingTone: 'auto',
+    coffeeMoodModifier: 'auto',
+    coffeeSteamLevel: 'auto',
+    coffeeLiquidPhysics: true,
     visualIntent: 'conversion',
     energyLevel: 'low',
     creativityLevel: 1,
@@ -812,6 +823,12 @@ type ProductStudioActions = {
     setWinePourStyle: (style: WinePourStyle) => void;
     setWineLightingTone: (tone: WineLightingTone) => void;
     setWineMoodModifier: (modifier: WineMoodModifier) => void;
+    setCoffeeAction: (action: CoffeeAction) => void;
+    setCoffeeMode: (mode: CoffeeMode) => void;
+    setCoffeeLightingTone: (tone: CoffeeLightingTone) => void;
+    setCoffeeMoodModifier: (modifier: CoffeeMoodModifier) => void;
+    setCoffeeSteamLevel: (level: CoffeeSteamLevel) => void;
+    setCoffeeLiquidPhysics: (enabled: boolean) => void;
     setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
     setEnergyLevel: (level: ProductStudioState['energyLevel']) => void;
     setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
@@ -1273,11 +1290,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     category: '',
                     contextPreset: '',
                     wineAction: 'static-presentation',
+                    coffeeMode: 'studio',
+                    coffeeAction: 'static',
                 };
             }
             if (normalizedProfile === 'coffee') {
                 return {
                     visualProfile: 'coffee',
+                    coffeeMode: state.coffeeMode || 'studio',
+                    coffeeAction: state.coffeeAction || 'static',
                 };
             }
             return {
@@ -1310,6 +1331,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     }),
     setWineLightingTone: (tone) => set({ wineLightingTone: tone }),
     setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
+    setCoffeeAction: (action) =>
+        set({
+            coffeeAction: action === 'controlled-pour' ? 'controlled-pour' : 'static',
+            stateMotion: action === 'controlled-pour' ? 'pouring' : 'static',
+        }),
+    setCoffeeMode: (mode) =>
+        set({
+            coffeeMode: mode === 'ritual' ? 'ritual' : 'studio',
+            visualIntent: mode === 'ritual' ? 'campaign' : 'conversion',
+        }),
+    setCoffeeLightingTone: (tone) => set({ coffeeLightingTone: tone }),
+    setCoffeeMoodModifier: (modifier) => set({ coffeeMoodModifier: modifier }),
+    setCoffeeSteamLevel: (level) => set({ coffeeSteamLevel: level }),
+    setCoffeeLiquidPhysics: (enabled) => set({ coffeeLiquidPhysics: Boolean(enabled) }),
     setVisualIntent: (intent) => set({ visualIntent: intent }),
     setEnergyLevel: (energyLevel) => set({ energyLevel }),
     setCreativityLevel: (level) => set({ creativityLevel: level }),

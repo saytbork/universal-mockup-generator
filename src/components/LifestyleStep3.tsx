@@ -11,11 +11,12 @@ import {
   CAMERA_ANGLE_OPTIONS as CONSTANT_CAMERA_ANGLE_OPTIONS // Use constant if needed or stick to local if it matches
 } from '../../constants';
 import type { UGCCaptureSituationId } from '../lib/promptEngine/ugcCaptureSituation';
-import SmoothAccordion from './SmoothAccordion';
 import EcommerceStep3, { type EcommerceGenerationSettings, type EcommerceSlotGenerationMeta } from './EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { Chip } from './ui/Chip';
-import { Toggle } from './ui/Toggle';
+import { AccordionSection } from './ui/AccordionSection';
+import { TogglePillButton, getTogglePillClass } from './ui/TogglePillButton';
+import { SwitchToggle } from './ui/SwitchToggle';
 import ChipSelectGroup from './ChipSelectGroup';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
 import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
@@ -33,7 +34,7 @@ import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIndustryIntent } from '@/lib/productStudio/resolveCoffeeIntent';
 import { getPhotoModeCameraCapability, getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
-import { WineModule } from '@/components/industry-modules/WineModule';
+import { industryModuleRegistry } from '@/components/industry-modules/industryModuleRegistry';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
 
 // ============================================================================
@@ -568,17 +569,6 @@ const COLOR_PICKER_SWATCH_VISUAL_CLASS =
   'h-9 w-9 rounded-full border border-gray-200 bg-white transition-colors';
 const COLOR_PICKER_HIDDEN_INPUT_CLASS =
   'absolute inset-0 cursor-pointer opacity-0';
-
-const getPillClass = (isActive: boolean, fullWidth = false) => {
-  const base = `rounded-full px-4 py-2 text-xs font-semibold border transition-colors ${fullWidth ? 'w-full text-center' : ''}`;
-  const active =
-    'bg-indigo-600 text-white border-indigo-600 ' +
-    'dark:bg-indigo-500 dark:border-indigo-500';
-  const inactive =
-    'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 ' +
-    'dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]';
-  return `${base} ${isActive ? active : inactive}`.trim();
-};
 
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
 const GENDER_OPTIONS = ['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'];
@@ -2455,13 +2445,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {isEcommerceMode && (
         <>
-          <SmoothAccordion
+          <AccordionSection
             icon={Layers}
             title="01 / Product Setup"
-            tooltip={`Product setup.\nProduct basics.`}
+            description={`Product setup.\nProduct basics.`}
             isOpen={openAccordionId === 'product-setup'}
             onToggle={() => toggleSection('product-setup')}
-            isRequired
+            required
             isTouched={touchedSections.has('product-setup')}
             variant="primary"
           >
@@ -2524,7 +2514,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         markSectionTouched('product-setup');
                       }}
                       selected={productStore.qualityProfile === opt.id}
-                      tooltip={opt.desc}
+                      description={opt.desc}
                     >
                       {opt.label}
                     </Chip>
@@ -2576,7 +2566,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }}
                       selected={placementResolution.resolvedPlacement === opt.id}
                       disabled={!opt.enabled}
-                      tooltip={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
+                      description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
                     >
                       {opt.label}
                     </Chip>
@@ -2608,7 +2598,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile('supplements');
                             markSectionTouched('product-setup');
                           }}
-                          tooltip="Supplements industry defaults"
+                          description="Supplements industry defaults"
                         >
                           Supplements (Default)
                         </Chip>
@@ -2618,7 +2608,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile(industryProfile === 'wine' ? 'supplements' : 'wine');
                             markSectionTouched('product-setup');
                           }}
-                          tooltip="Wine prestige industry module"
+                          description="Wine prestige industry module"
                         >
                           Wine Prestige
                         </Chip>
@@ -2628,15 +2618,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile('coffee');
                             markSectionTouched('product-setup');
                           }}
-                          tooltip="Coffee ritual industry defaults"
+                          description="Coffee ritual industry defaults"
                         >
                           Coffee Ritual
                         </Chip>
                       </div>
                     </div>
 
-                    {industryProfile === 'wine' && (
-                      <WineModule
+                    {industryProfile === 'wine' && industryModuleRegistry.wine && (
+                      <industryModuleRegistry.wine
                         wineAction={productStore.wineAction}
                         winePourStyle={productStore.winePourStyle}
                         contextPreset={productStore.contextPreset}
@@ -2660,6 +2650,46 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         }}
                         onWineMoodModifierChange={(modifier) => {
                           productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
+                          markSectionTouched('product-setup');
+                        }}
+                      />
+                    )}
+
+                    {industryProfile === 'coffee' && industryModuleRegistry.coffee && (
+                      <industryModuleRegistry.coffee
+                        coffeeMode={productStore.coffeeMode}
+                        coffeeAction={productStore.coffeeAction}
+                        contextPreset={productStore.contextPreset}
+                        coffeeLightingTone={productStore.coffeeLightingTone}
+                        coffeeMoodModifier={productStore.coffeeMoodModifier}
+                        coffeeSteamLevel={productStore.coffeeSteamLevel}
+                        coffeeLiquidPhysics={productStore.coffeeLiquidPhysics}
+                        onCoffeeModeChange={(mode) => {
+                          productStore.setCoffeeMode(mode);
+                          markSectionTouched('product-setup');
+                        }}
+                        onCoffeeActionChange={(action) => {
+                          productStore.setCoffeeAction(action);
+                          markSectionTouched('product-setup');
+                        }}
+                        onContextPresetChange={(preset) => {
+                          productStore.setContextPreset(preset);
+                          markSectionTouched('product-setup');
+                        }}
+                        onCoffeeLightingToneChange={(tone) => {
+                          productStore.setCoffeeLightingTone(tone);
+                          markSectionTouched('product-setup');
+                        }}
+                        onCoffeeMoodModifierChange={(modifier) => {
+                          productStore.setCoffeeMoodModifier(modifier);
+                          markSectionTouched('product-setup');
+                        }}
+                        onCoffeeSteamLevelChange={(level) => {
+                          productStore.setCoffeeSteamLevel(level);
+                          markSectionTouched('product-setup');
+                        }}
+                        onCoffeeLiquidPhysicsChange={(enabled) => {
+                          productStore.setCoffeeLiquidPhysics(enabled);
                           markSectionTouched('product-setup');
                         }}
                       />
@@ -2823,7 +2853,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2854,7 +2884,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2876,7 +2906,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2897,7 +2927,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2920,7 +2950,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2943,7 +2973,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <Chip
                                             key={label}
                                             selected={productStore.photoMode === mode}
-                                            tooltip={CHIP_TOOLTIPS[mode] || label}
+                                            description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
                                             }}
@@ -2966,7 +2996,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <Chip
                                         key={value}
                                         selected={productStore.lighting === value}
-                                        tooltip={
+                                        description={
                                           value === 'natural-light'
                                             ? 'Soft natural light with realistic shadows.'
                                             : value === 'overcast'
@@ -2996,7 +3026,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <Chip
                                         key={label}
                                         selected={productStore.photoMode === mode}
-                                        tooltip={CHIP_TOOLTIPS[mode] || label}
+                                        description={CHIP_TOOLTIPS[mode] || label}
                                         onClick={() => {
                                           applyPhotoMode(mode);
                                         }}
@@ -3536,7 +3566,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">Background</p>
                                           <p className="text-[11px] text-gray-600">Optional override (solid or gradient)</p>
                                         </div>
-                                        <Toggle
+                                        <SwitchToggle
                                           checked={productStore.photoModeConfig.ingredientStack.backgroundEnabled}
                                           onCheckedChange={(next) => {
                                             productStore.setPhotoModeConfig({ ingredientStack: { backgroundEnabled: next } });
@@ -4324,7 +4354,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       Enables manual pro overrides (lens, rig, finish, camera micro-controls).
                     </p>
                   </div>
-                  <Toggle
+                  <SwitchToggle
                     checked={productStore.controlTier === 'pro'}
                     onCheckedChange={(next) => {
                       productStore.setControlTier(next ? 'pro' : 'basic');
@@ -4696,17 +4726,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </>
               )}
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         </>
       )}
 
       {/* PHYSICAL PROPERTIES - Contextual per Product Type */}
       {
         isEcommerceMode && values.productType && (
-          <SmoothAccordion
+          <AccordionSection
             icon={Layers}
             title="02 / Physical Properties"
-            tooltip="Configure the real, physical appearance of the product itself."
+            description="Configure the real, physical appearance of the product itself."
             isOpen={openAccordionId === 'physical-props'}
             onToggle={() => toggleSection('physical-props')}
             isTouched={touchedSections.has('physical-props')}
@@ -5371,15 +5401,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </>
               )}
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         )
       }
 
       {isEcommerceMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Activity}
         title="03 / Product State & Motion"
-        tooltip="Describe what the product is doing. Product-only—no human implied."
+        description="Describe what the product is doing. Product-only—no human implied."
         isOpen={openAccordionId === 'product-state-motion'}
         onToggle={() => toggleSection('product-state-motion')}
         isTouched={touchedSections.has('product-state-motion')}
@@ -5439,7 +5469,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-state-motion');
                     }}
                     selected={productStore.stateMotion === (option.value as ProductStateMotion)}
-                    tooltip={option.detail}
+                    description={option.detail}
                   >
                     {option.label}
                   </Chip>
@@ -5465,14 +5495,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             );
           })()}
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {isEcommerceMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Layers}
         title="04 / Product Composition"
-        tooltip="Define how products are grouped, bundled, and positioned."
+        description="Define how products are grouped, bundled, and positioned."
         isOpen={openAccordionId === 'productStructure'}
         onToggle={() => toggleSection('productStructure')}
         isTouched={touchedSections.has('productStructure')}
@@ -5486,7 +5516,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           <div className={SECTION_GROUP_CLASS}>
             <div className="flex items-center justify-between">
               <p className={GROUP_LABEL_CLASS}>BUNDLE MODE</p>
-              <Toggle
+              <SwitchToggle
                 checked={productStore.bundle.enabled}
                 onCheckedChange={(next) => {
                   productStore.setBundleEnabled(next);
@@ -5600,7 +5630,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
 
@@ -5610,10 +5640,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Photo Mode fully replaces Creative Direction whenever Photo Mode is active. */}
       {
         false && (
-          <SmoothAccordion
+          <AccordionSection
             icon={Sparkles}
             title="Creative Direction"
-            tooltip="Primary visual decisions. Safe to experiment."
+            description="Primary visual decisions. Safe to experiment."
             isOpen={openAccordionId === 'product-creativity'}
             onToggle={() => toggleSection('product-creativity')}
             isTouched={touchedSections.has('product-creativity')}
@@ -5731,7 +5761,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Fine-tune the scene. Optional.
                         </p>
                       </div>
-                      <Toggle
+                      <SwitchToggle
                         checked={productCreativeAdvancedOpen}
                         onCheckedChange={(next) => {
                           setProductCreativeAdvancedOpen(next);
@@ -5930,17 +5960,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </>
               )}
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         )
       }
 
       {/* PRODUCT STUDIO — ENVIRONMENT (single source of truth: productStore.environmentContext) */}
       {
         isEcommerceMode && (
-          <SmoothAccordion
+          <AccordionSection
             icon={MapPin}
             title="05 / Environment Settings"
-            tooltip="Place the product into a real setting. Product-only, no people."
+            description="Place the product into a real setting. Product-only, no people."
             id="product-environment"
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -5970,7 +6000,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     )}
 
-                    <div className={isDisabled ? 'opacity-50 pointer-events-none' : ''}>
+                    <div className={isDisabled ? 'opacity-50' : ''}>
                       <div className="p-5 space-y-6">
                         <div className="flex items-center justify-between gap-4">
                           <div>
@@ -5980,7 +6010,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-3">
                               <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">More</span>
-                              <Toggle
+                              <SwitchToggle
                                 checked={productEnvironmentShowAllMacros}
                                 onCheckedChange={(next) => setProductEnvironmentShowAllMacros(next)}
                                 aria-label="Show more environments"
@@ -6055,7 +6085,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
-                            <Toggle
+                            <SwitchToggle
                               checked={productEnvironmentAdvancedOpen}
                               onCheckedChange={(next) => setProductEnvironmentAdvancedOpen(next)}
                               aria-label="Advanced environment controls"
@@ -6159,15 +6189,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 );
               })()}
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         )
       }
 
       {isEcommerceMode && industryProfile !== 'wine' && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Hand}
         title="06 / Product Interaction"
-        tooltip={`Product interaction.\nOne interaction per scene.`}
+        description={`Product interaction.\nOne interaction per scene.`}
         isOpen={openAccordionId === 'product-interaction'}
         onToggle={() => toggleSection('product-interaction')}
         isTouched={touchedSections.has('product-interaction')}
@@ -6276,7 +6306,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('product-interaction');
                     }}
                     selected={selectedInteractionValue === option.value}
-                    tooltip={option.detail}
+                    description={option.detail}
                   >
                     {option.label}
                   </Chip>
@@ -6299,7 +6329,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             );
           })()}
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {/* ============================================================================
@@ -6307,10 +6337,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
            Auto-configured based on Product Placement and Interaction.
            ============================================================================ */}
       {isEcommerceMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Eye}
         title="07 / Viewpoint & Vantage"
-        tooltip="Define the physical point of view relative to the product. This is NOT camera or lens."
+        description="Define the physical point of view relative to the product. This is NOT camera or lens."
         isOpen={openAccordionId === 'viewpoint-vantage'}
         onToggle={() => toggleSection('viewpoint-vantage')}
         isTouched={touchedSections.has('viewpoint-vantage')}
@@ -6342,7 +6372,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {/* ============================================================================
@@ -6353,10 +6383,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
            ============================================================================ */}
 
       {isEcommerceMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Camera}
         title="08 / Camera & Framing"
-        tooltip="Professional product photography controls"
+        description="Professional product photography controls"
         isOpen={openAccordionId === 'product-camera'}
         onToggle={() => toggleSection('product-camera')}
         isTouched={touchedSections.has('product-camera')}
@@ -6547,7 +6577,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             );
           })()}
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {/* ============================================================================
@@ -6556,10 +6586,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
            Manual overrides will be available in v1.1.
            ============================================================================ */}
       {isEcommerceMode && !isProductMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Sun}
         title="10 / Lighting"
-        tooltip="Lighting behavior and mood. Currently derived from Photo Mode."
+        description="Lighting behavior and mood. Currently derived from Photo Mode."
         isOpen={openAccordionId === 'lighting'}
         onToggle={() => toggleSection('lighting')}
         isTouched={touchedSections.has('lighting')}
@@ -6581,14 +6611,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           </div>
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {isEcommerceMode && (
-      <SmoothAccordion
+      <AccordionSection
         icon={Building2}
         title="09 / Ecommerce Image Builder (BETA)"
-        tooltip={`Ecommerce builder.\nBeta feature.`}
+        description={`Ecommerce builder.\nBeta feature.`}
         isOpen={openAccordionId === 'ecommerce'}
         onToggle={() => toggleSection('ecommerce')}
         isActive
@@ -6605,7 +6635,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               <div>
                 <p className={GROUP_LABEL_CLASS}>BACKGROUND CANVAS</p>
               </div>
-              <Toggle
+              <SwitchToggle
                 checked={values.ecommerceSidePlacementFlag}
                 onCheckedChange={(next) => {
                   updateValue('ecommerceSidePlacementFlag', next);
@@ -6870,7 +6900,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </div>
           )}
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
       )}
 
       {
@@ -6888,23 +6918,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </p>
                   <p className="text-xs text-gray-500 dark:text-white/50">Define a realistic human subject for the scene</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCreatorPro(prev => !prev)}
-                  className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/50"
-                >
-                  Pro
-                  <span
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full border border-gray-200 transition-colors ${isCreatorPro
-                      ? 'bg-indigo-600 border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500'
-                      : 'bg-gray-200 border-gray-200 dark:bg-white/10 dark:border-white/10'
-                      }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${isCreatorPro ? 'translate-x-4' : 'translate-x-0'} dark:border-white/10`}
-                    />
-                  </span>
-                </button>
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-white/50">
+                  <span>Pro</span>
+                  <SwitchToggle
+                    checked={isCreatorPro}
+                    onCheckedChange={setIsCreatorPro}
+                    size="sm"
+                    aria-label="Enable creator pro mode"
+                  />
+                </div>
               </div>
 
               <div className="px-4 py-6 space-y-5 bg-gray-50 dark:bg-white/5">
@@ -7094,7 +7116,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   Toggle on to edit Person B. If left off, Person B will be derived automatically.
                                 </p>
                               </div>
-                              <Toggle
+                              <SwitchToggle
                                 checked={values.editSecondaryPerson}
                                 title={values.editSecondaryPerson ? 'Editing Person B is enabled' : 'Enable editing Person B'}
                                 aria-label="Enable editing Person B"
@@ -7134,7 +7156,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-500 dark:text-white/50">Advanced</span>
-                              <Toggle
+                              <SwitchToggle
                                 checked={personBAdvancedOpen}
                                 onCheckedChange={(next) => setPersonBAdvancedOpen(next)}
                                 aria-label="Toggle Person B advanced controls"
@@ -7398,7 +7420,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </section>
 
-                    <section className="space-y-5 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-[.is-pro]:max-h-[4000px] group-[.is-pro]:opacity-100">
+                    {isCreatorPro && (
+                    <section className="space-y-5">
                       <p className={GROUP_LABEL_CLASS}>DETAILS</p>
 
                       <div className="space-y-2">
@@ -7531,7 +7554,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             Locks identity across renders (available after first generation)
                           </p>
                         </div>
-                        <Toggle
+                        <SwitchToggle
                           checked={values.sameCreatorAcrossScenes || false}
                           disabled={!hasFirstGenerationComplete || hasModelReference}
                           onCheckedChange={(next) => {
@@ -7543,6 +7566,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         />
                       </div>
                     </section>
+                    )}
                   </>
                 )}
               </div>
@@ -7550,13 +7574,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
             {/* Legacy version kept for reference (disabled) */}
             {false && (
-              <SmoothAccordion
+              <AccordionSection
                 icon={User}
                 title="Creator / Person"
-                tooltip="Define the person in your scene"
+                description="Define the person in your scene"
                 isOpen={openAccordionId === 'creator'}
                 onToggle={() => toggleSection('creator')}
-                isRequired
+                required
                 isTouched={touchedSections.has('creator')}
                 variant="primary"
                 ui="tokens"
@@ -7660,7 +7684,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 updateValue('coupleSex', 'same');
                                 markSectionTouched('creator');
                               }}
-                              tooltip="Couple: same sex"
+                              description="Couple: same sex"
                               size="md"
                             >
                               Same sex
@@ -7671,7 +7695,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 updateValue('coupleSex', 'different');
                                 markSectionTouched('creator');
                               }}
-                              tooltip="Couple: different sex"
+                              description="Couple: different sex"
                               size="md"
                             >
                               Different sex
@@ -8034,7 +8058,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     : 'Available after first generation'}
                               </p>
                             </div>
-                            <Toggle
+                            <SwitchToggle
                               checked={values.sameCreatorAcrossScenes || false}
                               disabled={!hasFirstGenerationComplete || hasModelReference}
                               aria-label="Keep same person"
@@ -8049,15 +8073,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
                 )}
-              </SmoothAccordion>
+              </AccordionSection>
             )}
 
             {/* Legacy Props Section (Restored for Lifestyle) */}
             {!isProductMode && (
-              <SmoothAccordion
+              <AccordionSection
                 icon={Sparkles}
                 title="Props"
-                tooltip="Add objects to the scene"
+                description="Add objects to the scene"
                 isOpen={openAccordionId === 'props'}
                 onToggle={() => toggleSection('props')}
                 isTouched={touchedSections.has('props')}
@@ -8084,15 +8108,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
                 </div>
-              </SmoothAccordion>
+              </AccordionSection>
             )}
 
 
             {/* RAW DOMESTIC UGC */}
-            <SmoothAccordion
+            <AccordionSection
               icon={Smartphone}
               title="Raw Domestic UGC"
-              tooltip="Careless front-camera capture at home"
+              description="Careless front-camera capture at home"
               isOpen={openAccordionId === 'realism'}
               onToggle={() => toggleSection('realism')}
               isTouched={hasAnyUgcLayerSelection}
@@ -8107,7 +8131,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-sm font-medium text-gray-900">Raw Domestic UGC</p>
                         <p className="text-xs text-gray-500">Careless front-camera capture at home</p>
                       </div>
-                      <Toggle
+                      <SwitchToggle
                         checked={values.visualMode === 'ugc'}
                         aria-label="Enable Raw Domestic UGC"
                         onCheckedChange={(newValue) => {
@@ -8129,7 +8153,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   : 'Maximum entropy mode: Randomize EVERYTHING (person identity, camera, lighting, environment, props). Ignores ALL manual selections below.'}
                               </p>
                             </div>
-                            <Toggle
+                            <SwitchToggle
                               checked={values.isRandomFullAutomationEnabled || false}
                               disabled={hasModelReference}
                               aria-label="Enable UGC Full Automation"
@@ -8182,7 +8206,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   key={level}
                                   type="button"
                                   onClick={() => updateValue('ugcImperfectionLevel', level)}
-                                  className={getPillClass(values.ugcImperfectionLevel === level)}
+                                  className={getTogglePillClass(values.ugcImperfectionLevel === level)}
                                   title={level === 'high' ? 'Heaviest compression/noise, rolling shutter wobble, harsh mixed lighting' : level === 'medium' ? 'Noticeable compression/noise, minor motion blur' : 'Subtle imperfections only'}
                                 >
                                   {level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High'}
@@ -8205,7 +8229,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <Chip
                                       key={option.id}
                                       selected={currentSelections.includes(option.id)}
-                                      tooltip={option.detail}
+                                      description={option.detail}
                                       onClick={() => toggleUGCLayerSelection(section.field, option.id)}
                                       size="md"
                                     >
@@ -8224,14 +8248,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               </div>
 
-            </SmoothAccordion>
+            </AccordionSection>
 
             {/* Product Interaction */}
             {isEcommerceMode && (
-            <SmoothAccordion
+            <AccordionSection
               icon={Hand}
               title="Product Interaction"
-              tooltip="Control how the creator handles the product"
+              description="Control how the creator handles the product"
               isOpen={openAccordionId === 'productInteraction'}
               onToggle={() => toggleSection('productInteraction')}
               isTouched={touchedSections.has('productInteraction')}
@@ -8244,7 +8268,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       key={option}
                       type="button"
                       onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
-                      className={getPillClass(values.productInteraction === option)}
+                      className={getTogglePillClass(values.productInteraction === option)}
                     >
                       {option}
                     </button>
@@ -8274,13 +8298,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 )}
               </div>
-            </SmoothAccordion>
+            </AccordionSection>
             )}
 
-            <SmoothAccordion
+            <AccordionSection
               icon={Shirt}
               title="Custom Clothes"
-              tooltip="Optionally describe an outfit without uploading images."
+              description="Optionally describe an outfit without uploading images."
               isOpen={openAccordionId === 'custom-clothes'}
               onToggle={() => toggleSection('custom-clothes')}
               isTouched={touchedSections.has('customClothes')}
@@ -8293,7 +8317,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className="text-sm text-gray-900">Enable outfit customization</p>
                     <p className="text-[11px] text-gray-500">Describe garments with text-only controls.</p>
                   </div>
-                  <Toggle
+                  <SwitchToggle
                     checked={values.customClothesEnabled}
                     aria-label="Enable outfit customization"
                     onCheckedChange={(next) => {
@@ -8316,7 +8340,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesGarmentType', option);
                               markSectionTouched('customClothes');
                             }}
-                            className={getPillClass(values.customClothesGarmentType === option)}
+                            className={getTogglePillClass(values.customClothesGarmentType === option)}
                           >
                             {option}
                           </button>
@@ -8335,7 +8359,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesPrimaryColor', option);
                               markSectionTouched('customClothes');
                             }}
-                            className={getPillClass(values.customClothesPrimaryColor === option)}
+                            className={getTogglePillClass(values.customClothesPrimaryColor === option)}
                           >
                             {option}
                           </button>
@@ -8403,7 +8427,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesFit', option);
                               markSectionTouched('customClothes');
                             }}
-                            className={getPillClass(values.customClothesFit === option)}
+                            className={getTogglePillClass(values.customClothesFit === option)}
                           >
                             {option}
                           </button>
@@ -8422,7 +8446,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesStyle', option);
                               markSectionTouched('customClothes');
                             }}
-                            className={getPillClass(values.customClothesStyle === option)}
+                            className={getTogglePillClass(values.customClothesStyle === option)}
                           >
                             {option}
                           </button>
@@ -8441,7 +8465,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('customClothesMaterial', option);
                               markSectionTouched('customClothes');
                             }}
-                            className={getPillClass(values.customClothesMaterial === option)}
+                            className={getTogglePillClass(values.customClothesMaterial === option)}
                           >
                             {option}
                           </button>
@@ -8466,16 +8490,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 )}
               </div>
-            </SmoothAccordion>
+            </AccordionSection>
 
             {/* Environment */}
-            <SmoothAccordion
+            <AccordionSection
               icon={Home}
               title="Environment"
-              tooltip="Where the scene takes place"
+              description="Where the scene takes place"
               isOpen={openAccordionId === 'environment'}
               onToggle={() => toggleSection('environment')}
-              isRequired={true}
+              required={true}
               isTouched={touchedSections.has('environment')}
               variant="primary"
             >
@@ -8498,7 +8522,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       key={env.value}
                       type="button"
                       onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                      className={`flex items-center gap-2 ${getPillClass(values.environment === env.value)}`}
+                      className={`flex items-center gap-2 ${getTogglePillClass(values.environment === env.value)}`}
                     >
                       <env.icon className="w-4 h-4" />
                       <span>{env.value}</span>
@@ -8515,7 +8539,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={env.value}
                           type="button"
                           onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                          className={`flex items-center gap-2 ${getPillClass(values.environment === env.value)}`}
+                          className={`flex items-center gap-2 ${getTogglePillClass(values.environment === env.value)}`}
                         >
                           <env.icon className="w-4 h-4" />
                           <span>{env.value}</span>
@@ -8544,14 +8568,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
 
               </div>
-            </SmoothAccordion>
+            </AccordionSection>
 
             {/* Ritual Mode (Lifestyle-only) */}
             {!isProductMode && (
-              <SmoothAccordion
+              <AccordionSection
                 icon={Activity}
                 title="Ritual Mode"
-                tooltip="Lifestyle rituals + optional product-free renders"
+                description="Lifestyle rituals + optional product-free renders"
                 isOpen={openAccordionId === 'ritual'}
                 onToggle={() => toggleSection('ritual')}
                 isTouched={touchedSections.has('ritual')}
@@ -8564,7 +8588,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <p className="text-sm font-medium text-gray-900">Ritual Mode</p>
                       <p className="text-xs text-gray-500">Generate wellness / lifestyle rituals. Optionally hide the product completely.</p>
                     </div>
-                    <Toggle
+                    <SwitchToggle
                       checked={values.visualMode === 'ritual'}
                       aria-label="Enable Ritual Mode"
                       onCheckedChange={(next) => {
@@ -8582,7 +8606,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <p className="text-[11px] uppercase tracking-wider text-gray-500">Hide product (lifestyle-only)</p>
                             <p className="text-[11px] text-gray-500">No product visible in the final image. Product upload becomes optional.</p>
                           </div>
-                          <Toggle
+                          <SwitchToggle
                             checked={values.ritualHideProduct}
                             aria-label="Hide product in Ritual Mode"
                             onCheckedChange={(next) => {
@@ -8599,7 +8623,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             <p className="text-[11px] uppercase tracking-wider text-gray-500">No objects (people + environment only)</p>
                             <p className="text-[11px] text-gray-500">Avoid props and handheld items; focus on people and the environment.</p>
                           </div>
-                          <Toggle
+                          <SwitchToggle
                             checked={values.ritualNoObjects}
                             aria-label="Disable objects in Ritual Mode"
                             onCheckedChange={(next) => {
@@ -8623,7 +8647,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   updateValue('ritualCoupleStaging', option);
                                   markSectionTouched('ritual');
                                 }}
-                                className={getPillClass(values.ritualCoupleStaging === option)}
+                                className={getTogglePillClass(values.ritualCoupleStaging === option)}
                               >
                                 {option}
                               </button>
@@ -8644,7 +8668,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 updateValue('ritualPosture', option);
                                 markSectionTouched('ritual');
                               }}
-                              className={getPillClass(values.ritualPosture === option)}
+                              className={getTogglePillClass(values.ritualPosture === option)}
                             >
                               {option}
                             </button>
@@ -8667,7 +8691,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   updateValue('ritualActivities', [option]);
                                   markSectionTouched('ritual');
                                 }}
-                                className={getPillClass(active)}
+                                className={getTogglePillClass(active)}
                               >
                                 {option}
                               </button>
@@ -8693,13 +8717,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </>
                   )}
                 </div>
-              </SmoothAccordion>
+              </AccordionSection>
             )}
             {/* Time & Lighting */}
-            <SmoothAccordion
+            <AccordionSection
               icon={Sun}
               title="Time & Lighting"
-              tooltip="Control the lighting and time of day"
+              description="Control the lighting and time of day"
               isOpen={openAccordionId === 'lighting'}
               onToggle={() => toggleSection('lighting')}
               isTouched={touchedSections.has('lighting')}
@@ -8723,7 +8747,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option}
                           type="button"
                           onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
-                          className={getPillClass(values.timeOfDay === option)}
+                          className={getTogglePillClass(values.timeOfDay === option)}
                         >
                           {option}
                         </button>
@@ -8752,7 +8776,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option.value}
                           type="button"
                           onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
-                          className={getPillClass(values.lightingStyle === option.label)}
+                          className={getTogglePillClass(values.lightingStyle === option.label)}
                           title={option.value}
                         >
                           {option.label}
@@ -8763,14 +8787,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
                 </div>
               )}
-            </SmoothAccordion>
+            </AccordionSection>
 
             {
               !isUGCMode && (
-                <SmoothAccordion
+                <AccordionSection
                   icon={Camera}
                   title="Camera & Framing"
-                  tooltip="How the scene is captured"
+                  description="How the scene is captured"
                   helpTooltip={'Camera & Framing.\nUGC ignores camera aesthetics to preserve realism.'}
                   isOpen={openAccordionId === 'camera'}
                   onToggle={() => toggleSection('camera')}
@@ -8794,7 +8818,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               key={option.value}
                               type="button"
                               onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                              className={getPillClass(values.cameraType === option.label)}
+                              className={getTogglePillClass(values.cameraType === option.label)}
                               title={option.value}
                             >
                               {option.label}
@@ -8820,7 +8844,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             key={option}
                             type="button"
                             onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                            className={getPillClass(values.shotType === option)}
+                            className={getTogglePillClass(values.shotType === option)}
                           >
                             {option}
                           </button>
@@ -8856,7 +8880,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               updateValue('productProminence', option.value);
                               markSectionTouched('camera');
                             }}
-                            className={getPillClass(values.productProminence === option.value)}
+                            className={getTogglePillClass(values.productProminence === option.value)}
                           >
                             {option.label}
                           </button>
@@ -8880,7 +8904,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             key={option}
                             type="button"
                             onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                            className={getPillClass(values.cameraAngle === option)}
+                            className={getTogglePillClass(values.cameraAngle === option)}
                           >
                             {option}
                           </button>
@@ -8900,7 +8924,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       />
                     </div>
                   </div>
-                </SmoothAccordion>
+                </AccordionSection>
               )
             }
             {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
@@ -8988,10 +9012,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {/* Coexists with Lifestyle controls; applies only when enabled. */}
       {
         isEnvironmentMode && (
-          <SmoothAccordion
+          <AccordionSection
             icon={Building2}
             title="Hero"
-            tooltip="Neutral background + placement (Lifestyle)"
+            description="Neutral background + placement (Lifestyle)"
             isOpen={openAccordionId === 'ecommerce'}
             onToggle={() => toggleSection('ecommerce')}
             isActive={values.visualMode === 'hero'}
@@ -9000,7 +9024,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable hero canvas</span>
-                <Toggle
+                <SwitchToggle
                   checked={values.visualMode === 'hero'}
                   aria-label="Enable hero canvas"
                   onCheckedChange={(next) => {
@@ -9018,19 +9042,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <p className="text-[11px] text-gray-500 mt-1">Subject anchor position</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {SIDE_PLACEMENT_OPTIONS.map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => {
-                            updateValue('sidePlacement', option);
-                            markSectionTouched('ecommerce');
-                          }}
-                          className={getPillClass(values.sidePlacement === option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
+                        {SIDE_PLACEMENT_OPTIONS.map(option => (
+                          <TogglePillButton
+                            key={option}
+                            active={values.sidePlacement === option}
+                            onClick={() => {
+                              updateValue('sidePlacement', option);
+                              markSectionTouched('ecommerce');
+                            }}
+                          >
+                            {option}
+                          </TogglePillButton>
+                        ))}
                     </div>
                   </div>
 
@@ -9150,16 +9173,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
 
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         )
       }
 
       {
         isEnvironmentMode && (
-          <SmoothAccordion
+          <AccordionSection
             icon={Edit3}
             title="Formulation Story"
-            tooltip="Align brand expert, research, and product goals"
+            description="Align brand expert, research, and product goals"
             isOpen={openAccordionId === 'formulationStory'}
             onToggle={() => toggleSection('formulationStory')}
             isActive={values.visualMode === 'formulation'}
@@ -9168,7 +9191,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable Formulation Story</span>
-                <Toggle
+                <SwitchToggle
                   checked={values.visualMode === 'formulation'}
                   aria-label="Enable formulation story"
                   onCheckedChange={(next) => {
@@ -9217,7 +9240,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             }
                             markSectionTouched('formulationStory');
                           }}
-                          className={getPillClass(values.expertRole === option.value)}
+                          className={getTogglePillClass(values.expertRole === option.value)}
                         >
                           {option.label}
                         </button>
@@ -9245,7 +9268,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option.value}
                           type="button"
                           onClick={() => { updateValue('expertAttire', option.value); markSectionTouched('formulationStory'); }}
-                          className={getPillClass(values.expertAttire === option.value)}
+                          className={getTogglePillClass(values.expertAttire === option.value)}
                         >
                           {option.label}
                         </button>
@@ -9261,7 +9284,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           key={option}
                           type="button"
                           onClick={() => { updateValue('labVibe', option); markSectionTouched('formulationStory'); }}
-                          className={getPillClass(values.labVibe === option)}
+                          className={getTogglePillClass(values.labVibe === option)}
                         >
                           {option}
                         </button>
@@ -9284,7 +9307,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <p className="text-xs uppercase tracking-wider text-indigo-600">Product Visible</p>
                         <p className="text-[11px] text-gray-500">Toggle off to generate a formulation scene without the product in-frame.</p>
                       </div>
-                      <Toggle
+                      <SwitchToggle
                         checked={values.formulationProductVisible}
                         aria-label="Product visible"
                         onCheckedChange={(next) => {
@@ -9298,15 +9321,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
             </div>
-          </SmoothAccordion>
+          </AccordionSection>
         )
       }
 
       {/* Output Format - LAST */}
-      <SmoothAccordion
+      <AccordionSection
         icon={Layers}
         title={isEcommerceMode ? "10 / Output Format" : "Output Format"}
-        tooltip="Aspect ratio for the final image"
+        description="Aspect ratio for the final image"
         isOpen={openAccordionId === 'output'}
         onToggle={() => toggleSection('output')}
         variant="secondary"
@@ -9324,19 +9347,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {option}
                 </Chip>
               ) : (
-                <button
+                <TogglePillButton
                   key={option}
-                  type="button"
+                  active={values.aspectRatio === option}
                   onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-                  className={getPillClass(values.aspectRatio === option)}
                 >
                   {option}
-                </button>
+                </TogglePillButton>
               )
             ))}
           </div>
         </div>
-      </SmoothAccordion>
+      </AccordionSection>
 
       {/* VALIADTION ERRORS (Hard Block) */}
       {

@@ -70,10 +70,14 @@ export function buildCoffeeIndustryLayer(
     ? 'CREMA_BEHAVIOR: espresso mode active; micro-bubble crema texture with irregular natural foam distribution. No wine translucency.'
     : 'CREMA_BEHAVIOR: non-espresso mode; minimal crema emphasis with natural surface coherence.';
 
+  const coffeeLiquidPhysicsEnabled = state.coffeeLiquidPhysicsEnabled !== false;
+
   return [
     `COFFEE_INDUSTRY_LAYER: ${variant}.`,
     'COFFEE_PHYSICS_PROFILE: enabled.',
-    'COFFEE_LIQUID_PHYSICS: Opaque dark brown absorption core. Minimal translucency. Soft edge highlight near surface. Subtle meniscus at cup rim.',
+    coffeeLiquidPhysicsEnabled
+      ? 'COFFEE_LIQUID_PHYSICS: Opaque dark brown absorption core. Minimal translucency. Soft edge highlight near surface. Subtle meniscus at cup rim.'
+      : 'COFFEE_LIQUID_PHYSICS: disabled by user control.',
     cremaBehavior,
     buildSteamBlock(state),
     'NO_GLASS_PRIORITY: ceramic priority materials with matte reflection rolloff. No glass refraction dominance.',

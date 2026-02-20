@@ -584,6 +584,18 @@ export type WineMoodModifier =
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
 export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type CoffeeAction = 'static' | 'controlled-pour';
+export type CoffeeMode = 'studio' | 'ritual';
+export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
+export type CoffeeMoodModifier =
+    | 'auto'
+    | 'ritual-editorial'
+    | 'premium-minimal'
+    | 'color-pop-luxury'
+    | 'dark-architectural'
+    | 'morning-natural'
+    | 'modern-commercial';
+export type CoffeeSteamLevel = 'auto' | 'none' | 'subtle' | 'visible';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -729,6 +741,12 @@ export type ProductStudioState = {
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
     winePourStyle: WinePourStyle;
+    coffeeMode: CoffeeMode;
+    coffeeAction: CoffeeAction;
+    coffeeLightingTone: CoffeeLightingTone;
+    coffeeMoodModifier: CoffeeMoodModifier;
+    coffeeSteamLevel: CoffeeSteamLevel;
+    coffeeLiquidPhysics: boolean;
     visualIntent: VisualIntent;
     energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;
