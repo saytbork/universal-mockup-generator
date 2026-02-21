@@ -895,6 +895,30 @@ export class PromptEngine {
             .filter(Boolean)
             .join(' ')
             .trim();
+        const expertRoleRaw = String(
+            (options as any).expertRole ||
+            options.formulationStory?.expertRole ||
+            options.formulationExpertRole ||
+            ''
+        ).trim().toLowerCase();
+        const hasExpertOrFormulation =
+            (options as any).formulationStoryEnabled === true ||
+            options.formulationExpertEnabled === true ||
+            (expertRoleRaw !== '' && expertRoleRaw !== 'none');
+        const shouldInjectBrandSceneAuthority =
+            String(options.contentStyle || '').trim().toLowerCase() === 'brand' &&
+            options.sceneType === 'lifestyle-real' &&
+            !hasExpertOrFormulation;
+        const luxuryIntentActive = (options.visualIntent ?? 'editorial') === 'luxury';
+        const shouldInjectLuxuryEditorialDirection =
+            shouldInjectBrandSceneAuthority &&
+            luxuryIntentActive;
+        const brandSceneAuthorityLayer = shouldInjectBrandSceneAuthority
+            ? 'BRAND_SCENE_AUTHORITY_LAYER: Commercial campaign-grade scene direction. Strong visual hierarchy. Intentional product dominance. Controlled interior styling with disciplined background simplification. Clean spatial geometry. Balanced but deliberate light shaping. Subtle contrast control for professional brand clarity. The result must feel advertisement-ready and commercially intentional.'
+            : '';
+        const luxuryEditorialArtDirectionLayer = shouldInjectLuxuryEditorialDirection
+            ? 'LUXURY_EDITORIAL_ART_DIRECTION: Elevated editorial atmosphere. Subtle dramatic depth. Sculpted directional lighting with gentle falloff. Increased tonal separation between subject and environment. Refined spatial minimalism. Controlled shadow gradients. Premium magazine-grade visual language. Quiet confidence, understated sophistication.'
+            : '';
         const ecommerceSequenceValue = this.ecommerceNarrativeBuilder.build(options).trim();
         const heroPlacementSection = (narrativeSections.ecommerceBuilder || '').trim();
         const outputFormatSection = options.aspectRatio
@@ -906,6 +930,8 @@ export class PromptEngine {
         masterSections.push({ id: 'deterministicFoundation', content: deterministicFoundationSection });
         masterSections.push({ id: 'intent', content: intentSection });
         masterSections.push({ id: 'identity', content: identityValue });
+        masterSections.push({ id: 'brandSceneAuthority', content: brandSceneAuthorityLayer });
+        masterSections.push({ id: 'luxuryEditorialArtDirection', content: luxuryEditorialArtDirectionLayer });
         masterSections = applyVisualIntentLayer(sceneConfig, masterSections);
         masterSections.push({ id: 'environment', content: environmentSection });
         masterSections.push({ id: 'timeAndLighting', content: timeAndLightingSection });

@@ -131,11 +131,26 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                parts.push(
-                    'Expert-led product narrative.',
-                    'Scientific credibility and formulation trust.',
-                    'The expert remains the primary subject.'
-                );
+                {
+                    const expertRoleRaw = String(
+                        (options as any).expertRole ||
+                        options.formulationStory?.expertRole ||
+                        options.formulationExpertRole ||
+                        ''
+                    ).trim().toLowerCase();
+                    const shouldInjectExpertNarrative =
+                        (options as any).formulationStoryEnabled === true ||
+                        options.formulationExpertEnabled === true ||
+                        (expertRoleRaw !== '' && expertRoleRaw !== 'none');
+
+                    if (shouldInjectExpertNarrative) {
+                        parts.push(
+                            'Expert-led product narrative.',
+                            'Scientific credibility and formulation trust.',
+                            'The expert remains the primary subject.'
+                        );
+                    }
+                }
                 break;
         default:
             if (isProductMode) {
