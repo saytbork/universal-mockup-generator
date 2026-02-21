@@ -194,6 +194,106 @@ const generateIdentityKey = (): string => {
     return generateIdentitySeed();
 };
 
+type CameraCompatibilityState = Step3Values & { ugcRealModeActive?: boolean; composition?: string };
+
+const DRAMATIC_CAMERA_ANGLES = ['Top-down', 'Bottom-up', 'High angle', 'Low angle'] as const;
+const LUXURY_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level'] as const;
+const LUXURY_ALLOWED_SHOTS = ['Close', 'Medium'] as const;
+const LUXURY_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
+
+const normalizeVisualIntent = (value?: Step3Values['visualIntent']): 'ugc' | 'editorial' | 'brand' | 'luxury' => {
+    const intent = String(value || 'editorial').trim().toLowerCase();
+    if (intent === 'ugc' || intent === 'brand' || intent === 'luxury' || intent === 'editorial') {
+        return intent;
+    }
+    return 'editorial';
+};
+
+const resolveCompositionKey = (state: CameraCompatibilityState): 'product-first' | 'balanced' | 'fifty-fifty' | 'model-first' | 'unknown' => {
+    const compositionValue = String(state.composition || '').trim().toLowerCase();
+    if (compositionValue === 'product first' || compositionValue === 'product-first') return 'product-first';
+    if (compositionValue === 'balanced') return 'balanced';
+    if (compositionValue === 'fifty / fifty' || compositionValue === 'fifty-fifty') return 'fifty-fifty';
+    if (compositionValue === 'model first' || compositionValue === 'model-first') return 'model-first';
+
+    const prominenceValue = String(state.productProminence || '').trim().toLowerCase();
+    if (prominenceValue === 'product-first') return 'product-first';
+    if (prominenceValue === 'balanced') return 'balanced';
+    if (prominenceValue === 'fifty-fifty') return 'fifty-fifty';
+    if (prominenceValue === 'model-first') return 'model-first';
+    return 'unknown';
+};
+
+const applyCompositionKey = (
+    state: CameraCompatibilityState,
+    compositionKey: 'product-first' | 'balanced'
+): void => {
+    state.productProminence = compositionKey;
+    if (state.composition !== undefined) {
+        state.composition = compositionKey === 'product-first' ? 'Product First' : 'Balanced';
+    }
+};
+
+/**
+ * CAMERA_COMPATIBILITY_LAYER
+ * Deterministic camera compatibility for non-UGC Lifestyle modes.
+ */
+function resolveCameraCompatibility(state: CameraCompatibilityState): CameraCompatibilityState {
+    const next: CameraCompatibilityState = { ...state };
+    const intent = normalizeVisualIntent(next.visualIntent);
+    next.visualIntent = intent;
+
+    if (next.ugcRealMode === true || next.ugcRealModeActive === true || intent === 'ugc') {
+        return next;
+    }
+
+    const compositionKey = resolveCompositionKey(next);
+
+    // PRODUCT FIRST GLOBAL GUARD
+    if (compositionKey === 'product-first') {
+        if (next.shotType === 'Full body') {
+            next.shotType = 'Medium';
+        }
+        if (next.cameraAngle === 'Top-down' || next.cameraAngle === 'High angle') {
+            next.cameraAngle = 'Eye level';
+        }
+    }
+
+    // Editorial keeps full freedom, only global guard applies.
+    if (intent === 'editorial') {
+        return next;
+    }
+
+    if (intent === 'brand') {
+        if (DRAMATIC_CAMERA_ANGLES.includes(next.cameraAngle as (typeof DRAMATIC_CAMERA_ANGLES)[number])) {
+            next.cameraAngle = 'Eye level';
+        }
+        if (compositionKey === 'product-first' && next.shotType === 'Full body') {
+            next.shotType = 'Medium';
+        }
+        return next;
+    }
+
+    if (intent === 'luxury') {
+        if (!LUXURY_ALLOWED_ANGLES.includes(next.cameraAngle as (typeof LUXURY_ALLOWED_ANGLES)[number])) {
+            next.cameraAngle = LUXURY_ALLOWED_ANGLES[0];
+        }
+
+        if (!LUXURY_ALLOWED_SHOTS.includes(next.shotType as (typeof LUXURY_ALLOWED_SHOTS)[number])) {
+            next.shotType = LUXURY_ALLOWED_SHOTS[0];
+        }
+
+        if (compositionKey !== 'product-first' && compositionKey !== 'balanced') {
+            applyCompositionKey(next, LUXURY_ALLOWED_COMPOSITIONS[0]);
+        }
+
+        next.allowMessiness = false;
+        (next as unknown as { sceneOrderChaos: Step3Values['sceneOrderChaos'] | 'Controlled' }).sceneOrderChaos = 'Controlled';
+    }
+
+    return next;
+}
+
 function normalizeLifestyleState(
     sceneState: Step3Values,
     resolvedSceneType: 'studio-branding' | 'lifestyle-real'
@@ -237,7 +337,9 @@ function normalizeLifestyleState(
     next.handsHolding = Boolean(next.handsHolding);
     next.allowMessiness = Boolean(next.allowMessiness);
 
-    return next;
+    return isLifestyleReal
+        ? resolveCameraCompatibility(next)
+        : next;
 }
 
 /**
