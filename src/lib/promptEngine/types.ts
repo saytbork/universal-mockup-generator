@@ -164,6 +164,7 @@ export interface PromptOptions {
     placementStyle?: string;
     placementCamera?: string;
     sceneEnvironmentDescriptor?: string;
+    allowMessiness?: boolean;
     skinRealism?: string;
     creationModeStructural?: string;
     compositionModeStructural?: string;
@@ -209,6 +210,7 @@ export interface PromptOptions {
     bundleLabels?: string[];
     productMaterial?: string;
     addHands?: boolean;
+    handsHolding?: boolean;
     studioInteraction?: string;
     clothingPreset?: string;
     clothingQuickPreset?: string;
