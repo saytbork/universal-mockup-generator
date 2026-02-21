@@ -2017,6 +2017,10 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {
+        const isLuxuryLifestyleMode =
+            resolvedSceneType === 'lifestyle-real' &&
+            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury' &&
+            Boolean((sceneState as any).ugcRealMode) !== true;
         const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
         const lightingStyleLabel = sceneState.lightingStyle || 'Natural window';
         const looksOutdoor = (() => {
@@ -2048,7 +2052,9 @@ export function mapLifestyleToPromptOptions(
                 .replace(/inside/gi, 'outdoors');
         }
 
-        mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
+        mapped.lighting = isLuxuryLifestyleMode
+            ? 'editorial interior lighting context'
+            : `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
