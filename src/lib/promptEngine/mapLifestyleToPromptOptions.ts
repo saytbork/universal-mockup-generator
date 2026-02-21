@@ -194,14 +194,13 @@ const generateIdentityKey = (): string => {
     return generateIdentitySeed();
 };
 
-type CameraCompatibilityState = Step3Values & { ugcRealModeActive?: boolean; composition?: string };
-
 const DRAMATIC_CAMERA_ANGLES = ['Top-down', 'Bottom-up', 'High angle', 'Low angle'] as const;
-const LUXURY_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level'] as const;
+const LUXURY_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
+const LUXURY_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level', 'Slightly below eye level'] as const;
 const LUXURY_ALLOWED_SHOTS = ['Close', 'Medium'] as const;
 const LUXURY_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
 
-const normalizeVisualIntent = (value?: Step3Values['visualIntent']): 'ugc' | 'editorial' | 'brand' | 'luxury' => {
+const normalizeVisualIntent = (value?: Step3Values['visualIntent']): 'editorial' | 'brand' | 'luxury' | 'ugc' => {
     const intent = String(value || 'editorial').trim().toLowerCase();
     if (intent === 'ugc' || intent === 'brand' || intent === 'luxury' || intent === 'editorial') {
         return intent;
@@ -209,43 +208,45 @@ const normalizeVisualIntent = (value?: Step3Values['visualIntent']): 'ugc' | 'ed
     return 'editorial';
 };
 
-const resolveCompositionKey = (state: CameraCompatibilityState): 'product-first' | 'balanced' | 'fifty-fifty' | 'model-first' | 'unknown' => {
-    const compositionValue = String(state.composition || '').trim().toLowerCase();
+const resolveCompositionKey = (state: Step3Values): 'product-first' | 'balanced' | 'fifty-fifty' | 'model-first' | 'unknown' => {
+    const compositionValue = String(state.productProminence || '').trim().toLowerCase();
     if (compositionValue === 'product first' || compositionValue === 'product-first') return 'product-first';
     if (compositionValue === 'balanced') return 'balanced';
     if (compositionValue === 'fifty / fifty' || compositionValue === 'fifty-fifty') return 'fifty-fifty';
     if (compositionValue === 'model first' || compositionValue === 'model-first') return 'model-first';
-
-    const prominenceValue = String(state.productProminence || '').trim().toLowerCase();
-    if (prominenceValue === 'product-first') return 'product-first';
-    if (prominenceValue === 'balanced') return 'balanced';
-    if (prominenceValue === 'fifty-fifty') return 'fifty-fifty';
-    if (prominenceValue === 'model-first') return 'model-first';
     return 'unknown';
 };
 
 const applyCompositionKey = (
-    state: CameraCompatibilityState,
+    state: Step3Values,
     compositionKey: 'product-first' | 'balanced'
 ): void => {
     state.productProminence = compositionKey;
-    if (state.composition !== undefined) {
-        state.composition = compositionKey === 'product-first' ? 'Product First' : 'Balanced';
-    }
 };
 
 /**
  * CAMERA_COMPATIBILITY_LAYER
- * Deterministic camera compatibility for non-UGC Lifestyle modes.
+ * Deterministic camera compatibility for Lifestyle non-UGC modes.
  */
-function resolveCameraCompatibility(state: CameraCompatibilityState): CameraCompatibilityState {
-    const next: CameraCompatibilityState = { ...state };
+function applyLifestyleCameraCompatibility(
+    sceneState: Step3Values,
+    resolvedSceneType: 'studio-branding' | 'lifestyle-real'
+): Step3Values {
+    if (resolvedSceneType !== 'lifestyle-real') {
+        return sceneState;
+    }
+
+    const next: Step3Values = { ...sceneState };
     const intent = normalizeVisualIntent(next.visualIntent);
     next.visualIntent = intent;
 
-    if (next.ugcRealMode === true || next.ugcRealModeActive === true || intent === 'ugc') {
+    if (next.ugcRealMode === true || intent === 'ugc') {
         return next;
     }
+
+    const wasProductFirstFullBody =
+        resolveCompositionKey(next) === 'product-first' &&
+        next.shotType === 'Full body';
 
     const compositionKey = resolveCompositionKey(next);
 
@@ -268,13 +269,20 @@ function resolveCameraCompatibility(state: CameraCompatibilityState): CameraComp
         if (DRAMATIC_CAMERA_ANGLES.includes(next.cameraAngle as (typeof DRAMATIC_CAMERA_ANGLES)[number])) {
             next.cameraAngle = 'Eye level';
         }
-        if (compositionKey === 'product-first' && next.shotType === 'Full body') {
-            next.shotType = 'Medium';
+        if (wasProductFirstFullBody) {
+            applyCompositionKey(next, 'balanced');
+        }
+        if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
+            next.cameraType = 'DSLR / mirrorless camera';
         }
         return next;
     }
 
     if (intent === 'luxury') {
+        if (!LUXURY_ALLOWED_CAMERA_TYPES.includes(next.cameraType as (typeof LUXURY_ALLOWED_CAMERA_TYPES)[number])) {
+            next.cameraType = LUXURY_ALLOWED_CAMERA_TYPES[0];
+        }
+
         if (!LUXURY_ALLOWED_ANGLES.includes(next.cameraAngle as (typeof LUXURY_ALLOWED_ANGLES)[number])) {
             next.cameraAngle = LUXURY_ALLOWED_ANGLES[0];
         }
@@ -288,6 +296,8 @@ function resolveCameraCompatibility(state: CameraCompatibilityState): CameraComp
         }
 
         next.allowMessiness = false;
+        next.ugcRealMode = false;
+        (next as unknown as { ugcImperfectionLevel: Step3Values['ugcImperfectionLevel'] | 'none' }).ugcImperfectionLevel = 'none';
         (next as unknown as { sceneOrderChaos: Step3Values['sceneOrderChaos'] | 'Controlled' }).sceneOrderChaos = 'Controlled';
     }
 
@@ -337,9 +347,7 @@ function normalizeLifestyleState(
     next.handsHolding = Boolean(next.handsHolding);
     next.allowMessiness = Boolean(next.allowMessiness);
 
-    return isLifestyleReal
-        ? resolveCameraCompatibility(next)
-        : next;
+    return next;
 }
 
 /**
@@ -992,6 +1000,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     console.log('[LIFESTYLE MODE ACTIVE]');
     sceneState = normalizeLifestyleState(sceneState, resolvedSceneType);
+    sceneState = applyLifestyleCameraCompatibility(sceneState, resolvedSceneType);
 
     // Initialize mapped options
     const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;

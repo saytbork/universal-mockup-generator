@@ -2028,12 +2028,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           ? 'product'
           : 'brand';
     const personIncluded = values.noPerson === false;
+    const isLuxuryVisualIntent = (values.visualIntent ?? 'editorial') === 'luxury';
+    const forceNoMessiness =
+      sceneType === 'lifestyle-real' &&
+      (contentStyle === 'brand' || isLuxuryVisualIntent) &&
+      values.ugcRealMode !== true;
+    const forceHandsHolding =
+      sceneType === 'lifestyle-real' &&
+      values.productInteraction === 'Holding' &&
+      values.ugcRealMode !== true;
     const payload: Step3Values = {
       ...values,
       creationMode: normalizedCreationMode,
       sceneType,
       contentStyle,
       visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
+      allowMessiness: forceNoMessiness ? false : values.allowMessiness,
+      handsHolding: forceHandsHolding ? true : values.handsHolding,
       personIncluded,
     };
 
@@ -2148,6 +2159,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.visualMode === 'ugc';
+  const visualIntentMode = (values.visualIntent ?? 'editorial');
+  const isLuxuryIntent = visualIntentMode === 'luxury';
+  const isBrandIntent = visualIntentMode === 'brand';
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType: 'studio-branding' | 'lifestyle-real' =
     uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
@@ -2162,6 +2176,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const uiActiveEngine: 'studio' | 'lifestyle' = uiSceneType === 'studio-branding' ? 'studio' : 'lifestyle';
   const showVisualIntentControl =
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
+  const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
+  const cameraSectionLockedByUgc = isUGCMode;
+  const luxuryCameraTypeAllowed = new Set(['DSLR / mirrorless camera', 'Medium format studio camera']);
+  const luxuryShotAllowed = new Set(['Close', 'Medium']);
+  const luxuryCompositionAllowed = new Set(['product-first', 'balanced']);
+  const luxuryAngleAllowed = new Set(['Eye level', 'Slightly above eye level', 'Slightly below eye level']);
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
@@ -6959,6 +6979,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option.value}
                         onClick={() => {
                           updateValue('visualIntent', option.value);
+                          if (option.value === 'ugc') {
+                            setVisualMode('ugc');
+                          }
                           markSectionTouched('creator');
                         }}
                         selected={(values.visualIntent ?? 'editorial') === option.value}
@@ -6968,6 +6991,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </Chip>
                     ))}
                   </div>
+                  {isLuxuryIntent && (
+                    <p className="mt-3 text-[11px] font-medium text-amber-700">
+                      Luxury enforces disciplined framing.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -8856,7 +8884,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             </AccordionSection>
 
             {
-              !isUGCMode && (
                 <AccordionSection
                   icon={Camera}
                   title="Camera & Framing"
@@ -8868,6 +8895,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   variant="primary"
                 >
                   <div className="space-y-3">
+                    {cameraSectionLockedByUgc && (
+                      <p className="text-[11px] font-medium text-amber-700">Camera controlled by UGC mode.</p>
+                    )}
                     <div className={SECTION_GROUP_CLASS}>
                       <div>
                         <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA TYPE</p>
@@ -8879,17 +8909,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             option.label !== 'Intentional smartphone camera' &&
                             option.label !== 'Laptop webcam (pro setup)'
                           )
-                          .map(option => (
+                          .map(option => {
+                            const isLuxuryIncompatible =
+                              isLuxuryIntent &&
+                              isLifestyleCompatibilityActive &&
+                              !luxuryCameraTypeAllowed.has(option.label);
+                            const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
+                            return (
                             <button
                               key={option.value}
                               type="button"
-                              onClick={() => { updateValue('cameraType', option.label); markSectionTouched('camera'); }}
-                              className={getTogglePillClass(values.cameraType === option.label)}
-                              title={option.value}
+                              onClick={() => {
+                                if (isDisabled) return;
+                                updateValue('cameraType', option.label);
+                                markSectionTouched('camera');
+                              }}
+                              className={`${getTogglePillClass(values.cameraType === option.label)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : option.value}
+                              disabled={isDisabled}
                             >
                               {option.label}
                             </button>
-                          ))}
+                            );
+                          })}
                       </div>
                       <SelectedOptionFooter
                         options={footerOptionsFromLabelValue(
@@ -8905,16 +8947,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className={SECTION_GROUP_CLASS}>
                       <p className="text-xs uppercase tracking-wider text-indigo-600">SHOT TYPE</p>
                       <div className="flex flex-wrap items-center gap-2">
-                        {SHOT_TYPE_OPTIONS.map(option => (
+                        {SHOT_TYPE_OPTIONS.map(option => {
+                          const isLuxuryIncompatible =
+                            isLuxuryIntent &&
+                            isLifestyleCompatibilityActive &&
+                            !luxuryShotAllowed.has(option);
+                          const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
+                          return (
                           <button
                             key={option}
                             type="button"
-                            onClick={() => { updateValue('shotType', option); markSectionTouched('camera'); }}
-                            className={getTogglePillClass(values.shotType === option)}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              updateValue('shotType', option);
+                              markSectionTouched('camera');
+                            }}
+                            className={`${getTogglePillClass(values.shotType === option)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            disabled={isDisabled}
                           >
                             {option}
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                       <SelectedOptionFooter
                         options={[
@@ -8938,19 +8993,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             { value: 'fifty-fifty', label: 'Fifty / Fifty' },
                             { value: 'model-first', label: 'Model First' },
                           ] as const
-                        ).map(option => (
+                        ).map(option => {
+                          const isLuxuryIncompatible =
+                            isLuxuryIntent &&
+                            isLifestyleCompatibilityActive &&
+                            !luxuryCompositionAllowed.has(option.value);
+                          const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
+                          return (
                           <button
                             key={option.value}
                             type="button"
                             onClick={() => {
+                              if (isDisabled) return;
                               updateValue('productProminence', option.value);
                               markSectionTouched('camera');
                             }}
-                            className={getTogglePillClass(values.productProminence === option.value)}
+                            className={`${getTogglePillClass(values.productProminence === option.value)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            disabled={isDisabled}
                           >
                             {option.label}
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                       <p className="text-[11px] text-gray-500 mt-1">
                         {{
@@ -8965,16 +9030,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className={SECTION_GROUP_CLASS}>
                       <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA ANGLE</p>
                       <div className="flex flex-wrap items-center gap-2">
-                        {CAMERA_ANGLE_OPTIONS.map(option => (
+                        {CAMERA_ANGLE_OPTIONS.map(option => {
+                          const isLuxuryIncompatible =
+                            isLuxuryIntent &&
+                            isLifestyleCompatibilityActive &&
+                            !luxuryAngleAllowed.has(option);
+                          const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
+                          return (
                           <button
                             key={option}
                             type="button"
-                            onClick={() => { updateValue('cameraAngle', option); markSectionTouched('camera'); }}
-                            className={getTogglePillClass(values.cameraAngle === option)}
+                            onClick={() => {
+                              if (isDisabled) return;
+                              updateValue('cameraAngle', option);
+                              markSectionTouched('camera');
+                            }}
+                            className={`${getTogglePillClass(values.cameraAngle === option)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            disabled={isDisabled}
                           >
                             {option}
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                       <SelectedOptionFooter
                         options={[
@@ -8991,7 +9069,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
                 </AccordionSection>
-              )
             }
             {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
             {/* Bundles are enabled ONLY when multiple products are uploaded. */}
