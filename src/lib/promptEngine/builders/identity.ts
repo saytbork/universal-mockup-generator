@@ -25,7 +25,11 @@ CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited phot
 `.trim().replace(/\s+/g, ' ');
 
 const BRAND_EDITORIAL_GUARD = `
-BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Subtle commercial-grade skin retouching. Clean complexion (no exaggerated texture). Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
+BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Light professional retouching while preserving natural human skin texture. Clean but realistic complexion. Preserve subtle pores, micro texture, and natural asymmetry. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
+`.trim().replace(/\s+/g, ' ');
+
+const YOUTH_REALISM_GUARD = `
+YOUTH_REALISM_GUARD: Maintain natural human skin texture appropriate for a real 20-35 year old. Do NOT over-smooth skin. Avoid waxy, porcelain, doll-like, CGI-like rendering. Preserve subtle pores and natural tonal variation. Allow mild real-world skin variation. Avoid hyper-airbrushed cosmetic look. Skin must feel photographic, not synthetic.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -172,6 +176,9 @@ export class IdentityBuilder implements PromptBuilder {
         const isUgcMode = isUgcModeActive(options);
         const brandEditorialStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
         const identityMode = ugcRealModeActive === true ? 'ugc-real' : 'brand-editorial';
+        const creationIntentLower = String(creationIntent || '').trim().toLowerCase();
+        const isExpertOrFormulationMode =
+            creationIntentLower.includes('expert') || creationIntentLower.includes('formulation');
         console.log('[IDENTITY MODE]', identityMode);
         
         const parts: string[] = [];
@@ -192,6 +199,15 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             `.trim().replace(/\s+/g, ' '));
         } else if (brandEditorialStyle) {
             parts.push(BRAND_EDITORIAL_GUARD);
+            if (
+                identityMode === 'brand-editorial' &&
+                typeof age === 'number' &&
+                age < 40 &&
+                !isUgcMode &&
+                !isExpertOrFormulationMode
+            ) {
+                parts.push(YOUTH_REALISM_GUARD);
+            }
         }
 
         // ====================================================================
