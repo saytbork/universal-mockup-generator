@@ -2197,25 +2197,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           next.personCount = 'single';
           next.editSecondaryPerson = false;
         }
-        const changed = JSON.stringify(next) !== JSON.stringify(prev);
+        const changed = next.personCount !== prev.personCount || next.editSecondaryPerson !== prev.editSecondaryPerson;
         return changed ? next : prev;
       }
 
       next.noPerson = false;
       next.personIncluded = true;
 
-      if (isProductFirst && next.shotType === 'Full body') {
-        next.shotType = 'Medium';
-      }
-      if (isProductFirst && (next.cameraAngle === 'Top-down' || next.cameraAngle === 'High angle')) {
-        next.cameraAngle = 'Eye level';
-      }
-
       if (intent === 'brand') {
         if (['Low angle', 'High angle', 'Top-down', 'Bottom-up'].includes(next.cameraAngle)) {
           next.cameraAngle = 'Eye level';
         }
-        if (isProductFirst && prev.shotType === 'Full body') {
+        if (isProductFirst && next.shotType === 'Full body') {
           next.productProminence = 'balanced';
         }
         if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
@@ -2225,6 +2218,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           next.productProminence = 'balanced';
         }
         if (next.personCount === 'group' && next.shotType === 'Close') {
+          next.shotType = 'Medium';
+        }
+        if (next.shotType === 'Extreme close-up') {
           next.shotType = 'Medium';
         }
       }

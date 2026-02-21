@@ -194,7 +194,7 @@ const generateIdentityKey = (): string => {
     return generateIdentitySeed();
 };
 
-const DRAMATIC_CAMERA_ANGLES = ['Top-down', 'Bottom-up', 'High angle', 'Low angle'] as const;
+const BRAND_DRAMATIC_CAMERA_ANGLES = ['Low angle', 'High angle', 'Top-down', 'Bottom-up'] as const;
 const LUXURY_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
 const LUXURY_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level', 'Slightly below eye level'] as const;
 const LUXURY_ALLOWED_SHOTS = ['Close', 'Medium'] as const;
@@ -251,33 +251,21 @@ function applyLifestyleCompatibility(
     next.personIncluded = true;
     next.noPerson = false;
 
-    const wasProductFirstFullBody =
-        resolveCompositionKey(next) === 'product-first' &&
-        next.shotType === 'Full body';
-
     const compositionKey = resolveCompositionKey(next);
 
-    // PRODUCT FIRST GLOBAL GUARD
-    if (compositionKey === 'product-first') {
-        if (next.shotType === 'Full body') {
-            next.shotType = 'Medium';
-        }
-        if (next.cameraAngle === 'Top-down' || next.cameraAngle === 'High angle') {
-            next.cameraAngle = 'Eye level';
-        }
-    }
-
-    // Editorial keeps full freedom, only global guard applies.
     if (intent === 'editorial') {
         return next;
     }
 
     if (intent === 'brand') {
-        if (DRAMATIC_CAMERA_ANGLES.includes(next.cameraAngle as (typeof DRAMATIC_CAMERA_ANGLES)[number])) {
-            next.cameraAngle = 'Eye level';
-        }
-        if (wasProductFirstFullBody) {
+        if (
+            next.shotType === 'Full body' &&
+            compositionKey === 'product-first'
+        ) {
             applyCompositionKey(next, 'balanced');
+        }
+        if (BRAND_DRAMATIC_CAMERA_ANGLES.includes(next.cameraAngle as (typeof BRAND_DRAMATIC_CAMERA_ANGLES)[number])) {
+            next.cameraAngle = 'Eye level';
         }
         if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
             next.cameraType = 'DSLR / mirrorless camera';
@@ -286,6 +274,9 @@ function applyLifestyleCompatibility(
             applyCompositionKey(next, 'balanced');
         }
         if (next.personCount === 'group' && next.shotType === 'Close') {
+            next.shotType = 'Medium';
+        }
+        if (next.shotType === 'Extreme close-up') {
             next.shotType = 'Medium';
         }
         return next;
@@ -349,11 +340,6 @@ function normalizeLifestyleState(
 
     const contentStyle = String((next as any).contentStyle || '').trim().toLowerCase();
     const visualIntent = String((next as any).visualIntent || '').trim().toLowerCase();
-
-    if (isLifestyleReal && contentStyle === 'brand') {
-        next.allowMessiness = false;
-        (next as any).ugcImperfectionLevel = 'none';
-    }
 
     if (isLifestyleReal && visualIntent === 'luxury') {
         next.ugcRealMode = false;
@@ -1049,11 +1035,8 @@ export function mapLifestyleToPromptOptions(
     };
     mapped.allowMessiness =
         resolvedSceneType === 'lifestyle-real' &&
-        (
-            String((sceneState as any).contentStyle || '').trim().toLowerCase() === 'brand' ||
-            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury'
-        ) &&
-        Boolean((sceneState as any).ugcRealMode) !== true
+            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury' &&
+            Boolean((sceneState as any).ugcRealMode) !== true
             ? false
             : Boolean((sceneState as any).allowMessiness);
 
@@ -2239,6 +2222,41 @@ export function mapLifestyleToPromptOptions(
         mapped.lifestyleHardRestrictions =
             'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals. If any of these appear, the generation is invalid.';
         (mapped as any).disableUgcSemantics = true;
+
+        const visualIntentKey = String(sceneState.visualIntent || 'editorial').trim().toLowerCase();
+        const personCountKey = (sceneState.personCount || 'single') as 'single' | 'couple' | 'group';
+
+        if (visualIntentKey === 'luxury') {
+            const luxuryStructureMap: Record<'single' | 'couple' | 'group', string> = {
+                single:
+                    'LUXURY_SINGLE_STRUCTURE: One subject only. Clear visual authority. No secondary people. Centered or disciplined rule-of-thirds alignment. No competing hierarchy. Controlled micro-expression. Product-forward or balanced allowed.',
+                couple:
+                    'LUXURY_COUPLE_STRUCTURE: Exactly two distinct individuals. Equal visual hierarchy. Both subjects on the same focal plane. No depth stacking. No portrait foreground dominance. Subjects side-by-side or symmetrical with clear spacing. No dominance of one subject over the other.',
+                group:
+                    'LUXURY_GROUP_STRUCTURE: Three or more distinct individuals with equal visual weight. Same focal plane. No hierarchical foreground subject. No depth stacking. Horizontal or shallow-arc arrangement. Clear identity differentiation and intentional spacing.',
+            };
+            mapped.lifestyleAdvertisingProfile = `${mapped.lifestyleAdvertisingProfile} ${luxuryStructureMap[personCountKey]}`.trim();
+        } else if (visualIntentKey === 'brand') {
+            const brandStructureMap: Record<'single' | 'couple' | 'group', string> = {
+                single:
+                    'BRAND_SINGLE_STRUCTURE: One primary subject. Product-forward allowed. Mild depth hierarchy allowed. Commercial clarity prioritized.',
+                couple:
+                    'BRAND_COUPLE_STRUCTURE: Two distinct individuals. Slight hierarchy allowed but not extreme. Depth separation allowed without portrait stacking. Product may remain primary.',
+                group:
+                    'BRAND_GROUP_STRUCTURE: Commercial ensemble of three or more individuals. Slight hierarchy allowed. Product may remain primary. Avoid portrait hero dominance and aggressive foreground stacking.',
+            };
+            mapped.lifestyleAdvertisingProfile = `${mapped.lifestyleAdvertisingProfile} ${brandStructureMap[personCountKey]}`.trim();
+        } else if (visualIntentKey === 'editorial') {
+            const editorialStructureMap: Record<'single' | 'couple' | 'group', string> = {
+                single:
+                    'EDITORIAL_SINGLE_STRUCTURE: One subject. Artistic composition and dramatic hierarchy are allowed.',
+                couple:
+                    'EDITORIAL_COUPLE_STRUCTURE: Two individuals. Hierarchy, depth layering, and creative asymmetry are allowed.',
+                group:
+                    'EDITORIAL_GROUP_STRUCTURE: Three or more individuals. Dynamic composition and artistic imbalance are allowed, but each individual remains intentionally visible and identity-differentiated.',
+            };
+            mapped.lifestyleAdvertisingProfile = `${mapped.lifestyleAdvertisingProfile} ${editorialStructureMap[personCountKey]}`.trim();
+        }
     }
 
     const isEcommerceCanvasActive =
