@@ -226,9 +226,9 @@ const applyCompositionKey = (
 
 /**
  * CAMERA_COMPATIBILITY_LAYER
- * Deterministic camera compatibility for Lifestyle non-UGC modes.
+ * Deterministic compatibility for Lifestyle modes.
  */
-function applyLifestyleCameraCompatibility(
+function applyLifestyleCompatibility(
     sceneState: Step3Values,
     resolvedSceneType: 'studio-branding' | 'lifestyle-real'
 ): Step3Values {
@@ -241,8 +241,15 @@ function applyLifestyleCameraCompatibility(
     next.visualIntent = intent;
 
     if (next.ugcRealMode === true || intent === 'ugc') {
+        if (next.personCount === 'group') {
+            next.personCount = 'single';
+            next.editSecondaryPerson = false;
+        }
         return next;
     }
+
+    next.personIncluded = true;
+    next.noPerson = false;
 
     const wasProductFirstFullBody =
         resolveCompositionKey(next) === 'product-first' &&
@@ -275,6 +282,12 @@ function applyLifestyleCameraCompatibility(
         if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
             next.cameraType = 'DSLR / mirrorless camera';
         }
+        if (next.personCount === 'group' && resolveCompositionKey(next) === 'product-first') {
+            applyCompositionKey(next, 'balanced');
+        }
+        if (next.personCount === 'group' && next.shotType === 'Close') {
+            next.shotType = 'Medium';
+        }
         return next;
     }
 
@@ -288,11 +301,21 @@ function applyLifestyleCameraCompatibility(
         }
 
         if (!LUXURY_ALLOWED_SHOTS.includes(next.shotType as (typeof LUXURY_ALLOWED_SHOTS)[number])) {
-            next.shotType = LUXURY_ALLOWED_SHOTS[0];
+            next.shotType = 'Medium';
         }
 
         if (compositionKey !== 'product-first' && compositionKey !== 'balanced') {
-            applyCompositionKey(next, LUXURY_ALLOWED_COMPOSITIONS[0]);
+            applyCompositionKey(next, 'balanced');
+        }
+
+        if (next.personCount === 'group') {
+            applyCompositionKey(next, 'balanced');
+            next.shotType = 'Medium';
+            next.cameraAngle = 'Eye level';
+        }
+
+        if (next.personCount === 'couple' && resolveCompositionKey(next) === 'product-first') {
+            applyCompositionKey(next, 'balanced');
         }
 
         next.allowMessiness = false;
@@ -1000,7 +1023,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     console.log('[LIFESTYLE MODE ACTIVE]');
     sceneState = normalizeLifestyleState(sceneState, resolvedSceneType);
-    sceneState = applyLifestyleCameraCompatibility(sceneState, resolvedSceneType);
+    sceneState = applyLifestyleCompatibility(sceneState, resolvedSceneType);
 
     // Initialize mapped options
     const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;

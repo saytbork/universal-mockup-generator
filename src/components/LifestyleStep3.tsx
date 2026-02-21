@@ -168,6 +168,11 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Clinical Lab Counter',
 ]);
 
+const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
+const LUXURY_UI_ALLOWED_SHOT_TYPES = ['Close', 'Medium'] as const;
+const LUXURY_UI_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
+const LUXURY_UI_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level', 'Slightly below eye level'] as const;
+
 // **CANONICAL STATE** - SINGLE SOURCE OF TRUTH for Step 3 Scene Builder
 export interface SceneState {
   mode: 'basic' | 'pro';
@@ -2161,7 +2166,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isUGCMode = values.visualMode === 'ugc';
   const visualIntentMode = (values.visualIntent ?? 'editorial');
   const isLuxuryIntent = visualIntentMode === 'luxury';
-  const isBrandIntent = visualIntentMode === 'brand';
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType: 'studio-branding' | 'lifestyle-real' =
     uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
@@ -2178,10 +2182,104 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
   const cameraSectionLockedByUgc = isUGCMode;
-  const luxuryCameraTypeAllowed = new Set(['DSLR / mirrorless camera', 'Medium format studio camera']);
-  const luxuryShotAllowed = new Set(['Close', 'Medium']);
-  const luxuryCompositionAllowed = new Set(['product-first', 'balanced']);
-  const luxuryAngleAllowed = new Set(['Eye level', 'Slightly above eye level', 'Slightly below eye level']);
+
+  useEffect(() => {
+    if (uiSceneType !== 'lifestyle-real') return;
+
+    setValues((prev) => {
+      const next: Step3Values = { ...prev };
+      const intent = (next.visualIntent ?? 'editorial') as 'ugc' | 'editorial' | 'brand' | 'luxury';
+      const currentComposition = String(next.productProminence || '').toLowerCase();
+      const isProductFirst = currentComposition === 'product-first' || currentComposition === 'product first';
+
+      if (next.ugcRealMode === true || intent === 'ugc') {
+        if (next.personCount === 'group') {
+          next.personCount = 'single';
+          next.editSecondaryPerson = false;
+        }
+        const changed = JSON.stringify(next) !== JSON.stringify(prev);
+        return changed ? next : prev;
+      }
+
+      next.noPerson = false;
+      next.personIncluded = true;
+
+      if (isProductFirst && next.shotType === 'Full body') {
+        next.shotType = 'Medium';
+      }
+      if (isProductFirst && (next.cameraAngle === 'Top-down' || next.cameraAngle === 'High angle')) {
+        next.cameraAngle = 'Eye level';
+      }
+
+      if (intent === 'brand') {
+        if (['Low angle', 'High angle', 'Top-down', 'Bottom-up'].includes(next.cameraAngle)) {
+          next.cameraAngle = 'Eye level';
+        }
+        if (isProductFirst && prev.shotType === 'Full body') {
+          next.productProminence = 'balanced';
+        }
+        if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
+          next.cameraType = 'DSLR / mirrorless camera';
+        }
+        if (next.personCount === 'group' && next.productProminence === 'product-first') {
+          next.productProminence = 'balanced';
+        }
+        if (next.personCount === 'group' && next.shotType === 'Close') {
+          next.shotType = 'Medium';
+        }
+      }
+
+      if (intent === 'luxury') {
+        if (!LUXURY_UI_ALLOWED_CAMERA_TYPES.includes(next.cameraType as (typeof LUXURY_UI_ALLOWED_CAMERA_TYPES)[number])) {
+          next.cameraType = 'DSLR / mirrorless camera';
+        }
+        if (!LUXURY_UI_ALLOWED_SHOT_TYPES.includes(next.shotType as (typeof LUXURY_UI_ALLOWED_SHOT_TYPES)[number])) {
+          next.shotType = 'Medium';
+        }
+        if (!LUXURY_UI_ALLOWED_COMPOSITIONS.includes(next.productProminence as (typeof LUXURY_UI_ALLOWED_COMPOSITIONS)[number])) {
+          next.productProminence = 'balanced';
+        }
+        if (!LUXURY_UI_ALLOWED_ANGLES.includes(next.cameraAngle as (typeof LUXURY_UI_ALLOWED_ANGLES)[number])) {
+          next.cameraAngle = 'Eye level';
+        }
+        if (next.personCount === 'group') {
+          next.productProminence = 'balanced';
+          next.shotType = 'Medium';
+          next.cameraAngle = 'Eye level';
+        }
+        if (next.personCount === 'couple' && next.productProminence === 'product-first') {
+          next.productProminence = 'balanced';
+        }
+        next.allowMessiness = false;
+        next.ugcRealMode = false;
+        next.sceneOrderChaos = 'Controlled' as any;
+      }
+
+      const changed =
+        next.personCount !== prev.personCount ||
+        next.editSecondaryPerson !== prev.editSecondaryPerson ||
+        next.noPerson !== prev.noPerson ||
+        next.personIncluded !== prev.personIncluded ||
+        next.shotType !== prev.shotType ||
+        next.cameraAngle !== prev.cameraAngle ||
+        next.cameraType !== prev.cameraType ||
+        next.productProminence !== prev.productProminence ||
+        next.allowMessiness !== prev.allowMessiness ||
+        next.ugcRealMode !== prev.ugcRealMode ||
+        next.sceneOrderChaos !== prev.sceneOrderChaos;
+
+      return changed ? next : prev;
+    });
+  }, [
+    uiSceneType,
+    values.ugcRealMode,
+    values.visualIntent,
+    values.personCount,
+    values.shotType,
+    values.cameraAngle,
+    values.cameraType,
+    values.productProminence,
+  ]);
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
@@ -7123,12 +7221,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </Chip>
                           <Chip
                             onClick={() => {
+                              if (isUGCMode) return;
                               updateValue('personCount', 'group');
                               updateValue('editSecondaryPerson', false);
                               markSectionTouched('creator');
                             }}
                             selected={values.personCount === 'group'}
                             size="md"
+                            disabled={isUGCMode}
+                            tooltip={isUGCMode ? 'Group not compatible with UGC mode.' : undefined}
                           >
                             Group
                           </Chip>
@@ -8913,7 +9014,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const isLuxuryIncompatible =
                               isLuxuryIntent &&
                               isLifestyleCompatibilityActive &&
-                              !luxuryCameraTypeAllowed.has(option.label);
+                              !LUXURY_UI_ALLOWED_CAMERA_TYPES.includes(option.label as (typeof LUXURY_UI_ALLOWED_CAMERA_TYPES)[number]);
                             const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                             return (
                             <button
@@ -8951,7 +9052,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           const isLuxuryIncompatible =
                             isLuxuryIntent &&
                             isLifestyleCompatibilityActive &&
-                            !luxuryShotAllowed.has(option);
+                            !LUXURY_UI_ALLOWED_SHOT_TYPES.includes(option as (typeof LUXURY_UI_ALLOWED_SHOT_TYPES)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
                           <button
@@ -8997,7 +9098,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           const isLuxuryIncompatible =
                             isLuxuryIntent &&
                             isLifestyleCompatibilityActive &&
-                            !luxuryCompositionAllowed.has(option.value);
+                            !LUXURY_UI_ALLOWED_COMPOSITIONS.includes(option.value as (typeof LUXURY_UI_ALLOWED_COMPOSITIONS)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
                           <button
@@ -9034,7 +9135,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           const isLuxuryIncompatible =
                             isLuxuryIntent &&
                             isLifestyleCompatibilityActive &&
-                            !luxuryAngleAllowed.has(option);
+                            !LUXURY_UI_ALLOWED_ANGLES.includes(option as (typeof LUXURY_UI_ALLOWED_ANGLES)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
                           <button
