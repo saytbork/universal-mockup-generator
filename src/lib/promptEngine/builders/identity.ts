@@ -25,7 +25,7 @@ CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited phot
 `.trim().replace(/\s+/g, ' ');
 
 const BRAND_EDITORIAL_GUARD = `
-BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Light professional retouching while preserving natural human skin texture. Clean but realistic complexion. Preserve subtle pores, micro texture, and natural asymmetry. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
+BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Luxury editorial polish with preserved natural human skin texture. Clean but realistic complexion. Maintain subtle pores and authentic skin micro-variation. Premium lighting with dimensional skin rendering, avoiding plastic or over-airbrushed appearance. Skin must feel photographic and organically lit, never porcelain, waxy, or CGI-like. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
 `.trim().replace(/\s+/g, ' ');
 
 const YOUTH_REALISM_GUARD = `
