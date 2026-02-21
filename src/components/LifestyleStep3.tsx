@@ -270,6 +270,7 @@ interface LifestyleStep3Props {
 export interface Step3Values {
   sceneType?: 'studio-branding' | 'lifestyle-real';
   contentStyle?: 'ugc' | 'product' | 'brand';
+  visualIntent?: 'ugc' | 'editorial' | 'brand' | 'luxury';
   visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
   personIncluded?: boolean;
   placement?: ProductPlacement;
@@ -1036,6 +1037,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
     visualMode: 'default',
+    visualIntent: initialSceneIntent === 'ecommerce' ? undefined : 'editorial',
     // Creator/Person
     age: 30, // Numeric age
     noPerson: initialSceneIntent === 'ecommerce', // UGC Rule: person MUST be present by default
@@ -2031,6 +2033,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       creationMode: normalizedCreationMode,
       sceneType,
       contentStyle,
+      visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
       personIncluded,
     };
 
@@ -2145,6 +2148,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.visualMode === 'ugc';
+  const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
+  const uiSceneType: 'studio-branding' | 'lifestyle-real' =
+    uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
+      ? 'lifestyle-real'
+      : 'studio-branding';
+  const uiContentStyle: 'ugc' | 'product' | 'brand' =
+    values.visualMode === 'ugc'
+      ? 'ugc'
+      : values.sceneIntent === 'ecommerce'
+        ? 'product'
+        : 'brand';
+  const uiActiveEngine: 'studio' | 'lifestyle' = uiSceneType === 'studio-branding' ? 'studio' : 'lifestyle';
+  const showVisualIntentControl =
+    uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
 
   // Scene Intent Handler: Enable Ecommerce Mode
   const enableEcommerce = useCallback(() => {
@@ -6922,6 +6939,39 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {
         isEnvironmentMode && (
           <>
+            {showVisualIntentControl && (
+              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Visual Intent</p>
+                    <p className="text-xs text-gray-500 dark:text-white/50">Choose the lifestyle creative direction.</p>
+                  </div>
+                </div>
+                <div className="px-4 py-5 bg-gray-50 dark:bg-white/5">
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { value: 'ugc', label: 'UGC' },
+                      { value: 'editorial', label: 'Editorial' },
+                      { value: 'brand', label: 'Brand' },
+                      { value: 'luxury', label: 'Luxury' },
+                    ] as const).map((option) => (
+                      <Chip
+                        key={option.value}
+                        onClick={() => {
+                          updateValue('visualIntent', option.value);
+                          markSectionTouched('creator');
+                        }}
+                        selected={(values.visualIntent ?? 'editorial') === option.value}
+                        size="md"
+                      >
+                        {option.label}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Creator / Person */}
             <div
               className={`group rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${isCreatorPro ? 'is-pro' : ''}`}

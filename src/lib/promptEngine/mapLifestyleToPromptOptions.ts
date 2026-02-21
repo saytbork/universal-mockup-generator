@@ -853,6 +853,7 @@ export function mapLifestyleToPromptOptions(
         ...existingOptions,
         hasModelReference,
         identitySeed,
+        visualIntent: sceneState.visualIntent,
         visualMode,
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',

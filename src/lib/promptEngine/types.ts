@@ -138,6 +138,7 @@ export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
 export interface PromptOptions {
     // Core
     visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
+    visualIntent?: 'ugc' | 'editorial' | 'brand' | 'luxury';
     sceneType?: 'studio-branding' | 'lifestyle-real' | string;
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
