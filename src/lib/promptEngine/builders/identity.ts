@@ -28,6 +28,14 @@ const BRAND_EDITORIAL_GUARD = `
 BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Luxury editorial polish with preserved natural human skin texture. Clean but realistic complexion. Maintain subtle pores and authentic skin micro-variation. Premium lighting with dimensional skin rendering, avoiding plastic or over-airbrushed appearance. Skin must feel photographic and organically lit, never porcelain, waxy, or CGI-like. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
 `.trim().replace(/\s+/g, ' ');
 
+const BRAND_STYLE_DISCIPLINE_LAYER = `
+BRAND_STYLE_DISCIPLINE_LAYER: Strict styling discipline. No messy incidental accessories. No elastic hair ties on wrist. No wet hair effect. No damp or freshly showered texture. No casual domestic randomness. No accidental grooming artifacts. Hair must appear intentionally styled and fully dry. Accessories must be minimal, deliberate, and compositionally justified. Wardrobe must feel commercially intentional and campaign-ready. No chaotic personal details.
+`.trim().replace(/\s+/g, ' ');
+
+const LUXURY_STYLE_REFINEMENT_LAYER = `
+LUXURY_STYLE_REFINEMENT_LAYER: Refined visual discipline. No wet hair texture. No elastic bands on wrist. No messy or incidental accessories. No visible clutter. No casual UGC styling cues. Hair must appear dry, dimensional, and intentionally shaped. Styling must feel curated, elevated, and magazine-appropriate. Every visible element must appear deliberately placed and aesthetically controlled.
+`.trim().replace(/\s+/g, ' ');
+
 const YOUTH_REALISM_GUARD = `
 YOUTH_REALISM_GUARD: Maintain natural human skin texture appropriate for a real 20-35 year old. Do NOT over-smooth skin. Avoid waxy, porcelain, doll-like, CGI-like rendering. Preserve subtle pores and natural tonal variation. Allow mild real-world skin variation. Avoid hyper-airbrushed cosmetic look. Skin must feel photographic, not synthetic.
 `.trim().replace(/\s+/g, ' ');
@@ -163,7 +171,9 @@ export class IdentityBuilder implements PromptBuilder {
             personDetails,
             contentStyle,
             creationIntent,
-            ugcRealModeActive
+            ugcRealModeActive,
+            visualIntent,
+            sceneType
         } = options;
 
         // Skip if no person or product-only mode
@@ -179,6 +189,17 @@ export class IdentityBuilder implements PromptBuilder {
         const creationIntentLower = String(creationIntent || '').trim().toLowerCase();
         const isExpertOrFormulationMode =
             creationIntentLower.includes('expert') || creationIntentLower.includes('formulation');
+        const isLifestyleReal = String(sceneType || '').trim().toLowerCase() === 'lifestyle-real';
+        const isBrandContentStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
+        const isLuxuryVisualIntent = String(visualIntent || '').trim().toLowerCase() === 'luxury';
+        const shouldInjectBrandStyleDiscipline =
+            isLifestyleReal &&
+            isBrandContentStyle &&
+            ugcRealModeActive !== true;
+        const shouldInjectLuxuryStyleRefinement =
+            isLifestyleReal &&
+            isLuxuryVisualIntent &&
+            ugcRealModeActive !== true;
         console.log('[IDENTITY MODE]', identityMode);
         
         const parts: string[] = [];
@@ -199,6 +220,12 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             `.trim().replace(/\s+/g, ' '));
         } else if (brandEditorialStyle) {
             parts.push(BRAND_EDITORIAL_GUARD);
+            if (shouldInjectBrandStyleDiscipline) {
+                parts.push(BRAND_STYLE_DISCIPLINE_LAYER);
+            }
+            if (shouldInjectLuxuryStyleRefinement) {
+                parts.push(LUXURY_STYLE_REFINEMENT_LAYER);
+            }
             if (
                 identityMode === 'brand-editorial' &&
                 typeof age === 'number' &&
@@ -208,6 +235,8 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             ) {
                 parts.push(YOUTH_REALISM_GUARD);
             }
+        } else if (shouldInjectLuxuryStyleRefinement) {
+            parts.push(LUXURY_STYLE_REFINEMENT_LAYER);
         }
 
         // ====================================================================
