@@ -194,6 +194,52 @@ const generateIdentityKey = (): string => {
     return generateIdentitySeed();
 };
 
+function normalizeLifestyleState(
+    sceneState: Step3Values,
+    resolvedSceneType: 'studio-branding' | 'lifestyle-real'
+): Step3Values {
+    const next: Step3Values = { ...sceneState };
+    const isLifestyleReal = resolvedSceneType === 'lifestyle-real';
+
+    const ugcActive = next.ugcRealMode === true;
+    if (!ugcActive) {
+        next.ugcRealMode = false;
+        (next as any).ugcImperfectionLevel = 'none';
+        next.ugcCaptureSituation = null;
+        next.ugcCaptureStyleBase = [];
+        next.ugcCameraOperator = [];
+        next.ugcBodyPhonePosition = [];
+        next.ugcMotionStability = [];
+        next.ugcFramingImperfections = [];
+        next.ugcAwkwardContext = [];
+    }
+
+    const contentStyle = String((next as any).contentStyle || '').trim().toLowerCase();
+    const visualIntent = String((next as any).visualIntent || '').trim().toLowerCase();
+
+    if (isLifestyleReal && contentStyle === 'brand') {
+        next.allowMessiness = false;
+        (next as any).ugcImperfectionLevel = 'none';
+    }
+
+    if (isLifestyleReal && visualIntent === 'luxury') {
+        next.ugcRealMode = false;
+        next.allowMessiness = false;
+        (next as any).ugcImperfectionLevel = 'none';
+        (next as any).sceneOrderChaos = 'Controlled';
+    }
+
+    if (isLifestyleReal && String(next.productInteraction || '').trim() === 'Holding') {
+        next.handsHolding = true;
+    }
+
+    next.ugcRealMode = Boolean(next.ugcRealMode);
+    next.handsHolding = Boolean(next.handsHolding);
+    next.allowMessiness = Boolean(next.allowMessiness);
+
+    return next;
+}
+
 /**
  * PROPS → Scene objects and lifestyle accessories
  */
@@ -747,10 +793,11 @@ const SELFIE_EXECUTION_SEMANTIC_MAP: Record<string, string> = {};
  * COMPLETE SEMANTIC INJECTION - With STRICT Priority Rules
  */
 export function mapLifestyleToPromptOptions(
-    sceneState: Step3Values,
+    rawSceneState: Step3Values,
     existingOptions: Partial<PromptOptions> = {},
     hasModelReference: boolean = false
 ): Partial<PromptOptions> {
+    let sceneState = rawSceneState;
     // Logging (dev only)
     if (process.env.NODE_ENV === 'development') {
         console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
@@ -842,6 +889,7 @@ export function mapLifestyleToPromptOptions(
     // PRIORITY 1: PRODUCT MODE EXIT
     // ========================================================================
     console.log('[LIFESTYLE MODE ACTIVE]');
+    sceneState = normalizeLifestyleState(sceneState, resolvedSceneType);
 
     // Initialize mapped options
     const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;
@@ -858,7 +906,22 @@ export function mapLifestyleToPromptOptions(
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
+        handsHolding:
+            resolvedSceneType === 'lifestyle-real' &&
+            String((sceneState as any).productInteraction || '').trim() === 'Holding' &&
+            Boolean((sceneState as any).ugcRealMode) !== true
+                ? true
+                : Boolean((sceneState as any).handsHolding),
     };
+    mapped.allowMessiness =
+        resolvedSceneType === 'lifestyle-real' &&
+        (
+            String((sceneState as any).contentStyle || '').trim().toLowerCase() === 'brand' ||
+            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury'
+        ) &&
+        Boolean((sceneState as any).ugcRealMode) !== true
+            ? false
+            : Boolean((sceneState as any).allowMessiness);
 
     // Formulation Story can optionally hide the product entirely (scene-only).
     if (isFormulationMode && sceneState.formulationProductVisible === false) {

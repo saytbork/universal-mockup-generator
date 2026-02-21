@@ -116,6 +116,35 @@ export class SceneNarrativeBuilder {
         const productCopy = this.productBuilder.build(options);
         const ritualCopy = this.buildRitualMode(options);
         const parts: string[] = [];
+        const sceneType = String(options.sceneType || '').trim().toLowerCase();
+        const contentStyle = String(options.contentStyle || '').trim().toLowerCase();
+        const visualIntent = String(options.visualIntent || '').trim().toLowerCase();
+        const expertRoleRaw = String(
+            (options as any).expertRole ||
+            options.formulationStory?.expertRole ||
+            options.formulationExpertRole ||
+            ''
+        ).trim().toLowerCase();
+        const hasExpertOrFormulation =
+            (options as any).formulationStoryEnabled === true ||
+            options.formulationExpertEnabled === true ||
+            (expertRoleRaw !== '' && expertRoleRaw !== 'none');
+        const isLuxuryEditorialMode =
+            sceneType === 'lifestyle-real' &&
+            visualIntent === 'luxury' &&
+            options.ugcRealModeActive !== true;
+        const isBrandEditorialMode =
+            sceneType === 'lifestyle-real' &&
+            contentStyle === 'brand' &&
+            !isLuxuryEditorialMode &&
+            options.ugcRealModeActive !== true;
+        const lifestyleIdentityMode = options.ugcRealModeActive === true
+            ? 'ugc-real'
+            : isLuxuryEditorialMode
+                ? 'luxury-editorial'
+                : isBrandEditorialMode
+                    ? 'brand-editorial'
+                    : 'brand-editorial';
 
         const isProductMode =
             options.creationIntent === 'product' ||
@@ -181,6 +210,11 @@ export class SceneNarrativeBuilder {
                         options.lifestyleHardRestrictions ||
                             'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, domestic realism, casual everyday appearance, or UGC/documentary visuals; any of these makes the generation invalid.'
                     );
+                    if (lifestyleIdentityMode === 'luxury-editorial' && !hasExpertOrFormulation) {
+                        parts.push(
+                            'LUXURY_ENVIRONMENT_DISCIPLINE_LAYER: Editorial interior with curated minimal set. Enforce background simplification and elevated tonal separation. No domestic clutter. No casual kitchen cues unless intentionally stylized. No visible everyday objects unless compositionally intentional. Build depth layering through light hierarchy, not blur tricks.'
+                        );
+                    }
                 } else if (wantsUgcLook) {
                     parts.push(
                         'UGC-style lifestyle scene.',
