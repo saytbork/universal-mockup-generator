@@ -59,6 +59,16 @@ export class ProductBuilder implements PromptBuilder {
               ? this.buildEcommerceCanvasProductInsertion(options)
               : this.buildProductInsertion();
 
+        const holdingInteraction = String(options.productInteraction || '').trim().toLowerCase() === 'holding';
+        const shouldInjectHandAnatomyIntegrityLayer =
+            holdingInteraction &&
+            String(options.sceneType || '').trim().toLowerCase() === 'lifestyle-real' &&
+            options.ugcRealModeActive !== true;
+        if (shouldInjectHandAnatomyIntegrityLayer && prompt.includes('HAND CONTACT INTEGRATION')) {
+            prompt +=
+                ' HAND_ANATOMY_INTEGRITY_LAYER: Hand anatomy must be structurally correct. All five fingers must be present and proportionally accurate. No missing digits. No fused fingers. No compressed or flattened finger geometry. Fingers must wrap naturally around the product with realistic spacing and anatomical coherence. Maintain correct knuckle structure, phalange proportions, and natural joint articulation. Avoid occlusion artifacts that visually remove or distort finger continuity.';
+        }
+
         if (effectiveHeightNotes) {
             prompt += ` Respect real-world scale: ${effectiveHeightNotes}.`;
             prompt +=
