@@ -3,7 +3,7 @@ import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts
 import { buildIntent } from './builders/buildIntent.ts';
 import { buildWorld } from './builders/buildWorld.ts';
 import { buildCoffeeIndustryLayer } from './builders/buildCoffeeIndustryLayer.ts';
-import { buildWineIndustryLayerV2 } from './builders/buildWineIndustryLayerV2.ts';
+import { buildWineIndustryLayerV2, resolveLiquidProfile } from './builders/buildWineIndustryLayerV2.ts';
 import { buildComposition } from './builders/buildComposition.ts';
 import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
@@ -101,6 +101,21 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
     advancedParts.push(`STUDIO_FINISH_PROFILE: ${resolvedFinish}.`);
   }
 
+  const forbiddenKeys = new Set([
+    'STUDIO_WORLD',
+    'STUDIO_VISUAL_INTENT',
+    'WINE_TYPE',
+    'WINE_LIQUID_PHYSICS',
+    'WINE_ENVIRONMENT_VARIATION',
+    'WINE_ENVIRONMENT_CONTEXT',
+  ]);
+  for (const part of advancedParts) {
+    const key = getPartKey(part);
+    if (forbiddenKeys.has(key)) {
+      throw new Error(`[ADVANCED_OVERRIDE_INVALID] Advanced overrides cannot inject ${key}`);
+    }
+  }
+
   console.log('[RESOLVED_LENS]', resolvedLens);
   console.log('[RESOLVED_LIGHTING]', resolvedLighting);
   console.log('[RESOLVED_FINISH]', resolvedFinish);
@@ -121,8 +136,7 @@ function countEnvironmentBlocks(parts: string[]): number {
   }).length;
 }
 
-function sanitizePromptParts(parts: string[], state: StudioUIState): string[] {
-  const wineActive = String(state.visualProfile || '').trim().toLowerCase() === 'wine';
+function sanitizePromptParts(parts: string[]): string[] {
   const output: string[] = [];
   const seen = new Set<string>();
 
@@ -131,27 +145,20 @@ function sanitizePromptParts(parts: string[], state: StudioUIState): string[] {
     if (!part) continue;
     const key = getPartKey(part);
 
-    if (wineActive) {
-      if (key === 'STUDIO_WORLD') continue;
-      if (key === 'PHOTO_MODE' && /\bHero Landing Page\b/i.test(part)) continue;
-      if (key === 'STUDIO_COMPOSITION_PROFILE' && /\bhero\b/i.test(part)) continue;
-      if (key === 'FRAME_CONSTRAINT' && /\b(hero framing|tight hero framing|splash hero framing)\b/i.test(part)) continue;
-    }
-
     const dedupeKey = key || part;
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
     output.push(part);
   }
 
-  if (wineActive && countEnvironmentBlocks(output) > 1) {
+  if (countEnvironmentBlocks(output) > 1) {
     throw new Error('Multiple environment injectors detected');
   }
 
   return output;
 }
 
-let lastWineTypeForDeterminism: string | null = null;
+let lastWineSignatureForDeterminism: string | null = null;
 let lastWineHashForDeterminism: string | null = null;
 
 function hashPrompt(text: string): string {
@@ -171,14 +178,23 @@ function assertWinePromptDeterminism(finalPrompt: string, state: StudioUIState):
   if (!finalPrompt.includes(`WINE_TYPE: ${wineType}`)) {
     throw new Error(`Missing WINE_TYPE block in final prompt for wineType=${wineType}`);
   }
+  const liquidProfile = resolveLiquidProfile(wineType as NonNullable<StudioUIState['wineType']>);
+  if (!finalPrompt.includes(liquidProfile)) {
+    throw new Error('[WINE PIPELINE] liquid profile mismatch');
+  }
+  const environment = String(state.wineEnvironmentVariation || '').trim();
+  if (environment && !finalPrompt.includes(`WINE_ENVIRONMENT_VARIATION: ${environment}`)) {
+    throw new Error('[WINE PIPELINE] environment variation lost in assembly');
+  }
 
   const hash = hashPrompt(finalPrompt);
-  if (lastWineTypeForDeterminism && lastWineHashForDeterminism) {
-    if (lastWineTypeForDeterminism !== wineType && lastWineHashForDeterminism === hash) {
-      throw new Error('Wine determinism violation: wineType changed but prompt hash did not change.');
+  const signature = `${wineType}|${environment}|${String(state.photoMode || '').trim().toLowerCase()}`;
+  if (lastWineSignatureForDeterminism && lastWineHashForDeterminism) {
+    if (lastWineSignatureForDeterminism !== signature && lastWineHashForDeterminism === hash) {
+      throw new Error('Wine determinism violation: wine state changed but prompt hash did not change.');
     }
   }
-  lastWineTypeForDeterminism = wineType;
+  lastWineSignatureForDeterminism = signature;
   lastWineHashForDeterminism = hash;
 }
 
@@ -226,7 +242,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       ...buildAdvancedOverrideParts(state),
     ];
     const withWineEngine = isWineReferenceCategory ? injectWineEngine(coffeeBlocks, state) : coffeeBlocks;
-    const sanitizedParts = sanitizePromptParts(withWineEngine, state);
+    const sanitizedParts = sanitizePromptParts(withWineEngine);
     const prompt = assembleStudioPrompt(sanitizedParts);
     const basePrompt = coffeeStructuralBlock ? `${coffeeStructuralBlock}\n\n${prompt}` : prompt;
     const finalPrompt = basePrompt;
@@ -249,6 +265,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     const worldPart = '';
     const wineBlocks = [
       buildIntent(authority, state),
+      state.photoMode ? `PHOTO_MODE: ${state.photoMode}.` : '',
       worldPart,
       buildWineIndustryLayerV2(state),
       buildCameraOverrides(effectiveState),
@@ -264,7 +281,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       ...buildAdvancedOverrideParts(state),
     ];
     const withWineEngine = isWineReferenceCategory ? injectWineEngine(wineBlocks, state) : wineBlocks;
-    const sanitizedParts = sanitizePromptParts(withWineEngine, state);
+    const sanitizedParts = sanitizePromptParts(withWineEngine);
     const finalPrompt = assembleStudioPrompt(sanitizedParts);
     assertWinePromptDeterminism(finalPrompt, state);
     validateStudioPrompt(finalPrompt, authority);
@@ -287,7 +304,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     ...buildAdvancedOverrideParts(state),
   ];
   const withWineEngine = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
-  const sanitizedParts = sanitizePromptParts(withWineEngine, state);
+  const sanitizedParts = sanitizePromptParts(withWineEngine);
   const finalPrompt = assembleStudioPrompt(sanitizedParts);
   validateStudioPrompt(finalPrompt, authority);
   return finalPrompt;

@@ -35,7 +35,7 @@ function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineE
 
 type ResolvedWineType = NonNullable<StudioUIState['wineType']>;
 
-function resolveWineType(state: StudioUIState): ResolvedWineType {
+export function resolveWineType(state: StudioUIState): ResolvedWineType {
   const explicit = String(state.wineType || '').trim().toLowerCase();
   if (
     explicit === 'red' ||
@@ -49,7 +49,7 @@ function resolveWineType(state: StudioUIState): ResolvedWineType {
   throw new Error('[WINE_RESOLVER] wineType is missing or invalid for wine profile.');
 }
 
-function resolveLiquidProfile(wineType: ResolvedWineType): string {
+export function resolveLiquidProfile(wineType: ResolvedWineType): string {
   switch (wineType) {
     case 'red':
       return 'Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.';
