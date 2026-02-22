@@ -22,8 +22,10 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   }
 
   if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
-    const mood = String(state.wineMoodProfile || 'prestige').trim();
-    return `STUDIO_LIGHTING_MODEL: wine-${mood}.`;
+    const mood = String(state.wineMoodProfile || '').trim().toLowerCase();
+    return mood === 'prestige'
+      ? 'STUDIO_LIGHTING_MODEL: wine-prestige.'
+      : 'STUDIO_LIGHTING_MODEL: studio-hero-neutral.';
   }
 
   const override = String(state?.lightingModelOverride || '').trim();

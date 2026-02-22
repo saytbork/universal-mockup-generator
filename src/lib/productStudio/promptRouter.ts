@@ -279,14 +279,17 @@ function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUI
   const moodModifier = normalize(state.wineMoodModifier);
   const visualIntent = normalize(state.visualIntent);
   const contextPreset = normalize(state.contextPreset);
+  const photoMode = normalize(state.photoMode);
 
   if (visualIntent === 'conversion') return 'ecommerce';
+  if (moodModifier.includes('prestige') || moodModifier.includes('luxury')) return 'prestige';
   if (moodModifier.includes('vintage') || moodModifier.includes('terroir')) return 'editorial';
   if (moodModifier.includes('burgundy') || moodModifier.includes('barrel') || contextPreset.includes('cellar')) {
     return 'dark-luxury';
   }
   if (moodModifier.includes('reflection') || contextPreset.includes('minimal')) return 'modern-minimal';
-  return 'prestige';
+  if (photoMode === 'hero landing page') return 'neutral';
+  return 'neutral';
 }
 
 function resolveWineTypeForV2(state: ProductStudioState): NonNullable<StudioUIState['wineType']> {

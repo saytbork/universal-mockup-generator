@@ -122,7 +122,7 @@ export interface StudioUIState {
   wineContextPreset?: string;
   wineLightingTone?: string;
   wineMoodModifier?: string;
-  wineMoodProfile?: 'prestige' | 'editorial' | 'ecommerce' | 'dark-luxury' | 'modern-minimal';
+  wineMoodProfile?: 'neutral' | 'prestige' | 'editorial' | 'ecommerce' | 'dark-luxury' | 'modern-minimal';
   wineEnvironmentVariation?:
     | 'vineyard'
     | 'dark-cellar'

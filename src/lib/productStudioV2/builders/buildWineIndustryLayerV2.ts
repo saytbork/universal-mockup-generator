@@ -1,8 +1,10 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
 function buildWineMoodProfile(state: StudioUIState): string {
-  const mood = state.wineMoodProfile || 'prestige';
+  const mood = String(state.wineMoodProfile || '').trim().toLowerCase() || 'neutral';
   const moodMap: Record<string, string> = {
+    neutral:
+      'WINE_MOOD_PROFILE: neutral-hero. Clean studio lighting. Balanced dynamic range. Commercial clarity bias.',
     prestige:
       'WINE_MOOD_PROFILE: prestige. Warm lateral lighting bias. Deep shadow preservation. Cinematic compression preferred. Ambient silence tone. productDominanceRatio=80–90%.',
     editorial:
@@ -14,7 +16,7 @@ function buildWineMoodProfile(state: StudioUIState): string {
     'modern-minimal':
       'WINE_MOOD_PROFILE: modern-minimal. Clean neutral bias. Refined medium contrast. Shallow shadow depth. Very low atmosphere density. productDominanceRatio=72–84%.',
   };
-  return moodMap[mood] || moodMap.prestige;
+  return moodMap[mood] || moodMap.neutral;
 }
 
 function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineEnvironmentVariation']>): string {
