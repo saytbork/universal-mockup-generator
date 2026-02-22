@@ -38,14 +38,10 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
-  if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
+  if (state?.winePrestigeMode) {
     const action = String(state.wineAction || 'static-presentation').trim();
-    const wineMood = String(state.wineMoodProfile || '')
-      .trim()
-      .toLowerCase();
-    const compositionModel = wineMood === 'prestige' ? 'wine-prestige' : 'wine-hero';
     return [
-      `STUDIO_COMPOSITION_MODEL: ${compositionModel}.`,
+      'STUDIO_COMPOSITION_MODEL: wine-premium.',
       `WINE_ACTION: ${action}.`,
       'COMPOSITION_OVERRIDE: Product First composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',
@@ -55,7 +51,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
         ? 'BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).'
         : 'BOTTLE_TILT_RULE: controlled pour supports gentle tilt in physically valid range.',
       'GLASS_PLACEMENT_RULE: glass may be foreground or midground with refined separation.',
-      'BACKGROUND_SEPARATION: clean neutral studio separation is allowed.',
+      'BACKGROUND_SEPARATION: dark premium separation is allowed.',
       'CENTER_SYMMETRY_LOCK: disabled unless explicitly selected by user.',
     ].join(' ');
   }

@@ -1,10 +1,8 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
 function buildWineMoodProfile(state: StudioUIState): string {
-  const mood = String(state.wineMoodProfile || '').trim().toLowerCase() || 'neutral';
+  const mood = state.wineMoodProfile || 'prestige';
   const moodMap: Record<string, string> = {
-    neutral:
-      'WINE_MOOD_PROFILE: neutral-hero. Clean studio lighting. Balanced dynamic range. Commercial clarity bias.',
     prestige:
       'WINE_MOOD_PROFILE: prestige. Warm lateral lighting bias. Deep shadow preservation. Cinematic compression preferred. Ambient silence tone. productDominanceRatio=80–90%.',
     editorial:
@@ -16,7 +14,7 @@ function buildWineMoodProfile(state: StudioUIState): string {
     'modern-minimal':
       'WINE_MOOD_PROFILE: modern-minimal. Clean neutral bias. Refined medium contrast. Shallow shadow depth. Very low atmosphere density. productDominanceRatio=72–84%.',
   };
-  return moodMap[mood] || moodMap.neutral;
+  return moodMap[mood] || moodMap.prestige;
 }
 
 function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineEnvironmentVariation']>): string {
@@ -35,59 +33,16 @@ function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineE
   return map[variation];
 }
 
-type ResolvedWineType = NonNullable<StudioUIState['wineType']>;
-
-export function resolveWineType(state: StudioUIState): ResolvedWineType {
-  const explicit = String(state.wineType || '').trim().toLowerCase();
-  if (
-    explicit === 'red' ||
-    explicit === 'white' ||
-    explicit === 'rosé' ||
-    explicit === 'sparkling-white' ||
-    explicit === 'sparkling-rosé'
-  ) {
-    return explicit as ResolvedWineType;
-  }
-  throw new Error('[WINE_RESOLVER] wineType is missing or invalid for wine profile.');
-}
-
-export function resolveLiquidProfile(wineType: ResolvedWineType): string {
-  switch (wineType) {
-    case 'red':
-      return 'Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.';
-    case 'white':
-      return 'Pale gold translucency. Bright clarity core. Subtle straw highlights near rim. Natural meniscus.';
-    case 'rosé':
-      return 'Soft pink luminosity. Medium translucency. Refined rose-toned rim highlights. Natural meniscus.';
-    case 'sparkling-white':
-      return 'Pale gold translucency with fine carbonation bubbles and subtle vertical effervescence.';
-    case 'sparkling-rosé':
-      return 'Rosé hue with active carbonation and fine vertical bubble streams.';
-    default:
-      throw new Error(`[WINE_RESOLVER] liquid profile unresolved for wineType=${String(wineType)}.`);
-  }
-}
-
 export function buildWineIndustryLayerV2(state?: StudioUIState): string {
-  if (!state) return '';
-  if (!(state.winePrestigeMode || state.visualProfile === 'wine')) return '';
+  if (!state?.winePrestigeMode) return '';
 
-  const wineType = resolveWineType(state);
-  const liquidProfile = resolveLiquidProfile(wineType);
   const motion = String(state.motion || 'static').trim().toLowerCase();
   const action = String(state.wineAction || 'static-presentation').trim();
-  const environment = state.wineEnvironmentVariation;
-  const environmentBlocks = environment
-    ? [
-        `WINE_ENVIRONMENT_VARIATION: ${environment}.`,
-        `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Depth-field context and spatial integration only.`,
-      ]
-    : [];
+  const environment = state.wineEnvironmentVariation || 'black-studio';
 
   return [
     'WINE_PHYSICS_PROFILE: enabled.',
-    `WINE_TYPE: ${wineType}.`,
-    `WINE_LIQUID_PHYSICS: ${liquidProfile}`,
+    'WINE_LIQUID_PHYSICS: Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.',
     'WINE_GLASS_BEHAVIOR: Realistic refraction. Micro-specular highlights. Natural liquid distortion through glass.',
     action === 'controlled-pour' || motion === 'opened'
       ? 'WINE_CORK_LOGIC: natural cork removal active. No beer caps. No synthetic closures unless explicitly defined.'
@@ -96,6 +51,7 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
       ? 'GRAVITY_RULE: Liquid obeys gravity with controlled spill behavior. No chaotic splash system.'
       : 'GRAVITY_RULE: Liquid obeys gravity. No splash chaos.',
     buildWineMoodProfile(state),
-    ...environmentBlocks,
+    `WINE_ENVIRONMENT_VARIATION: ${environment}.`,
+    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Depth-field context and spatial integration only.`,
   ].join(' ');
 }
