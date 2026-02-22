@@ -7,16 +7,32 @@ import {
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
 } from '@/lib/productStudio/winePrestige';
-import type { WineAction, WinePourStyle } from '@/lib/productStudio/types';
+import type {
+  WineAction,
+  WineBottleState,
+  WineClosureType,
+  WineGlassMode,
+  WinePourStyle,
+  WineType,
+} from '@/lib/productStudio/types';
 
 type WineModuleProps = {
   wineAction: WineAction;
   winePourStyle: WinePourStyle;
+  wineType: WineType;
+  wineClosureType: WineClosureType;
+  wineBottleState: WineBottleState;
+  wineGlassMode: WineGlassMode;
+  hasReferenceProduct?: boolean;
   contextPreset: string;
   wineLightingTone: string;
   wineMoodModifier: string;
   onWineActionChange: (action: WineAction) => void;
   onWinePourStyleChange: (style: WinePourStyle) => void;
+  onWineTypeChange: (type: WineType) => void;
+  onWineClosureTypeChange: (type: WineClosureType) => void;
+  onWineBottleStateChange: (bottleState: WineBottleState) => void;
+  onWineGlassModeChange: (glassMode: WineGlassMode) => void;
   onContextPresetChange: (preset: string) => void;
   onWineLightingToneChange: (tone: string) => void;
   onWineMoodModifierChange: (modifier: string) => void;

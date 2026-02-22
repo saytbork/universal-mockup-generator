@@ -78,7 +78,7 @@ describe('wine truth lock enforcement', () => {
     const source = buildWineState({
       wineType: 'sparkling-white' as any,
       wineBottleState: 'opened-with-cork-nearby' as any,
-      wineClosureType: 'screw',
+      wineClosureType: 'screw-cap',
       wineGlassMode: 'filled' as any,
     });
     const v2State = toStudioV2State(source);
