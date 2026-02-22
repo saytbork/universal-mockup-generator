@@ -2147,8 +2147,8 @@ const App: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [GOOGLE_CLIENT_ID]);
-  const shouldShowOnboarding = showOnboarding;
-  const tutorialActive = shouldShowOnboarding;
+  const shouldShowOnboarding = false;
+  const tutorialActive = false;
   const stepThreeCategories = useMemo<Set<OptionCategory>>(
     () =>
       new Set<OptionCategory>([

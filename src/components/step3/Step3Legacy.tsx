@@ -2385,7 +2385,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const mode: 'studio' | 'lifestyle' = isEcommerceMode ? 'studio' : 'lifestyle';
   const user = { imageCount: userImageCount };
   const isFirstImage = user.imageCount === 0 && !hasGeneratedOnceLocal;
-  const showFirstImageStarter = isFirstImage && !starterDismissed;
+  const showFirstImageStarter = false;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
