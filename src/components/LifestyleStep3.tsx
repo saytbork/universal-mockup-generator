@@ -8515,13 +8515,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]  shadow-gray-500/20 scale-105 duration-500">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]">
                         Pre-made Bundles
                       </button>
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-gray-50 text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900 dark:bg-white/5">
                         Custom Bundle Builder
                       </button>
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-gray-50 text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900 dark:bg-white/5">
                         Recommended Bundles
                       </button>
                     </div>

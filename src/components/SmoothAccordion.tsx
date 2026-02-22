@@ -80,7 +80,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
     return (
       <div
         id={id}
-        className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
+        className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10`}
       >
         <button
           type="button"
@@ -139,7 +139,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   return (
     <div
       id={id}
-      className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]`}
+      className={`rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 ${containerVariantClass} ${className} dark:bg-white/5 dark:border-white/10`}
     >
       <button
         type="button"

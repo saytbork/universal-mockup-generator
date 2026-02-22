@@ -63,7 +63,7 @@ export function AccordionSection({
 
   const containerClassName = useMemo(
     () =>
-      `rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${className}`.trim(),
+      `rounded-xl border border-gray-200 bg-white overflow-hidden mb-4 transition-all duration-300 dark:bg-white/5 dark:border-white/10 ${className}`.trim(),
     [className]
   );
 
