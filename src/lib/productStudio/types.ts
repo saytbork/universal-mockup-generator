@@ -584,6 +584,15 @@ export type WineMoodModifier =
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
 export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type WineType = 'auto' | 'red' | 'white' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
+export type WineClosureType =
+    | 'from-reference'
+    | 'natural-cork'
+    | 'crown-cap'
+    | 'screw-cap'
+    | 'cork-with-cage';
+export type WineBottleState = 'sealed' | 'opened-with-cork-out' | 'opened-with-cork-nearby';
+export type WineGlassMode = 'none' | 'empty' | 'filled';
 export type CoffeeAction = 'static' | 'controlled-pour';
 export type CoffeeMode = 'studio' | 'ritual';
 export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
@@ -742,6 +751,10 @@ export type ProductStudioState = {
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
     winePourStyle: WinePourStyle;
+    wineType: WineType;
+    wineClosureType: WineClosureType;
+    wineBottleState: WineBottleState;
+    wineGlassMode: WineGlassMode;
     coffeeMode: CoffeeMode;
     coffeeAction: CoffeeAction;
     coffeeLightingTone: CoffeeLightingTone;

@@ -272,6 +272,7 @@ export interface LifestyleStep3Props {
   onCanGenerateChange?: (canGenerate: boolean) => void;
   hasModelReference?: boolean;
   productCount?: number;
+  userImageCount?: number;
   hasFirstGenerationComplete?: boolean;
   embedded?: boolean;
   ecommerceOverlay?: {
@@ -1173,6 +1174,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   onCanGenerateChange,
   hasModelReference = false,
   productCount = 0,
+  userImageCount = 0,
   hasFirstGenerationComplete = false,
   embedded = false,
   ecommerceOverlay,
@@ -1183,6 +1185,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   );
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
+  const [starterDismissed, setStarterDismissed] = useState(false);
+  const [hasGeneratedOnceLocal, setHasGeneratedOnceLocal] = useState(false);
+  const [starterSelection, setStarterSelection] = useState<'studio-converting' | 'studio-premium' | 'studio-color' | 'lifestyle-real' | 'lifestyle-action' | 'lifestyle-soft'>('studio-converting');
   const photoModeSettingsRef = useRef<HTMLDivElement | null>(null);
   const photoModeHintTimerRef = useRef<number | null>(null);
   const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
@@ -2378,6 +2383,130 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const cameraSectionLockedByUgc = isUGCMode;
   const accentTextClass = 'text-[var(--lifestyle-accent)]';
   const mode: 'studio' | 'lifestyle' = isEcommerceMode ? 'studio' : 'lifestyle';
+  const user = { imageCount: userImageCount };
+  const isFirstImage = user.imageCount === 0 && !hasGeneratedOnceLocal;
+  const showFirstImageStarter = isFirstImage && !starterDismissed;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem('step3_has_generated_once') === '1') {
+      setHasGeneratedOnceLocal(true);
+    }
+    if (window.sessionStorage.getItem('step3_first_image_starter_dismissed') === '1') {
+      setStarterDismissed(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasFirstGenerationComplete) return;
+    setHasGeneratedOnceLocal(true);
+    setStarterDismissed(true);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('step3_first_image_starter_dismissed', '1');
+      window.localStorage.setItem('step3_has_generated_once', '1');
+    }
+  }, [hasFirstGenerationComplete]);
+
+  useEffect(() => {
+    if (mode === 'studio') {
+      setStarterSelection('studio-converting');
+      return;
+    }
+    setStarterSelection('lifestyle-real');
+  }, [mode]);
+
+  const dismissStarter = useCallback(() => {
+    setStarterDismissed(true);
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('step3_first_image_starter_dismissed', '1');
+    }
+    setOpenAccordionId(mode === 'studio' ? 'product-setup' : 'creator');
+  }, [mode]);
+
+  const applyStarterPreset = useCallback(() => {
+    if (mode === 'studio') {
+      if (starterSelection === 'studio-converting') {
+        productStore.setEnvironmentContext(null);
+        productStore.setQualityProfile('ecommerce-conversion');
+        productStore.setPlacement('surface');
+        productStore.setPhotoMode('Hero Landing Page');
+        productStore.setGradientEnabled(true);
+        productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: 'Gradient', negativeSpace: 'Balanced', contrastLevel: 'Soft' } });
+      } else if (starterSelection === 'studio-premium') {
+        productStore.setQualityProfile('luxury-brand');
+        productStore.setPhotoMode('Hero Landing Page');
+        productStore.setCreativeTheme('dark-dramatic');
+        productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: 'Tight', contrastLevel: 'High' } });
+      } else if (starterSelection === 'studio-color') {
+        productStore.setPhotoMode('Color Pop Hero');
+        productStore.setGradientEnabled(false);
+        productStore.setPhotoModeConfig({ colorPopHero: { backgroundType: 'Solid', colorSource: 'Product Label Colors' } });
+      }
+      markSectionTouched('product-setup');
+    } else {
+      updateValue('sceneType', 'lifestyle-real');
+      if (starterSelection === 'lifestyle-real') {
+        updateValue('productRole', 'in_hand');
+        updateValue('productInteraction', 'holding');
+        updateValue('productAction', 'none');
+        updateValue('interactionIntensity', 'realistic');
+        updateValue('lightingStyle', 'Natural window');
+      } else if (starterSelection === 'lifestyle-action') {
+        updateValue('productRole', 'in_hand');
+        updateValue('productInteraction', 'holding');
+        updateValue('productAction', 'using');
+        updateValue('interactionIntensity', 'expressive');
+        updateValue('lightingStyle', 'Soft diffused');
+      } else if (starterSelection === 'lifestyle-soft') {
+        updateValue('productRole', 'foreground_focus');
+        updateValue('productInteraction', 'foreground');
+        updateValue('productAction', 'none');
+        updateValue('interactionIntensity', 'subtle');
+        updateValue('lightingStyle', 'Soft diffused');
+      }
+      markSectionTouched('creator');
+    }
+    dismissStarter();
+  }, [dismissStarter, markSectionTouched, mode, productStore, starterSelection, updateValue]);
+
+  useEffect(() => {
+    const handlePresetShift = (event: Event) => {
+      const custom = event as CustomEvent<{ variant?: 'dramatic' | 'minimal' | 'lifestyle' }>;
+      const variant = custom.detail?.variant;
+      if (!variant) return;
+
+      if (mode === 'studio') {
+        if (variant === 'dramatic') {
+          productStore.setQualityProfile('luxury-brand');
+          productStore.setCreativeTheme('dark-dramatic');
+          productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: 'High', negativeSpace: 'Tight' } });
+          markSectionTouched('product-setup');
+        } else if (variant === 'minimal') {
+          productStore.setQualityProfile('ecommerce-conversion');
+          productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: 'Soft', negativeSpace: 'Spacious' } });
+          markSectionTouched('product-setup');
+        }
+        return;
+      }
+
+      if (variant === 'dramatic') {
+        updateValue('lightingStyle', 'Moody/dramatic');
+        updateValue('interactionIntensity', 'expressive');
+        markSectionTouched('creator');
+      } else if (variant === 'minimal') {
+        updateValue('lightingStyle', 'Soft diffused');
+        updateValue('productRole', 'background_presence');
+        updateValue('productInteraction', 'background');
+        updateValue('interactionIntensity', 'subtle');
+        markSectionTouched('creator');
+      }
+    };
+
+    window.addEventListener('step3:post-first-image-shift', handlePresetShift as EventListener);
+    return () => {
+      window.removeEventListener('step3:post-first-image-shift', handlePresetShift as EventListener);
+    };
+  }, [markSectionTouched, mode, productStore, updateValue]);
 
   useEffect(() => {
     if (hasUploadedProductAsset) return;
@@ -2781,6 +2910,100 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         </div>
       )}
 
+      {showFirstImageStarter && (
+        <div className="mx-auto w-full max-w-[640px] pt-8 pb-3 transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
+          <div className="space-y-8 text-center">
+            <div className="space-y-3">
+              <h3 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                {mode === 'studio' ? 'Make something beautiful.' : 'Show it in the real world.'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-white/50">
+                {mode === 'studio' ? 'Start simple. Refine later.' : 'Choose a natural starting point.'}
+              </p>
+            </div>
+
+            {mode === 'studio' ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {([
+                  {
+                    id: 'studio-converting',
+                    title: 'High-Converting Product Shot',
+                    subtitle: 'Clean, sharp and ready for ads.',
+                  },
+                  {
+                    id: 'studio-premium',
+                    title: 'Premium Brand Look',
+                    subtitle: 'Bold contrast with depth and drama.',
+                  },
+                  {
+                    id: 'studio-color',
+                    title: 'Eye-Catching Color Scene',
+                    subtitle: 'Strong background. Instant attention.',
+                  },
+                ] as const).map((card) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => setStarterSelection(card.id)}
+                    className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
+                  >
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {([
+                  {
+                    id: 'lifestyle-real',
+                    title: 'Real Customer Moment',
+                    subtitle: 'Authentic, relaxed and relatable.',
+                  },
+                  {
+                    id: 'lifestyle-action',
+                    title: 'Product in Action',
+                    subtitle: 'Movement, interaction and energy.',
+                  },
+                  {
+                    id: 'lifestyle-soft',
+                    title: 'Soft Brand Story',
+                    subtitle: 'Clean lifestyle with subtle mood.',
+                  },
+                ] as const).map((card) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => setStarterSelection(card.id)}
+                    className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
+                  >
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={applyStarterPreset}
+                className="mx-auto inline-flex rounded-2xl bg-gray-900 px-8 py-3 text-sm font-semibold text-white transition-opacity duration-150 ease-out hover:opacity-90 dark:bg-white dark:text-gray-900"
+              >
+                Create Image
+              </button>
+              <button
+                type="button"
+                onClick={dismissStarter}
+                className="text-sm text-gray-500 transition-opacity duration-150 ease-out hover:opacity-80 dark:text-white/60"
+              >
+                Customize instead
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {mode === 'studio' && (
         <StudioStep3Layout>
           <CreativeDirectionBlock
@@ -2966,6 +3189,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <industryModuleRegistry.wine
                         wineAction={productStore.wineAction}
                         winePourStyle={productStore.winePourStyle}
+                        wineType={productStore.wineType}
+                        wineClosureType={productStore.wineClosureType}
+                        wineBottleState={productStore.wineBottleState}
+                        wineGlassMode={productStore.wineGlassMode}
+                        hasReferenceProduct={hasUploadedProductAsset}
                         contextPreset={productStore.contextPreset}
                         wineLightingTone={productStore.wineLightingTone}
                         wineMoodModifier={productStore.wineMoodModifier}
@@ -2975,6 +3203,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         }}
                         onWinePourStyleChange={(style) => {
                           productStore.setWinePourStyle(style);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineTypeChange={(type) => {
+                          productStore.setWineType(type);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineClosureTypeChange={(type) => {
+                          productStore.setWineClosureType(type);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineBottleStateChange={(bottleState) => {
+                          productStore.setWineBottleState(bottleState);
+                          markSectionTouched('product-setup');
+                        }}
+                        onWineGlassModeChange={(glassMode) => {
+                          productStore.setWineGlassMode(glassMode);
                           markSectionTouched('product-setup');
                         }}
                         onContextPresetChange={(preset) => {

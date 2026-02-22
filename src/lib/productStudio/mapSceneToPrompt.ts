@@ -293,6 +293,13 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
   const wineAction = String((state as any).wineAction || 'static-presentation').trim();
   const isDynamicWineAction = wineAction === 'controlled-pour' || wineAction === 'pour';
   const pourStyle = String((state as any).winePourStyle || 'mid-flow-elegance').trim();
+  const manualWineType = String((state as any).wineType || '').trim().toLowerCase();
+  const manualWineClosure = String((state as any).wineClosureType || '').trim().toLowerCase();
+  const manualWineConfigured =
+    (manualWineType !== '' && manualWineType !== 'auto') ||
+    (manualWineClosure !== '' && manualWineClosure !== 'from-reference');
+  const isRealWorldSunlitTable =
+    String((state as any).contextPreset || '').trim().toLowerCase().includes('sunlit-table');
   const whiteWineSignal = `${String(state.contextPreset || '')} ${String((state as any).wineMoodModifier || '')} ${String(state.photoMode || '')}`
     .toLowerCase()
     .includes('white');
@@ -317,7 +324,9 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
         : 'Static presentation requires vertical bottle orientation (0° tilt, perfectly upright).'
     } Glass can be foreground or midground. Never force rigid center unless explicitly selected.`,
     'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur". Top-down camera forbidden. Ultra-wide lens forbidden.',
-    `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
+    isRealWorldSunlitTable
+      ? 'LIGHTING MODEL: natural-window-light model. Real-world sunlit-table environment: soft directional daylight, natural highlight roll-off, and organic shadow transitions. clinical-softbox is disabled.'
+      : `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
     hasReference
       ? 'LIQUID_COLOR_REFERENCE_LOCK: Preserve exact liquid hue family from reference. NO_HUE_SHIFT_ON_LIQUID=true. Lighting may only affect specular intensity and shadow depth.'
       : whiteWineSignal
@@ -336,10 +345,13 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
           : '',
       ].filter(Boolean).join(' ')
       : '',
-    hasReference
-      ? 'MATERIAL ENGINE: glass-priority rendering with realistic refraction and internal liquid density visibility. CLOSURE_FROM_REFERENCE_ONLY: no cork/cage/cap substitution.'
-      : 'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
-    moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
+    isRealWorldSunlitTable
+      ? 'MATERIAL MODEL: organic photographic model. Disable studio material model. Use natural glass response, realistic table reflections, and non-clinical specular behavior.'
+      : (hasReference
+        ? 'MATERIAL ENGINE: glass-priority rendering with realistic refraction and internal liquid density visibility. CLOSURE_FROM_REFERENCE_ONLY: no cork/cage/cap substitution.'
+        : 'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.'),
+    !manualWineConfigured && moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
+    manualWineConfigured ? 'AUTO_WINE_ARCHETYPE_FORCE_DISABLED: Manual wine configuration is active. Disable STUDIO_VISUAL_INTENT wine-premium auto force, disable WINE_PRESTIGE_MODIFIER auto injection, disable auto cork inference, disable auto sparkling archetype inference.' : '',
     'HARD DISABLES: splash engine disabled, studio product motion disabled, splash physics engine disabled, radial splash spread disabled, droplet fragmentation logic disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
     'LOCKS: GEOMETRY_LOCK=true. LABEL_LOCK=true. TEXT_PRESERVATION=strict. Preserve exact product proportions and label fidelity.',
   ].filter(Boolean);

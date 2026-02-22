@@ -1789,6 +1789,14 @@ const App: React.FC = () => {
           setInviteUsed(Boolean(data.inviteUsed));
           const credits = Number(data.remaining_credits ?? data.credits ?? 0);
           setRemoteCredits(Number.isFinite(credits) ? credits : 0);
+          const parsedImageCount = Number(
+            data.imageCount ??
+            data.image_count ??
+            data.generatedImageCount ??
+            data.generated_image_count ??
+            0
+          );
+          setUserImageCount(Number.isFinite(parsedImageCount) && parsedImageCount > 0 ? parsedImageCount : 0);
           const rawPlan = String(data.plan ?? 'free')
             .trim()
             .toLowerCase();
@@ -1839,6 +1847,7 @@ const App: React.FC = () => {
   // LifestyleStep3 state for PromptEngine
   const [lifestyleStep3Values, setLifestyleStep3Values] = useState<Step3Values | null>(null);
   const [hasFirstGenerationComplete, setHasFirstGenerationComplete] = useState(false);
+  const [userImageCount, setUserImageCount] = useState(0);
 
   const [ecommerceSelectedSlots, setEcommerceSelectedSlots] = useState<EcommerceSlotKey[]>([]);
   const [ecommerceSlotsConfig, setEcommerceSlotsConfig] = useState<EcommerceSlotsConfig>(() => loadEcommerceSlotsConfig());
@@ -5591,6 +5600,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // NO processing - use Firebase URL directly
         setGeneratedImageUrl(imageUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        setUserImageCount((prev) => Math.max(prev + 1, 1));
         
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
@@ -5916,6 +5926,8 @@ If the model attempts to create a scene or environment, override it and force a 
           },
         }));
         setGeneratedImageUrl(outputUrl);
+        setHasFirstGenerationComplete(true);
+        setUserImageCount((prev) => Math.max(prev + 1, 1));
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
@@ -6092,6 +6104,8 @@ If the model attempts to create a scene or environment, override it and force a 
           });
           const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
           setGeneratedImageUrl(outputUrl);
+          setHasFirstGenerationComplete(true);
+          setUserImageCount((prev) => Math.max(prev + 1, 1));
 
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
@@ -6242,6 +6256,8 @@ If the model attempts to create a scene or environment, override it and force a 
       });
       const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
       setGeneratedImageUrl(outputUrl);
+      setHasFirstGenerationComplete(true);
+      setUserImageCount((prev) => Math.max(prev + 1, 1));
       try {
         const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
         void addLocalGalleryEntry({
@@ -6837,6 +6853,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         embedded
                         isProductMode={isProductPlacement}
                         productCount={productAssets.length}
+                        userImageCount={userImageCount}
                         onValuesChange={handleLifestyleStep3Change}
                         onCanGenerateChange={() => {
                           // UI-only refactor: generation logic unchanged.
@@ -6950,6 +6967,42 @@ If the model attempts to create a scene or environment, override it and force a 
                     downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
                     onChargeDownloadCredits={handleDownloadCreditCharge}
                   />
+
+                  {generatedImageUrl && hasFirstGenerationComplete && (
+                    <div className="space-y-3 transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
+                      <p className="text-xs text-gray-500 dark:text-white/50">Want to explore more?</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('step3:post-first-image-shift', { detail: { variant: 'dramatic' } }));
+                          }}
+                          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:text-white/70"
+                        >
+                          More dramatic
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('step3:post-first-image-shift', { detail: { variant: 'minimal' } }));
+                          }}
+                          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:text-white/70"
+                        >
+                          More minimal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleOptionChange('contentStyle', 'ugc', 'Mode');
+                            window.dispatchEvent(new CustomEvent('step3:post-first-image-shift', { detail: { variant: 'lifestyle' } }));
+                          }}
+                          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-gray-400 dark:bg-white/5 dark:border-white/10 dark:text-white/70"
+                        >
+                          Try lifestyle version
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {generatedImageUrl && (
                     <details key={`edit-${generatedImageUrl}`} className="w-full" open={false}>

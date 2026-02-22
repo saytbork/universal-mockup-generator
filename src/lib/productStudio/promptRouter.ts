@@ -778,12 +778,23 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     console.warn(`[CAMERA SAFETY] ${warning}`);
   }
   const shouldAssignWineFields = industryProfile === 'wine';
+  const wineManualConfigActive =
+    industryProfile === 'wine' &&
+    (
+      String((state as any).wineType || '').trim().toLowerCase() !== 'auto' &&
+      String((state as any).wineType || '').trim() !== ''
+    ||
+      ((): boolean => {
+        const closure = String((state as any).wineClosureType || '').trim().toLowerCase();
+        return closure !== '' && closure !== 'from-reference';
+      })()
+    );
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
-  const winePrestigeMode = industryProfile === 'wine';
+  const winePrestigeMode = industryProfile === 'wine' && !wineManualConfigActive;
   const winePrestigeV2Mode = false;
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
@@ -821,6 +832,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(splashFreezeMoment ? { splashFreezeMoment } : {}),
     ...(splashAdMode ? { splashAdMode: true } : {}),
     ...(winePrestigeMode ? { winePrestigeMode: true } : {}),
+    ...(wineManualConfigActive ? { winePrestigeMode: false } : {}),
     ...(winePrestigeV2Mode ? { winePrestigeV2Mode: true } : {}),
     ...(wineEnvironment
       ? {
@@ -833,7 +845,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       ? {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
-          ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
+          ...(!wineManualConfigActive && state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
           wineAction: 'static-presentation',
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
         }

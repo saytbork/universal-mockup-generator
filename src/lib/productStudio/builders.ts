@@ -228,6 +228,9 @@ type WineTypeGuard = 'red' | 'white' | 'rosé' | 'sparkling-white' | 'sparkling-
 type WineGlassModeGuard = 'none' | 'empty' | 'filled';
 type WineBottleStateGuard = 'sealed' | 'opened-with-cork-out' | 'opened-with-cork-nearby';
 type WineClosureTypeGuard = 'crown-cap' | 'natural-cork' | 'synthetic-cork' | 'screw-cap' | 'cork-with-cage';
+const STANDARD_BOTTLE_VOLUME_ML = 750;
+const STANDARD_POUR_VOLUME_ML = 150;
+const STANDARD_POUR_RATIO = STANDARD_POUR_VOLUME_ML / STANDARD_BOTTLE_VOLUME_ML;
 
 function isWineContext(state: ProductStudioState): boolean {
     const visualProfile = String((state as any).visualProfile || '').toLowerCase();
@@ -255,6 +258,11 @@ function resolveWineType(state: ProductStudioState): WineTypeGuard {
     return 'red';
 }
 
+function hasManualWineType(state: ProductStudioState): boolean {
+    const explicit = String((state as any).wineType || '').toLowerCase();
+    return explicit === 'red' || explicit === 'white' || explicit === 'rosé' || explicit === 'sparkling-white' || explicit === 'sparkling-rosé';
+}
+
 function resolveWineGlassMode(state: ProductStudioState): WineGlassModeGuard {
     const explicit = String((state as any).wineGlassMode || '').toLowerCase();
     if (explicit === 'none' || explicit === 'empty' || explicit === 'filled') return explicit as WineGlassModeGuard;
@@ -279,12 +287,14 @@ function resolveWineBottleState(state: ProductStudioState, glassMode: WineGlassM
 
 function resolveWineClosureType(state: ProductStudioState, wineType: WineTypeGuard): WineClosureTypeGuard {
     const explicit = String((state as any).wineClosureType || '').toLowerCase();
+    const explicitManual = explicit && explicit !== 'from-reference';
     if (
-        explicit === 'crown-cap' ||
-        explicit === 'natural-cork' ||
-        explicit === 'synthetic-cork' ||
-        explicit === 'screw-cap' ||
-        explicit === 'cork-with-cage'
+        explicitManual &&
+        (explicit === 'crown-cap' ||
+            explicit === 'natural-cork' ||
+            explicit === 'synthetic-cork' ||
+            explicit === 'screw-cap' ||
+            explicit === 'cork-with-cage')
     ) {
         return explicit as WineClosureTypeGuard;
     }
@@ -304,6 +314,24 @@ function resolveWineClosureType(state: ProductStudioState, wineType: WineTypeGua
     return 'natural-cork';
 }
 
+function hasManualWineClosureOverride(state: ProductStudioState): boolean {
+    const explicit = String((state as any).wineClosureType || '').toLowerCase();
+    return explicit === 'natural-cork' || explicit === 'crown-cap' || explicit === 'screw-cap' || explicit === 'cork-with-cage';
+}
+
+function isWineRealWorldEnvironment(state: ProductStudioState): boolean {
+    const contextPreset = String((state as any).contextPreset || '').toLowerCase();
+    const envMacro = String((state as any).environmentContext?.macro || '').toLowerCase();
+    return contextPreset.includes('sunlit-table') || contextPreset.includes('fine dining table') || envMacro !== '' && envMacro !== 'studio';
+}
+
+function parseRatio(value: unknown): number | null {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    if (n < 0 || n > 1) return null;
+    return n;
+}
+
 function buildWineDeterministicGuardrails(state: ProductStudioState): string[] {
     if (!isWineContext(state)) return [];
 
@@ -313,11 +341,18 @@ function buildWineDeterministicGuardrails(state: ProductStudioState): string[] {
     const bottleState = resolveWineBottleState(state, glassMode);
     const closureType = resolveWineClosureType(state, wineType);
     const isSparkling = wineType === 'sparkling-white' || wineType === 'sparkling-rosé';
+    const explicitPourTriggered =
+        String((state as any).wineAction || '').toLowerCase().includes('pour') ||
+        String((state as any).stateMotion || '').toLowerCase() === 'pouring';
+    const manualWineConfigured = hasManualWineType(state) || hasManualWineClosureOverride(state);
+    const explicitClosureSelection = String((state as any).wineClosureType || '').toLowerCase();
+    const closureFromReference = explicitClosureSelection === 'from-reference' || explicitClosureSelection === '';
 
     const ordered: string[] = [];
 
     // 1) REFERENCE_SUPREMACY_MODE
     ordered.push(`REFERENCE_SUPREMACY_MODE: ${hasReference ? 'true' : 'false'}.`);
+    ordered.push(`REFERENCE_LOCK_ACTIVE: ${hasReference ? 'true' : 'false'}.`);
 
     // Required parameters
     ordered.push(`WINE_TYPE: ${wineType}.`);
@@ -327,12 +362,18 @@ function buildWineDeterministicGuardrails(state: ProductStudioState): string[] {
 
     if (hasReference) {
         // 2) REFERENCE_PACKAGING_LOCK
-        ordered.push(
-            'REFERENCE_PACKAGING_LOCK: Closure type, neck geometry, glass thickness, base puntillado, label proportions, label alignment, and bottle silhouette must match the reference exactly.'
-        );
-        ordered.push(
-            'REFERENCE_PACKAGING_LOCK: Disable WINE_CORK_LOGIC auto-generation and disable all packaging behavior overrides.'
-        );
+        if (closureFromReference) {
+            ordered.push(
+                'REFERENCE_PACKAGING_LOCK: Closure type, neck geometry, glass thickness, base puntillado, label proportions, label alignment, and bottle silhouette must match the reference exactly.'
+            );
+            ordered.push(
+                'REFERENCE_PACKAGING_LOCK: Disable WINE_CORK_LOGIC auto-generation and disable all packaging behavior overrides.'
+            );
+        } else {
+            ordered.push(
+                'USER_EXPLICIT_OVERRIDES: Manual closure override active. Disable closure inference, disable WINE_CORK_LOGIC auto behavior, and apply explicit closure selection deterministically.'
+            );
+        }
         // 3) GEOMETRY_LOCK
         ordered.push(
             'GEOMETRY_LOCK: No geometry drift, no silhouette mutation, no closure substitution, no archetype reinterpretation.'
@@ -345,10 +386,15 @@ function buildWineDeterministicGuardrails(state: ProductStudioState): string[] {
         ordered.push(
             'LIQUID_LEVEL_REFERENCE_LOCK: Preserve exact reference liquid height ratio, headspace, and meniscus curvature unless explicit pour modifies level.'
         );
-        // 6) CLOSURE_TYPE_FROM_REFERENCE
         ordered.push(
-            'CLOSURE_TYPE_FROM_REFERENCE: Derive closure from reference only. Never add cork to crown-cap. Never inject wire cage unless reference shows cage.'
+            'REFERENCE_GEOMETRY_DETAIL_LOCK: Preserve headspace ratio exactly, preserve glass thickness, preserve puntillado, and preserve bottle silhouette exactly.'
         );
+        // 6) CLOSURE_TYPE_FROM_REFERENCE
+        if (closureFromReference) {
+            ordered.push(
+                'CLOSURE_TYPE_FROM_REFERENCE: Derive closure from reference only. Never add cork to crown-cap. Never inject wire cage unless reference shows cage.'
+            );
+        }
         // 7) CATEGORY_PRIOR_SUPPRESSION
         ordered.push(
             'CATEGORY_PRIOR_SUPPRESSION: Disable archetype inference, champagne styling defaults, cork promotion, sparkling reinterpretation, and generic wine heuristics.'
@@ -376,9 +422,55 @@ function buildWineDeterministicGuardrails(state: ProductStudioState): string[] {
     ordered.push(
         'LIQUID_VOLUME_PHYSICS: If BOTTLE_STATE=sealed, GLASS_MODE must be empty or none.'
     );
+    ordered.push(
+        `LIQUID_CONSERVATION_MODEL: STANDARD_BOTTLE_VOLUME=${STANDARD_BOTTLE_VOLUME_ML}ml. STANDARD_POUR_VOLUME=${STANDARD_POUR_VOLUME_ML}ml. POUR_RATIO=${STANDARD_POUR_RATIO.toFixed(2)}. If GLASS_MODE=filled and BOTTLE_STATE=opened, reduce bottle liquid level by 20% and increase headspace proportionally.`
+    );
+    if (hasReference) {
+        ordered.push(
+            explicitPourTriggered
+                ? 'LIQUID_CONSERVATION_MODEL: Reference lock active with explicit pour action; recalculate bottle liquid level before render.'
+                : 'LIQUID_CONSERVATION_MODEL: Reference lock active; preserve bottle liquid level exactly unless explicit pour action is triggered.'
+        );
+    }
+    ordered.push(
+        'LIQUID_TYPE_SYNCHRONIZATION_LOCK: Glass liquid hue must match bottle WINE_TYPE. Sparkling bubble behavior must match bottle WINE_TYPE. No cross-type mismatch allowed (no red bottle + white glass, no sparkling glass for non-sparkling bottle).'
+    );
+    ordered.push(
+        'MENISCUS_RULE: Liquid in glass must show slight concave meniscus, perfectly horizontal liquid surface, geometry-consistent contour, and coherent optical distortion.'
+    );
+    ordered.push(
+        isSparkling
+            ? 'SURFACE_TENSION_RULE: Sparkling wine allows subtle micro surface agitation only.'
+            : 'SURFACE_TENSION_RULE: Non-sparkling wine requires flat calm liquid surface only.'
+    );
+    ordered.push(
+        'REFILL_INTEGRITY_RULE: If glass is filled and no pour event is shown, bottle level must already reflect poured volume. No infinite refill behavior.'
+    );
+    ordered.push(
+        'HEADSPACE_RULE: Headspace ratio must remain physically coherent with bottle liquid reduction. Headspace must increase when glass is filled and must not decrease unless explicit refill event is triggered.'
+    );
+
+    if (manualWineConfigured) {
+        ordered.push('AUTO_WINE_ARCHETYPE_FORCE_DISABLED: Disable STUDIO_VISUAL_INTENT wine-premium, disable WINE_PRESTIGE_MODIFIER auto injection, disable auto cork inference, disable auto sparkling archetype inference.');
+    }
+
+    if (isWineRealWorldEnvironment(state)) {
+        ordered.push('REAL_WORLD_WINE_LIGHTING_RULE: Environment is real-world/sunlit-table; lighting model must be natural-window-light. Disable clinical-softbox.');
+        ordered.push('REAL_WORLD_WINE_MATERIAL_RULE: Disable studio material model. Use organic photographic material model.');
+    }
+    ordered.push('PREMIUM_RENDER_STYLE: editorial-photographic (default for wine-premium visual intent).');
+    ordered.push('REAL_PHOTO_PREMIUM_MODEL: Enable natural window bounce, organic highlight bloom, subtle sensor grain, micro lens breathing, realistic shadow falloff, imperfect reflection variance, and natural depth haze.');
+    ordered.push('REAL_PHOTO_PREMIUM_MODEL: Disable clinical-softbox, hyper-polished material model, synthetic reflection shaping, procedural CG reflection ramps, and CG reflection symmetry.');
+    ordered.push('LIGHTING_PROFILE: premium-natural-window.');
+    ordered.push('MATERIAL_MODEL: real-world-glass-behavior.');
 
     // Ordering guards for downstream layers
+    ordered.push('EXECUTION_ORDER: REFERENCE_SUPREMACY_MODE -> REFERENCE_PACKAGING_LOCK -> GEOMETRY_LOCK -> USER_EXPLICIT_OVERRIDES -> LIQUID_CONSERVATION_MODEL -> LIQUID_TYPE_SYNCHRONIZATION_LOCK -> MENISCUS_RULE -> SURFACE_TENSION_RULE -> HEADSPACE_RULE -> REFILL_INTEGRITY_RULE -> CAMERA -> COMPOSITION -> REAL_PHOTO_PREMIUM_MODEL -> LIGHTING.');
     ordered.push('EXECUTION_ORDER_LOCK: Apply wine guardrails before camera, composition, lighting, and material modeling.');
+
+    console.info(
+        `[WINE CONFIG] Wine Type: ${wineType} | Closure Type: ${closureType} | Bottle State: ${bottleState} | Glass Mode: ${glassMode} | Reference Lock Active: ${hasReference ? 'true' : 'false'}`
+    );
 
     return ordered;
 }
@@ -391,7 +483,18 @@ function validateWineReferenceGuardrailsBeforeEmit(state: ProductStudioState): v
     const glassMode = resolveWineGlassMode(state);
     const bottleState = resolveWineBottleState(state, glassMode);
     const closureType = resolveWineClosureType(state, wineType);
+    const manualClosure = String((state as any).wineClosureType || '').toLowerCase();
+    const explicitWineType = String((state as any).wineType || '').toLowerCase();
+    const explicitPourTriggered =
+        String((state as any).wineAction || '').toLowerCase().includes('pour') ||
+        String((state as any).stateMotion || '').toLowerCase() === 'pouring';
     const explicitReferenceClosure = String((state as any).referenceClosureType || '').toLowerCase();
+    const bottleHueFamily = String((state as any).wineBottleHueFamily || (state as any).referenceLiquidHueFamily || '').toLowerCase().trim();
+    const glassHueFamily = String((state as any).wineGlassHueFamily || '').toLowerCase().trim();
+    const referenceLiquidLevelRatio = parseRatio((state as any).referenceBottleLiquidLevelRatio);
+    const currentLiquidLevelRatio = parseRatio((state as any).currentBottleLiquidLevelRatio);
+    const referenceHeadspaceRatio = parseRatio((state as any).referenceBottleHeadspaceRatio);
+    const currentHeadspaceRatio = parseRatio((state as any).currentBottleHeadspaceRatio);
     const hasSparkleEffects = Array.isArray((state as any).specialEffects) &&
         ((state as any).specialEffects as unknown[])
             .map((v) => String(v || '').toLowerCase())
@@ -401,18 +504,62 @@ function validateWineReferenceGuardrailsBeforeEmit(state: ProductStudioState): v
         throw new Error('[WINE_GUARDRAIL] Invalid state: GLASS_MODE=filled while BOTTLE_STATE=sealed.');
     }
 
+    if (!hasReference && (!explicitWineType || explicitWineType === 'auto')) {
+        throw new Error('[WINE_GUARDRAIL] Wine type is required when no reference image is provided.');
+    }
+
     if ((wineType === 'red' || wineType === 'white' || wineType === 'rosé') && hasSparkleEffects) {
         throw new Error('[WINE_GUARDRAIL] Invalid state: bubbles requested for non-sparkling wine type.');
     }
+    if (isSparklingWineType(wineType) && !hasSparkleEffects && explicitPourTriggered) {
+        // keep permissive: pouring may be captured without visible bubbles, so do not throw
+    }
+
+    if (manualClosure && manualClosure !== 'from-reference' && manualClosure !== closureType) {
+        throw new Error('[WINE_GUARDRAIL] Closure mismatch with explicit selection.');
+    }
+
+    if (bottleHueFamily && glassHueFamily && bottleHueFamily !== glassHueFamily) {
+        throw new Error('[WINE_GUARDRAIL] Liquid hue shift detected: glass hue family does not match bottle hue family.');
+    }
 
     if (hasReference && explicitReferenceClosure) {
-        if (explicitReferenceClosure !== closureType) {
+        if ((manualClosure === 'from-reference' || manualClosure === '') && explicitReferenceClosure !== closureType) {
             throw new Error('[WINE_GUARDRAIL] Closure type differs from reference closure hint.');
         }
-        if (explicitReferenceClosure === 'crown-cap' && (closureType === 'natural-cork' || closureType === 'cork-with-cage')) {
+        if ((manualClosure === 'from-reference' || manualClosure === '') && explicitReferenceClosure === 'crown-cap' && (closureType === 'natural-cork' || closureType === 'cork-with-cage')) {
             throw new Error('[WINE_GUARDRAIL] Cork/cage cannot be added when reference closure is crown-cap.');
         }
     }
+
+    if (glassMode === 'filled' && bottleState !== 'sealed' && currentLiquidLevelRatio != null && referenceLiquidLevelRatio != null) {
+        const expectedMaxLevelAfterPour = referenceLiquidLevelRatio - STANDARD_POUR_RATIO + 0.02;
+        if (currentLiquidLevelRatio > expectedMaxLevelAfterPour) {
+            throw new Error('[WINE_GUARDRAIL] Infinite volume detected: bottle level is too high for a filled glass state.');
+        }
+    }
+
+    if (explicitPourTriggered && currentLiquidLevelRatio != null && referenceLiquidLevelRatio != null) {
+        if (currentLiquidLevelRatio >= referenceLiquidLevelRatio - 0.01) {
+            throw new Error('[WINE_GUARDRAIL] Bottle level unchanged after pour action.');
+        }
+    }
+
+    if (glassMode === 'filled' && !explicitPourTriggered && currentLiquidLevelRatio != null && referenceLiquidLevelRatio != null) {
+        if (currentLiquidLevelRatio >= referenceLiquidLevelRatio - 0.01) {
+            throw new Error('[WINE_GUARDRAIL] Refill integrity violation: filled glass with unchanged bottle level.');
+        }
+    }
+
+    if (referenceHeadspaceRatio != null && currentHeadspaceRatio != null && glassMode === 'filled') {
+        if (currentHeadspaceRatio <= referenceHeadspaceRatio + 0.005) {
+            throw new Error('[WINE_GUARDRAIL] Headspace mismatch: headspace did not increase after poured/filled glass state.');
+        }
+    }
+}
+
+function isSparklingWineType(wineType: WineTypeGuard): boolean {
+    return wineType === 'sparkling-white' || wineType === 'sparkling-rosé';
 }
 
 function applyReferenceAndWineGuardrails(finalPrompt: string, state: ProductStudioState): string {
