@@ -712,9 +712,45 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
 };
 
 /**
- * PRODUCT INTERACTION → Physical hand and body relationship to product
+ * PRODUCT ROLE V3 → Spatial placement only
  */
-const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
+const PRODUCT_ROLE_SEMANTIC_MAP: Record<string, string> = {
+    in_hand: 'The product is in the subject hand zone with clear proximity.',
+    near_body: 'The product is near the torso or body line, physically plausible and reachable.',
+    on_surface: 'The product is placed on a supporting surface with realistic contact and shadow.',
+    foreground_focus: 'The product is foreground dominant while the subject stays compositionally secondary.',
+    beside_subject: 'The product is beside the subject within natural reach distance.',
+    background_presence: 'The product appears subtly in the background without dominating the composition.',
+    custom: 'The product role follows the custom spatial instruction.',
+};
+
+const PRODUCT_ACTION_SEMANTIC_MAP: Record<string, string> = {
+    none: 'No action event is required; static product presence is acceptable.',
+    presenting: 'The subject presents the product toward the viewer with stable posture and clear visibility.',
+    opening: 'Visible mechanical opening action: cap twist, seal break, or lid lift with state change implied.',
+    activating: 'Visible activation action: pressing, sliding, or turning a control with response implied.',
+    using: 'Functional usage action with contextually valid handling.',
+    pouring: 'Directional transfer action with clear source-to-target flow and visible transfer motion.',
+    applying: 'Application action with visible product-to-surface/skin contact zone.',
+    consuming: 'Consumption action near mouth with natural micro-reaction.',
+    sharing: 'Two-person transfer moment with dual-hand engagement.',
+    revealing: 'Packaging reveal action with partial unwrapping/unboxing state transition.',
+    celebrating: 'Expressive celebratory action with raised gesture and energy.',
+    custom: 'Custom interaction action follows user-defined behavior.',
+};
+
+const PRODUCT_ACTION_EXPRESSION_MAP: Record<string, string> = {
+    opening: 'focused engaged expression with task concentration',
+    activating: 'focused engaged expression with intent concentration',
+    using: 'focused engaged expression with contextual attention',
+    pouring: 'focused engaged expression tracking transfer movement',
+    applying: 'focused engaged expression with precise contact attention',
+    consuming: 'micro-reaction expression with natural jaw/lip engagement',
+    sharing: 'joyful energetic expression during exchange moment',
+    celebrating: 'joyful energetic expression with expressive posture',
+};
+
+const LEGACY_INTERACTION_SEMANTIC_MAP: Record<'holding' | 'showing' | 'foreground' | 'beside' | 'background', string> = {
     holding: 'The subject is holding the product naturally in their hands.',
     showing: 'The subject is clearly presenting the product toward the camera with label visibility.',
     foreground: 'The product is positioned prominently in the foreground while the subject remains slightly behind.',
@@ -722,7 +758,7 @@ const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
     background: 'The product appears subtly in the background without dominating the composition.',
 };
 
-function normalizeProductInteractionMode(value: string): keyof typeof INTERACTION_SEMANTIC_MAP {
+function normalizeProductInteractionMode(value: string): 'holding' | 'showing' | 'foreground' | 'beside' | 'background' {
     const normalized = String(value || '').trim().toLowerCase();
     switch (normalized) {
         case 'holding':
@@ -748,6 +784,71 @@ function normalizeProductInteractionMode(value: string): keyof typeof INTERACTIO
     }
 }
 
+function normalizeProductRoleMode(value: string, legacyValue: string): keyof typeof PRODUCT_ROLE_SEMANTIC_MAP {
+    const normalized = String(value || '').trim().toLowerCase();
+    switch (normalized) {
+        case 'in_hand':
+        case 'near_body':
+        case 'on_surface':
+        case 'foreground_focus':
+        case 'beside_subject':
+        case 'background_presence':
+        case 'custom':
+            return normalized as keyof typeof PRODUCT_ROLE_SEMANTIC_MAP;
+        default: {
+            const legacy = normalizeProductInteractionMode(legacyValue);
+            if (legacy === 'showing') return 'in_hand';
+            if (legacy === 'foreground') return 'foreground_focus';
+            if (legacy === 'beside') return 'beside_subject';
+            if (legacy === 'background') return 'background_presence';
+            return 'in_hand';
+        }
+    }
+}
+
+function normalizeProductActionMode(value: string): keyof typeof PRODUCT_ACTION_SEMANTIC_MAP {
+    const normalized = String(value || '').trim().toLowerCase();
+    switch (normalized) {
+        case 'none':
+        case 'presenting':
+        case 'opening':
+        case 'activating':
+        case 'using':
+        case 'pouring':
+        case 'applying':
+        case 'consuming':
+        case 'sharing':
+        case 'revealing':
+        case 'celebrating':
+        case 'custom':
+            return normalized as keyof typeof PRODUCT_ACTION_SEMANTIC_MAP;
+        default:
+            return 'none';
+    }
+}
+
+function normalizeInteractionIntensity(value: string): 'subtle' | 'realistic' | 'expressive' | 'cinematic' {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'subtle' || normalized === 'realistic' || normalized === 'expressive' || normalized === 'cinematic') {
+        return normalized;
+    }
+    return 'realistic';
+}
+
+function normalizeInteractionSequenceMode(value: string): 'disabled' | '2-step' | '3-step' {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === '2-step' || normalized === '3-step') return normalized;
+    return 'disabled';
+}
+
+const PRODUCT_ROLES_SUPPORTING_CONTACT = new Set<keyof typeof PRODUCT_ROLE_SEMANTIC_MAP>([
+    'in_hand',
+    'near_body',
+    'on_surface',
+    'beside_subject',
+    'custom',
+]);
+
 const UGC_HAND_SAFETY_RULE =
     'HAND SAFETY (CRITICAL): Avoid any complex finger poses. No interlaced fingers, no fingertip-to-fingertip framing, no symmetric “triangle grip”. If hands appear, show at most one hand, keep fingers mostly hidden behind the product, allow partial crop, and keep a relaxed natural grip. Hands must be anatomically correct (5 fingers), natural proportions, no deformations.';
 
@@ -767,17 +868,9 @@ const LIFESTYLE_HAND_SAFETY_RULE = [
     'No CGI, doll, or AI hands.',
 ].join(' ');
 
-function isHandInteractionLabel(label: string): boolean {
+function resolveUgcInteractionSemantic(label: string): string {
     const normalized = normalizeProductInteractionMode(label);
-    return (
-        normalized === 'holding' ||
-        normalized === 'showing'
-    );
-}
-
-function resolveUgcInteractionSemantic(label: string, usage?: string): string {
-    const normalized = normalizeProductInteractionMode(label);
-    const base = INTERACTION_SEMANTIC_MAP[normalized] || INTERACTION_SEMANTIC_MAP.holding;
+    const base = LEGACY_INTERACTION_SEMANTIC_MAP[normalized] || LEGACY_INTERACTION_SEMANTIC_MAP.holding;
 
     const parts = [base];
     if (normalized === 'holding' || normalized === 'showing') parts.push(UGC_HAND_SAFETY_RULE);
@@ -1352,29 +1445,94 @@ export function mapLifestyleToPromptOptions(
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
 
-    const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
-    // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
-    mapped.eyeDirection = eyeDirectionLabel as any;
-    mapped.personDetails.eyeDirection =
-        EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
-    if (!forceHideProductRequested && sceneState.productInteraction) {
-            // Future-proof placeholder: this pipeline is currently category-agnostic.
-            const productType: 'unknown' = 'unknown';
-            const interactionMode = normalizeProductInteractionMode(sceneState.productInteraction);
-            const interactionText = isUGCRealMode
-                ? resolveUgcInteractionSemantic(interactionMode)
-                : (() => {
-                    const interactionBase = INTERACTION_SEMANTIC_MAP[interactionMode] || INTERACTION_SEMANTIC_MAP.holding;
-                    const interactionParts = [interactionBase];
-                    if (productType === 'unknown' && isHandInteractionLabel(interactionMode)) {
-                        interactionParts.push(LIFESTYLE_HAND_SAFETY_RULE);
-                    }
-                    return interactionParts.filter(Boolean).join(' ');
-                })();
-        if (mapped.personCount === 'couple') {
-            mapped.personDetails.productInteraction = [
-                'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',
-                'Person B remains supportive and passive (no contact with the product).',
+        const roleMode = normalizeProductRoleMode(
+            String((sceneState as any).productRole || ''),
+            String(sceneState.productInteraction || '')
+        );
+        const actionMode = normalizeProductActionMode(String((sceneState as any).productAction || 'none'));
+        const interactionIntensity = normalizeInteractionIntensity(String((sceneState as any).interactionIntensity || 'realistic'));
+        const sequenceMode = normalizeInteractionSequenceMode(String((sceneState as any).interactionSequenceMode || 'disabled'));
+        const roleCustomValue = String((sceneState as any).productRoleCustom || '').trim();
+        const actionCustomValue = String((sceneState as any).productActionCustom || '').trim();
+        const isActionMode = actionMode !== 'none';
+        const noProductForAction = !hasUploadedProductAsset && !forceHideProductRequested && isActionMode;
+        const roleSupportsContact = PRODUCT_ROLES_SUPPORTING_CONTACT.has(roleMode);
+        const actionNeedsTwoPeople = actionMode === 'sharing';
+        const actionNeedsContact = isActionMode;
+
+        if (noProductForAction) {
+            throw new Error('INTERACTION VALIDATION: PRODUCT_ACTION requires an uploaded product asset.');
+        }
+        if (actionNeedsContact && !roleSupportsContact) {
+            throw new Error('INTERACTION VALIDATION: PRODUCT_ACTION requires a contact-capable PRODUCT_ROLE.');
+        }
+        if (actionNeedsTwoPeople && mapped.personCount !== 'couple') {
+            throw new Error('INTERACTION VALIDATION: PRODUCT_ACTION=sharing requires personCount=couple.');
+        }
+
+        const eyeDirectionLabel = (
+            isActionMode && actionMode !== 'presenting'
+                ? 'Looking at product'
+                : (sceneState.eyeDirection || 'Looking at camera')
+        );
+        // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
+        mapped.eyeDirection = eyeDirectionLabel as any;
+        mapped.personDetails.eyeDirection =
+            EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
+
+        if (!forceHideProductRequested) {
+            const roleText =
+                roleMode === 'custom'
+                    ? `The product role follows custom instruction: ${roleCustomValue || 'custom role positioning'}.`
+                    : (PRODUCT_ROLE_SEMANTIC_MAP[roleMode] || PRODUCT_ROLE_SEMANTIC_MAP.in_hand);
+            const actionText =
+                actionMode === 'custom'
+                    ? `Custom action behavior: ${actionCustomValue || 'custom interaction behavior'}.`
+                    : (PRODUCT_ACTION_SEMANTIC_MAP[actionMode] || PRODUCT_ACTION_SEMANTIC_MAP.none);
+            const interactionParts: string[] = [
+                `PRODUCT_ROLE: ${roleMode}. ${roleText}`,
+                `PRODUCT_ACTION: ${actionMode}. ${actionText}`,
+                `INTERACTION_INTENSITY: ${interactionIntensity}.`,
+            ];
+
+            (mapped as any).productRole = roleMode;
+            (mapped as any).productAction = actionMode;
+            (mapped as any).interactionIntensity = interactionIntensity;
+            (mapped as any).interactionSequenceMode = sequenceMode;
+
+            if (isActionMode) {
+                interactionParts.push(
+                    'INTERACTION_ENFORCER: Visible physical contact with clear contact point, finger tension, body orientation aligned with action, gaze tracking interaction, and micro-motion cues required.'
+                );
+                interactionParts.push('ACTION_GUARD: No static showroom pose and no catalog smile-hold unless action is presenting.');
+                const expressionOverride = PRODUCT_ACTION_EXPRESSION_MAP[actionMode];
+                if (expressionOverride) {
+                    mapped.personDetails.facialExpression = expressionOverride;
+                }
+            }
+
+            if (sequenceMode === '2-step') {
+                interactionParts.push('INTERACTION_SEQUENCE_MODE: 2-step. Frame 1 anticipation; Frame 2 action.');
+            } else if (sequenceMode === '3-step') {
+                interactionParts.push('INTERACTION_SEQUENCE_MODE: 3-step. Frame 1 pre-action tension; Frame 2 peak interaction; Frame 3 post-action emotional result.');
+            }
+
+            if (isUGCRealMode) {
+                const legacyFromRole =
+                    roleMode === 'foreground_focus' ? 'foreground'
+                        : roleMode === 'background_presence' ? 'background'
+                            : roleMode === 'beside_subject' || roleMode === 'on_surface' || roleMode === 'near_body' ? 'beside'
+                                : 'holding';
+                interactionParts.push(resolveUgcInteractionSemantic(legacyFromRole));
+            } else if (actionMode !== 'none' || roleMode === 'in_hand') {
+                interactionParts.push(LIFESTYLE_HAND_SAFETY_RULE);
+            }
+
+            const interactionText = interactionParts.filter(Boolean).join(' ');
+            if (mapped.personCount === 'couple' && actionMode !== 'sharing') {
+                mapped.personDetails.productInteraction = [
+                    'COUPLE INTERACTION RULE: Only Person A interacts actively with the product.',
+                    'Person B remains supportive and passive (no contact with the product).',
                     `Person A: ${interactionText}.`
                 ].join(' ');
             } else {
@@ -1574,6 +1732,11 @@ export function mapLifestyleToPromptOptions(
             ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
             : null;
 
+    const productRoleMode = normalizeProductRoleMode(
+        String((sceneState as any).productRole || ''),
+        String(sceneState.productInteraction || '')
+    );
+    const productActionMode = normalizeProductActionMode(String((sceneState as any).productAction || 'none'));
     const productInteractionMode = normalizeProductInteractionMode((sceneState.productInteraction || '').trim());
     const normalizedPoseKey = normalizeKey(sceneState.pose);
     const foregroundProductFocusRequested =
@@ -1582,13 +1745,18 @@ export function mapLifestyleToPromptOptions(
         !ritualHideProductRequested &&
         !forceHideProductRequested &&
         isEnvironmentSceneIntent &&
-        (productInteractionMode === 'showing' ||
+        (productRoleMode === 'foreground_focus' ||
+            productActionMode === 'presenting' ||
+            productInteractionMode === 'showing' ||
             productInteractionMode === 'holding' ||
             normalizedPoseKey === 'offer-to-lens-reach');
     const captureBaseSelection = normalizedCaptureBase[0];
     const operatorSelection = normalizedCameraOperator[0];
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
-    const isHoldingProduct = productInteractionMode === 'holding';
+    const isHoldingProduct =
+        productActionMode !== 'none' ||
+        productRoleMode === 'in_hand' ||
+        productInteractionMode === 'holding';
 
     if (isUGCRealMode && normalizedCaptureBase.length === 0) {
         throw new Error('Raw Domestic UGC requires a capture style selection.');

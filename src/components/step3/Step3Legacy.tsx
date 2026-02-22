@@ -361,6 +361,12 @@ export interface Step3Values {
 
   // Product Interaction
   productInteraction: string;
+  productRole: 'in_hand' | 'near_body' | 'on_surface' | 'foreground_focus' | 'beside_subject' | 'background_presence' | 'custom';
+  productAction: 'none' | 'presenting' | 'opening' | 'activating' | 'using' | 'pouring' | 'applying' | 'consuming' | 'sharing' | 'revealing' | 'celebrating' | 'custom';
+  interactionIntensity: 'subtle' | 'realistic' | 'expressive' | 'cinematic';
+  interactionSequenceMode: 'disabled' | '2-step' | '3-step';
+  productRoleCustom: string;
+  productActionCustom: string;
   productUsageDescription: string;
   productStructure: 'single' | 'bundle' | 'routine';
 
@@ -694,14 +700,66 @@ const APPEARANCE_LEVEL_OPTIONS = [
   'Running Late'
 ];
 
-// Product Interaction - universal-safe deterministic modes
-const INTERACTION_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'holding', label: 'Holding product' },
-  { value: 'showing', label: 'Showing to camera' },
-  { value: 'foreground', label: 'Product in foreground' },
-  { value: 'beside', label: 'Beside subject' },
-  { value: 'background', label: 'Subtle background presence' },
+const PRODUCT_ROLE_OPTIONS: Array<{ value: Step3Values['productRole']; label: string }> = [
+  { value: 'in_hand', label: 'In hand' },
+  { value: 'near_body', label: 'Near body' },
+  { value: 'on_surface', label: 'On surface' },
+  { value: 'foreground_focus', label: 'Foreground' },
+  { value: 'beside_subject', label: 'Beside subject' },
+  { value: 'background_presence', label: 'Background' },
+  { value: 'custom', label: 'Custom' },
 ];
+
+const PRODUCT_ACTION_OPTIONS: Array<{ value: Step3Values['productAction']; label: string }> = [
+  { value: 'none', label: 'None' },
+  { value: 'presenting', label: 'Presenting' },
+  { value: 'opening', label: 'Opening' },
+  { value: 'activating', label: 'Activating' },
+  { value: 'using', label: 'Using' },
+  { value: 'pouring', label: 'Pouring' },
+  { value: 'applying', label: 'Applying' },
+  { value: 'consuming', label: 'Consuming' },
+  { value: 'sharing', label: 'Sharing' },
+  { value: 'revealing', label: 'Revealing' },
+  { value: 'celebrating', label: 'Celebrating' },
+  { value: 'custom', label: 'Custom' },
+];
+
+const INTERACTION_INTENSITY_OPTIONS: Step3Values['interactionIntensity'][] = [
+  'subtle',
+  'realistic',
+  'expressive',
+  'cinematic',
+];
+
+const INTERACTION_SEQUENCE_OPTIONS: Array<{ value: Step3Values['interactionSequenceMode']; label: string }> = [
+  { value: 'disabled', label: 'Off' },
+  { value: '2-step', label: '2 Frame Story' },
+  { value: '3-step', label: '3 Frame Story' },
+];
+
+const LEGACY_INTERACTION_FROM_ROLE: Record<Step3Values['productRole'], Step3Values['productInteraction']> = {
+  in_hand: 'holding',
+  near_body: 'beside',
+  on_surface: 'beside',
+  foreground_focus: 'foreground',
+  beside_subject: 'beside',
+  background_presence: 'background',
+  custom: 'holding',
+};
+
+const ACTIONS_REQUIRING_CONTACT = new Set<Step3Values['productAction']>([
+  'presenting',
+  'opening',
+  'activating',
+  'using',
+  'pouring',
+  'applying',
+  'consuming',
+  'sharing',
+  'revealing',
+  'celebrating',
+]);
 
 // SKIN REALISM - 3 options only
 const SKIN_REALISM_OPTIONS = [
@@ -897,9 +955,6 @@ const CAMERA_ANGLE_OPTIONS = [
   'Top-down',
   'Bottom-up'
 ];
-
-// Product Interaction alias
-const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
 
 // ASPECT RATIO - Output Format
 const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)', '16:9 (Landscape)'];
@@ -1234,6 +1289,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     // Product Interaction
     productInteraction: 'holding',
+    productRole: 'in_hand',
+    productAction: 'none',
+    interactionIntensity: 'realistic',
+    interactionSequenceMode: 'disabled',
+    productRoleCustom: '',
+    productActionCustom: '',
     productUsageDescription: '',
     productStructure: 'single',
 
@@ -2166,8 +2227,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       values.ugcRealMode !== true;
     const forceHandsHolding =
       sceneType === 'lifestyle-real' &&
-      values.productInteraction === 'holding' &&
-      values.ugcRealMode !== true;
+      values.ugcRealMode !== true &&
+      (
+        values.productInteraction === 'holding' ||
+        values.productRole === 'in_hand' ||
+        values.productAction !== 'none'
+      );
     const payload: Step3Values = {
       ...values,
       creationMode: normalizedCreationMode,
@@ -2316,9 +2381,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   useEffect(() => {
     if (hasUploadedProductAsset) return;
-    if (values.productInteraction === 'background') return;
+    if (values.productRole === 'background_presence' && values.productInteraction === 'background') return;
+    updateValue('productRole', 'background_presence');
     updateValue('productInteraction', 'background');
-  }, [hasUploadedProductAsset, values.productInteraction, updateValue]);
+    if (values.productAction !== 'none') updateValue('productAction', 'none');
+  }, [hasUploadedProductAsset, values.productRole, values.productInteraction, values.productAction, updateValue]);
 
   useEffect(() => {
     if (uiSceneType !== 'lifestyle-real') return;
@@ -7600,28 +7667,112 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
                         <div className="space-y-1">
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">Product Interaction</p>
-                          <p className="text-xs text-gray-500 dark:text-white/50">Define how the subject engages with the product.</p>
+                          <p className="text-xs text-gray-500 dark:text-white/50">Define spatial role and narrative action independently.</p>
                         </div>
                         <div className={`space-y-3 ${hasUploadedProductAsset ? '' : 'opacity-50'}`}>
-                          <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
-                            {PRODUCT_INTERACTION_OPTIONS.map(option => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  updateValue('productInteraction', option.value);
-                                  markSectionTouched('productInteraction');
-                                }}
-                                className={getTogglePillClass(values.productInteraction === option.value)}
-                                disabled={!hasUploadedProductAsset}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Product Role</span>
+                            <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
+                              {PRODUCT_ROLE_OPTIONS.map(option => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    updateValue('productRole', option.value);
+                                    updateValue('productInteraction', LEGACY_INTERACTION_FROM_ROLE[option.value]);
+                                    markSectionTouched('productInteraction');
+                                  }}
+                                  className={getTogglePillClass(values.productRole === option.value)}
+                                  disabled={!hasUploadedProductAsset}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                            {values.productRole === 'custom' && (
+                              <input
+                                type="text"
+                                value={values.productRoleCustom}
+                                onChange={(e) => { updateValue('productRoleCustom', e.target.value); markSectionTouched('productInteraction'); }}
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
+                                placeholder="Custom product role"
+                              />
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Product Action</span>
+                            <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
+                              {PRODUCT_ACTION_OPTIONS.map(option => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    updateValue('productAction', option.value);
+                                    if (ACTIONS_REQUIRING_CONTACT.has(option.value)) {
+                                      updateValue('productInteraction', 'holding');
+                                    }
+                                    markSectionTouched('productInteraction');
+                                  }}
+                                  className={getTogglePillClass(values.productAction === option.value)}
+                                  disabled={!hasUploadedProductAsset}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                            {values.productAction === 'custom' && (
+                              <input
+                                type="text"
+                                value={values.productActionCustom}
+                                onChange={(e) => { updateValue('productActionCustom', e.target.value); markSectionTouched('productInteraction'); }}
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
+                                placeholder="Custom product action"
+                              />
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Interaction Intensity</span>
+                            <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
+                              {INTERACTION_INTENSITY_OPTIONS.map(option => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => { updateValue('interactionIntensity', option); markSectionTouched('productInteraction'); }}
+                                  className={getTogglePillClass(values.interactionIntensity === option)}
+                                  disabled={!hasUploadedProductAsset}
+                                >
+                                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-xs text-gray-600 dark:text-white/60">Campaign Sequence</span>
+                            <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
+                              {INTERACTION_SEQUENCE_OPTIONS.map(option => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => { updateValue('interactionSequenceMode', option.value); markSectionTouched('productInteraction'); }}
+                                  className={getTogglePillClass(values.interactionSequenceMode === option.value)}
+                                  disabled={!hasUploadedProductAsset}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                           {!hasUploadedProductAsset && (
                             <p className="text-[11px] text-gray-500 dark:text-white/50">
                               Upload a product to enable Product Interaction.
+                            </p>
+                          )}
+                          {values.productAction !== 'none' && (
+                            <p className="text-[11px] text-gray-500 dark:text-white/50">
+                              Action mode enforces visible product contact, gaze coherence, and narrative motion cues.
                             </p>
                           )}
                         </div>
