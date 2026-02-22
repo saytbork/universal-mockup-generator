@@ -92,8 +92,8 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-[9999]">
+      <div className="absolute inset-0 bg-whiteTint" />
       <div
         className="absolute border border-indigo-600 rounded-3xl transition-all duration-300"
         style={{

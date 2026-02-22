@@ -34,7 +34,8 @@ function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineE
 }
 
 export function buildWineIndustryLayerV2(state?: StudioUIState): string {
-  if (!state?.winePrestigeMode) return '';
+  if (!state) return '';
+  if (!(state.winePrestigeMode || state.visualProfile === 'wine')) return '';
 
   const motion = String(state.motion || 'static').trim().toLowerCase();
   const action = String(state.wineAction || 'static-presentation').trim();

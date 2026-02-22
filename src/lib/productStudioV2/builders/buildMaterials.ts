@@ -10,7 +10,7 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
     ].join(' ');
   }
 
-  if (state?.winePrestigeMode) {
+  if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
     return 'STUDIO_MATERIAL_MODEL: premium wine materials with controlled reflections and strict geometry-preserving integration.';
   }
 

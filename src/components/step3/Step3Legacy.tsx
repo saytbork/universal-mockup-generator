@@ -2467,6 +2467,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       markSectionTouched('creator');
     }
     dismissStarter();
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('step3:first-image-generate'));
+      }, 0);
+    }
   }, [dismissStarter, markSectionTouched, mode, productStore, starterSelection, updateValue]);
 
   useEffect(() => {
@@ -2911,94 +2916,97 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       )}
 
       {showFirstImageStarter && (
-        <div className="mx-auto w-full max-w-[640px] pt-8 pb-3 transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
-          <div className="space-y-8 text-center">
-            <div className="space-y-3">
-              <h3 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                {mode === 'studio' ? 'Make something beautiful.' : 'Show it in the real world.'}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-white/50">
-                {mode === 'studio' ? 'Start simple. Refine later.' : 'Choose a natural starting point.'}
-              </p>
-            </div>
-
-            {mode === 'studio' ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {([
-                  {
-                    id: 'studio-converting',
-                    title: 'High-Converting Product Shot',
-                    subtitle: 'Clean, sharp and ready for ads.',
-                  },
-                  {
-                    id: 'studio-premium',
-                    title: 'Premium Brand Look',
-                    subtitle: 'Bold contrast with depth and drama.',
-                  },
-                  {
-                    id: 'studio-color',
-                    title: 'Eye-Catching Color Scene',
-                    subtitle: 'Strong background. Instant attention.',
-                  },
-                ] as const).map((card) => (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setStarterSelection(card.id)}
-                    className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
-                  >
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
-                    <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
-                  </button>
-                ))}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative z-10 mx-auto w-full max-w-[640px] px-6 transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
+            <div className="space-y-8 text-center rounded-3xl border border-gray-200 bg-white p-8 shadow-xl dark:bg-[#101014] dark:border-white/10">
+              <div className="space-y-3">
+                <h3 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  {mode === 'studio' ? 'Make something beautiful.' : 'Show it in the real world.'}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-white/50">
+                  {mode === 'studio' ? 'Start simple. Refine later.' : 'Choose a natural starting point.'}
+                </p>
               </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {([
-                  {
-                    id: 'lifestyle-real',
-                    title: 'Real Customer Moment',
-                    subtitle: 'Authentic, relaxed and relatable.',
-                  },
-                  {
-                    id: 'lifestyle-action',
-                    title: 'Product in Action',
-                    subtitle: 'Movement, interaction and energy.',
-                  },
-                  {
-                    id: 'lifestyle-soft',
-                    title: 'Soft Brand Story',
-                    subtitle: 'Clean lifestyle with subtle mood.',
-                  },
-                ] as const).map((card) => (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setStarterSelection(card.id)}
-                    className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
-                  >
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
-                    <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
-                  </button>
-                ))}
-              </div>
-            )}
 
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={applyStarterPreset}
-                className="mx-auto inline-flex rounded-2xl bg-gray-900 px-8 py-3 text-sm font-semibold text-white transition-opacity duration-150 ease-out hover:opacity-90 dark:bg-white dark:text-gray-900"
-              >
-                Create Image
-              </button>
-              <button
-                type="button"
-                onClick={dismissStarter}
-                className="text-sm text-gray-500 transition-opacity duration-150 ease-out hover:opacity-80 dark:text-white/60"
-              >
-                Customize instead
-              </button>
+              {mode === 'studio' ? (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {([
+                    {
+                      id: 'studio-converting',
+                      title: 'High-Converting Product Shot',
+                      subtitle: 'Clean, sharp and ready for ads.',
+                    },
+                    {
+                      id: 'studio-premium',
+                      title: 'Premium Brand Look',
+                      subtitle: 'Bold contrast with depth and drama.',
+                    },
+                    {
+                      id: 'studio-color',
+                      title: 'Eye-Catching Color Scene',
+                      subtitle: 'Strong background. Instant attention.',
+                    },
+                  ] as const).map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => setStarterSelection(card.id)}
+                      className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
+                    >
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
+                      <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {([
+                    {
+                      id: 'lifestyle-real',
+                      title: 'Real Customer Moment',
+                      subtitle: 'Authentic, relaxed and relatable.',
+                    },
+                    {
+                      id: 'lifestyle-action',
+                      title: 'Product in Action',
+                      subtitle: 'Movement, interaction and energy.',
+                    },
+                    {
+                      id: 'lifestyle-soft',
+                      title: 'Soft Brand Story',
+                      subtitle: 'Clean lifestyle with subtle mood.',
+                    },
+                  ] as const).map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => setStarterSelection(card.id)}
+                      className={`rounded-2xl bg-gray-50 px-5 py-6 text-left shadow-sm transition-all duration-150 ease-out hover:scale-[1.02] hover:shadow-md dark:bg-white/5 ${starterSelection === card.id ? 'scale-[1.02] shadow-md bg-gray-100 dark:bg-white/10' : ''}`}
+                    >
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{card.title}</p>
+                      <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{card.subtitle}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={applyStarterPreset}
+                  className="mx-auto inline-flex rounded-2xl bg-gray-900 px-8 py-3 text-sm font-semibold text-white transition-opacity duration-150 ease-out hover:opacity-90 dark:bg-white dark:text-gray-900"
+                >
+                  Create Image
+                </button>
+                <button
+                  type="button"
+                  onClick={dismissStarter}
+                  className="text-sm text-gray-500 transition-opacity duration-150 ease-out hover:opacity-80 dark:text-white/60"
+                >
+                  Customize instead
+                </button>
+              </div>
             </div>
           </div>
         </div>

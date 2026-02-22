@@ -38,7 +38,7 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
-  if (state?.winePrestigeMode) {
+  if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
     const action = String(state.wineAction || 'static-presentation').trim();
     return [
       'STUDIO_COMPOSITION_MODEL: wine-premium.',

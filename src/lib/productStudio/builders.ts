@@ -571,13 +571,27 @@ function applyReferenceAndWineGuardrails(finalPrompt: string, state: ProductStud
     }
 
     const wineGuardrails = buildWineDeterministicGuardrails(state);
-    const prefixParts = [
+    const wineActive = isWineContext(state);
+    if (wineActive) {
+        next = next
+            .replace(/\bPHOTO_MODE:\s*Hero Landing Page\.?/gi, '')
+            .replace(/\bSTUDIO_COMPOSITION_PROFILE:\s*hero\.?/gi, '')
+            .replace(/\bFRAME_CONSTRAINT:\s*Hero framing[^.]*\./gi, '')
+            .replace(/\bFRAME_CONSTRAINT:\s*Tight hero framing[^.]*\./gi, '')
+            .replace(/\bFRAME_CONSTRAINT:\s*Splash hero framing[^.]*\./gi, '')
+            .replace(/\bSTUDIO_VISUAL_INTENT:\s*[^.]*\./gi, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+        next = `${next} STUDIO_VISUAL_INTENT: wine-premium.`.trim();
+    }
+
+    const suffixParts = [
         ...wineGuardrails,
         ...(hasReference ? [REFERENCE_PRODUCT_HARD_LOCK] : []),
     ].filter(Boolean);
 
-    if (prefixParts.length > 0) {
-        next = `${prefixParts.join(' ')} ${next}`.trim();
+    if (suffixParts.length > 0) {
+        next = `${next} ${suffixParts.join(' ')}`.trim();
     }
 
     return next;

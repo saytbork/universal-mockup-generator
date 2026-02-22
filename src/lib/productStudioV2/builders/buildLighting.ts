@@ -21,7 +21,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
     ].join(' ');
   }
 
-  if (state?.winePrestigeMode) {
+  if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
     const mood = String(state.wineMoodProfile || 'prestige').trim();
     return `STUDIO_LIGHTING_MODEL: wine-${mood}.`;
   }

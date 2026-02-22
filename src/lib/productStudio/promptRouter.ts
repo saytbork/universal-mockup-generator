@@ -214,6 +214,39 @@ function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile
   return visualProfile as IndustryProfile;
 }
 
+function hasExplicitWineSignals(state: ProductStudioState): boolean {
+  const visualProfile = normalize(state.visualProfile);
+  const category = normalize((state as any).category);
+  const wineType = normalize((state as any).wineType);
+  const closure = normalize((state as any).wineClosureType);
+  const bottleState = normalize((state as any).wineBottleState);
+  const glassMode = normalize((state as any).wineGlassMode);
+  const wineAction = normalize((state as any).wineAction);
+  return (
+    visualProfile === 'wine' ||
+    visualProfile === 'wine-prestige' ||
+    category === 'wine' ||
+    wineType === 'red' ||
+    wineType === 'white' ||
+    wineType === 'rosé' ||
+    wineType === 'sparkling-white' ||
+    wineType === 'sparkling-rosé' ||
+    closure === 'from-reference' ||
+    closure === 'natural-cork' ||
+    closure === 'crown-cap' ||
+    closure === 'screw-cap' ||
+    closure === 'cork-with-cage' ||
+    bottleState === 'sealed' ||
+    bottleState === 'opened-with-cork-out' ||
+    bottleState === 'opened-with-cork-nearby' ||
+    glassMode === 'none' ||
+    glassMode === 'empty' ||
+    glassMode === 'filled' ||
+    wineAction === 'static-presentation' ||
+    wineAction === 'controlled-pour'
+  );
+}
+
 const WINE_ENVIRONMENT_VARIATIONS: Array<
   NonNullable<StudioUIState['wineEnvironmentVariation']>
 > = [
@@ -737,7 +770,9 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = resolveIndustryProfile(state.visualProfile);
+  const industryProfile = hasExplicitWineSignals(state)
+    ? 'wine'
+    : resolveIndustryProfile(state.visualProfile);
   const coffeeLayer =
     industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);

@@ -772,7 +772,6 @@ const ADMIN_EMAILS = Array.from(
   )
 );
 const VIDEO_SECRET_CODE = import.meta.env.VITE_VIDEO_ACCESS_CODE || '';
-const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
 const TUTORIAL_SEEN_KEY = 'pm_tutorial_seen';
 const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
 const SIMPLE_MODE_KEY = 'ugc-simple-mode';
@@ -2149,6 +2148,7 @@ const App: React.FC = () => {
     }
   }, [GOOGLE_CLIENT_ID]);
   const shouldShowOnboarding = showOnboarding;
+  const tutorialActive = shouldShowOnboarding;
   const stepThreeCategories = useMemo<Set<OptionCategory>>(
     () =>
       new Set<OptionCategory>([
@@ -2375,13 +2375,13 @@ const App: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const forceTutorial = Boolean((window as any).__forceTutorial);
-    const hasSeenTutorial = window.localStorage.getItem(TUTORIAL_SEEN_KEY);
     if (forceTutorial) {
       setOnboardingStep(1);
       setShowOnboarding(true);
       return;
     }
-    setShowOnboarding(hasSeenTutorial !== 'true');
+    const hasSeen = window.localStorage.getItem(TUTORIAL_SEEN_KEY) === 'true';
+    setShowOnboarding(!hasSeen);
   }, []);
 
   useEffect(() => {
@@ -3781,7 +3781,6 @@ const App: React.FC = () => {
   const skipOnboarding = useCallback(() => {
     setShowOnboarding(false);
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
       window.localStorage.setItem(TUTORIAL_SEEN_KEY, 'true');
     }
   }, []);
@@ -3800,7 +3799,6 @@ const App: React.FC = () => {
 
   const handleReplayOnboarding = useCallback(() => {
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ONBOARDING_DISMISSED_KEY);
       window.localStorage.removeItem(TUTORIAL_SEEN_KEY);
     }
     setOnboardingStep(1);
@@ -5101,6 +5099,7 @@ If the model attempts to create a scene or environment, override it and force a 
       const generationProductsRaw = overrideActiveList?.length ? overrideActiveList : activeProducts;
       const generationProducts = hideProductMode ? [] : generationProductsRaw;
       if (!generationProducts.length && !hideProductMode) {
+        if (tutorialActive) return;
         setImageError("Please upload a product image first.");
         return;
       }
@@ -5231,7 +5230,10 @@ If the model attempts to create a scene or environment, override it and force a 
         let finalPrompt: string;
 
         // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
-        if (isProductPlacement) {
+        const forceStudioEngine =
+          isProductPlacement || lifestyleStep3Values?.sceneIntent === 'ecommerce';
+
+        if (forceStudioEngine) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
           const productStateRaw = useProductStudioStore.getState();
           const productState = {
@@ -5715,7 +5717,8 @@ If the model attempts to create a scene or environment, override it and force a 
       setRemoteCredits,
       lifestylePrompt,
       lifestyleStep3Values,
-      resolveOutputAspectRatio
+      resolveOutputAspectRatio,
+      tutorialActive
     ]
   );
 
@@ -5728,6 +5731,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
     const generationProducts = activeProducts;
     if (!generationProducts.length) {
+      if (tutorialActive) return;
       setImageError("Please upload a product image first.");
       return;
     }
@@ -6005,6 +6009,7 @@ If the model attempts to create a scene or environment, override it and force a 
     isAdmin,
     setRemoteCredits,
     resolvedPlanTier,
+    tutorialActive,
   ]);
 
   const handleGenerateNarrativeSequenceClick = useCallback(async () => {
@@ -6015,6 +6020,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
     const generationProducts = activeProducts;
     if (!generationProducts.length) {
+      if (tutorialActive) return;
       setImageError("Please upload a product image first.");
       return;
     }
@@ -6166,7 +6172,29 @@ If the model attempts to create a scene or environment, override it and force a 
     setRemoteCredits,
     resolvedPlanTier,
     userEmail,
-    resolveOutputAspectRatio
+    resolveOutputAspectRatio,
+    tutorialActive
+  ]);
+
+  useEffect(() => {
+    const handleStarterGenerate = () => {
+      if (isImageLoading) return;
+      if (isProductPlacement && ecommerceSelectedSlots.length > 0) {
+        void handleGenerateEcommerceClick();
+        return;
+      }
+      void handleGenerateClick();
+    };
+    window.addEventListener('step3:first-image-generate', handleStarterGenerate as EventListener);
+    return () => {
+      window.removeEventListener('step3:first-image-generate', handleStarterGenerate as EventListener);
+    };
+  }, [
+    ecommerceSelectedSlots.length,
+    handleGenerateClick,
+    handleGenerateEcommerceClick,
+    isImageLoading,
+    isProductPlacement,
   ]);
 
   const generateMockup = useCallback(
@@ -6850,7 +6878,7 @@ If the model attempts to create a scene or environment, override it and force a 
                         02 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
                       </p>
                     </div>
-                    {!hasUploadedProduct && (
+                    {!hasUploadedProduct && !tutorialActive && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
                       </div>
@@ -6897,24 +6925,24 @@ If the model attempts to create a scene or environment, override it and force a 
                         03 / Generate
                       </p>
                     </div>
-                    {!hasUploadedProduct && !hideProductMode && (
+                    {!hasUploadedProduct && !hideProductMode && !tutorialActive && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
                       </div>
                     )}
                     {(() => {
-                      const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
+                      const isGenerateDisabled = isImageLoading || ((!hasUploadedProduct && !hideProductMode) && !tutorialActive);
                       const generationRestrictionMessage = (() => {
                         if (!isGenerateDisabled) return '';
-                        if (!hasUploadedProduct && !hideProductMode) return 'Upload a source product photo before generating.';
+                        if (!hasUploadedProduct && !hideProductMode && !tutorialActive) return 'Upload a source product photo before generating.';
                         if (isImageLoading) return 'Generation is in progress; please wait.';
                         return '';
                       })();
                       return (
                         <div
-                          className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 transition-all duration-300 ease-out ${isGenerateBarVisible || isImageLoading || (!hasUploadedProduct && !hideProductMode)
+                          className={`fixed inset-x-0 bottom-0 z-[120] px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:px-6 lg:px-10 transition-all duration-300 ease-out ${isGenerateBarVisible || isImageLoading || ((!hasUploadedProduct && !hideProductMode) && !tutorialActive)
                             ? 'opacity-100 translate-y-0'
-                            : 'opacity-0 translate-y-6 pointer-events-none'} ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}
+                            : 'opacity-0 translate-y-6 pointer-events-none'} ${hasUploadedProduct || hideProductMode || tutorialActive ? '' : 'opacity-50 pointer-events-none select-none'}`}
                         >
                           <div
                             className="pointer-events-auto mx-auto w-full max-w-4xl rounded-xl bg-white p-2.5 shadow-lg dark:bg-black/45"
