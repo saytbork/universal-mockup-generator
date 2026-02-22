@@ -44,7 +44,7 @@ import { resetIndustryFields } from '@/utils/resetIndustryFields';
 function InterpretationNote({ message }: { message: string }) {
   return (
     <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
-      <div className="text-xs font-black tracking-[0.25em] text-gray-500">
+      <div className="text-xs font-black text-gray-500">
         Interpretation Note
       </div>
       <div>{message}</div>
@@ -79,7 +79,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
     <div className="space-y-5">
       <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
         <div>
-          <p className="text-xs font-black tracking-[0.2em] text-indigo-600 uppercase mb-2">
+          <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
             {schema.label} Atmosphere
           </p>
           <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
@@ -90,7 +90,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
           return (
             <div key={option.key} className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">
+              <p className="text-xs text-gray-500 font-semibold">
                 {option.label}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -113,7 +113,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
         {supportsCustomIngredients && (
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">
+            <p className="text-xs text-gray-500 font-semibold">
               Custom Ingredients
             </p>
             <input
@@ -128,7 +128,7 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
                 markSectionTouched('product-setup');
               }}
               placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-100"
             />
             <p className="text-xs text-gray-500">
               Adds optional custom ingredients/props on top of the mode defaults.
@@ -137,14 +137,14 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
         )}
 
         {schema.constraints.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-gray-400 mb-2">
+          <div className="mt-4 pt-4 ">
+            <p className="text-[9px] uppercase text-gray-400 mb-2">
               AI Constraints
             </p>
             <ul className="space-y-1">
               {schema.constraints.map((c, i) => (
                 <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
-                  <span className="text-indigo-400 mt-0.5">•</span>
+                  <span className="text-gray-400 mt-0.5">•</span>
                   {c}
                 </li>
               ))}
@@ -568,9 +568,9 @@ const getAgeCategory = (age: number) => {
 const SECTION_GROUP_CLASS =
   'space-y-3';
 const GROUP_LABEL_CLASS =
-  'text-[11px] uppercase tracking-[0.14em] text-gray-500 font-semibold leading-none';
+  'text-xs font-medium text-gray-500 font-semibold leading-none';
 const COLOR_PICKER_BUTTON_CLASS =
-  'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
+  'h-9 w-9 rounded-full border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2';
 const COLOR_PICKER_SWATCH_VISUAL_CLASS =
   'h-9 w-9 rounded-full border border-gray-200 bg-white transition-colors';
 const COLOR_PICKER_HIDDEN_INPUT_CLASS =
@@ -881,6 +881,110 @@ const PRODUCT_INTERACTION_OPTIONS = INTERACTION_OPTIONS;
 
 // ASPECT RATIO - Output Format
 const ASPECT_RATIO_OPTIONS = ['1:1 (Square)', '4:5 (Portrait)', '9:16 (Story)', '16:9 (Landscape)'];
+
+const VISUAL_INTENT_TOOLTIPS: Record<string, string> = {
+  ugc: 'Raw, spontaneous, handheld aesthetic with natural imperfections.',
+  editorial: 'Stylized lifestyle scene with controlled framing and lighting.',
+  brand: 'Commercial composition prioritizing product clarity and structure.',
+  luxury: 'Refined framing, disciplined lighting, premium visual hierarchy.',
+};
+
+const PERSON_COUNT_TOOLTIPS: Record<string, string> = {
+  single: 'One primary subject interacting with the product.',
+  couple: 'Two coordinated subjects sharing the scene.',
+  group: 'Three or more subjects. Composition may auto-adjust.',
+};
+
+const EYE_DIRECTION_TOOLTIPS: Record<string, string> = {
+  'Looking at camera': 'Direct engagement creating intimacy and confidence.',
+  'Looking at product': 'Focus shifts toward product interaction.',
+  'Looking away naturally': 'Candid, lifestyle realism.',
+};
+
+const GENDER_TOOLTIPS: Record<string, string> = {
+  Female: 'Female-presenting subject.',
+  Male: 'Male-presenting subject.',
+};
+
+const ETHNICITY_TOOLTIPS: Record<string, string> = {
+  'Non-specific': 'Model ethnicity left neutral.',
+  'White / European descent': 'Subject with European ancestry traits.',
+  'Black / African descent': 'Subject with African ancestry traits.',
+  'Latino / Hispanic': 'Subject with Latino heritage traits.',
+};
+
+const CAMERA_TYPE_TOOLTIPS: Record<string, string> = {
+  'DSLR / mirrorless camera': 'Professional camera with shallow depth of field and natural bokeh.',
+  'Cinema camera rig': 'Filmic capture with cinematic tone and stabilized framing.',
+  'Medium format studio camera': 'Ultra sharp detail and high tonal precision.',
+};
+
+const SHOT_TYPE_TOOLTIPS: Record<string, string> = {
+  'Extreme close-up': 'Focus on texture and fine detail.',
+  Close: 'Product and facial emphasis.',
+  Medium: 'Balanced subject and environment framing.',
+  Wide: 'Context-first framing.',
+  'Full body': 'Complete subject visibility.',
+};
+
+const COMPOSITION_TOOLTIPS: Record<string, string> = {
+  'product-first': 'Product dominates visual hierarchy.',
+  balanced: 'Equal visual weight between subject and product.',
+  'fifty-fifty': 'Symmetrical distribution of visual space.',
+  'model-first': 'Subject dominates narrative focus.',
+};
+
+const CAMERA_ANGLE_TOOLTIPS: Record<string, string> = {
+  'Eye level': 'Neutral, realistic perspective.',
+  'Slightly above eye level': 'Soft authority and elegance.',
+  'Slightly below eye level': 'Subtle empowerment framing.',
+  'High angle': 'Emphasizes vulnerability or environment.',
+  'Low angle': 'Creates dominance and strength.',
+  'Top-down': 'Flat lay or graphic structural view.',
+  'Bottom-up': 'Dramatic upward perspective.',
+};
+
+const LIGHTING_STYLE_TOOLTIPS: Record<string, string> = {
+  'Natural Light': 'Soft window-style illumination.',
+  'Sunny Day': 'High contrast direct sunlight.',
+  'Golden Hour': 'Warm cinematic sunset glow.',
+  Overcast: 'Soft diffused shadow lighting.',
+  'Cozy Indoors': 'Warm ambient interior tone.',
+  'Ring Light': 'Frontal vlogger-style lighting.',
+  'Mood Lighting': 'Low-key dramatic shadows.',
+  'Night Mode': 'Dark scene with artificial highlights.',
+  'Flash Photo': 'Direct on-camera flash effect.',
+};
+
+const TIME_OF_DAY_TOOLTIPS: Record<string, string> = {
+  Morning: 'Soft early daylight.',
+  Midday: 'Bright overhead light.',
+  Evening: 'Warm fading daylight.',
+  Night: 'Low natural light, artificial illumination.',
+};
+
+const ENVIRONMENT_TOOLTIPS: Record<string, string> = {
+  Kitchen: 'Domestic cooking environment.',
+  'Living Room': 'Comfort-driven everyday setting.',
+  Bedroom: 'Private interior setting.',
+  Workspace: 'Productivity-focused environment.',
+  'Urban Exterior': 'City setting with architectural depth.',
+  'Natural Exterior': 'Outdoor landscape setting.',
+  'Backyard / Patio': 'Casual outdoor relaxation space.',
+  'Street Corner': 'Urban lifestyle context.',
+  'Home Gym': 'Fitness and training setting.',
+  Bathroom: 'Personal care interior.',
+  Hallway: 'Transitional indoor space.',
+  'Balcony / Indoor Terrace': 'Semi-outdoor lifestyle space.',
+  'Parking Lot': 'Functional urban environment.',
+};
+
+const ASPECT_RATIO_TOOLTIPS: Record<string, string> = {
+  '1:1 (Square)': 'Balanced square format for feeds.',
+  '4:5 (Portrait)': 'Vertical format optimized for social posts.',
+  '9:16 (Story)': 'Full vertical story format.',
+  '16:9 (Landscape)': 'Wide cinematic frame.',
+};
 
 const GRADIENT_ANGLE_OPTIONS: Array<'45' | '90' | '180'> = ['45', '90', '180'];
 
@@ -2163,9 +2267,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // Derived from sceneIntent - no longer computed independently
   const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
-  const isUGCMode = values.visualMode === 'ugc';
+  const isUGCMode = values.ugcRealMode === true;
   const visualIntentMode = (values.visualIntent ?? 'editorial');
   const isLuxuryIntent = visualIntentMode === 'luxury';
+  const isEditorialIntent = visualIntentMode === 'editorial' && !isUGCMode;
+  const isBrandIntent = visualIntentMode === 'brand' && !isUGCMode;
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType: 'studio-branding' | 'lifestyle-real' =
     uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
@@ -2182,6 +2288,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
   const cameraSectionLockedByUgc = isUGCMode;
+  const accentClass = 'bg-[var(--lifestyle-accent)] border-[var(--lifestyle-accent)] text-white';
+  const accentTextClass = 'text-[var(--lifestyle-accent)]';
+  const accentBorderClass = 'border-[var(--lifestyle-accent)]';
 
   useEffect(() => {
     if (uiSceneType !== 'lifestyle-real') return;
@@ -2571,7 +2680,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     <div className={embedded ? 'w-full space-y-5' : 'w-full max-w-2xl mx-auto space-y-5 p-5'}>
       {!embedded && (
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-widest text-indigo-600">Step 3</p>
+          <p className="text-xs font-semibold text-gray-500">Step 3</p>
           <h2 className="text-2xl text-gray-900">{isEcommerceMode ? 'Product Builder' : 'Scene Builder'}</h2>
         </div>
       )}
@@ -2723,7 +2832,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 productStore.sceneType === 'studio-hero') && (
                   <>
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">INDUSTRY PROFILE</p>
+                      <p className="text-xs font-extrabold text-gray-500 mb-2">INDUSTRY PROFILE</p>
                       <div className="flex flex-wrap gap-2">
                         <Chip
                           selected={industryProfile === 'supplements'}
@@ -2836,7 +2945,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
-                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
                           {(() => {
                             const compositionOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
@@ -2979,14 +3088,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             return (
                               <div className="p-5 space-y-7">
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                   <div>
                                     <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Choose how the product is framed and presented.</p>
                                   </div>
                                   <div className="space-y-5">
                                     <div className="space-y-3">
-                                      <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Core</p>
+                                      <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Core</p>
                                       <div className="flex flex-wrap gap-3">
                                         {filteredCompositionOptions.map(({ label, mode }) => (
                                           <Chip
@@ -3006,14 +3115,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 {!isCoffeeIndustry && (
-                                  <div className="space-y-6">
+                                  <div className="space-y-4">
                                     <div>
                                       <p className={GROUP_LABEL_CLASS}>VISUAL STYLE</p>
                                       <p className="text-[11px] text-gray-500 mt-1">Overall aesthetic and brand mood.</p>
                                     </div>
                                     <div className="space-y-5">
                                       <div className="space-y-3">
-                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
+                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Studio Worlds</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Clinical Lab Counter' ||
@@ -3036,7 +3145,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
 
                                       <div className="space-y-3">
-                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
+                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Monochrome Brand' ||
@@ -3058,7 +3167,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
 
                                       <div className="space-y-3">
-                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
+                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Soft Wellness Morning' ||
@@ -3079,7 +3188,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
 
                                       <div className="space-y-3">
-                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Realism</p>
+                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Realism</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Sunlit Stone Editorial' ||
@@ -3102,7 +3211,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
 
                                       <div className="space-y-3">
-                                        <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
+                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Nature Elements</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Sky Float Minimal' ||
@@ -3127,7 +3236,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 )}
 
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                   <div>
                                     <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style.</p>
@@ -3158,7 +3267,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 {!isCoffeeIndustry && (
-                                  <div className="space-y-6">
+                                  <div className="space-y-4">
                                     <div>
                                       <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
                                       <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
@@ -3186,9 +3295,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <div className="mt-8 space-y-5">
                             <div ref={photoModeSettingsRef} />
                             {photoModeHintVisible && (
-                              <div className="rounded-lg border border-indigo-200/80 bg-indigo-50/80 px-3 py-2 text-[11px] text-indigo-800">
+                              <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
                                 <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
-                                <p className="text-indigo-700/90">This hint will auto-dismiss in a few seconds.</p>
+                                <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
                               </div>
                             )}
                             {productStore.photoMode === 'Hero Landing Page' && (
@@ -3200,7 +3309,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                   const dotBase = COLOR_PICKER_BUTTON_CLASS;
                                   const dotBorder = (isSelected: boolean) =>
-                                    isSelected ? 'border-indigo-600' : 'border-gray-200 hover:border-gray-300';
+                                    isSelected ? 'border-[var(--lifestyle-accent)]' : 'border-gray-200 hover:border-gray-300';
 
                                   const getActiveTargetColor = (): string => {
                                     if (!isGradient) return normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
@@ -3230,7 +3339,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <div className="space-y-5">
                                         <div className="space-y-5">
                                           <div>
-                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Background</p>
+                                            <p className="text-xs text-gray-500 font-semibold mb-2">Background</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Solid', 'Gradient'] as const).map(v => (
                                                 <Chip
@@ -3249,7 +3358,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {isGradient && (
                                             <div>
-                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Colors</p>
+                                              <p className="text-xs text-gray-500 font-semibold mb-2">Colors</p>
                                               <div className="flex items-center gap-4">
                                                 <button
                                                   type="button"
@@ -3302,7 +3411,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                       setHeroGradientAssignTarget('mid');
                                                       markSectionTouched('product-setup');
                                                     }}
-                                                    className="h-9 w-9 rounded-full border border-gray-200 bg-white text-[12px] font-semibold text-gray-600 hover:border-gray-300"
+                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[12px] font-semibold leading-none text-gray-600 hover:border-gray-300"
                                                     aria-label="Add third gradient color"
                                                   >
                                                     +
@@ -3313,7 +3422,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           )}
 
                                           <div>
-                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Brand Colors</p>
+                                            <p className="text-xs text-gray-500 font-semibold mb-2">Brand Colors</p>
                                             <div className="flex flex-wrap gap-2">
                                               {brandDots.length > 0 ? (
                                                 brandDots.map(hex => {
@@ -3341,7 +3450,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           </div>
 
                                           <div>
-                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Color</p>
+                                            <p className="text-xs text-gray-500 font-semibold mb-2">Custom Color</p>
                                             <div className="flex flex-wrap items-center gap-3">
                                               <button
                                                 type="button"
@@ -3402,7 +3511,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                     setHeroHexEditingTarget(null);
                                                   }}
                                                   placeholder="#FFFFFF"
-                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                                                   aria-label="Hex color"
                                                   autoFocus
                                                 />
@@ -3412,7 +3521,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {isGradient && (
                                             <div>
-                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gradient Style</p>
+                                              <p className="text-xs text-gray-500 font-semibold mb-2">Gradient Style</p>
                                               <div className="flex flex-wrap gap-2">
                                                 {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                                   <Chip
@@ -3436,7 +3545,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                       <div className="space-y-5">
                                         <div>
-                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Palette Source</p>
+                                          <p className="text-xs text-gray-500 font-semibold mb-2">Palette Source</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
                                               <Chip
@@ -3454,7 +3563,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         </div>
 
                                         <div>
-                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Negative Space</p>
+                                          <p className="text-xs text-gray-500 font-semibold mb-2">Negative Space</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
                                               <Chip
@@ -3472,7 +3581,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         </div>
 
                                         <div>
-                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Contrast Level</p>
+                                          <p className="text-xs text-gray-500 font-semibold mb-2">Contrast Level</p>
                                           <div className="flex flex-wrap gap-2">
                                             {(['Soft', 'High'] as const).map(v => (
                                               <Chip
@@ -3498,7 +3607,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Color Pop Hero' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Background Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Solid', 'Gradient'] as const).map(v => (
                                       <Chip
@@ -3517,7 +3626,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                 {productStore.photoModeConfig.colorPopHero.backgroundType === 'Gradient' && (
                                   <div>
-                                    <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                    <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
                                     <div className="flex flex-wrap gap-2">
                                       {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                         <Chip
@@ -3536,7 +3645,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 )}
 
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Source</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Color Source</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Brand Colors', 'Product Label Colors', 'Custom Color'] as const).map(v => (
                                       <Chip
@@ -3554,7 +3663,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Saturation Level</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Saturation Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Moderate', 'High'] as const).map(v => (
                                       <Chip
@@ -3572,7 +3681,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast Strategy</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Contrast Strategy</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft', 'High'] as const).map(v => (
                                       <Chip
@@ -3590,7 +3699,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 </div>
 
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Negative Space</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Negative Space</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
                                       <Chip
@@ -3613,12 +3722,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div className="space-y-3">
                                 {/* CUSTOM INGREDIENTS INPUT */}
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">
                                     Ingredients <span className="text-red-400">*</span>
                                   </p>
                                   <input
                                     type="text"
-                                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-white/5 dark:border-white/10 dark:text-white"
+                                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[var(--lifestyle-accent)] focus:border-[var(--lifestyle-accent)] dark:bg-white/5 dark:border-white/10 dark:text-white"
                                     placeholder="e.g., strawberries, blueberries, mint leaves, honey"
                                     value={productStore.props || ''}
                                     onChange={(e) => {
@@ -3634,7 +3743,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 {productStore.photoMode === 'Ingredient Stack' && (
                                   <>
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Focus</p>
+                                      <p className="text-xs text-gray-500 font-semibold mb-1">Ingredient Focus</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Key active only', 'Full formula'] as const).map(v => (
                                           <Chip
@@ -3652,7 +3761,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
 
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Stack Style</p>
+                                      <p className="text-xs text-gray-500 font-semibold mb-1">Stack Style</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Surround', 'Split composition'] as const).map(v => (
                                           <Chip
@@ -3669,7 +3778,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
                                     </div>
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Ingredient Presence</p>
+                                      <p className="text-xs text-gray-500 font-semibold mb-1">Ingredient Presence</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Subtle', 'Balanced', 'Hero'] as const).map(v => (
                                           <Chip
@@ -3686,7 +3795,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </div>
                                     </div>
                                     <div>
-                                      <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Label Priority</p>
+                                      <p className="text-xs text-gray-500 font-semibold mb-1">Label Priority</p>
                                       <div className="flex flex-wrap gap-2">
                                         {(['Always readable', 'Secondary to ingredients'] as const).map(v => (
                                           <Chip
@@ -3706,7 +3815,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
                                       <div className="flex items-center justify-between gap-3">
                                         <div>
-                                          <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">Background</p>
+                                          <p className="text-xs text-gray-500 font-semibold">Background</p>
                                           <p className="text-[11px] text-gray-600">Optional override (solid or gradient)</p>
                                         </div>
                                         <SwitchToggle
@@ -3722,7 +3831,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       {productStore.photoModeConfig.ingredientStack.backgroundEnabled && (
                                         <div className="space-y-3">
                                           <div>
-                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Background Type</p>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Background Type</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Solid', 'Gradient'] as const).map(v => (
                                                 <Chip
@@ -3741,7 +3850,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                                           {productStore.photoModeConfig.ingredientStack.backgroundType === 'Gradient' && (
                                             <div>
-                                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                              <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
                                               <div className="flex flex-wrap gap-2">
                                                 {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                                   <Chip
@@ -3760,7 +3869,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           )}
 
                                           <div>
-                                            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Colors</p>
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">Colors</p>
                                             <div className="flex flex-wrap gap-2">
                                               {(['Brand Colors', 'Custom Color'] as const).map(v => (
                                                 <Chip
@@ -3794,7 +3903,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                       markSectionTouched('product-setup');
                                                     }}
                                                     placeholder="#FFFFFF"
-                                                    className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                                                   />
                                                 </div>
                                               ) : (
@@ -3813,7 +3922,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                         markSectionTouched('product-setup');
                                                       }}
                                                       placeholder="#FFFFFF"
-                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                                                     />
                                                     <span className="text-xs text-gray-500">Start</span>
                                                   </div>
@@ -3831,7 +3940,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                         markSectionTouched('product-setup');
                                                       }}
                                                       placeholder="#FFFFFF"
-                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                                                      className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                                                     />
                                                     <span className="text-xs text-gray-500">End</span>
                                                   </div>
@@ -3850,7 +3959,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Acrylic Blocks' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Block Shape</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Block Shape</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Rectangular', 'Cylindrical', 'Mixed geometry'] as const).map(v => (
                                       <Chip
@@ -3867,7 +3976,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Material Finish</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Material Finish</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Clear', 'Frosted', 'Smoked'] as const).map(v => (
                                       <Chip
@@ -3884,7 +3993,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Reflection Level</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Reflection Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Minimal', 'Balanced', 'Glossy'] as const).map(v => (
                                       <Chip
@@ -3901,7 +4010,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Elevation</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Elevation</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Grounded', 'Floating illusion'] as const).map(v => (
                                       <Chip
@@ -3923,7 +4032,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Splash Shot' && !winePrestigeModeActive && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Splash Medium</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Splash Medium</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Liquid'] as const).map(v => (
                                       <Chip
@@ -3940,7 +4049,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Motion Intensity</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Motion Intensity</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Dynamic', 'Explosive'] as const).map(v => (
                                       <Chip
@@ -3957,7 +4066,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Freeze Moment</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Freeze Moment</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Mid-splash', 'Peak'] as const).map(v => (
                                       <Chip
@@ -3974,7 +4083,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Product Stability</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Product Stability</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Fully grounded', 'Slight interaction'] as const).map(v => (
                                       <Chip
@@ -4005,7 +4114,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Foam & Texture' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Type</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Texture Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Foam', 'Cream', 'Gel', 'Powder'] as const).map(v => (
                                       <Chip
@@ -4022,7 +4131,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Texture Density</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Texture Density</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Light', 'Rich', 'Dense'] as const).map(v => (
                                       <Chip
@@ -4039,7 +4148,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Focus Distance</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Focus Distance</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Macro', 'Close'] as const).map(v => (
                                       <Chip
@@ -4056,7 +4165,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Cleanliness</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Cleanliness</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Pristine', 'Natural imperfections'] as const).map(v => (
                                       <Chip
@@ -4078,7 +4187,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Routine Carousel' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Frame Count</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Frame Count</p>
                                   <div className="flex flex-wrap gap-2">
                                     {([3, 4, 5] as const).map(v => (
                                       <Chip
@@ -4095,7 +4204,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Routine Flow</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Routine Flow</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Left → Right', 'Circular'] as const).map(v => (
                                       <Chip
@@ -4112,7 +4221,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Consistency</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Consistency</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Same background', 'Subtle variation'] as const).map(v => (
                                       <Chip
@@ -4129,7 +4238,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Hero Frame</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Hero Frame</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['First', 'Middle', 'Last'] as const).map(v => (
                                       <Chip
@@ -4151,7 +4260,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Clinical Lab Counter' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Clinical Tone</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Clinical Tone</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft clinical', 'Crisp lab'] as const).map(v => (
                                       <Chip
@@ -4168,7 +4277,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Lab Elements</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Lab Elements</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Minimal', 'Standard'] as const).map(v => (
                                       <Chip
@@ -4185,7 +4294,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Surface Type</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Surface Type</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['White lab', 'Neutral lab'] as const).map(v => (
                                       <Chip
@@ -4202,7 +4311,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Trust Level</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Trust Level</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Friendly', 'Professional', 'High authority'] as const).map(v => (
                                       <Chip
@@ -4224,7 +4333,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Golden Mist Aura' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Glow Strength</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Glow Strength</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Subtle', 'Warm', 'Radiant'] as const).map(v => (
                                       <Chip
@@ -4241,7 +4350,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mist Style</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Mist Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Backlit', 'Surround'] as const).map(v => (
                                       <Chip
@@ -4258,7 +4367,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Mood</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Mood</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Calm', 'Luxurious'] as const).map(v => (
                                       <Chip
@@ -4275,7 +4384,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Contrast</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Contrast</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft', 'Cinematic'] as const).map(v => (
                                       <Chip
@@ -4297,7 +4406,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.photoMode === 'Candy Gradient Lab' && (
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Gradient Style</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Candy pastel', 'Bold candy'] as const).map(v => (
                                       <Chip
@@ -4314,7 +4423,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Color Count</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Color Count</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Duo', 'Trio'] as const).map(v => (
                                       <Chip
@@ -4331,7 +4440,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Edge Style</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Edge Style</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Soft blend', 'Sharp transition'] as const).map(v => (
                                       <Chip
@@ -4348,7 +4457,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Playfulness</p>
+                                  <p className="text-xs text-gray-500 font-semibold mb-1">Playfulness</p>
                                   <div className="flex flex-wrap gap-2">
                                     {(['Controlled', 'Fun', 'Loud'] as const).map(v => (
                                       <Chip
@@ -4429,7 +4538,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       updateValue('productTypeCustom', e.target.value);
                       markSectionTouched('product-setup');
                     }}
-                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                     placeholder="Describe the product category (min 3 words)"
                   />
                 )}
@@ -4558,8 +4667,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     {/* ADVANCED COMPOSITION — Pro only extension */}
                     {productStore.controlTier === 'pro' && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">ADVANCED</p>
+                      <div className="mt-3 pt-3 ">
+                        <p className="text-[9px] uppercase text-gray-400 mb-2">ADVANCED</p>
                         <div className="flex flex-wrap gap-2">
                           {[
                             { key: 'rule-of-thirds', label: 'Rule of thirds' },
@@ -4632,9 +4741,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       className="overflow-hidden transition-all duration-500 max-h-[1000px] opacity-100"
                       style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                     >
-                      <div className="space-y-5 pl-3 border-l-2 border-indigo-300">
+                      <div className="space-y-5 pl-3 border-l-2 border-gray-300">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LENS</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">LENS</p>
                           <div className="flex flex-wrap gap-2">
                             {[
                               '100mm Macro Prime', '50mm Product Prime', 'Tilt-Shift Hero',
@@ -4648,8 +4757,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.lens === lens
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  ? 'bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-[var(--lifestyle-accent)]'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                               >
@@ -4663,7 +4772,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">LIGHTING RIG</p>
                           <div className="flex flex-wrap gap-2">
                             {([
                               { value: '3-Point Beauty Dish', label: '3-Point Beauty Dish' },
@@ -4681,8 +4790,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.lightingRig === value
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  ? 'bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-[var(--lifestyle-accent)]'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                               >
@@ -4693,7 +4802,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">ACCENT / GEL LIGHT COLOR</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">ACCENT / GEL LIGHT COLOR</p>
                           <div className="space-y-5">
                             <div>
                               <p className="text-xs text-gray-500 mb-2">Popular gel colors for edge/rim lighting:</p>
@@ -4717,8 +4826,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     }}
                                     className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${
                                       productStore.customLightColor === value
-                                        ? 'bg-indigo-600 text-white border-indigo-600'
-                                        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                        ? 'bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]'
+                                        : 'bg-white text-gray-500 border-gray-200 hover:border-[var(--lifestyle-accent)]'
                                     }`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                                   >
@@ -4729,7 +4838,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             </div>
                             <div>
-                              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Custom Gel Color</p>
+                              <p className="text-xs text-gray-500 font-semibold mb-2">Custom Gel Color</p>
                               <div className="flex items-center gap-3">
                                 <button
                                   type="button"
@@ -4739,7 +4848,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   }}
                                   className={`${COLOR_PICKER_BUTTON_CLASS} ${
                                     !productStore.customLightColor
-                                      ? 'border-indigo-600'
+                                      ? 'border-[var(--lifestyle-accent)]'
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                   style={{ background: '#FFFFFF' }}
@@ -4748,7 +4857,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <label
                                   className={`relative inline-block ${COLOR_PICKER_BUTTON_CLASS} cursor-pointer ${
                                     productStore.customLightColor
-                                      ? 'border-indigo-600'
+                                      ? 'border-[var(--lifestyle-accent)]'
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                   style={{ background: productStore.customLightColor || '#FFFFFF' }}
@@ -4776,13 +4885,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       markSectionTouched('product-setup');
                                     }
                                   }}
-                                  className="px-3 py-2 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-24"
+                                  className="px-3 py-2 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-700 focus:border-[var(--lifestyle-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--lifestyle-accent)] w-24"
                                 />
                               </div>
                             </div>
                             {productStore.customLightColor && productStore.customLightColor !== '#FFFFFF' && (
                               <div>
-                                <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Gel Light Intensity</p>
+                                <p className="text-xs text-gray-500 font-semibold mb-2">Gel Light Intensity</p>
                                 <div className="flex items-center gap-3">
                                   <input
                                     type="range"
@@ -4793,7 +4902,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       productStore.setAccentLightIntensity(Number(e.target.value));
                                       markSectionTouched('product-setup');
                                     }}
-                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-600"
                                   />
                                   <span className="text-[11px] font-mono text-gray-700 w-10 text-right">
                                     {productStore.accentLightIntensity}%
@@ -4805,7 +4914,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                         <div>
-                          <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">FINISH / TREATMENT</p>
                           <div className="flex flex-wrap gap-2">
                             {[
                               'High-Gloss Commercial', 'Film Grain Luxury',
@@ -4818,8 +4927,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   markSectionTouched('product-setup');
                                 }}
                                 className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-300 ${productStore.finish === finish
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                  ? 'bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]'
+                                  : 'bg-white text-gray-500 border-gray-200 hover:border-[var(--lifestyle-accent)]'
                                   }`}
                                 style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
                               >
@@ -4837,7 +4946,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                        <p className="text-[9px] uppercase text-gray-400 mb-2">CREATIVITY LEVEL</p>
                         <div className="flex gap-2">
                           {([0, 1, 2, 3] as const).map(level => (
                             <Chip
@@ -4855,7 +4964,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
 
                       <div>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-gray-400 mb-2">PROPS</p>
+                        <p className="text-[9px] uppercase text-gray-400 mb-2">PROPS</p>
                         <input
                           type="text"
                           value={productStore.props}
@@ -4864,7 +4973,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           }}
                           placeholder="e.g., pineapple, lavender sprigs"
-                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-2 focus:ring-[var(--lifestyle-accent)] transition-all duration-200"
                         />
                       </div>
 
@@ -5030,7 +5139,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. orange, pink, purple"
+                        placeholder="e.g. orange, pink, indigo"
                         value={(productStore.definition.physical as any)?.v?.gummyColor?.semanticName || ''}
                         onChange={e => {
                           productStore.setPhysicalColorName('gummyColor', e.target.value);
@@ -5549,8 +5658,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
             </div>
           </AccordionSection>
-        )
-      }
+      )}
 
       {isEcommerceMode && (
       <AccordionSection
@@ -5722,7 +5830,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           {/* BUNDLE CONTROLS - Only if enabled */}
           {productStore.bundle.enabled && (
-            <div className="space-y-5 pt-4 border-t border-gray-100">
+            <div className="space-y-5 pt-4 ">
               {/* STYLE / MODE */}
               <div className={SECTION_GROUP_CLASS}>
                 <p className={GROUP_LABEL_CLASS}>BUNDLE ARRANGEMENT</p>
@@ -5794,7 +5902,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             isOpen={openAccordionId === 'product-creativity'}
             onToggle={() => toggleSection('product-creativity')}
             isTouched={touchedSections.has('product-creativity')}
-            iconClassName="text-indigo-600 dark:text-indigo-300"
+            iconClassName="text-[var(--lifestyle-accent)] dark:text-gray-300"
             variant="secondary"
           >
             <div className="space-y-5">
@@ -6148,7 +6256,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
 
                     <div className={isDisabled ? 'opacity-50' : ''}>
-                      <div className="p-5 space-y-6">
+                      <div className="p-5 space-y-4">
                         <div className="flex items-center justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
@@ -6182,7 +6290,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             return productEnvironmentShowAllMacros;
                           }).map(group => (
                             <div key={group.label} className="space-y-3">
-                              <p className="text-xs uppercase tracking-[0.14em] font-semibold text-gray-400 dark:text-white/40">
+                              <p className="text-xs font-semibold text-gray-400 dark:text-white/40">
                                 {group.label}
                               </p>
                               <div className="flex flex-wrap gap-3">
@@ -6218,13 +6326,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 markSectionTouched('product-environment');
                               }}
                               placeholder="e.g. modern kitchen countertop"
-                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                             />
                           </label>
                         )}
                       </div>
 
-                      <div className="p-5 space-y-6">
+                      <div className="p-5 space-y-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
@@ -6297,13 +6405,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 markSectionTouched('product-environment');
                               }}
                               placeholder="e.g. stainless steel filling station"
-                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                             />
                           </label>
                         )}
                       </div>
 
-                      <div className="p-5 space-y-6">
+                      <div className="p-5 space-y-4">
                         <div>
                           <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
                           <p className="text-[11px] text-gray-500 mt-1">Product-safe lighting style</p>
@@ -6818,7 +6926,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
               <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
                 <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
+                  <p className="text-xs font-semibold text-gray-500">Background</p>
                   <p className="text-sm text-gray-600">Neutral color or gradient</p>
                 </div>
 
@@ -6898,7 +7006,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           }
                         }}
                         placeholder="#FFFFFF"
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                       />
                     </div>
                   </div>
@@ -6912,7 +7020,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         ] as const
                       ).map(cfg => (
                         <div key={cfg.key} className="flex items-center gap-4">
-                          <span className="text-[11px] uppercase tracking-wide text-gray-500 w-10">{cfg.label}</span>
+                          <span className="text-xs font-medium tracking-wide text-gray-500 w-10">{cfg.label}</span>
                           {/* Circular color swatch */}
                           <label className="relative">
                             <span
@@ -6977,7 +7085,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 }
                               }}
                               placeholder="#FFFFFF"
-                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                             />
                           </div>
                         </div>
@@ -7028,7 +7136,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               className={`space-y-3 rounded-2xl border border-gray-200 bg-white p-5 transition-opacity duration-200 ${industryPreviewFade ? 'opacity-70' : 'opacity-100'}`}
             >
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-widest text-indigo-600">Overlays</p>
+                <p className="text-xs font-semibold text-gray-500">Overlays</p>
                 <p className="text-sm text-gray-600">Text + icons are rendered by the app (not the image model).</p>
               </div>
               <EcommerceStep3
@@ -7052,14 +7160,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {
         isEnvironmentMode && (
-          <>
+          <div className="space-y-8" style={{ ['--lifestyle-accent' as any]: '#4f46e5' }}>
+            <div className={`space-y-4 border-l-2 pl-4 ${accentBorderClass}`}>
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Creative Direction</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Define the lifestyle creative intent.</p>
+              </div>
             {showVisualIntentControl && (
-              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Visual Intent</p>
-                    <p className="text-xs text-gray-500 dark:text-white/50">Choose the lifestyle creative direction.</p>
-                  </div>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Choose the lifestyle creative direction.</p>
                 </div>
                 <div className="px-4 py-5 bg-gray-50 dark:bg-white/5">
                   <div className="flex flex-wrap gap-2">
@@ -7071,6 +7181,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ] as const).map((option) => (
                       <Chip
                         key={option.value}
+                        title={VISUAL_INTENT_TOOLTIPS[option.value]}
                         onClick={() => {
                           updateValue('visualIntent', option.value);
                           if (option.value === 'ugc') {
@@ -7079,6 +7190,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           markSectionTouched('creator');
                         }}
                         selected={(values.visualIntent ?? 'editorial') === option.value}
+                        className={(values.visualIntent ?? 'editorial') === option.value ? accentClass : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}
                         size="md"
                       >
                         {option.label}
@@ -7086,23 +7198,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     ))}
                   </div>
                   {isLuxuryIntent && (
-                    <p className="mt-3 text-[11px] font-medium text-amber-700">
+                    <p className="mt-3 text-xs text-gray-500 dark:text-white/50">
                       Luxury enforces disciplined framing.
+                    </p>
+                  )}
+                  {((values.visualIntent ?? 'editorial') === 'ugc' || isUGCMode) && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                      Camera controlled by UGC mode.
                     </p>
                   )}
                 </div>
               </div>
             )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Creator</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Define subjects, count, and identity controls.</p>
+              </div>
 
             {/* Creator / Person */}
             <div
-              className={`group rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${isCreatorPro ? 'is-pro' : ''}`}
+              className={`group rounded-2xl border border-gray-200 bg-white overflow-hidden dark:bg-white/5 dark:border-white/10 ${isCreatorPro ? 'is-pro' : ''}`}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/10">
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     Creator / Person
-                    <span className="text-xs text-gray-400 ml-1 dark:text-white/40">required</span>
                   </p>
                   <p className="text-xs text-gray-500 dark:text-white/50">Define a realistic human subject for the scene</p>
                 </div>
@@ -7111,7 +7234,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <SwitchToggle
                     checked={isCreatorPro}
                     onCheckedChange={setIsCreatorPro}
-                    size="sm"
                     aria-label="Enable creator pro mode"
                   />
                 </div>
@@ -7127,7 +7249,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <section className="space-y-5">
                       <div className="flex items-center gap-2">
                         <p className={GROUP_LABEL_CLASS}>CORE IDENTITY</p>
-                        {touchedSections.has('creator') && <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />}
+                        {touchedSections.has('creator') && <Check className="w-4 h-4 text-[var(--lifestyle-accent)] dark:text-gray-300" />}
                       </div>
 
                       <div>
@@ -7159,11 +7281,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ? (['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
                             : (['Female', 'Male'] as const)
                           ).map(option => (
-                            <Chip
-                              key={option}
-                              onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                              selected={values.gender === (option as any)}
-                              size="md"
+                          <Chip
+                            title={GENDER_TOOLTIPS[option] || option}
+                            key={option}
+                            onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
+                            selected={values.gender === (option as any)}
+                            size="md"
                             >
                               {option}
                             </Chip>
@@ -7192,6 +7315,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Chip
+                            title={PERSON_COUNT_TOOLTIPS.single}
                             onClick={() => {
                               updateValue('personCount', 'single');
                               updateValue('editSecondaryPerson', false);
@@ -7203,6 +7327,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             Single
                           </Chip>
                           <Chip
+                            title={PERSON_COUNT_TOOLTIPS.couple}
                             onClick={() => {
                               updateValue('personCount', 'couple');
                               updateValue('editSecondaryPerson', true);
@@ -7216,6 +7341,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             Couple
                           </Chip>
                           <Chip
+                            title={PERSON_COUNT_TOOLTIPS.group}
                             onClick={() => {
                               if (isUGCMode) return;
                               updateValue('personCount', 'group');
@@ -7286,6 +7412,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               const active = values.eyeDirection === option;
                               return (
                                 <Chip
+                                  title={EYE_DIRECTION_TOOLTIPS[option] || option}
                                   key={option}
                                   onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
                                   selected={active}
@@ -7378,6 +7505,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div className="flex flex-wrap gap-2">
                                 {(['Female', 'Male'] as const).map(option => (
                                   <Chip
+                                    title={GENDER_TOOLTIPS[option] || option}
                                     key={option}
                                     onClick={() => { updateValue('secondaryGender', option); markSectionTouched('creator'); }}
                                     selected={values.secondaryGender === option}
@@ -7411,6 +7539,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   ] as const)
                                 ).map(option => (
                                   <Chip
+                                    title={ETHNICITY_TOOLTIPS[option] || option}
                                     key={option}
                                     onClick={() => { updateValue('secondaryEthnicity', option); markSectionTouched('creator'); }}
                                     selected={values.secondaryEthnicity === option}
@@ -7453,7 +7582,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             {personBAdvancedOpen && (
                               <>
-                                <div className="pt-3 border-t border-gray-100 dark:border-white/10" />
+                                <div className="pt-3 dark:border-white/10" />
 
                                 <div className="space-y-2">
                                   <span className="text-xs text-gray-600 dark:text-white/60">Skin tone</span>
@@ -7546,6 +7675,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             ] as const)
                           ).map(option => (
                             <Chip
+                              title={ETHNICITY_TOOLTIPS[option] || option}
                               key={option}
                               onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
                               selected={values.ethnicity === option}
@@ -7738,546 +7868,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </>
                       )}
 
-                      <div className={`flex items-center justify-between pt-4 ${(!hasFirstGenerationComplete || hasModelReference) ? 'opacity-50' : ''}`}>
-                        <div>
-                          <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-                          <p className="text-[11px] text-gray-400 dark:text-white/40">
-                            Locks identity across renders (available after first generation)
-                          </p>
-                        </div>
-                        <SwitchToggle
-                          checked={values.sameCreatorAcrossScenes || false}
-                          disabled={!hasFirstGenerationComplete || hasModelReference}
-                          onCheckedChange={(next) => {
-                            if (!hasFirstGenerationComplete || hasModelReference) return;
-                            updateValue('sameCreatorAcrossScenes', next);
-                            markSectionTouched('creator');
-                          }}
-                          aria-label="Keep same person"
-                        />
-                      </div>
                     </section>
                     )}
                   </>
                 )}
-              </div>
+            </div>
+            </div>
             </div>
 
-            {/* Legacy version kept for reference (disabled) */}
-            {false && (
-              <AccordionSection
-                icon={User}
-                title="Creator / Person"
-                description="Define the person in your scene"
-                isOpen={openAccordionId === 'creator'}
-                onToggle={() => toggleSection('creator')}
-                required
-                isTouched={touchedSections.has('creator')}
-                variant="primary"
-                ui="tokens"
-              >
-                {isPersonDisabled ? (
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-500 dark:border-white/10 dark:bg-black/20 dark:text-white/60">
-                    Creator / Person controls are disabled in Product Mode.
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {/* Core */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5 dark:border-white/10 dark:bg-white/5">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-semibold text-gray-900 dark:text-white">Age</span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{values.age}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={18}
-                          max={90}
-                          step={1}
-                          value={values.age}
-                          onChange={(event) => handleAgeSliderChange(Number(event.target.value))}
-                          className="scene-age-slider w-full"
-                          style={{
-                            ['--progress' as any]: `${ageSliderProgress}%`,
-                          }}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">Gender</span>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip
-                            selected={values.gender === 'Female'}
-                            onClick={() => { updateValue('gender', 'Female' as any); markSectionTouched('creator'); }}
-                            size="md"
-                          >
-                            Female
-                          </Chip>
-                          <Chip
-                            selected={values.gender === 'Male'}
-                            onClick={() => { updateValue('gender', 'Male' as any); markSectionTouched('creator'); }}
-                            size="md"
-                          >
-                            Male
-                          </Chip>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">People</span>
-                        {values.visualMode === 'ugc' && (
-                          <p className="text-[11px] text-gray-500 dark:text-white/40">
-                            Raw Domestic UGC: multiple people are supported, but results may be less consistent.
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          <Chip
-                            selected={values.personCount === 'single'}
-                            onClick={() => {
-                              updateValue('personCount', 'single');
-                              updateValue('editSecondaryPerson', false);
-                              markSectionTouched('creator');
-                            }}
-                            size="md"
-                          >
-                            Single
-                          </Chip>
-                          <Chip
-                            selected={values.personCount === 'couple'}
-                            onClick={() => {
-                              updateValue('personCount', 'couple');
-                              updateValue('editSecondaryPerson', true);
-                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
-                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
-                              markSectionTouched('creator');
-                            }}
-                            size="md"
-                          >
-                            Couple
-                          </Chip>
-                          <Chip
-                            selected={values.personCount === 'group'}
-                            onClick={() => {
-                              updateValue('personCount', 'group');
-                              updateValue('editSecondaryPerson', false);
-                              markSectionTouched('creator');
-                            }}
-                            size="md"
-                          >
-                            Group
-                          </Chip>
-                        </div>
-                        {values.personCount === 'couple' && (
-                          <div className="flex flex-wrap gap-2">
-                            <Chip
-                              selected={values.coupleSex === 'same'}
-                              onClick={() => {
-                                updateValue('coupleSex', 'same');
-                                markSectionTouched('creator');
-                              }}
-                              description="Couple: same sex"
-                              size="md"
-                            >
-                              Same sex
-                            </Chip>
-                            <Chip
-                              selected={values.coupleSex === 'different'}
-                              onClick={() => {
-                                updateValue('coupleSex', 'different');
-                                markSectionTouched('creator');
-                              }}
-                              description="Couple: different sex"
-                              size="md"
-                            >
-                              Different sex
-                            </Chip>
-                          </div>
-                        )}
-                        {values.personCount === 'couple' && (
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {RITUAL_COUPLE_STAGING_OPTIONS.map(option => (
-                              <Chip
-                                key={option}
-                                selected={values.coupleStaging === option}
-                                onClick={() => {
-                                  updateValue('coupleStaging', option);
-                                  markSectionTouched('creator');
-                                }}
-                                size="md"
-                              >
-                                {option}
-                              </Chip>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">Ethnicity</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(
-                            [
-                              'Non-specific',
-                              'White / European descent',
-                              'Black / African descent',
-                              'Latino / Hispanic',
-                            ] as const
-                          ).map(option => {
-                            const active = values.ethnicity === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                                className={`px-3 h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">Hair length</span>
-                        <div className="flex flex-wrap gap-2">
-                          {(['Short', 'Shoulder', 'Long'] as const).map(option => {
-                            const active = values.hairLength === option;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => { updateValue('hairLength', option); markSectionTouched('creator'); }}
-                                className={`h-8 rounded-full border text-xs transition-colors ${active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${active ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white">Facial expression</span>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => { updateValue('facialExpression', 'Calm & Serene'); markSectionTouched('creator'); }}
-                            className={`h-9 rounded-full border text-xs font-medium transition-colors ${values.facialExpression === 'Calm & Serene' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'} dark:border-white/10 ${values.facialExpression === 'Calm & Serene' ? 'dark:bg-indigo-500 dark:border-indigo-500' : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'}`}
-                          >
-                            Calm &amp; Serene
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { updateValue('facialExpression', 'Joyful & High-Energy'); markSectionTouched('creator'); }}
-                            className={`h-9 rounded-full border text-xs font-medium transition-colors ${values.facialExpression === 'Joyful & High-Energy'
-                              ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600'
-                              } dark:border-white/10 ${values.facialExpression === 'Joyful & High-Energy'
-                                ? 'dark:bg-indigo-500 dark:border-indigo-500 dark:text-white'
-                                : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30'
-                              }`}
-                          >
-                            Joyful &amp; High-Energy
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Advanced */}
-                    <div
-                      className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5"
-                      data-person-pro-wrapper
-                    >
-                      <div className="border-t border-gray-100 px-4 py-3 bg-white">
-                        <p className="text-xs uppercase tracking-[0.2em] text-indigo-600 font-extrabold">
-                          Advanced identity controls
-                        </p>
-                      </div>
-                      <div className="px-4 py-4 space-y-5">
-                        {/* SECTION 1 – Extended Identity */}
-                        <section className="space-y-5">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 1 – EXTENDED IDENTITY</p>
-
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">GENDER</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(['Trans', 'Non-binary', 'Gender non-conforming'] as const).map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">ETHNICITY</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(['Asian', 'Middle Eastern', 'South Asian', 'Mixed'] as const).map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </section>
-
-                        <div className="border-t border-gray-100"></div>
-
-                        {/* SECTION 2 – Physical Appearance */}
-                        <section className="space-y-5 pt-4">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 2 – PHYSICAL APPEARANCE</p>
-
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">SKIN TONE</p>
-                            <div className="flex flex-wrap gap-2">
-                              {SKIN_TONE_OPTIONS.map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('skinTone', option); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">EYE COLOR</p>
-                            <div className="flex flex-wrap gap-2">
-                              {EYE_COLOR_OPTIONS.map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('eyeColor', option); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">BODY TYPE</p>
-                            <div className="flex flex-wrap gap-2">
-                              {BODY_TYPE_OPTIONS.map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('bodyType', option as Step3Values['bodyType']); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </section>
-
-                        <div className="border-t border-gray-100"></div>
-
-                        {/* SECTION 3 – Hair Details */}
-                        <section className="space-y-5 pt-4">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 3 – HAIR DETAILS</p>
-
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-gray-600">Hair</p>
-                                <p className="text-[11px] text-gray-400">
-                                  {values.hairState === 'bald' ? 'Bald' : 'Has hair'}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  updateValue('hairState', values.hairState === 'bald' ? 'natural' : 'bald');
-                                  markSectionTouched('creator');
-                                }}
-                                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${values.hairState === 'bald'
-                                  ? 'bg-amber-500/10 text-amber-700 border-amber-200'
-                                  : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 hover:text-gray-900'
-                                  } dark:border-white/10 ${values.hairState === 'bald'
-                                    ? 'dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-400/30'
-                                    : 'dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
-                                  }`}
-                              >
-                                {values.hairState === 'bald' ? 'Has hair' : 'Bald'}
-                              </button>
-                            </div>
-
-                            {values.hairState === 'natural' && (
-                              <div className="space-y-3">
-                                <div className="space-y-2">
-                                  <p className="text-xs text-gray-500">Length (advanced)</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Buzzcut', 'Chin-length', 'Very long'] as const).map(option => (
-                                      <button
-                                        key={option}
-                                        type="button"
-                                        onClick={() => {
-                                          updateValue('hairLength', option);
-                                          updateValue('hairLengthCustom', '');
-                                          markSectionTouched('creator');
-                                        }}
-                                        className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <p className="text-xs text-gray-500">Texture</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {[...HAIR_TEXTURE_OPTIONS, 'Custom'].map(option => (
-                                      <button
-                                        key={option}
-                                        type="button"
-                                        onClick={() => {
-                                          updateValue('hairTexture', option);
-                                          if (option !== 'Custom' && values.hairTextureCustom) {
-                                            updateValue('hairTextureCustom', '');
-                                          }
-                                          markSectionTouched('creator');
-                                        }}
-                                        className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  {values.hairTexture === 'Custom' && (
-                                    <input
-                                      value={values.hairTextureCustom}
-                                      onChange={(event) => {
-                                        updateValue('hairTextureCustom', event.target.value);
-                                        markSectionTouched('creator');
-                                      }}
-                                      placeholder="Describe hair texture..."
-                                      className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
-                                    />
-                                  )}
-                                </div>
-
-                                <div className="space-y-2">
-                                  <p className="text-xs text-gray-500">Color</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {HAIR_COLOR_OPTIONS.map(option => (
-                                      <button
-                                        key={option}
-                                        type="button"
-                                        onClick={() => { updateValue('hairColor', option); markSectionTouched('creator'); }}
-                                        className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </section>
-
-                        <div className="border-t border-gray-100"></div>
-
-                        {/* SECTION 4 – Emotional Nuance */}
-                        <section className="space-y-3 pt-4">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 4 – EMOTIONAL NUANCE</p>
-                          <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">ADVANCED FACIAL EXPRESSIONS</p>
-                            <div className="flex flex-wrap gap-2">
-                              {['Confident & Editorial', 'Playful & Candid', 'Hustle & Juggle', 'Stressed but Determined'].map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('facialExpression', option); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </section>
-
-                        <div className="border-t border-gray-100"></div>
-
-                        {/* SECTION 5 – Gaze & Persistence */}
-                        <section className="space-y-5 pt-4">
-                          <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">SECTION 5 – GAZE &amp; PERSISTENCE</p>
-
-                          <div className="space-y-3">
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-400">EYE DIRECTION</p>
-                            <div className="flex flex-wrap gap-2">
-                              {EYE_DIRECTION_OPTIONS.map(option => (
-                                <button
-                                  key={option}
-                                  type="button"
-                                  onClick={() => { updateValue('eyeDirection', option); markSectionTouched('creator'); }}
-                                  className="px-3 h-8 rounded-full border border-gray-200 bg-white text-xs font-semibold text-gray-600 transition-colors hover:border-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/30"
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-gray-600 dark:text-white/60">Keep same person</p>
-                              <p className="text-[11px] text-gray-400 dark:text-white/40">
-                                {hasModelReference
-                                  ? 'Disabled while Model Reference is active'
-                                  : hasFirstGenerationComplete
-                                    ? (values.sameCreatorAcrossScenes ? 'Same person across generations' : 'Different person each generation')
-                                    : 'Available after first generation'}
-                              </p>
-                            </div>
-                            <SwitchToggle
-                              checked={values.sameCreatorAcrossScenes || false}
-                              disabled={!hasFirstGenerationComplete || hasModelReference}
-                              aria-label="Keep same person"
-                              onCheckedChange={(next) => {
-                                updateValue('sameCreatorAcrossScenes', next);
-                                markSectionTouched('creator');
-                              }}
-                            />
-                          </div>
-                        </section>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </AccordionSection>
-            )}
-
             {/* Legacy Props Section (Restored for Lifestyle) */}
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Scene</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Environment, props, and contextual lifestyle framing.</p>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8 dark:bg-white/5 dark:border-white/10">
             {!isProductMode && (
-              <AccordionSection
-                icon={Sparkles}
-                title="Props"
-                description="Add objects to the scene"
-                isOpen={openAccordionId === 'props'}
-                onToggle={() => toggleSection('props')}
-                isTouched={touchedSections.has('props')}
-                variant="primary"
-              >
+              <div className="space-y-4">
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Props</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Add objects to the scene</p>
+                </div>
                 <div className="space-y-5">
                   <div className={SECTION_GROUP_CLASS}>
                     <p className={GROUP_LABEL_CLASS}>SCENE PROPS</p>
@@ -8285,7 +7896,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className="flex flex-wrap gap-2">
                       {/* Note: Assuming generic props list or custom input since original list is missing from context */}
                       <div className="w-full">
-                        <p className="text-xs uppercase tracking-wider text-indigo-600 mb-2">CUSTOM PROPS</p>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Custom props</p>
                         <textarea
                           value={values.customProps}
                           onChange={(e) => {
@@ -8293,30 +7904,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('props');
                           }}
                           placeholder="e.g. coffee cup, laptop, yoga mat..."
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 min-h-[80px]"
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)] min-h-[80px]"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-              </AccordionSection>
+              </div>
             )}
 
 
             {/* RAW DOMESTIC UGC */}
-            <AccordionSection
-              icon={Smartphone}
-              title="Raw Domestic UGC"
-              description="Careless front-camera capture at home"
-              isOpen={openAccordionId === 'realism'}
-              onToggle={() => toggleSection('realism')}
-              isTouched={hasAnyUgcLayerSelection}
-              isActive={values.visualMode === 'ugc'}
-              variant="expert"
-            >
-              <div id="ugc-real-mode">
-                <div className="pt-2 pb-4 px-2">
-                  <div className="space-y-5">
+            {isUGCMode && (
+              <div id="ugc-real-mode" className="rounded-2xl p-5 border border-gray-200 bg-gray-50 dark:bg-gray-500/10 space-y-5">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">Raw Domestic UGC</p>
@@ -8334,10 +7934,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {values.visualMode === 'ugc' && (
                       <>
                         {/* UGC Full Automation Toggle */}
-                        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-3 space-y-2">
+                        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2">
                           <div className="flex items-center justify-between gap-4">
                             <div>
-                              <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">UGC Full Automation</p>
+                              <p className="text-xs text-[var(--lifestyle-accent)]">UGC Full Automation</p>
                               <p className="text-xs text-gray-600">
                                 {hasModelReference
                                   ? 'Disabled while Model Reference is active (Model Reference always wins)'
@@ -8358,9 +7958,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             />
                           </div>
                           {values.isRandomFullAutomationEnabled && (
-                            <div className="mt-2 rounded-lg bg-white/60 border border-indigo-200 px-3 py-3 space-y-3">
+                            <div className="mt-2 rounded-lg bg-white/60 border border-gray-200 px-3 py-3 space-y-3">
                               <div>
-                                <p className="text-xs uppercase tracking-wider text-indigo-600 mb-1">Active Mode</p>
+                                <p className="text-xs text-[var(--lifestyle-accent)] mb-1">Active Mode</p>
                                 <p className="text-xs text-gray-700">
                                   Full automation active. All controls below are disabled. Scene will be generated with maximum natural entropy.
                                 </p>
@@ -8368,7 +7968,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               
                               {/* Gender Preference (optional) */}
                               <div>
-                                <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">Gender Preference (Optional)</p>
+                                <p className="text-xs text-gray-600 mb-2">Gender Preference (Optional)</p>
                                 <ChipSelectGroup
                                   options={[
                                     { value: 'any', label: 'Any (fully random)' },
@@ -8389,7 +7989,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
+                              <p className="text-xs text-gray-500 font-extrabold">IMPERFECTION LEVEL</p>
                             </div>
                             <div className="flex flex-wrap justify-end gap-2">
                               {(['low', 'medium', 'high'] as const).map(level => (
@@ -8413,7 +8013,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             return (
                               <div key={section.field} className="space-y-3">
                                 <div>
-                                  <p className="text-xs uppercase tracking-wider text-gray-500">{section.title}</p>
+                                  <p className="text-xs text-gray-500">{section.title}</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   {section.options.map(option => (
@@ -8434,24 +8034,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </>
                     )}
-
-                  </div>
-                </div>
               </div>
-
-            </AccordionSection>
+            )}
 
             {/* Product Interaction */}
             {isEcommerceMode && (
-            <AccordionSection
-              icon={Hand}
-              title="Product Interaction"
-              description="Control how the creator handles the product"
-              isOpen={openAccordionId === 'productInteraction'}
-              onToggle={() => toggleSection('productInteraction')}
-              isTouched={touchedSections.has('productInteraction')}
-              variant="primary"
-            >
+            <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Product Interaction</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Control how the creator handles the product</p>
+              </div>
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {PRODUCT_INTERACTION_OPTIONS.map(option => (
@@ -8483,237 +8075,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         markSectionTouched('productInteraction');
                       }}
                       placeholder="Describe what the person is naturally doing with the product"
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 resize-none"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)] resize-none"
                       rows={3}
                     />
                   </div>
                 )}
               </div>
-            </AccordionSection>
+            </div>
             )}
 
-            <AccordionSection
-              icon={Shirt}
-              title="Custom Clothes"
-              description="Optionally describe an outfit without uploading images."
-              isOpen={openAccordionId === 'custom-clothes'}
-              onToggle={() => toggleSection('custom-clothes')}
-              isTouched={touchedSections.has('customClothes')}
-              isActive={values.customClothesEnabled}
-              variant="expert"
-            >
-              <div className="space-y-5">
-                <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-3 py-2">
-                  <div>
-                    <p className="text-sm text-gray-900">Enable outfit customization</p>
-                    <p className="text-[11px] text-gray-500">Describe garments with text-only controls.</p>
-                  </div>
-                  <SwitchToggle
-                    checked={values.customClothesEnabled}
-                    aria-label="Enable outfit customization"
-                    onCheckedChange={(next) => {
-                      updateValue('customClothesEnabled', next);
-                      markSectionTouched('customClothes');
-                    }}
-                  />
-                </div>
-
-                {values.customClothesEnabled && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Garment type</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {CUSTOM_CLOTHES_GARMENTS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              updateValue('customClothesGarmentType', option);
-                              markSectionTouched('customClothes');
-                            }}
-                            className={getTogglePillClass(values.customClothesGarmentType === option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Primary color</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {CUSTOM_CLOTHES_COLORS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              updateValue('customClothesPrimaryColor', option);
-                              markSectionTouched('customClothes');
-                            }}
-                            className={getTogglePillClass(values.customClothesPrimaryColor === option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white px-3 py-2">
-                        <div className="min-w-0">
-                          <p className="text-[11px] uppercase tracking-wider text-gray-500">Custom color</p>
-                          <p className="text-[11px] text-gray-500">Pick any hex color (e.g. #FFAA00).</p>
-                        </div>
-                        <div className="ml-auto flex items-center gap-2">
-                          <label className={`relative inline-block ${COLOR_PICKER_BUTTON_CLASS} cursor-pointer border-gray-200 hover:border-gray-300`}>
-                            <span
-                              className="block h-full w-full rounded-full"
-                              style={{ background: isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000' }}
-                            />
-                            <input
-                              type="color"
-                              aria-label="Custom clothes color picker"
-                              value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000'}
-                              onChange={(e) => {
-                                updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
-                                markSectionTouched('customClothes');
-                              }}
-                              className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
-                            />
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="text"
-                            maxLength={7}
-                            placeholder="#000000"
-                            value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : ''}
-                            onChange={(e) => {
-                              const next = normalizeHexColor(e.target.value);
-                              updateValue('customClothesPrimaryColor', next);
-                              markSectionTouched('customClothes');
-                            }}
-                            className="w-[110px] rounded-xl border border-gray-200 bg-white px-2 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                          />
-                          {isHexColor(values.customClothesPrimaryColor) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateValue('customClothesPrimaryColor', '');
-                                markSectionTouched('customClothes');
-                              }}
-                              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-indigo-600"
-                            >
-                              Clear
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Fit</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {CUSTOM_CLOTHES_FITS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              updateValue('customClothesFit', option);
-                              markSectionTouched('customClothes');
-                            }}
-                            className={getTogglePillClass(values.customClothesFit === option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Style</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {CUSTOM_CLOTHES_STYLES.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              updateValue('customClothesStyle', option);
-                              markSectionTouched('customClothes');
-                            }}
-                            className={getTogglePillClass(values.customClothesStyle === option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Material</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {CUSTOM_CLOTHES_MATERIALS.map(option => (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              updateValue('customClothesMaterial', option);
-                              markSectionTouched('customClothes');
-                            }}
-                            className={getTogglePillClass(values.customClothesMaterial === option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] uppercase tracking-wider text-gray-500">Custom detail (optional)</label>
-                      <input
-                        type="text"
-                        maxLength={100}
-                        value={values.customClothesDetail}
-                        onChange={(event) => {
-                          updateValue('customClothesDetail', event.target.value.replace(/[\r\n]/g, ''));
-                          markSectionTouched('customClothes');
-                        }}
-                        placeholder="small embroidered logo on the chest"
-                        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </AccordionSection>
-
             {/* Environment */}
-            <AccordionSection
-              icon={Home}
-              title="Environment"
-              description="Where the scene takes place"
-              isOpen={openAccordionId === 'environment'}
-              onToggle={() => toggleSection('environment')}
-              required={true}
-              isTouched={touchedSections.has('environment')}
-              variant="primary"
-            >
+            <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">Environment</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Where the scene takes place</p>
+              </div>
               <div className="space-y-3">
                 {values.visualMode === 'ugc' && (
-                  <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs text-gray-500">
+                  <div className="border-t border-gray-200/60 pt-3 text-xs text-gray-500 dark:border-white/10 dark:text-white/60">
                     Raw Domestic UGC still honors your environment choice—it just interprets it as incidental and unstaged. Pick any room; the engine keeps it messy, domestic, and low intent.
                   </div>
                 )}
-                {values.visualMode !== 'ugc' && (
-                  <div className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-[11px] text-gray-600">
-                    Environment describes location context only. Lighting, cleanliness, and overall polish remain engine-controlled—changing this won’t upgrade quality or staging.
-                  </div>
-                )}
-
-                <p className="text-xs uppercase tracking-wider text-indigo-600">INDOOR</p>
+                <p className="text-xs font-semibold text-gray-700">Indoor</p>
                 <div className="flex flex-wrap gap-2">
                   {ENVIRONMENT_INDOOR.map(env => (
                     <button
                       key={env.value}
                       type="button"
+                      title={ENVIRONMENT_TOOLTIPS[env.value] || env.value}
                       onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                      className={`flex items-center gap-2 ${getTogglePillClass(values.environment === env.value)}`}
+                      className={`flex items-center gap-2 px-3 py-1.5 text-xs ${getTogglePillClass(values.environment === env.value)}`}
                     >
                       <env.icon className="w-4 h-4" />
                       <span>{env.value}</span>
@@ -8723,14 +8114,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                 {values.visualMode !== 'ugc' && (
                   <>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600 pt-2">OUTDOOR</p>
+                    <p className="text-xs font-semibold text-gray-700 pt-2">Outdoor</p>
                     <div className="flex flex-wrap gap-2">
                       {ENVIRONMENT_OUTDOOR.map(env => (
                         <button
                           key={env.value}
                           type="button"
+                          title={ENVIRONMENT_TOOLTIPS[env.value] || env.value}
                           onClick={() => { updateValue('environment', env.value); markSectionTouched('environment'); }}
-                          className={`flex items-center gap-2 ${getTogglePillClass(values.environment === env.value)}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 text-xs ${getTogglePillClass(values.environment === env.value)}`}
                         >
                           <env.icon className="w-4 h-4" />
                           <span>{env.value}</span>
@@ -8742,7 +8134,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                 {/* CUSTOM ENVIRONMENT */}
                 <div className="pt-3">
-                  <p className="text-xs uppercase tracking-wider text-indigo-600 mb-2">CUSTOM ENVIRONMENT</p>
+                  <p className="text-xs font-semibold text-gray-700 mb-2">Custom environment</p>
                   <input
                     type="text"
                     value={values.customEnvironment}
@@ -8754,29 +8146,23 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       markSectionTouched('environment');
                     }}
                     placeholder="e.g., cozy cabin, rooftop terrace, yoga studio..."
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                   />
                 </div>
 
               </div>
-            </AccordionSection>
+            </div>
 
             {/* Ritual Mode (Lifestyle-only) */}
             {!isProductMode && (
-              <AccordionSection
-                icon={Activity}
-                title="Ritual Mode"
-                description="Lifestyle rituals + optional product-free renders"
-                isOpen={openAccordionId === 'ritual'}
-                onToggle={() => toggleSection('ritual')}
-                isTouched={touchedSections.has('ritual')}
-                isActive={values.visualMode === 'ritual'}
-                variant="primary"
-              >
+              <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Ritual Mode</p>
+                  <p className="text-xs text-gray-500 dark:text-white/50">Lifestyle rituals + optional product-free renders</p>
+                </div>
                 <div className="space-y-5">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Ritual Mode</p>
                       <p className="text-xs text-gray-500">Generate wellness / lifestyle rituals. Optionally hide the product completely.</p>
                     </div>
                     <SwitchToggle
@@ -8791,10 +8177,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   {values.visualMode === 'ritual' && (
                     <>
-                      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                      <div className="border-t border-gray-200/60 pt-4 dark:border-white/10">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-500">Hide product (lifestyle-only)</p>
+                            <p className="text-xs font-medium text-gray-500">Hide product (lifestyle-only)</p>
                             <p className="text-[11px] text-gray-500">No product visible in the final image. Product upload becomes optional.</p>
                           </div>
                           <SwitchToggle
@@ -8808,10 +8194,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                      <div className="border-t border-gray-200/60 pt-4 dark:border-white/10">
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-[11px] uppercase tracking-wider text-gray-500">No objects (people + environment only)</p>
+                            <p className="text-xs font-medium text-gray-500">No objects (people + environment only)</p>
                             <p className="text-[11px] text-gray-500">Avoid props and handheld items; focus on people and the environment.</p>
                           </div>
                           <SwitchToggle
@@ -8902,26 +8288,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           }}
                           maxLength={120}
                           placeholder="e.g., pilates class, post-run stretching, cold brew + supplements..."
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                         />
                       </div>
                     </>
                   )}
                 </div>
-              </AccordionSection>
+              </div>
             )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Capture</p>
+                <p className="text-xs text-gray-500 dark:text-white/50">Camera behavior and lighting context.</p>
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8 dark:bg-white/5 dark:border-white/10">
             {/* Time & Lighting */}
-            <AccordionSection
-              icon={Sun}
-              title="Time & Lighting"
-              description="Control the lighting and time of day"
-              isOpen={openAccordionId === 'lighting'}
-              onToggle={() => toggleSection('lighting')}
-              isTouched={touchedSections.has('lighting')}
-              variant="primary"
-            >
+              <div className="space-y-4">
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Time & Lighting</p>
+                </div>
               {values.visualMode === 'ugc' ? (
-                <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+                <div className="border-t border-gray-200/60 pt-3 text-sm text-gray-600 dark:border-white/10 dark:text-white/60">
                   Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
                 </div>
               ) : (
@@ -8929,14 +8319,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   {/* TIME OF DAY */}
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">TIME OF DAY</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Set the temporal context</p>
+                      <p className="text-xs font-semibold text-gray-700">Time of day</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       {TIME_OF_DAY_OPTIONS.map(option => (
                         <button
                           key={option}
                           type="button"
+                          title={TIME_OF_DAY_TOOLTIPS[option] || option}
                           onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
                           className={getTogglePillClass(values.timeOfDay === option)}
                         >
@@ -8944,62 +8334,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </button>
                       ))}
                     </div>
-                    <SelectedOptionFooter
-                      options={[
-                        { value: 'Morning', label: 'Morning', description: 'Fresh, day-start energy with softer daylight.' },
-                        { value: 'Midday', label: 'Midday', description: 'Bright, clean light with higher clarity and contrast.' },
-                        { value: 'Evening', label: 'Evening', description: 'Warm, cozy mood with softer falloff and ambience.' },
-                        { value: 'Night', label: 'Night', description: 'Low-light atmosphere with practicals, lamps, or city glow.' },
-                      ]}
-                      selectedValue={values.timeOfDay}
-                    />
                   </div>
 
                   {/* LIGHTING STYLE */}
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">LIGHTING STYLE</p>
-                      <p className="text-[11px] text-gray-500 mt-1">Select the lighting quality</p>
+                      <p className="text-xs font-semibold text-gray-700">Lighting style</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {LIGHTING_OPTIONS.map(option => (
                         <button
                           key={option.value}
                           type="button"
+                          title={LIGHTING_STYLE_TOOLTIPS[option.label] || option.label}
                           onClick={() => { updateValue('lightingStyle', option.label); markSectionTouched('lighting'); }}
                           className={getTogglePillClass(values.lightingStyle === option.label)}
-                          title={option.value}
                         >
                           {option.label}
                         </button>
                       ))}
                     </div>
-                    <SelectedOptionFooter options={footerOptionsFromLabelValue(LIGHTING_OPTIONS)} selectedValue={values.lightingStyle} />
                   </div>
                 </div>
               )}
-            </AccordionSection>
+            </div>
 
             {
-                <AccordionSection
-                  icon={Camera}
-                  title="Camera & Framing"
-                  description="How the scene is captured"
-                  helpTooltip={'Camera & Framing.\nUGC ignores camera aesthetics to preserve realism.'}
-                  isOpen={openAccordionId === 'camera'}
-                  onToggle={() => toggleSection('camera')}
-                  isTouched={touchedSections.has('camera')}
-                  variant="primary"
-                >
-                  <div className="space-y-3">
-                    {cameraSectionLockedByUgc && (
-                      <p className="text-[11px] font-medium text-amber-700">Camera controlled by UGC mode.</p>
-                    )}
-                    <div className={SECTION_GROUP_CLASS}>
-                      <div>
-                        <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA TYPE</p>
-                        <p className="text-[11px] text-gray-500 mt-1">Select the capture device aesthetic</p>
-                      </div>
+                <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Camera & Framing</p>
+                </div>
+                <div className="space-y-3">
+                  <div className={SECTION_GROUP_CLASS}>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700">Camera type</p>
+                    </div>
                       <div className="flex flex-wrap gap-2">
                         {CAMERA_OPTIONS
                           .filter(option =>
@@ -9013,36 +8382,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               !LUXURY_UI_ALLOWED_CAMERA_TYPES.includes(option.label as (typeof LUXURY_UI_ALLOWED_CAMERA_TYPES)[number]);
                             const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                             return (
-                            <button
+                            <Chip
                               key={option.value}
-                              type="button"
+                              size="md"
+                              selected={values.cameraType === option.label}
                               onClick={() => {
                                 if (isDisabled) return;
                                 updateValue('cameraType', option.label);
                                 markSectionTouched('camera');
                               }}
-                              className={`${getTogglePillClass(values.cameraType === option.label)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : option.value}
+                              title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : (CAMERA_TYPE_TOOLTIPS[option.label] || option.label)}
                               disabled={isDisabled}
                             >
                               {option.label}
-                            </button>
+                            </Chip>
                             );
                           })}
                       </div>
-                      <SelectedOptionFooter
-                        options={footerOptionsFromLabelValue(
-                          CAMERA_OPTIONS.filter(option =>
-                            option.label !== 'Intentional smartphone camera' &&
-                            option.label !== 'Laptop webcam (pro setup)'
-                          )
-                        )}
-                        selectedValue={values.cameraType}
-                      />
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">SHOT TYPE</p>
+                      <p className="text-xs font-semibold text-gray-700">Shot type</p>
                       <div className="flex flex-wrap items-center gap-2">
                         {SHOT_TYPE_OPTIONS.map(option => {
                           const isLuxuryIncompatible =
@@ -9051,37 +8411,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             !LUXURY_UI_ALLOWED_SHOT_TYPES.includes(option as (typeof LUXURY_UI_ALLOWED_SHOT_TYPES)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
-                          <button
+                          <Chip
                             key={option}
-                            type="button"
+                            size="md"
+                            selected={values.shotType === option}
                             onClick={() => {
                               if (isDisabled) return;
                               updateValue('shotType', option);
                               markSectionTouched('camera');
                             }}
-                            className={`${getTogglePillClass(values.shotType === option)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : (SHOT_TYPE_TOOLTIPS[option] || option)}
                             disabled={isDisabled}
                           >
                             {option}
-                          </button>
+                          </Chip>
                           );
                         })}
                       </div>
-                      <SelectedOptionFooter
-                        options={[
-                          { value: 'Extreme close-up', label: 'Extreme close-up', description: 'Ultra-tight detail shot (texture, label, hands).' },
-                          { value: 'Close', label: 'Close', description: 'Tight framing with clear subject focus and some context.' },
-                          { value: 'Medium', label: 'Medium', description: 'Balanced framing—subject plus environment reads naturally.' },
-                          { value: 'Wide', label: 'Wide', description: 'More environment and story; subject is smaller in frame.' },
-                          { value: 'Full body', label: 'Full body', description: 'Shows full figure and action with the product.' },
-                        ]}
-                        selectedValue={values.shotType}
-                      />
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">COMPOSITION</p>
+                      <p className="text-xs font-semibold text-gray-700">Composition</p>
                       <div className="flex flex-wrap gap-2">
                         {(
                           [
@@ -9097,35 +8447,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             !LUXURY_UI_ALLOWED_COMPOSITIONS.includes(option.value as (typeof LUXURY_UI_ALLOWED_COMPOSITIONS)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
-                          <button
+                          <Chip
                             key={option.value}
-                            type="button"
+                            size="md"
+                            selected={values.productProminence === option.value}
                             onClick={() => {
                               if (isDisabled) return;
                               updateValue('productProminence', option.value);
                               markSectionTouched('camera');
                             }}
-                            className={`${getTogglePillClass(values.productProminence === option.value)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : (COMPOSITION_TOOLTIPS[option.value] || option.label)}
                             disabled={isDisabled}
                           >
                             {option.label}
-                          </button>
+                          </Chip>
                           );
                         })}
                       </div>
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        {{
-                          balanced: 'Balanced share between product and person.',
-                          'product-first': 'Product is the hero; person supports the story.',
-                          'model-first': 'Person is the hero; product is secondary but visible.',
-                          'fifty-fifty': 'Equal emphasis on person and product.',
-                        }[values.productProminence] ?? ''}
-                      </p>
                     </div>
 
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">CAMERA ANGLE</p>
+                      <p className="text-xs font-semibold text-gray-700">Camera angle</p>
                       <div className="flex flex-wrap items-center gap-2">
                         {CAMERA_ANGLE_OPTIONS.map(option => {
                           const isLuxuryIncompatible =
@@ -9134,39 +8476,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             !LUXURY_UI_ALLOWED_ANGLES.includes(option as (typeof LUXURY_UI_ALLOWED_ANGLES)[number]);
                           const isDisabled = cameraSectionLockedByUgc || isLuxuryIncompatible;
                           return (
-                          <button
+                          <Chip
                             key={option}
-                            type="button"
+                            size="md"
+                            selected={values.cameraAngle === option}
                             onClick={() => {
                               if (isDisabled) return;
                               updateValue('cameraAngle', option);
                               markSectionTouched('camera');
                             }}
-                            className={`${getTogglePillClass(values.cameraAngle === option)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : undefined}
+                            title={isLuxuryIncompatible ? 'Not compatible with Luxury identity.' : (CAMERA_ANGLE_TOOLTIPS[option] || option)}
                             disabled={isDisabled}
                           >
                             {option}
-                          </button>
+                          </Chip>
                           );
                         })}
                       </div>
-                      <SelectedOptionFooter
-                        options={[
-                          { value: 'Eye level', label: 'Eye level', description: 'Natural, most realistic perspective.' },
-                          { value: 'Slightly above eye level', label: 'Slightly above eye level', description: 'Flattering, casual “friend taking photo” vibe.' },
-                          { value: 'Slightly below eye level', label: 'Slightly below eye level', description: 'Slightly more heroic presence; can feel more posed.' },
-                          { value: 'High angle', label: 'High angle', description: 'Looks down on the scene; lighter, more playful feel.' },
-                          { value: 'Low angle', label: 'Low angle', description: 'Looks up; stronger, more dramatic stance.' },
-                          { value: 'Top-down', label: 'Top-down', description: 'Flatlay / overhead perspective for routines and surfaces.' },
-                          { value: 'Bottom-up', label: 'Bottom-up', description: 'Upward perspective; use sparingly for stylized impact.' },
-                        ]}
-                        selectedValue={values.cameraAngle}
-                      />
                     </div>
                   </div>
-                </AccordionSection>
+                </div>
             }
+              </div>
+              </div>
             {/* BUNDLES SYSTEM - STRICTLY ISOLATED */}
             {/* Bundles are enabled ONLY when multiple products are uploaded. */}
             {/* Bundles control product grouping only. */}
@@ -9176,28 +8508,28 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div id="bundles" className="mt-6">
                   <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                     <div className="flex flex-col gap-1">
-                      <p className="text-xs uppercase tracking-[0.3em] text-indigo-600">Bundles</p>
+                      <p className="text-xs text-[var(--lifestyle-accent)]">Bundles</p>
                       <p className="text-sm text-gray-500">
                         Quickly swap between curated packs, your own mix, or AI-recommended combos.
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-indigo-600 text-white border-indigo-600  shadow-indigo-500/20 scale-105 duration-500">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors bg-[var(--lifestyle-accent)] text-white border-[var(--lifestyle-accent)]  shadow-gray-500/20 scale-105 duration-500">
                         Pre-made Bundles
                       </button>
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900">
                         Custom Bundle Builder
                       </button>
-                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900">
+                      <button type="button" className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-gray-200 bg-white text-gray-600 hover:border-[var(--lifestyle-accent)] hover:text-gray-900">
                         Recommended Bundles
                       </button>
                     </div>
 
                     <div className="space-y-5">
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs uppercase tracking-[0.3em] text-gray-500">Pick a bundle</label>
-                        <select className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none">
+                        <label className="text-xs text-gray-500">Pick a bundle</label>
+                        <select className="rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[var(--lifestyle-accent)] focus:outline-none">
                           <option value="essentials_trio">Core Essentials Trio</option>
                           <option value="daily_duo">Daily Duo Stack</option>
                           <option value="launch_showcase">Launch Showcase Set</option>
@@ -9235,7 +8567,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
 
-                      <button type="button" disabled className="w-full rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm font-semibold text-white disabled:bg-white">
+                      <button type="button" disabled className="w-full rounded-xl bg-[var(--lifestyle-accent)] text-white px-4 py-2 text-sm font-semibold text-white disabled:bg-white">
                         Generate Bundle Mockup
                       </button>
                     </div>
@@ -9244,23 +8576,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )
             }
 
-          </>
-        )
-      }
-
-      {/* HERO CANVAS (BACKGROUND REPLACEMENT) */}
-      {/* Coexists with Lifestyle controls; applies only when enabled. */}
-      {
-        isEnvironmentMode && (
-          <AccordionSection
-            icon={Building2}
-            title="Hero"
-            description="Neutral background + placement (Lifestyle)"
-            isOpen={openAccordionId === 'ecommerce'}
-            onToggle={() => toggleSection('ecommerce')}
-            isActive={values.visualMode === 'hero'}
-            variant="expert"
-          >
+          {/* HERO CANVAS (BACKGROUND REPLACEMENT) */}
+          {/* Coexists with Lifestyle controls; applies only when enabled. */}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Enhancements</p>
+              <p className="text-xs text-gray-500 dark:text-white/50">Advanced overlays and optional narrative systems.</p>
+            </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8 dark:bg-white/5 dark:border-white/10">
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Hero</p>
+              <p className="text-xs text-gray-500 dark:text-white/50">Neutral background + placement (Lifestyle)</p>
+            </div>
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable hero canvas</span>
@@ -9278,7 +8606,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <>
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-indigo-600">SIDE PLACEMENT</p>
+                      <p className="text-xs text-[var(--lifestyle-accent)]">SIDE PLACEMENT</p>
                       <p className="text-[11px] text-gray-500 mt-1">Subject anchor position</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -9297,9 +8625,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                   </div>
 
-                  <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-5">
+                  <div className="space-y-5 border-t border-gray-200/60 pt-4 dark:border-white/10">
                     <div className="space-y-1">
-                      <p className="text-xs uppercase tracking-widest text-indigo-600">Background</p>
+                      <p className="text-xs font-semibold text-gray-500">Background</p>
                       <p className="text-sm text-gray-600">Neutral color or gradient</p>
                     </div>
                     <div className="inline-flex rounded-full border border-gray-200 bg-white p-1">
@@ -9319,8 +8647,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
                     {values.ecommerceBackgroundMode === 'white' ? (
                       <div className="space-y-2">
-                        <p className="text-[11px] uppercase tracking-wide text-gray-500">Solid background color</p>
-                        <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
+                        <p className="text-xs font-medium tracking-wide text-gray-500">Solid background color</p>
+                        <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-[var(--lifestyle-accent)]">
                           <label className="relative h-9 w-9 shrink-0 cursor-pointer">
                             <div
                               className="h-full w-full rounded-full ring-1 ring-borderSubtle"
@@ -9355,8 +8683,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             { key: 'ecommerceGradientEnd', label: 'End color', value: values.ecommerceGradientEnd }
                           ].map(cfg => (
                             <div key={cfg.key} className="space-y-2">
-                              <p className="text-[11px] uppercase tracking-wide text-gray-500">{cfg.label}</p>
-                              <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-indigo-600">
+                              <p className="text-xs font-medium tracking-wide text-gray-500">{cfg.label}</p>
+                              <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-2.5 transition-colors hover:border-[var(--lifestyle-accent)]">
                                 <label className="relative h-9 w-9 shrink-0 cursor-pointer">
                                   <div
                                     className="h-full w-full rounded-full ring-1 ring-borderSubtle"
@@ -9392,7 +8720,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           <button
                             type="button"
                             onClick={invertGradient}
-                            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-indigo-600 hover:text-gray-900"
+                            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-[var(--lifestyle-accent)] hover:text-gray-900"
                           >
                             Invert
                           </button>
@@ -9413,21 +8741,196 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               )}
 
             </div>
-          </AccordionSection>
-        )
-      }
+          </div>
 
-      {
-        isEnvironmentMode && (
-          <AccordionSection
-            icon={Edit3}
-            title="Formulation Story"
-            description="Align brand expert, research, and product goals"
-            isOpen={openAccordionId === 'formulationStory'}
-            onToggle={() => toggleSection('formulationStory')}
-            isActive={values.visualMode === 'formulation'}
-            variant="expert"
-          >
+          <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+            <div className="space-y-4">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Outfit Builder</p>
+              <p className="text-xs text-gray-500 dark:text-white/50">Configure garments using structured controls.</p>
+            </div>
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-900 dark:text-white">Enable outfit builder</span>
+                <SwitchToggle
+                  checked={values.customClothesEnabled}
+                  aria-label="Enable outfit builder"
+                  onCheckedChange={(next) => {
+                    updateValue('customClothesEnabled', next);
+                    markSectionTouched('customClothes');
+                  }}
+                />
+              </div>
+
+              {values.customClothesEnabled && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Garment type</label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CUSTOM_CLOTHES_GARMENTS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            updateValue('customClothesGarmentType', option);
+                            markSectionTouched('customClothes');
+                          }}
+                          className={getTogglePillClass(values.customClothesGarmentType === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Primary color</label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CUSTOM_CLOTHES_COLORS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            updateValue('customClothesPrimaryColor', option);
+                            markSectionTouched('customClothes');
+                          }}
+                          className={getTogglePillClass(values.customClothesPrimaryColor === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-gray-500">Custom color</p>
+                        <p className="text-[11px] text-gray-500">Pick any hex color.</p>
+                      </div>
+                      <div className="ml-auto flex items-center gap-2">
+                        <label className={`relative inline-block ${COLOR_PICKER_BUTTON_CLASS} cursor-pointer border-gray-200 hover:border-gray-300`}>
+                          <span
+                            className="block h-full w-full rounded-full"
+                            style={{ background: isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000' }}
+                          />
+                          <input
+                            type="color"
+                            aria-label="Custom clothes color picker"
+                            value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : '#000000'}
+                            onChange={(e) => {
+                              updateValue('customClothesPrimaryColor', e.target.value.toUpperCase());
+                              markSectionTouched('customClothes');
+                            }}
+                            className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
+                          />
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="text"
+                          maxLength={7}
+                          placeholder="#000000"
+                          value={isHexColor(values.customClothesPrimaryColor) ? values.customClothesPrimaryColor : ''}
+                          onChange={(e) => {
+                            const next = normalizeHexColor(e.target.value);
+                            updateValue('customClothesPrimaryColor', next);
+                            markSectionTouched('customClothes');
+                          }}
+                          className="w-[110px] rounded-xl border border-gray-200 bg-white px-2 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
+                        />
+                        {isHexColor(values.customClothesPrimaryColor) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateValue('customClothesPrimaryColor', '');
+                              markSectionTouched('customClothes');
+                            }}
+                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-[var(--lifestyle-accent)]"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Fit</label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CUSTOM_CLOTHES_FITS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            updateValue('customClothesFit', option);
+                            markSectionTouched('customClothes');
+                          }}
+                          className={getTogglePillClass(values.customClothesFit === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Style</label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CUSTOM_CLOTHES_STYLES.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            updateValue('customClothesStyle', option);
+                            markSectionTouched('customClothes');
+                          }}
+                          className={getTogglePillClass(values.customClothesStyle === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Material</label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {CUSTOM_CLOTHES_MATERIALS.map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            updateValue('customClothesMaterial', option);
+                            markSectionTouched('customClothes');
+                          }}
+                          className={getTogglePillClass(values.customClothesMaterial === option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Custom detail (optional)</label>
+                    <input
+                      type="text"
+                      maxLength={100}
+                      value={values.customClothesDetail}
+                      onChange={(event) => {
+                        updateValue('customClothesDetail', event.target.value.replace(/[\r\n]/g, ''));
+                        markSectionTouched('customClothes');
+                      }}
+                      placeholder="small embroidered logo on the chest"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+            <div className="space-y-4">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Formulation Story</p>
+              <p className="text-xs text-gray-500 dark:text-white/50">Align brand expert, research, and product goals</p>
+            </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-900">Enable Formulation Story</span>
@@ -9444,29 +8947,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {values.visualMode === 'formulation' && (
                 <div className="space-y-3">
                   <div className={SECTION_GROUP_CLASS}>
-                    <label className="text-xs uppercase tracking-wider text-indigo-600">Expert Name</label>
+                    <label className="text-xs text-[var(--lifestyle-accent)]">Expert Name</label>
                     <input
                       type="text"
                       value={values.expertName}
                       onChange={(e) => { updateValue('expertName', e.target.value); markSectionTouched('formulationStory'); }}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                       placeholder="The name you enter here (e.g., 'Dr. Ali M.D') will be embroidered on the medical attire."
                     />
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <label className="text-xs uppercase tracking-wider text-indigo-600">Expert Credentials</label>
+                    <label className="text-xs text-[var(--lifestyle-accent)]">Expert Credentials</label>
                     <input
                       type="text"
                       value={values.expertCredentials}
                       onChange={(e) => { updateValue('expertCredentials', e.target.value); markSectionTouched('formulationStory'); }}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                       placeholder="e.g., Formulation Scientist, 12 years mixing botanicals"
                     />
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">Expert Role</p>
+                    <p className="text-xs text-[var(--lifestyle-accent)]">Expert Role</p>
                     <div className="flex flex-wrap gap-2">
                       {EXPERT_ROLE_OPTIONS.map(option => (
                         <button
@@ -9494,14 +8997,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           updateValue('expertRoleCustom', e.target.value);
                           markSectionTouched('formulationStory');
                         }}
-                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                         placeholder="e.g., Board-Certified Toxicologist, Herbal Formulator, Lab Director"
                       />
                     )}
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">Medical Attire</p>
+                    <p className="text-xs text-[var(--lifestyle-accent)]">Medical Attire</p>
                     <div className="flex flex-wrap gap-2">
                       {EXPERT_ATTIRE_OPTIONS.map(option => (
                         <button
@@ -9517,7 +9020,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className="text-xs uppercase tracking-wider text-indigo-600">Lab Vibe</p>
+                    <p className="text-xs text-[var(--lifestyle-accent)]">Lab Vibe</p>
                     <div className="flex flex-wrap gap-2">
                       {LAB_VIBE_OPTIONS.map(option => (
                         <button
@@ -9535,7 +9038,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         type="text"
                         value={values.labVibeCustom}
                         onChange={(e) => { updateValue('labVibeCustom', e.target.value); markSectionTouched('formulationStory'); }}
-                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                        className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                         placeholder="e.g., university research lab, clean home workbench, small apothecary corner"
                       />
                     )}
@@ -9544,7 +9047,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   <div className={SECTION_GROUP_CLASS}>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <p className="text-xs uppercase tracking-wider text-indigo-600">Product Visible</p>
+                        <p className="text-xs text-[var(--lifestyle-accent)]">Product Visible</p>
                         <p className="text-[11px] text-gray-500">Toggle off to generate a formulation scene without the product in-frame.</p>
                       </div>
                       <SwitchToggle
@@ -9561,44 +9064,81 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               )}
             </div>
-          </AccordionSection>
+          </div>
+          </div>
+          </div>
+
+      {/* Output Format - LAST */}
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Output</p>
+          <p className="text-xs text-gray-500 dark:text-white/50">Final aspect ratio and export framing.</p>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:bg-white/5 dark:border-white/10">
+          <div className="space-y-4 space-y-4">
+            <p className="text-xs font-semibold text-gray-700">Aspect ratio</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {ASPECT_RATIO_OPTIONS.map(option => (
+                isProductMode ? (
+                  <Chip
+                    key={option}
+                    title={ASPECT_RATIO_TOOLTIPS[option] || option}
+                    selected={values.aspectRatio === option}
+                    onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                  >
+                    {option}
+                  </Chip>
+                ) : (
+                  <Chip
+                    key={option}
+                    title={ASPECT_RATIO_TOOLTIPS[option] || option}
+                    selected={values.aspectRatio === option}
+                    onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                  >
+                    {option}
+                  </Chip>
+                )
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
         )
       }
 
-      {/* Output Format - LAST */}
-      <AccordionSection
-        icon={Layers}
-        title={isEcommerceMode ? "10 / Output Format" : "Output Format"}
-        description="Aspect ratio for the final image"
-        isOpen={openAccordionId === 'output'}
-        onToggle={() => toggleSection('output')}
-        variant="secondary"
-      >
-        <div className={SECTION_GROUP_CLASS}>
-          <p className="text-xs uppercase tracking-wider text-indigo-600">ASPECT RATIO</p>
-          <div className="flex flex-wrap items-center gap-2">
-            {ASPECT_RATIO_OPTIONS.map(option => (
-              isProductMode ? (
-                <Chip
-                  key={option}
-                  selected={values.aspectRatio === option}
-                  onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-                >
-                  {option}
-                </Chip>
-              ) : (
-                <TogglePillButton
-                  key={option}
-                  active={values.aspectRatio === option}
-                  onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
-                >
-                  {option}
-                </TogglePillButton>
-              )
-            ))}
+      {isProductMode && (
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Output</p>
+            <p className="text-xs text-gray-500 dark:text-white/50">Final aspect ratio and export framing.</p>
           </div>
+          <AccordionSection
+            icon={Layers}
+            title="Output Format"
+            description="Aspect ratio for the final image"
+            isOpen={openAccordionId === 'output'}
+            onToggle={() => toggleSection('output')}
+            variant="secondary"
+          >
+            <div className={SECTION_GROUP_CLASS}>
+              <p className="text-xs text-[var(--lifestyle-accent)]">ASPECT RATIO</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {ASPECT_RATIO_OPTIONS.map(option => (
+                  <Chip
+                    key={option}
+                    title={ASPECT_RATIO_TOOLTIPS[option] || option}
+                    selected={values.aspectRatio === option}
+                    onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                  >
+                    {option}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          </AccordionSection>
         </div>
-      </AccordionSection>
+      )}
 
       {/* VALIADTION ERRORS (Hard Block) */}
       {
