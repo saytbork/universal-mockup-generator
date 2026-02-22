@@ -605,6 +605,15 @@ function appendWineInjectionDebugTokens(finalPrompt: string): string {
     return `${finalPrompt} ${debugTokens.join(' ')}`.trim();
 }
 
+function sanitizeFinalPromptOutput(finalPrompt: string): string {
+    const sanitized = finalPrompt.replace(/\bidentity\b/gi, 'integrity');
+    if (/\bidentity\b/i.test(sanitized)) {
+        console.error('[PROMPT SANITIZATION ERROR] identity token still present after replacement');
+        throw new Error('Prompt output still contains forbidden token: identity');
+    }
+    return sanitized;
+}
+
 // ============================================================================
 // COLOR VALIDATION (original content continues here)
 // ============================================================================
@@ -2393,7 +2402,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
-        const finalPrompt = appendWineInjectionDebugTokens(finalParts.join(' '));
+        const finalPrompt = sanitizeFinalPromptOutput(appendWineInjectionDebugTokens(finalParts.join(' ')));
         console.log('2. Generated Prompt Parts:', finalParts);
         console.log('3. FINAL PROMPT:', finalPrompt);
         console.groupEnd();
@@ -2425,7 +2434,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
 
-    return appendWineInjectionDebugTokens(finalPrompt);
+    return sanitizeFinalPromptOutput(appendWineInjectionDebugTokens(finalPrompt));
 }
 
 function assembleBundlePrompt(state: ProductStudioState): string {
@@ -2479,7 +2488,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
-        return appendWineInjectionDebugTokens(finalParts.join(' '));
+        return sanitizeFinalPromptOutput(appendWineInjectionDebugTokens(finalParts.join(' ')));
     }
 
     segments.push(sceneResult.prompt);
@@ -2509,7 +2518,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     
     finalPrompt = applyReferenceAndWineGuardrails(finalPrompt, state);
     
-    return appendWineInjectionDebugTokens(finalPrompt);
+    return sanitizeFinalPromptOutput(appendWineInjectionDebugTokens(finalPrompt));
 }
 
 // ============================================================================

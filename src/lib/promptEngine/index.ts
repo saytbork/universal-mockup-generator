@@ -80,6 +80,15 @@ function normalizeParts(parts: string[]): string[] {
     return out;
 }
 
+function sanitizeFinalPromptOutput(finalPrompt: string): string {
+    const sanitized = finalPrompt.replace(/\bidentity\b/gi, 'integrity');
+    if (/\bidentity\b/i.test(sanitized)) {
+        console.error('[PROMPT SANITIZATION ERROR] identity token still present after replacement');
+        throw new Error('Prompt output still contains forbidden token: identity');
+    }
+    return sanitized;
+}
+
 function buildProtectionLight(options: PromptOptions): string[] {
     if (!ENABLE_PROTECTION_LIGHT) return [];
     const hasProductContext =
@@ -692,7 +701,7 @@ export class PromptEngine {
                         .filter(Boolean)
                 );
             }
-            const finalStudioPrompt = buildFinalPrompt(studioPromptParts, options);
+            const finalStudioPrompt = sanitizeFinalPromptOutput(buildFinalPrompt(studioPromptParts, options));
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);
@@ -811,6 +820,7 @@ export class PromptEngine {
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
             finalPrompt = assertSingleCameraBlock(finalPrompt);
+            finalPrompt = sanitizeFinalPromptOutput(finalPrompt);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -1047,6 +1057,8 @@ export class PromptEngine {
             hasModelReference: options.hasModelReference,
             warnings: warnings.length
         });
+
+        finalPrompt = sanitizeFinalPromptOutput(finalPrompt);
 
         // [FINAL PROMPT STRING] - MANDATORY for debugging
         console.log('[FINAL PROMPT STRING]', finalPrompt);

@@ -164,6 +164,10 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     config.bottlePresentationMode === 'sealed'
       ? 'When bottle is sealed: closure must remain on neck, no loose closure visible.'
       : 'When bottle is open: Remove closure from neck. Place identical closure on surface. Preserve scale, material, branding. No invented closures. No duplication.';
+  const neckClearanceRule =
+    config.bottlePresentationMode !== 'sealed'
+      ? 'NECK_CLEARANCE_RULE: When bottleState != sealed: The bottle neck MUST appear physically open. No closure object may remain attached. Neck interior must be visible. No partial cap artifacts allowed.'
+      : '';
 
   return [
     'WINE_TRUTH_LOCK:',
@@ -173,6 +177,7 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     'WINE_SPECTRAL_COLOR_LOCK: The liquid chroma must be derived directly from the reference image. Preserve original hue band within +-2 deg hue tolerance. Preserve original saturation within +-5%. Preserve original luminance density profile inside bottle core. Glass refraction must not alter perceived liquid color identity. No reinterpretation due to lighting bias. No warming, cooling, cinematic grading, or environmental color contamination. Wine color must remain spectrally stable across bottle and glass. If lighting introduces color bias, the liquid must resist global color cast.',
     'REFRACTION_COLOR_INTEGRITY: Glass distortion may alter shape but not hue. Edge glow may increase luminance but must not shift chroma. Core color must match reference center density.',
     'ENVIRONMENT_COLOR_ISOLATION: Background warmth, vineyard haze, or ambient lighting must not tint the wine liquid. Liquid color is immune to environmental grading.',
+    'SPECTRAL_IMMUNITY_LOCK: Wine liquid chromatic profile is absolute. Hue variance tolerance: 0 degrees. Saturation variance tolerance: 0%. Luminance variance tolerance: 0%. Lighting, environment, reflections, mood profile, grading, cinematic bias, warm bias, vineyard haze, and lens characteristics must NOT alter perceived liquid color. If model attempts cinematic grading, liquid color must override grading. No reinterpretation under any circumstance.',
     'WINE_MOOD_PROFILE_COLOR_BIAS_LOCK: Warm lighting may affect environment only. Liquid color must remain reference-accurate.',
     'PRODUCT_CLOSURE_LOCK: Closure type must match detected reference closure.',
     buildClosureTypeRule(config.closureType),
@@ -181,6 +186,7 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     'CLOSURE_TRANSFER_RULE: Detect closure type from reference image.',
     buildClosureTypeRule(config.closureType),
     closurePlacementRule,
+    neckClearanceRule,
     'VOLUME_CONSISTENCY_RULE: If glassFillLevel != none: Bottle liquid height must be visibly reduced. Volume transfer must be physically plausible. No full bottle + filled glass state. Meniscus must match liquid density.',
     'MENISCUS_HEIGHT_LOCK: If bottlePresentationMode != sealed: Bottle liquid meniscus must appear below the reference sealed liquid height. The reduction must be visually measurable. No full-height liquid allowed when glass contains liquid.',
   ].join(' ');

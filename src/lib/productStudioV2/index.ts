@@ -165,6 +165,15 @@ function sanitizePromptParts(parts: string[]): string[] {
   return output;
 }
 
+function sanitizeFinalPromptOutput(finalPrompt: string): string {
+  const sanitized = finalPrompt.replace(/\bidentity\b/gi, 'integrity');
+  if (/\bidentity\b/i.test(sanitized)) {
+    console.error('[PROMPT SANITIZATION ERROR] identity token still present after replacement');
+    throw new Error('Prompt output still contains forbidden token: identity');
+  }
+  return sanitized;
+}
+
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const isWineIndustry = state.visualProfile === 'wine';
@@ -216,8 +225,9 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     if (!finalPrompt.startsWith('### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK')) {
       console.error('[COFFEE STRUCTURAL PREPEND FAILED]');
     }
-    validateStudioPrompt(finalPrompt, authority);
-    return finalPrompt;
+    const sanitizedFinalPrompt = sanitizeFinalPromptOutput(finalPrompt);
+    validateStudioPrompt(sanitizedFinalPrompt, authority);
+    return sanitizedFinalPrompt;
   }
 
   if (isWineIndustry) {
@@ -243,8 +253,9 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     ];
     const sanitizedParts = sanitizePromptParts(wineBlocks);
     const finalPrompt = assembleStudioPrompt(sanitizedParts);
-    validateStudioPrompt(finalPrompt, authority);
-    return finalPrompt;
+    const sanitizedFinalPrompt = sanitizeFinalPromptOutput(finalPrompt);
+    validateStudioPrompt(sanitizedFinalPrompt, authority);
+    return sanitizedFinalPrompt;
   }
 
   const studioBlocks = [
@@ -265,8 +276,9 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const withWineEngine = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
   const sanitizedParts = sanitizePromptParts(withWineEngine);
   const finalPrompt = assembleStudioPrompt(sanitizedParts);
-  validateStudioPrompt(finalPrompt, authority);
-  return finalPrompt;
+  const sanitizedFinalPrompt = sanitizeFinalPromptOutput(finalPrompt);
+  validateStudioPrompt(sanitizedFinalPrompt, authority);
+  return sanitizedFinalPrompt;
 }
 
 export type {
