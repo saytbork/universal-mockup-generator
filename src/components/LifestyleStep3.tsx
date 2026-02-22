@@ -8277,7 +8277,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               </div>
             </div>
 
-            <details className="space-y-6 border-t border-gray-200/60 pt-12 dark:border-white/10">
+            <details open className="space-y-6 border-t border-gray-200/60 pt-12 dark:border-white/10">
               <summary className="cursor-pointer list-none space-y-1">
                 <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">CAPTURE</p>
                 <p className="text-xs text-gray-500 dark:text-white/50">How the moment is filmed.</p>
@@ -8556,7 +8556,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
           {/* HERO CANVAS (BACKGROUND REPLACEMENT) */}
           {/* Coexists with Lifestyle controls; applies only when enabled. */}
-          <details className="space-y-6 border-t border-gray-200/60 pt-12 dark:border-white/10">
+          <details open className="space-y-6 border-t border-gray-200/60 pt-12 dark:border-white/10">
             <summary className="cursor-pointer list-none space-y-1">
               <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">OUTPUT</p>
               <p className="text-xs text-gray-500 dark:text-white/50">Final polish and delivery format.</p>
