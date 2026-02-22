@@ -25,6 +25,32 @@ function buildProtectionLayer(authority: StudioAuthorityBundle): string[] {
   return [buildUltraReal(authority)];
 }
 
+function injectWineEngine(parts: string[], state: StudioUIState): string[] {
+  const next = [...parts];
+  next.push('LIQUID_ENGINE: active');
+  next.push('LIQUID_PHYSICS_MODEL: deterministic');
+
+  const wineAction = String(state.wineAction || '').trim().toLowerCase();
+  if (wineAction === 'controlled-pour' || wineAction === 'controlled pour') {
+    next.push('LIQUID_FLOW: gravitational arc');
+    next.push('GLASS_VOLUME_CONSERVATION: enforced');
+    next.push('MENISCUS: visible');
+    next.push('HEADSPACE: realistic');
+  }
+
+  const glassMode = String((state as any).wineGlassMode || '').trim().toLowerCase();
+  if (glassMode === 'filled') {
+    next.push('GLASS_LIQUID_SYNC: bottle-consistent');
+  }
+
+  const closureType = String((state as any).wineClosureType || '').trim().toLowerCase();
+  if (closureType && closureType !== 'from-reference' && closureType !== 'from reference') {
+    next.push('CAP_PRESERVATION: strict');
+  }
+
+  return next;
+}
+
 function stripPromptSentences(prompt: string, patterns: RegExp[]): string {
   let next = prompt;
   for (const pattern of patterns) {
@@ -122,6 +148,10 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const isWineIndustry = state.visualProfile === 'wine';
   const winePrestigeMode = state.visualProfile === 'wine' && Boolean(state.winePrestigeMode);
   const isCoffeeIndustry = state.visualProfile === 'coffee';
+  const isWineReferenceCategory =
+    String((state as any).referenceProductCategory || '')
+      .trim()
+      .toLowerCase() === 'wine';
   const effectiveState: StudioUIState = state;
   const authority = resolveStudioAuthority(effectiveState);
   const modifiers = getAllowedStudioModifiers(authority, state);
@@ -142,7 +172,8 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       buildGeometry(authority, state),
       ...protectionLayer,
     ];
-    const prompt = assembleStudioPrompt(coffeeBlocks);
+    const finalPromptParts = isWineReferenceCategory ? injectWineEngine(coffeeBlocks, state) : coffeeBlocks;
+    const prompt = assembleStudioPrompt(finalPromptParts);
     const basePrompt = coffeeStructuralBlock ? `${coffeeStructuralBlock}\n\n${prompt}` : prompt;
     const finalPrompt = applyAdvancedOverridePhase(basePrompt, state);
     if (!finalPrompt.startsWith('### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK')) {
@@ -168,7 +199,8 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       buildGeometry(authority, state),
       ...protectionLayer,
     ];
-    const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(wineBlocks), state);
+    const finalPromptParts = isWineReferenceCategory ? injectWineEngine(wineBlocks, state) : wineBlocks;
+    const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(finalPromptParts), state);
     validateStudioPrompt(finalPrompt, authority);
     return finalPrompt;
   }
@@ -187,7 +219,8 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     buildGeometry(authority, state),
     ...protectionLayer,
   ];
-  const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(studioBlocks), state);
+  const finalPromptParts = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
+  const finalPrompt = applyAdvancedOverridePhase(assembleStudioPrompt(finalPromptParts), state);
   validateStudioPrompt(finalPrompt, authority);
   return finalPrompt;
 }

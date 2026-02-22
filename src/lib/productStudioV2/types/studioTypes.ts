@@ -136,6 +136,9 @@ export interface StudioUIState {
     | 'architectural-shadow';
   autoRandomizeWineEnvironment?: boolean;
   wineAction?: 'static-presentation' | 'controlled-pour';
+  wineGlassMode?: 'none' | 'empty' | 'filled';
+  wineClosureType?: string;
+  referenceProductCategory?: string;
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
   cameraSystem?: string;
   cameraAngle?: string;

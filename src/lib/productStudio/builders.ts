@@ -583,6 +583,15 @@ function applyReferenceAndWineGuardrails(finalPrompt: string, state: ProductStud
     return next;
 }
 
+function appendWineInjectionDebugTokens(finalPrompt: string): string {
+    const debugTokens = [
+        'WINE_ENGINE_STATUS: active',
+        'WINE_ENGINE_VERSION: v3-physical',
+        'WINE_INJECTION_TEST_FLAG: true',
+    ];
+    return `${finalPrompt} ${debugTokens.join(' ')}`.trim();
+}
+
 // ============================================================================
 // COLOR VALIDATION (original content continues here)
 // ============================================================================
@@ -2370,7 +2379,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
-        const finalPrompt = finalParts.join(' ');
+        const finalPrompt = appendWineInjectionDebugTokens(finalParts.join(' '));
         console.log('2. Generated Prompt Parts:', finalParts);
         console.log('3. FINAL PROMPT:', finalPrompt);
         console.groupEnd();
@@ -2402,7 +2411,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     console.log('3. FINAL PROMPT:', finalPrompt);
     console.groupEnd();
 
-    return finalPrompt;
+    return appendWineInjectionDebugTokens(finalPrompt);
 }
 
 function assembleBundlePrompt(state: ProductStudioState): string {
@@ -2456,7 +2465,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
-        return finalParts.join(' ');
+        return appendWineInjectionDebugTokens(finalParts.join(' '));
     }
 
     segments.push(sceneResult.prompt);
@@ -2486,7 +2495,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     
     finalPrompt = applyReferenceAndWineGuardrails(finalPrompt, state);
     
-    return finalPrompt;
+    return appendWineInjectionDebugTokens(finalPrompt);
 }
 
 // ============================================================================

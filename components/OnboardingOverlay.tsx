@@ -61,6 +61,17 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
     return () => clearTimeout(timeout);
   }, [visible, currentStep]);
 
+  useEffect(() => {
+    if (!visible) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onSkip();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [visible, onSkip]);
+
   if (!visible) {
     return null;
   }
@@ -81,8 +92,8 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      <div className="absolute inset-0 bg-whiteTint" />
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
         className="absolute border border-indigo-600 rounded-3xl transition-all duration-300"
         style={{
@@ -100,6 +111,13 @@ const OnboardingOverlay: React.FC<OnboardingOverlayProps> = ({
         }}
       >
         <p className="text-xs uppercase tracking-[0.4em] text-indigo-600">{`Step ${currentStep} / ${steps.length}`}</p>
+        <button
+          onClick={onSkip}
+          aria-label="Close tutorial"
+          className="absolute right-3 top-3 text-gray-600 hover:text-gray-900 transition"
+        >
+          ×
+        </button>
         <h3 className="text-gray-900 text-lg font-semibold mt-2">{step.title}</h3>
         <p className="text-gray-600 text-sm mt-2">{step.description}</p>
         <div className="mt-4 flex items-center justify-between text-xs">

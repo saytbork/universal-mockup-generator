@@ -773,6 +773,7 @@ const ADMIN_EMAILS = Array.from(
 );
 const VIDEO_SECRET_CODE = import.meta.env.VITE_VIDEO_ACCESS_CODE || '';
 const ONBOARDING_DISMISSED_KEY = 'ugc-onboarding-hidden';
+const TUTORIAL_SEEN_KEY = 'pm_tutorial_seen';
 const TALENT_PROFILE_STORAGE_KEY = 'ugc-saved-talent-profile';
 const SIMPLE_MODE_KEY = 'ugc-simple-mode';
 const GOAL_WIZARD_KEY = 'ugc-goal-wizard-dismissed';
@@ -2147,7 +2148,7 @@ const App: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [GOOGLE_CLIENT_ID]);
-  const shouldShowOnboarding = showOnboarding && !isTrialLocked;
+  const shouldShowOnboarding = showOnboarding;
   const stepThreeCategories = useMemo<Set<OptionCategory>>(
     () =>
       new Set<OptionCategory>([
@@ -2373,9 +2374,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true') {
-      setShowOnboarding(false);
+    const forceTutorial = Boolean((window as any).__forceTutorial);
+    const hasSeenTutorial = window.localStorage.getItem(TUTORIAL_SEEN_KEY);
+    if (forceTutorial) {
+      setOnboardingStep(1);
+      setShowOnboarding(true);
+      return;
     }
+    setShowOnboarding(hasSeenTutorial !== 'true');
   }, []);
 
   useEffect(() => {
@@ -3776,6 +3782,7 @@ const App: React.FC = () => {
     setShowOnboarding(false);
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+      window.localStorage.setItem(TUTORIAL_SEEN_KEY, 'true');
     }
   }, []);
 
@@ -3794,6 +3801,7 @@ const App: React.FC = () => {
   const handleReplayOnboarding = useCallback(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(ONBOARDING_DISMISSED_KEY);
+      window.localStorage.removeItem(TUTORIAL_SEEN_KEY);
     }
     setOnboardingStep(1);
     setShowOnboarding(true);

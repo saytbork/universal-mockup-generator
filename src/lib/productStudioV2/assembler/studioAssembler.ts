@@ -7,6 +7,8 @@ const DEDUPE_KEYS = [
   'COFFEE_MATERIAL_PROFILE',
   'COFFEE_COMPOSITION_DOMINANCE',
   'COFFEE_PRODUCT_DOMINANCE_RATIO',
+  'FRAME_EDGE_POLICY',
+  'NEGATIVE_SPACE_POLICY',
 ];
 
 function dedupePromptKeySentences(prompt: string): string {
@@ -27,6 +29,7 @@ function dedupePromptKeySentences(prompt: string): string {
 }
 
 export function assembleStudioPrompt(blocks: string[]): string {
-  const rawPrompt = blocks.filter((block) => block.trim().length > 0).join('\n\n');
+  const uniqueBlocks = Array.from(new Set(blocks));
+  const rawPrompt = uniqueBlocks.filter((block) => block.trim().length > 0).join('\n\n');
   return dedupePromptKeySentences(rawPrompt);
 }

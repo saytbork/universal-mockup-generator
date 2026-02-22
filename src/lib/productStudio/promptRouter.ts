@@ -820,6 +820,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     cameraRotation: resolvedCamera.cameraRotation,
     framingGuide: resolvedCamera.framingGuide,
     requestedModifiers,
+    ...(state.category ? { referenceProductCategory: state.category } : {}),
     // Bundle state (for framing logic)
     ...(state.bundle?.enabled && state.bundle.primaryProductId
       ? { bundle: { enabled: true, primaryProductId: state.bundle.primaryProductId } }
@@ -846,7 +847,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(!wineManualConfigActive && state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
-          wineAction: 'static-presentation',
+          wineAction:
+            state.wineAction === 'controlled-pour' ? 'controlled-pour' : 'static-presentation',
+          ...(state.wineGlassMode ? { wineGlassMode: state.wineGlassMode } : {}),
+          ...(state.wineClosureType ? { wineClosureType: state.wineClosureType } : {}),
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
         }
       : {}),
