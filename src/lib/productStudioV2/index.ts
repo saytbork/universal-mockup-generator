@@ -188,7 +188,7 @@ function assertWinePromptDeterminism(finalPrompt: string, state: StudioUIState):
   }
 
   const hash = hashPrompt(finalPrompt);
-  const signature = `${wineType}|${environment}|${String(state.photoMode || '').trim().toLowerCase()}`;
+  const signature = `${wineType}|${environment}|${String(state.wineMoodProfile || '').trim().toLowerCase()}`;
   if (lastWineSignatureForDeterminism && lastWineHashForDeterminism) {
     if (lastWineSignatureForDeterminism !== signature && lastWineHashForDeterminism === hash) {
       throw new Error('Wine determinism violation: wine state changed but prompt hash did not change.');
@@ -201,11 +201,28 @@ function assertWinePromptDeterminism(finalPrompt: string, state: StudioUIState):
 export function generateStudioPromptV2(state: StudioUIState): string {
   console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
   const isWineIndustry = state.visualProfile === 'wine';
-  const hasExplicitWineMood = Boolean(String(state.wineMoodProfile || '').trim());
+  const heroPhotoModeRequested = state.photoMode === 'Hero Landing Page';
+  const baseState: StudioUIState = isWineIndustry
+    ? ((() => {
+        const {
+          photoMode: _photoMode,
+          defaultHero: _defaultHero,
+          heroFraming: _heroFraming,
+          studioCompositionProfile: _studioCompositionProfile,
+          ...rest
+        } = state as StudioUIState & {
+          defaultHero?: unknown;
+          heroFraming?: unknown;
+          studioCompositionProfile?: unknown;
+        };
+        return rest as StudioUIState;
+      })())
+    : state;
+  const hasExplicitWineMood = Boolean(String(baseState.wineMoodProfile || '').trim());
   const normalizedState: StudioUIState =
-    isWineIndustry && state.photoMode === 'Hero Landing Page' && !hasExplicitWineMood
-      ? { ...state, wineMoodProfile: 'neutral' }
-      : state;
+    isWineIndustry && heroPhotoModeRequested && !hasExplicitWineMood
+      ? { ...baseState, wineMoodProfile: 'neutral' }
+      : baseState;
   const winePrestigeMode = normalizedState.visualProfile === 'wine' && Boolean(normalizedState.winePrestigeMode);
   const isCoffeeIndustry = state.visualProfile === 'coffee';
   const isWineReferenceCategory =
@@ -230,7 +247,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   const modifiers = getAllowedStudioModifiers(authority, effectiveState);
   const protectionLayer = buildProtectionLayer(authority, effectiveState);
   if (isCoffeeIndustry) {
-    const coffeeStructuralBlock = buildCoffeeIndustryLayer(authority, state);
+    const coffeeStructuralBlock = buildCoffeeIndustryLayer(authority, effectiveState);
     const coffeeBlocks = [
       buildIntent(authority, effectiveState),
       buildWorld(authority, effectiveState.world, effectiveState),
@@ -264,13 +281,11 @@ export function generateStudioPromptV2(state: StudioUIState): string {
       environment: effectiveState.wineEnvironmentVariation,
       bottleState: effectiveState.wineBottleState,
       glassMode: effectiveState.wineGlassMode,
-      photoMode: effectiveState.photoMode,
     };
     console.log('[WINE STATE PIPELINE]', wineStateSnapshot);
     const worldPart = '';
     const wineBlocks = [
       buildIntent(authority, effectiveState),
-      effectiveState.photoMode ? `PHOTO_MODE: ${effectiveState.photoMode}.` : '',
       worldPart,
       buildWineIndustryLayerV2(effectiveState),
       buildCameraOverrides(effectiveState),

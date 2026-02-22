@@ -843,7 +843,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
     aspectRatio: state.aspectRatio,
-    photoMode: state.photoMode,
+    ...(industryProfile === 'wine' ? {} : { photoMode: state.photoMode }),
     subjectOrientation: inferSubjectOrientation(state),
     cameraSystem: resolvedCamera.cameraSystem,
     cameraAngle: resolvedCamera.cameraAngle,
@@ -902,8 +902,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         }
       : {}),
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
-    specialEffect: SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined,
-    visualStyle: VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined,
+    specialEffect:
+      industryProfile === 'wine' ? undefined : (SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined),
+    visualStyle:
+      industryProfile === 'wine' ? undefined : (VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined),
     ...(coffeeLayer
       ? {
           coffeeIndustryLayer: true,
