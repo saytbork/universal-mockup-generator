@@ -678,8 +678,14 @@ const APPEARANCE_LEVEL_OPTIONS = [
   'Running Late'
 ];
 
-// Product Interaction - SIMPLIFIED per spec
-const INTERACTION_OPTIONS = ['Holding', 'Using', 'Presenting', 'Unboxing / Open Box'];
+// Product Interaction - universal-safe deterministic modes
+const INTERACTION_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'holding', label: 'Holding product' },
+  { value: 'showing', label: 'Showing to camera' },
+  { value: 'foreground', label: 'Product in foreground' },
+  { value: 'beside', label: 'Beside subject' },
+  { value: 'background', label: 'Subtle background presence' },
+];
 
 // SKIN REALISM - 3 options only
 const SKIN_REALISM_OPTIONS = [
@@ -1211,7 +1217,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productProminence: 'product-first',
 
     // Product Interaction
-    productInteraction: 'Holding',
+    productInteraction: 'holding',
     productUsageDescription: '',
     productStructure: 'single',
 
@@ -2144,7 +2150,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       values.ugcRealMode !== true;
     const forceHandsHolding =
       sceneType === 'lifestyle-real' &&
-      values.productInteraction === 'Holding' &&
+      values.productInteraction === 'holding' &&
       values.ugcRealMode !== true;
     const payload: Step3Values = {
       ...values,
@@ -2268,6 +2274,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.ugcRealMode === true;
+  const hasUploadedProductAsset = productCount > 0;
   const visualIntentMode = (values.visualIntent ?? 'editorial');
   const isLuxuryIntent = visualIntentMode === 'luxury';
   const isEditorialIntent = visualIntentMode === 'editorial' && !isUGCMode;
@@ -2291,6 +2298,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const accentClass = 'bg-[var(--lifestyle-accent)] border-[var(--lifestyle-accent)] text-white';
   const accentTextClass = 'text-[var(--lifestyle-accent)]';
   const accentBorderClass = 'border-[var(--lifestyle-accent)]';
+
+  useEffect(() => {
+    if (hasUploadedProductAsset) return;
+    if (values.productInteraction === 'background') return;
+    updateValue('productInteraction', 'background');
+  }, [hasUploadedProductAsset, values.productInteraction, updateValue]);
 
   useEffect(() => {
     if (uiSceneType !== 'lifestyle-real') return;
@@ -7425,6 +7438,36 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           </div>
                         </div>
 
+                        <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Product Interaction</p>
+                            <p className="text-xs text-gray-500 dark:text-white/50">Define how the subject engages with the product.</p>
+                          </div>
+                          <div className={`space-y-3 ${hasUploadedProductAsset ? '' : 'opacity-50'}`}>
+                            <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none'}`}>
+                              {PRODUCT_INTERACTION_OPTIONS.map(option => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    updateValue('productInteraction', option.value);
+                                    markSectionTouched('productInteraction');
+                                  }}
+                                  className={getTogglePillClass(values.productInteraction === option.value)}
+                                  disabled={!hasUploadedProductAsset}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                            {!hasUploadedProductAsset && (
+                              <p className="text-[11px] text-gray-500 dark:text-white/50">
+                                Upload a product to enable Product Interaction.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
                         {values.personCount === 'couple' && (
                           <div className="pt-2">
                             <div className="flex items-center justify-between gap-3">
@@ -8035,53 +8078,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </>
                     )}
               </div>
-            )}
-
-            {/* Product Interaction */}
-            {isEcommerceMode && (
-            <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
-              <div className="space-y-4">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">Product Interaction</p>
-                <p className="text-xs text-gray-500 dark:text-white/50">Control how the creator handles the product</p>
-              </div>
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  {PRODUCT_INTERACTION_OPTIONS.map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => { updateValue('productInteraction', option); markSectionTouched('productInteraction'); }}
-                      className={getTogglePillClass(values.productInteraction === option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-                <SelectedOptionFooter
-                  options={[
-                    { value: 'Holding', label: 'Holding', description: 'Simple hero hold—product is visible and stable in-hand.' },
-                    { value: 'Using', label: 'Using', description: 'Natural usage moment (apply, drink, spray, etc.).' },
-                    { value: 'Presenting', label: 'Presenting', description: 'Creator displays the product clearly toward camera.' },
-                    { value: 'Unboxing / Open Box', label: 'Unboxing / Open Box', description: 'Packaging interaction—opening or reveal moment.' },
-                  ]}
-                  selectedValue={values.productInteraction}
-                />
-                {values.productInteraction === 'Using' && (
-                  <div className="mt-2">
-                    <textarea
-                      value={values.productUsageDescription}
-                      onChange={(event) => {
-                        updateValue('productUsageDescription', event.target.value);
-                        markSectionTouched('productInteraction');
-                      }}
-                      placeholder="Describe what the person is naturally doing with the product"
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)] resize-none"
-                      rows={3}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
             )}
 
             {/* Environment */}

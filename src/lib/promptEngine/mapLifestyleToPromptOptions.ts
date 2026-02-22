@@ -348,7 +348,7 @@ function normalizeLifestyleState(
         (next as any).sceneOrderChaos = 'Controlled';
     }
 
-    if (isLifestyleReal && String(next.productInteraction || '').trim() === 'Holding') {
+    if (isLifestyleReal && normalizeProductInteractionMode(String(next.productInteraction || '')) === 'holding') {
         next.handsHolding = true;
     }
 
@@ -715,15 +715,38 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
  * PRODUCT INTERACTION → Physical hand and body relationship to product
  */
 const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
-    'Holding': 'hands naturally holding the product in the FOREGROUND, closer to the camera lens than the face. Product is the primary subject; label faces camera and stays fully readable. Do not place the product behind the person.',
-    'Using': 'hands actively using the product while keeping the product in the FOREGROUND and fully readable. Product remains the primary subject; no blur or defocus on the product/label.',
-    'Presenting': 'product extended toward camera with natural wrist motion, held closest to lens. Product is the primary subject; label faces camera and stays fully readable without forced styling.',
-    'Unboxing / Open Box': 'hands opening packaging or revealing the product inside with natural curiosity',
-    'Showing to Camera': 'product held outward toward camera lens, hand angled to display product label or design',
-    'Unboxing': 'hands in process of opening product packaging, revealing contents with natural excitement',
-    'Applying': 'hands applying product to skin or surface with natural spreading or dabbing motion',
-    'Placing on Surface': 'hands lowering product onto surface, fingers releasing grip, natural placement motion'
+    holding: 'The subject is holding the product naturally in their hands.',
+    showing: 'The subject is clearly presenting the product toward the camera with label visibility.',
+    foreground: 'The product is positioned prominently in the foreground while the subject remains slightly behind.',
+    beside: 'The product is placed beside the subject within natural reach distance.',
+    background: 'The product appears subtly in the background without dominating the composition.',
 };
+
+function normalizeProductInteractionMode(value: string): keyof typeof INTERACTION_SEMANTIC_MAP {
+    const normalized = String(value || '').trim().toLowerCase();
+    switch (normalized) {
+        case 'holding':
+        case 'holding product':
+            return 'holding';
+        case 'showing':
+        case 'showing to camera':
+        case 'presenting':
+            return 'showing';
+        case 'foreground':
+        case 'product in foreground':
+            return 'foreground';
+        case 'beside':
+        case 'beside subject':
+        case 'placing on surface':
+            return 'beside';
+        case 'background':
+        case 'subtle background presence':
+        case 'none':
+            return 'background';
+        default:
+            return 'holding';
+    }
+}
 
 const UGC_HAND_SAFETY_RULE =
     'HAND SAFETY (CRITICAL): Avoid any complex finger poses. No interlaced fingers, no fingertip-to-fingertip framing, no symmetric “triangle grip”. If hands appear, show at most one hand, keep fingers mostly hidden behind the product, allow partial crop, and keep a relaxed natural grip. Hands must be anatomically correct (5 fingers), natural proportions, no deformations.';
@@ -745,46 +768,19 @@ const LIFESTYLE_HAND_SAFETY_RULE = [
 ].join(' ');
 
 function isHandInteractionLabel(label: string): boolean {
-    const normalized = String(label || '').trim().toLowerCase();
+    const normalized = normalizeProductInteractionMode(label);
     return (
         normalized === 'holding' ||
-        normalized === 'presenting' ||
-        normalized === 'showing to camera' ||
-        normalized === 'placing on surface' ||
-        normalized === 'using' ||
-        normalized === 'applying' ||
-        normalized === 'unboxing' ||
-        normalized === 'unboxing / open box'
+        normalized === 'showing'
     );
 }
 
 function resolveUgcInteractionSemantic(label: string, usage?: string): string {
-    const normalized = String(label || '').trim();
-    const base = (() => {
-        switch (normalized) {
-            case 'Holding':
-            case 'Presenting':
-            case 'Showing to Camera':
-                // UGC should not look like a centered hero presentation; also reduces hand failure rate.
-                return 'Product is placed on a nearby surface within the environment (bench, shelf, floor mat edge). No hands in frame. Product remains clearly visible and readable but not forced into a centered presentation pose.';
-            case 'Placing on Surface':
-                return 'Hands briefly place the product onto a nearby surface, then hands exit the frame. Keep the gesture simple and partially cropped.';
-            case 'Using':
-            case 'Applying':
-                return 'Hands interact naturally while keeping the gesture simple and partially cropped. Avoid complex finger articulation; product remains visible.';
-            case 'Unboxing':
-            case 'Unboxing / Open Box':
-                return 'Packaging is partially opened with minimal hand visibility; keep hands mostly out of frame and avoid complex finger poses.';
-            default:
-                return INTERACTION_SEMANTIC_MAP[normalized] || normalized;
-        }
-    })();
+    const normalized = normalizeProductInteractionMode(label);
+    const base = INTERACTION_SEMANTIC_MAP[normalized] || INTERACTION_SEMANTIC_MAP.holding;
 
     const parts = [base];
-    if (normalized === 'Using' && usage?.trim()) {
-        parts.push(usage.trim());
-    }
-    parts.push(UGC_HAND_SAFETY_RULE);
+    if (normalized === 'holding' || normalized === 'showing') parts.push(UGC_HAND_SAFETY_RULE);
     return parts.filter(Boolean).join(' ');
 }
 
@@ -1362,16 +1358,15 @@ export function mapLifestyleToPromptOptions(
     mapped.personDetails.eyeDirection =
         EYE_DIRECTION_SEMANTIC_MAP[eyeDirectionLabel] || eyeDirectionLabel as any;
     if (!forceHideProductRequested && sceneState.productInteraction) {
+            // Future-proof placeholder: this pipeline is currently category-agnostic.
+            const productType: 'unknown' = 'unknown';
+            const interactionMode = normalizeProductInteractionMode(sceneState.productInteraction);
             const interactionText = isUGCRealMode
-                ? resolveUgcInteractionSemantic(sceneState.productInteraction, sceneState.productUsageDescription)
+                ? resolveUgcInteractionSemantic(interactionMode)
                 : (() => {
-                    const interactionBase =
-                        INTERACTION_SEMANTIC_MAP[sceneState.productInteraction] || sceneState.productInteraction;
+                    const interactionBase = INTERACTION_SEMANTIC_MAP[interactionMode] || INTERACTION_SEMANTIC_MAP.holding;
                     const interactionParts = [interactionBase];
-                    if (sceneState.productInteraction === 'Using' && sceneState.productUsageDescription) {
-                        interactionParts.push(sceneState.productUsageDescription.trim());
-                    }
-                    if (isHandInteractionLabel(sceneState.productInteraction)) {
+                    if (productType === 'unknown' && isHandInteractionLabel(interactionMode)) {
                         interactionParts.push(LIFESTYLE_HAND_SAFETY_RULE);
                     }
                     return interactionParts.filter(Boolean).join(' ');
@@ -1579,7 +1574,7 @@ export function mapLifestyleToPromptOptions(
             ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
             : null;
 
-    const productInteractionLabel = (sceneState.productInteraction || '').trim();
+    const productInteractionMode = normalizeProductInteractionMode((sceneState.productInteraction || '').trim());
     const normalizedPoseKey = normalizeKey(sceneState.pose);
     const foregroundProductFocusRequested =
         !isUGCMode &&
@@ -1587,13 +1582,13 @@ export function mapLifestyleToPromptOptions(
         !ritualHideProductRequested &&
         !forceHideProductRequested &&
         isEnvironmentSceneIntent &&
-        (productInteractionLabel === 'Presenting' ||
-            productInteractionLabel === 'Holding' ||
+        (productInteractionMode === 'showing' ||
+            productInteractionMode === 'holding' ||
             normalizedPoseKey === 'offer-to-lens-reach');
     const captureBaseSelection = normalizedCaptureBase[0];
     const operatorSelection = normalizedCameraOperator[0];
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
-    const isHoldingProduct = productInteractionLabel === 'Holding';
+    const isHoldingProduct = productInteractionMode === 'holding';
 
     if (isUGCRealMode && normalizedCaptureBase.length === 0) {
         throw new Error('Raw Domestic UGC requires a capture style selection.');

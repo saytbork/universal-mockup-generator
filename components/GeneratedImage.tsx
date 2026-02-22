@@ -145,11 +145,6 @@ interface GeneratedImageProps {
   ) => Promise<{ ok: boolean; message?: string }> | { ok: boolean; message?: string };
 }
 
-const DOWNLOAD_RESOLUTION_OPTIONS: { label: string; value: DownloadResolution }[] = [
-  { label: 'Original', value: 'original' },
-  { label: '2K', value: '2k' },
-  { label: '4K', value: '4k' },
-];
 const RESOLUTION_TARGETS: Record<DownloadResolution, number | null> = {
   original: null,
   '2k': 2048,
@@ -172,7 +167,6 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   onChargeDownloadCredits,
 }) => {
 
-	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -222,7 +216,6 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   }, [parsedAspectRatio]);
 
   useEffect(() => {
-    setDownloadResolution('original');
     setDownloadError(null);
   }, [imageUrl]);
 
@@ -304,14 +297,6 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return imageUrl;
   };
 
-  const getResolutionCost = (resolution: DownloadResolution) => {
-    if (resolution === '4k') return downloadCreditConfig.downloadCost4K;
-    if (resolution === '2k') return downloadCreditConfig.downloadCost2K;
-    return downloadCreditConfig.original;
-  };
-
-  const formatCreditLabel = (cost: number) => `${cost} ${cost === 1 ? 'credit' : 'credits'}`;
-
   const exportResolutionBlob = async (resolution: DownloadResolution) => {
     const preferredSource = getResolutionSource(resolution);
     const sourceUrl = preferredSource ?? imageUrl;
@@ -347,9 +332,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return canvasToBlob(canvas);
   };
 
-  const buildFilename = () => `ai-mockup-${downloadResolution}.png`;
-
-  const showHiResStatus = isHiResProcessing || Boolean(fourKVariant || twoKVariant || hiResError);
+  const buildFilename = () => `ai-mockup-original.png`;
 
   const handleDownload = async () => {
     if (!imageUrl) return;
@@ -357,9 +340,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
     setIsProcessingDownload(true);
     try {
-      const blob = await exportResolutionBlob(downloadResolution);
+      const blob = await exportResolutionBlob('original');
 
-      const chargeResult = await Promise.resolve(onChargeDownloadCredits(downloadResolution));
+      const chargeResult = await Promise.resolve(onChargeDownloadCredits('original'));
       if (!chargeResult.ok) {
         setDownloadError(
           chargeResult.message ?? 'Not enough credits available for this download.'
@@ -412,7 +395,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
       <div
         ref={containerRef}
-        className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
+        className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5"
       >
         {isImageLoading ? (
           <GenerationProgress />
@@ -450,76 +433,39 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-          <div className="flex flex-col gap-3 w-full">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 uppercase tracking-[0.3em] dark:text-white/40">Download resolution</label>
-              <div className="flex flex-wrap items-center gap-2">
-                {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
-                  const isActive = downloadResolution === option.value;
-                  const cost = getResolutionCost(option.value);
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => {
-                        setDownloadResolution(option.value);
-                        setDownloadError(null);
-                      }}
-                      disabled={!imageUrl}
-                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
-                        ? 'bg-indigo-600 text-white border-indigo-600 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
-                      } disabled:cursor-not-allowed disabled:opacity-50`}
-                    >
-                      {option.label} · {formatCreditLabel(cost)}
-                    </button>
-                  );
-                })}
-              </div>
-              {showHiResStatus && (
-                <span className="text-[11px] text-gray-600 dark:text-white/50">
-                  {isHiResProcessing
-                    ? 'Preparing 4K / 2K masters…'
-                    : hiResError ?? 'High-resolution exports ready.'}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
+        <div className="mt-4 w-full space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
+            <button
+              onClick={onReset}
+              className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30"
+              aria-label="Reset"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h5M20 20v-5h-5" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 9a9 9 0 0114.13-5.12M20 15a9 9 0 01-14.13 5.12" />
+              </svg>
+              Reset
+            </button>
+            {imageUrl && (
               <button
-                onClick={onReset}
-                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
-                aria-label="Reset"
+                onClick={handleDownload}
+                disabled={isProcessingDownload || !imageUrl}
+                className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+                aria-label="Download Image"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h5M20 20v-5h-5" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 9a9 9 0 0114.13-5.12M20 15a9 9 0 01-14.13 5.12" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
-                Reset
+                {isProcessingDownload ? 'Preparing…' : 'Download'}
               </button>
-              {imageUrl && (
-                <button
-                  onClick={handleDownload}
-                  disabled={isProcessingDownload || !imageUrl}
-                  className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
-                  aria-label="Download Image"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  {isProcessingDownload ? 'Preparing…' : 'Download'}
-                </button>
-              )}
-              {isFreeUser && (
-                <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-white/50">
-                  Watermark applied on Free plan
-                </span>
-              )}
-            </div>
-            {downloadError && (
-              <span className="text-xs text-gray-500 dark:text-white/50">{downloadError}</span>
             )}
+            <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-white/50">
+              {isFreeUser ? 'Free plan · Watermarked' : 'High-resolution export'}
+            </span>
           </div>
+          {downloadError && (
+            <span className="text-xs text-gray-500 dark:text-white/50">{downloadError}</span>
+          )}
         </div>
       )}
     </div>
