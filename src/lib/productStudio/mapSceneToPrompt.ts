@@ -274,6 +274,16 @@ export type ScenePromptResult = {
 };
 
 function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptResult {
+  const hasReference = Array.isArray((state as any).products) &&
+    (state as any).products.some((p: any) =>
+      Boolean(
+        String(p?.base64 || '').trim() ||
+        String(p?.imageUrl || '').trim() ||
+        String(p?.url || '').trim() ||
+        String(p?.src || '').trim() ||
+        String(p?.previewUrl || '').trim()
+      )
+    );
   const environmentNarrative = getWineEnvironmentNarrative(
     String(state.contextPreset || '').trim() || 'Dark Luxury Studio'
   );
@@ -308,9 +318,11 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
     } Glass can be foreground or midground. Never force rigid center unless explicitly selected.`,
     'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur". Top-down camera forbidden. Ultra-wide lens forbidden.',
     `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
-    whiteWineSignal
-      ? 'LIQUID_RENDERING: pale golden translucency, increased internal glow, lower opacity density, slight meniscus at glass contact, and realistic refractive distortion.'
-      : 'LIQUID_RENDERING: deep burgundy translucency, light absorption at the core, edge luminosity near the surface, slight meniscus at glass contact, and realistic refractive distortion.',
+    hasReference
+      ? 'LIQUID_COLOR_REFERENCE_LOCK: Preserve exact liquid hue family from reference. NO_HUE_SHIFT_ON_LIQUID=true. Lighting may only affect specular intensity and shadow depth.'
+      : whiteWineSignal
+        ? 'LIQUID_RENDERING: pale golden translucency, increased internal glow, lower opacity density, slight meniscus at glass contact, and realistic refractive distortion.'
+        : 'LIQUID_RENDERING: deep burgundy translucency, light absorption at the core, edge luminosity near the surface, slight meniscus at glass contact, and realistic refractive distortion.',
     winePrestigeV2Mode
       ? [
         'WINE_POUR_MODEL: Origin at bottle neck.',
@@ -324,7 +336,9 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
           : '',
       ].filter(Boolean).join(' ')
       : '',
-    'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
+    hasReference
+      ? 'MATERIAL ENGINE: glass-priority rendering with realistic refraction and internal liquid density visibility. CLOSURE_FROM_REFERENCE_ONLY: no cork/cage/cap substitution.'
+      : 'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
     moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
     'HARD DISABLES: splash engine disabled, studio product motion disabled, splash physics engine disabled, radial splash spread disabled, droplet fragmentation logic disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
     'LOCKS: GEOMETRY_LOCK=true. LABEL_LOCK=true. TEXT_PRESERVATION=strict. Preserve exact product proportions and label fidelity.',
