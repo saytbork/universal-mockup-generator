@@ -18,13 +18,13 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const baseClass =
-  'inline-flex max-w-full items-center gap-1 rounded-xl border transition-all duration-300 whitespace-nowrap text-xs focus:outline-none min-w-0';
+  'inline-flex max-w-full items-center gap-1 rounded-full border transition-colors whitespace-nowrap text-xs font-semibold focus:outline-none min-w-0';
 
 const activeClass =
   'border-indigo-600 bg-indigo-600 text-white';
 
 const inactiveClass =
-  'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
+  'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
 const warmActiveClass =
   'border-orange-500 bg-orange-500 text-white';

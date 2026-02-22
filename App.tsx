@@ -6635,7 +6635,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 <div className="flex flex-col gap-6">
                   <div
                     ref={intentRef}
-                    className="flex flex-col gap-8 transition-all"
+                    className="flex flex-col gap-12 transition-all"
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
@@ -6643,7 +6643,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                     <div className="space-y-8">
 
-                      <div className="bg-white rounded-xl p-8 border border-gray-200 text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20">
+                      <div className="rounded-xl border border-gray-200/70 bg-white p-10 text-center flex flex-col items-center justify-center min-h-[320px] relative transition-all hover:border-indigo-600/30 group dark:bg-white/5 dark:border-white/10 dark:hover:border-white/20">
                         <button
                           type="button"
                           onClick={() => {
@@ -6694,7 +6694,7 @@ If the model attempts to create a scene or environment, override it and force a 
                               return (
                                 <div
                                   key={asset.id}
-                                  className={`flex-shrink-0 w-40 rounded-xl p-4 transition-all bg-gray-50 border ${isActive ? 'border-gray-300 ring-2 ring-gray-100' : 'border-gray-200 hover:border-gray-300'} dark:bg-white/5`}
+                                  className={`flex-shrink-0 w-40 rounded-xl p-4 transition-all bg-gray-50 border ${isActive ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} dark:bg-white/5`}
                                 >
                                   <div className="relative mb-3">
                                     <img
@@ -6705,7 +6705,7 @@ If the model attempts to create a scene or environment, override it and force a 
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); handleProductAssetDelete(asset.id); }}
-                                      className="absolute -right-2 -top-2 rounded-full bg-white border border-gray-200 p-0.5 text-[9px] text-gray-400 hover:text-gray-600 hover:border-gray-400 w-5 h-5 flex items-center justify-center transition"
+                                      className="absolute -right-2 -top-2 rounded-full bg-white border border-gray-200/70 p-0.5 text-[9px] text-gray-400 hover:text-gray-600 hover:border-gray-400 w-5 h-5 flex items-center justify-center transition"
                                     >
                                       ✕
                                     </button>
@@ -6819,7 +6819,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                   <div
                     ref={uploadRef}
-                    className="flex flex-col gap-8 transition-all"
+                    className="flex flex-col gap-12 transition-all"
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
@@ -6865,7 +6865,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                   <div
                     ref={customizeRef}
-                    className="flex flex-col gap-8 transition-all"
+                    className="flex flex-col gap-12 transition-all"
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
@@ -6892,7 +6892,7 @@ If the model attempts to create a scene or environment, override it and force a 
                             : 'opacity-0 translate-y-6 pointer-events-none'} ${hasUploadedProduct || hideProductMode ? '' : 'opacity-50 pointer-events-none select-none'}`}
                         >
                           <div
-                            className="pointer-events-auto mx-auto w-full max-w-4xl rounded-2xl bg-white/95 p-2.5 shadow-lg backdrop-blur-md dark:bg-black/45"
+                            className="pointer-events-auto mx-auto w-full max-w-4xl rounded-xl bg-white p-2.5 shadow-lg dark:bg-black/45"
                             onMouseEnter={showGenerateBar}
                             onMouseLeave={scheduleGenerateBarAutoHide}
                             onFocusCapture={showGenerateBar}
@@ -6953,7 +6953,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                   {generatedImageUrl && (
                     <details key={`edit-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-xl bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition dark:bg-black/20 dark:text-white">
+                      <summary className="cursor-pointer select-none px-2 py-3 border-b border-gray-200/60 text-sm font-semibold text-gray-900 hover:text-indigo-600 transition dark:border-white/10 dark:text-white">
                         Edit image
                       </summary>
                       <div className="mt-3">
@@ -6969,7 +6969,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
                   {generatedImageUrl && (
                     <details key={`video-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-xl bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition dark:bg-black/20 dark:text-white">
+                      <summary className="cursor-pointer select-none px-2 py-3 border-b border-gray-200/60 text-sm font-semibold text-gray-900 hover:text-indigo-600 transition dark:border-white/10 dark:text-white">
                         Video
                       </summary>
                       <div className="mt-3">

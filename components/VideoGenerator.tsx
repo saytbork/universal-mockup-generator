@@ -43,7 +43,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   const canGenerate = hasAccess && !!videoPrompt.trim() && !isGenerating;
 
   return (
-    <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+    <div className="w-full rounded-xl border border-gray-200 p-4 sm:p-5 dark:border-white/10">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Video</h3>
@@ -58,13 +58,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
 
       <div className="mt-4 space-y-4">
         {hasAccess && typeof remainingVideos === 'number' && planLabel && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-700 dark:border-white/10 dark:bg-black/20 dark:text-white/70">
+          <div className="rounded-xl border border-gray-200 px-4 py-3 text-xs text-gray-700 dark:border-white/10 dark:text-white/70">
             {remainingVideos} video credits left on {planLabel}
           </div>
         )}
 
         {showLocked && (
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3 dark:border-white/10 dark:bg-black/20">
+          <div className="rounded-xl border border-gray-200 p-4 space-y-3 dark:border-white/10">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">Video is locked</p>
               <p className="text-xs text-gray-600 dark:text-white/60">
@@ -79,12 +79,12 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                     value={accessCode}
                     onChange={(event) => onAccessCodeChange(event.target.value)}
                     placeholder="Access code"
-                    className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 text-sm placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
+                    className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 text-sm placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
                   />
                   <button
                     type="button"
                     onClick={onAccessSubmit}
-                    className="rounded-2xl bg-indigo-600 text-white px-5 py-3 text-sm font-semibold hover:bg-indigo-700 transition dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                    className="rounded-xl bg-indigo-600 text-white px-5 py-3 text-sm font-semibold hover:bg-indigo-700 transition dark:bg-indigo-500 dark:hover:bg-indigo-400"
                   >
                     Unlock
                   </button>
@@ -96,7 +96,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             ) : (
               <a
                 href="/pricing"
-                className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30"
+                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30"
               >
                 View plans
               </a>
@@ -113,7 +113,7 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             value={videoPrompt}
             onChange={onPromptChange}
             placeholder="Example: subtle handheld camera sway, soft light flicker, steam rises, fabric gently moves in the wind."
-            className="w-full min-h-[86px] resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition disabled:opacity-60 dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
+            className="w-full min-h-[86px] resize-none rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition disabled:opacity-60 dark:bg-black/20 dark:border-white/10 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/30"
             disabled={!hasAccess || isGenerating}
           />
           <p className="text-[11px] text-gray-500 dark:text-white/45">
@@ -125,13 +125,13 @@ const VideoGenerator: React.FC<VideoGeneratorProps> = ({
           type="button"
           onClick={onGenerateVideo}
           disabled={!canGenerate}
-          className="w-full rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
+          className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
         >
           {isVideoLoading ? 'Generating video…' : 'Generate video'}
         </button>
       </div>
 
-      <div className="relative w-full mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+      <div className="relative w-full mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
         <div className="w-full aspect-video flex items-center justify-center">
         {isVideoLoading ? (
           <div className="text-center">

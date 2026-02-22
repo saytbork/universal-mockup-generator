@@ -14,7 +14,7 @@ const ACTIVE_CLASS =
   'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500 dark:text-white';
 
 const INACTIVE_CLASS =
-  'bg-gray-50 text-gray-600 border-gray-200 hover:border-indigo-600 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
+  'bg-white text-gray-600 border-gray-200 hover:border-indigo-600 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
 export const getTogglePillClass = (active: boolean, fullWidth = false) =>
   [

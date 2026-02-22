@@ -395,7 +395,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
 
       <div
         ref={containerRef}
-        className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5"
+        className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl overflow-hidden"
       >
         {isImageLoading ? (
           <GenerationProgress />
@@ -433,7 +433,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       </div>
 
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full space-y-3">
+        <div className="mt-6 w-full space-y-4">
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
             <button
               onClick={onReset}
@@ -459,7 +459,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
                 {isProcessingDownload ? 'Preparing…' : 'Download'}
               </button>
             )}
-            <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-white/50">
+            <span className="px-2 py-1 rounded-full bg-gray-50 text-gray-400 dark:bg-white/5 dark:text-white/40">
               {isFreeUser ? 'Free plan · Watermarked' : 'High-resolution export'}
             </span>
           </div>
