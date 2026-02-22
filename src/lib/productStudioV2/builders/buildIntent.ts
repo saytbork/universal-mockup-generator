@@ -2,7 +2,10 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 
 export function buildIntent(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
-    return 'STUDIO_VISUAL_INTENT: wine-premium.';
+    const wineIntent = String(state?.wineMoodProfile || state?.wineMoodModifier || 'prestige')
+      .trim()
+      .toLowerCase();
+    return `STUDIO_VISUAL_INTENT: wine-${wineIntent}.`;
   }
   return `STUDIO_VISUAL_INTENT: ${authority.creativeIntent}.`;
 }

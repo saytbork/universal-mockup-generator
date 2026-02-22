@@ -214,39 +214,6 @@ function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile
   return visualProfile as IndustryProfile;
 }
 
-function hasExplicitWineSignals(state: ProductStudioState): boolean {
-  const visualProfile = normalize(state.visualProfile);
-  const category = normalize((state as any).category);
-  const wineType = normalize((state as any).wineType);
-  const closure = normalize((state as any).wineClosureType);
-  const bottleState = normalize((state as any).wineBottleState);
-  const glassMode = normalize((state as any).wineGlassMode);
-  const wineAction = normalize((state as any).wineAction);
-  return (
-    visualProfile === 'wine' ||
-    visualProfile === 'wine-prestige' ||
-    category === 'wine' ||
-    wineType === 'red' ||
-    wineType === 'white' ||
-    wineType === 'rosé' ||
-    wineType === 'sparkling-white' ||
-    wineType === 'sparkling-rosé' ||
-    closure === 'from-reference' ||
-    closure === 'natural-cork' ||
-    closure === 'crown-cap' ||
-    closure === 'screw-cap' ||
-    closure === 'cork-with-cage' ||
-    bottleState === 'sealed' ||
-    bottleState === 'opened-with-cork-out' ||
-    bottleState === 'opened-with-cork-nearby' ||
-    glassMode === 'none' ||
-    glassMode === 'empty' ||
-    glassMode === 'filled' ||
-    wineAction === 'static-presentation' ||
-    wineAction === 'controlled-pour'
-  );
-}
-
 const WINE_ENVIRONMENT_VARIATIONS: Array<
   NonNullable<StudioUIState['wineEnvironmentVariation']>
 > = [
@@ -320,6 +287,25 @@ function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUI
   }
   if (moodModifier.includes('reflection') || contextPreset.includes('minimal')) return 'modern-minimal';
   return 'prestige';
+}
+
+function resolveWineTypeForV2(state: ProductStudioState): NonNullable<StudioUIState['wineType']> {
+  const explicit = String((state as any).wineType || '').trim().toLowerCase();
+  if (
+    explicit === 'red' ||
+    explicit === 'white' ||
+    explicit === 'rosé' ||
+    explicit === 'sparkling-white' ||
+    explicit === 'sparkling-rosé'
+  ) {
+    return explicit as NonNullable<StudioUIState['wineType']>;
+  }
+  const signal = `${String((state as any).contextPreset || '')} ${String((state as any).wineMoodModifier || '')} ${String(state.photoMode || '')}`.toLowerCase();
+  if (signal.includes('sparkling') && (signal.includes('rose') || signal.includes('rosé') || signal.includes('pink'))) return 'sparkling-rosé';
+  if (signal.includes('sparkling')) return 'sparkling-white';
+  if (signal.includes('rose') || signal.includes('rosé') || signal.includes('pink')) return 'rosé';
+  if (signal.includes('white') || signal.includes('viognier') || signal.includes('chardonnay') || signal.includes('sauvignon')) return 'white';
+  return 'red';
 }
 
 const COFFEE_ENVIRONMENT_VARIATIONS: Array<
@@ -582,8 +568,7 @@ function resolveCoffeeIndustryLayer(
   }
 
   if (intent === 'conversion') {
-    const inferredMoodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
-      environment.variation === 'minimal-gradient' ? 'modern-commercial' : 'premium-minimal';
+    const inferredMoodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> = 'premium-minimal';
     const moodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
       (selectedMoodModifier || inferredMoodProfile) as NonNullable<StudioUIState['coffeeMoodProfile']>;
     const cinematicConversion = moodProfile === 'coffee-cinematic-luxury';
@@ -770,9 +755,7 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = hasExplicitWineSignals(state)
-    ? 'wine'
-    : resolveIndustryProfile(state.visualProfile);
+  const industryProfile = resolveIndustryProfile(state.visualProfile);
   const coffeeLayer =
     industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
@@ -831,6 +814,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = industryProfile === 'wine' && !wineManualConfigActive;
   const winePrestigeV2Mode = false;
+  const resolvedWineType = industryProfile === 'wine' ? resolveWineTypeForV2(state) : undefined;
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
     : null;
@@ -882,8 +866,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(!wineManualConfigActive && state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
-          wineAction:
-            state.wineAction === 'controlled-pour' ? 'controlled-pour' : 'static-presentation',
+          wineAction: 'static-presentation',
+          ...(resolvedWineType ? { wineType: resolvedWineType } : {}),
+          ...(state.wineBottleState ? { wineBottleState: state.wineBottleState as StudioUIState['wineBottleState'] } : {}),
+          ...(resolvedWineType && (resolvedWineType === 'sparkling-white' || resolvedWineType === 'sparkling-rosé')
+            ? { carbonationLevel: 'high' as const }
+            : { carbonationLevel: 'none' as const }),
           ...(state.wineGlassMode ? { wineGlassMode: state.wineGlassMode } : {}),
           ...(state.wineClosureType ? { wineClosureType: state.wineClosureType } : {}),
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),

@@ -582,7 +582,6 @@ function applyReferenceAndWineGuardrails(finalPrompt: string, state: ProductStud
             .replace(/\bSTUDIO_VISUAL_INTENT:\s*[^.]*\./gi, '')
             .replace(/\s{2,}/g, ' ')
             .trim();
-        next = `${next} STUDIO_VISUAL_INTENT: wine-premium.`.trim();
     }
 
     const suffixParts = [
@@ -2142,6 +2141,7 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
     const core: string[] = [];
     const effectiveInteraction = resolveEffectiveInteraction(state);
     const effectiveMotion = resolveEffectiveMotion(state);
+    const wineActive = isWineContext(state);
     if (scenePrompt) core.push(scenePrompt);
     if (state.qualityProfile) core.push(`OUTPUT_PROFILE: ${state.qualityProfile}`);
     if (state.sceneType) {
@@ -2163,11 +2163,11 @@ function buildCoreSceneLayer(state: ProductStudioState, scenePrompt: string): st
         else if (explicitWorld) core.push(`STUDIO_WORLD: ${explicitWorld}`);
     }
     if (state.placement) core.push(`PHYSICAL_PLACEMENT: ${state.placement}`);
-    if (state.photoMode) core.push(`PHOTO_MODE: ${state.photoMode}`);
+    if (state.photoMode && !(wineActive && state.photoMode === 'Hero Landing Page')) core.push(`PHOTO_MODE: ${state.photoMode}`);
     
     // GEMINI/GPT FIX: Relax frame constraint when reference product exists to prevent morphing
     const hasReference = hasReferenceProductImage(state);
-    if (isHeroPhotoMode(state.photoMode)) {
+    if (isHeroPhotoMode(state.photoMode) && !wineActive) {
         const splashMode = isSplashPhotoMode(state.photoMode);
         const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
         const splashAdMode = splashMode && splashMotionIntensity === 'Explosive';

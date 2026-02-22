@@ -136,6 +136,9 @@ export interface StudioUIState {
     | 'architectural-shadow';
   autoRandomizeWineEnvironment?: boolean;
   wineAction?: 'static-presentation' | 'controlled-pour';
+  wineType?: 'red' | 'white' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
+  carbonationLevel?: 'none' | 'low' | 'medium' | 'high';
+  wineBottleState?: 'sealed' | 'opened-with-cork-out' | 'opened-with-cork-nearby';
   wineGlassMode?: 'none' | 'empty' | 'filled';
   wineClosureType?: string;
   referenceProductCategory?: string;
