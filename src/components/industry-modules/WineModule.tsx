@@ -38,19 +38,84 @@ type WineModuleProps = {
   onWineMoodModifierChange: (modifier: string) => void;
 };
 
+type BottlePresentationMode =
+  | 'sealed'
+  | 'open'
+  | 'open-glass-empty'
+  | 'open-glass-served';
+
+const BOTTLE_PRESENTATION_OPTIONS: Array<{ value: BottlePresentationMode; label: string }> = [
+  { value: 'sealed', label: 'Sealed' },
+  { value: 'open', label: 'Open' },
+  { value: 'open-glass-empty', label: 'Open + Empty Glass' },
+  { value: 'open-glass-served', label: 'Served' },
+];
+
+function resolveBottlePresentationMode(
+  bottleState: WineBottleState,
+  glassMode: WineGlassMode
+): BottlePresentationMode {
+  if (bottleState === 'sealed') return 'sealed';
+  if (glassMode === 'filled') return 'open-glass-served';
+  if (glassMode === 'empty') return 'open-glass-empty';
+  return 'open';
+}
+
 export function WineModule({
   wineAction,
+  wineBottleState,
+  wineGlassMode,
   winePourStyle,
+  hasReferenceProduct,
   contextPreset,
   wineLightingTone,
   wineMoodModifier,
   onWineActionChange,
+  onWineBottleStateChange,
+  onWineGlassModeChange,
   onWinePourStyleChange,
   onContextPresetChange,
   onWineLightingToneChange,
   onWineMoodModifierChange,
 }: WineModuleProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const bottlePresentationMode = resolveBottlePresentationMode(wineBottleState, wineGlassMode);
+  const pourStyleDisabled = wineAction !== 'controlled-pour' || bottlePresentationMode === 'sealed';
+  const glassDependentControlsDisabled = bottlePresentationMode === 'sealed';
+
+  const chipClass = (selected: boolean, disabled = false): string => {
+    if (disabled) return '!opacity-50 !cursor-not-allowed !bg-gray-50 !border-gray-200 !text-gray-400';
+    return selected
+      ? '!bg-[var(--studio-accent)] !border-[var(--studio-accent)] !text-white'
+      : '!bg-white !border-gray-200 !text-gray-600 hover:!border-[var(--studio-accent)]';
+  };
+
+  const applyBottlePresentationMode = (mode: BottlePresentationMode): void => {
+    if (mode === 'sealed') {
+      onWineBottleStateChange('sealed');
+      onWineGlassModeChange('none');
+      return;
+    }
+    if (mode === 'open') {
+      onWineBottleStateChange('opened-with-cork-nearby');
+      onWineGlassModeChange('none');
+      return;
+    }
+    if (mode === 'open-glass-empty') {
+      onWineBottleStateChange('opened-with-cork-nearby');
+      onWineGlassModeChange('empty');
+      return;
+    }
+    onWineBottleStateChange('opened-with-cork-nearby');
+    onWineGlassModeChange('filled');
+  };
+
+  const handleWineActionChange = (action: WineAction): void => {
+    onWineActionChange(action);
+    if (action === 'controlled-pour' && bottlePresentationMode !== 'open-glass-served') {
+      applyBottlePresentationMode('open-glass-served');
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-4">
@@ -59,20 +124,37 @@ export function WineModule({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between text-left"
       >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">WINE MODULE</p>
+        <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500">WINE MODULE</p>
         <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
       </button>
 
       {isOpen && (
         <div className="mt-4 space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Action</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Bottle Presentation</p>
+            <div className="flex flex-wrap gap-2">
+              {BOTTLE_PRESENTATION_OPTIONS.map((option) => (
+                <Chip
+                  key={option.value}
+                  selected={bottlePresentationMode === option.value}
+                  onClick={() => applyBottlePresentationMode(option.value)}
+                  className={chipClass(bottlePresentationMode === option.value, !hasReferenceProduct)}
+                  disabled={!hasReferenceProduct}
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Wine Action</p>
             <div className="flex flex-wrap gap-2">
               {WINE_ACTION_OPTIONS.map((action) => (
                 <Chip
                   key={action}
                   selected={wineAction === action}
-                  onClick={() => onWineActionChange(action)}
+                  onClick={() => handleWineActionChange(action)}
+                  className={chipClass(wineAction === action)}
                 >
                   {action === 'static-presentation' ? 'Static Presentation' : 'Controlled Pour'}
                 </Chip>
@@ -80,47 +162,50 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment Preset</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Environment Preset</p>
             <div className="flex flex-wrap gap-2">
               {WINE_ENVIRONMENT_PRESETS.map((preset) => (
                 <Chip
                   key={preset}
                   selected={String(contextPreset || '').trim() === preset}
                   onClick={() => onContextPresetChange(preset)}
+                  className={chipClass(String(contextPreset || '').trim() === preset)}
                 >
                   {preset}
                 </Chip>
               ))}
             </div>
           </div>
-          {wineAction === 'controlled-pour' && (
-            <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Pour Style</p>
-              <div className="flex flex-wrap gap-2">
-                {WINE_POUR_STYLE_OPTIONS.map((style) => (
-                  <Chip
-                    key={style}
-                    selected={winePourStyle === style}
-                    onClick={() => onWinePourStyleChange(style)}
-                  >
-                    {style === 'slow-ribbon'
-                      ? 'Slow Ribbon'
-                      : style === 'mid-flow-elegance'
-                      ? 'Mid-flow Elegance'
-                      : 'Peak Glass Impact'}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Pour Style</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_POUR_STYLE_OPTIONS.map((style) => (
+                <Chip
+                  key={style}
+                  selected={winePourStyle === style}
+                  onClick={() => onWinePourStyleChange(style)}
+                  disabled={pourStyleDisabled}
+                  className={chipClass(winePourStyle === style, pourStyleDisabled)}
+                >
+                  {style === 'slow-ribbon'
+                    ? 'Slow Ribbon'
+                    : style === 'mid-flow-elegance'
+                    ? 'Mid-flow Elegance'
+                    : 'Peak Glass Impact'}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Lighting Tone</p>
             <div className="flex flex-wrap gap-2">
               {WINE_LIGHTING_TONES.map((tone) => (
                 <Chip
                   key={tone}
                   selected={wineLightingTone === tone}
                   onClick={() => onWineLightingToneChange(tone)}
+                  disabled={glassDependentControlsDisabled}
+                  className={chipClass(wineLightingTone === tone, glassDependentControlsDisabled)}
                 >
                   {tone}
                 </Chip>
@@ -128,13 +213,14 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Modifier</p>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Mood Modifier</p>
             <div className="flex flex-wrap gap-2">
               {WINE_MODIFIERS.map((modifier) => (
                 <Chip
                   key={modifier}
                   selected={wineMoodModifier === modifier}
                   onClick={() => onWineMoodModifierChange(modifier)}
+                  className={chipClass(wineMoodModifier === modifier)}
                 >
                   {modifier}
                 </Chip>

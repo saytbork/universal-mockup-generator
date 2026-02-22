@@ -16,6 +16,13 @@ import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
+import {
+  applyWineDeterministicStateMachine,
+  buildWineConfigResolvedBlock,
+  buildWineEngineStatusBlock,
+  buildWineTruthLockBlock,
+  resolveDeterministicWineConfig,
+} from './wineConfigResolver.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 
 const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
@@ -24,88 +31,6 @@ function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUI
   const isWineIndustry = String(state?.visualProfile || '').trim().toLowerCase() === 'wine';
   if (!STRICT_GUARDRAILS && !isWineIndustry) return [];
   return [buildUltraReal(authority)];
-}
-
-function normalizeWineType(wineType?: StudioUIState['wineType']): string {
-  const normalized = String(wineType || '').trim().toLowerCase();
-  if (normalized === 'red') return 'red';
-  if (normalized === 'white' || normalized === 'rosé') return 'white';
-  if (normalized === 'sparkling-white' || normalized === 'sparkling-rosé') return 'sparkling';
-  return 'red';
-}
-
-function resolveWineColorConstraint(wineType?: StudioUIState['wineType']): string {
-  const normalized = normalizeWineType(wineType);
-  if (normalized === 'white') return 'White wine -> pale yellow/straw spectrum only.';
-  if (normalized === 'sparkling') return 'Sparkling -> pale yellow with visible carbonation only.';
-  return 'Red wine -> ruby/burgundy spectrum only.';
-}
-
-function resolveClosureConstraint(closureType?: string): string {
-  const normalized = String(closureType || '').trim().toLowerCase();
-  if (normalized.includes('crown')) return 'If crown -> metal crown only.';
-  if (normalized.includes('screw')) return 'If screw -> threaded screw cap only.';
-  return 'If cork -> natural cork only.';
-}
-
-function buildWineConfigResolvedBlock(state: StudioUIState): string {
-  const wineType = String(state.wineType || 'red').trim();
-  const closureType = String(state.wineClosureType || 'cork').trim();
-  const bottleState = String(state.wineBottleState || 'sealed').trim();
-  const glassMode = String(state.wineGlassMode || 'none').trim();
-  const carbonationLevel = String(state.carbonationLevel || 'none').trim();
-  return [
-    'WINE_CONFIG_RESOLVED:',
-    `wineType=${wineType};`,
-    `closureType=${closureType};`,
-    `bottleState=${bottleState};`,
-    `glassMode=${glassMode};`,
-    `carbonationLevel=${carbonationLevel}.`,
-  ].join(' ');
-}
-
-function buildWineEngineStatusBlock(): string {
-  return 'WINE_ENGINE_STATUS: active. deterministic. vertical-isolation=on.';
-}
-
-function buildWineTruthLockBlock(state: StudioUIState): string {
-  const bottleState = String(state.wineBottleState || 'sealed').trim().toLowerCase();
-  const carbonation = String(state.carbonationLevel || 'none').trim().toLowerCase();
-  const openStateRule =
-    bottleState === 'opened-with-cork-nearby'
-      ? [
-          'If bottleState = opened-with-cork-nearby:',
-          'Cork must appear physically near bottle base.',
-          'Bottle liquid level must be lower if glass is filled.',
-        ].join(' ')
-      : [
-          'If bottleState = closed:',
-          'No cork outside bottle.',
-        ].join(' ');
-
-  const carbonationRule =
-    carbonation === 'high'
-      ? [
-          'If carbonationLevel = high:',
-          'Must show visible bubbles.',
-          'Must use appropriate sparkling glass silhouette.',
-        ].join(' ')
-      : [
-          'If carbonationLevel = none:',
-          'No bubbles allowed.',
-        ].join(' ');
-
-  return [
-    'WINE_TRUTH_LOCK:',
-    'PRODUCT_WINE_COLOR_LOCK: Liquid color MUST match reference bottle type exactly.',
-    resolveWineColorConstraint(state.wineType),
-    'PRODUCT_CLOSURE_LOCK: Closure type must match detected reference closure.',
-    resolveClosureConstraint(state.wineClosureType),
-    'Never substitute closure types.',
-    'LIQUID_MATCH_RULE: If glass is present, liquid color in glass MUST match bottle liquid exactly. No color deviation allowed.',
-    `OPEN_STATE_COHERENCE: ${openStateRule}`,
-    `CARBONATION_RULE: ${carbonationRule}`,
-  ].join(' ');
 }
 
 function injectWineEngine(parts: string[], state: StudioUIState): string[] {
@@ -249,7 +174,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     String((state as any).referenceProductCategory || '')
       .trim()
       .toLowerCase() === 'wine';
-  const effectiveState: StudioUIState = state;
+  const effectiveState: StudioUIState = isWineIndustry ? applyWineDeterministicStateMachine(state) : state;
   if (isWineIndustry) {
     console.log('[WINE CONFIG RESOLVED]', {
       wineType: effectiveState.wineType,
@@ -296,22 +221,23 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   }
 
   if (isWineIndustry) {
+    const resolvedWineConfig = resolveDeterministicWineConfig(effectiveState);
     const wineBlocks = [
-      buildWineConfigResolvedBlock(state),
+      buildWineConfigResolvedBlock(effectiveState, resolvedWineConfig),
       buildWineEngineStatusBlock(),
-      buildWineTruthLockBlock(state),
-      buildIntent(authority, state),
-      buildWorld(authority, effectiveState.world, state),
-      buildWineIndustryLayerV2(state),
+      buildWineTruthLockBlock(effectiveState, resolvedWineConfig),
+      buildIntent(authority, effectiveState),
+      buildWorld(authority, effectiveState.world, effectiveState),
+      buildWineIndustryLayerV2(effectiveState),
       buildCameraOverrides(effectiveState),
-      buildComposition(authority, state),
-      buildMotion(authority, state),
-      winePrestigeMode ? '' : buildPhysics(authority, state),
-      buildModifiers(modifiers, state),
-      buildLighting(authority, state),
-      buildMaterials(authority, state),
-      buildPackaging(state),
-      buildGeometry(authority, state),
+      buildComposition(authority, effectiveState),
+      buildMotion(authority, effectiveState),
+      winePrestigeMode ? '' : buildPhysics(authority, effectiveState),
+      buildModifiers(modifiers, effectiveState),
+      buildLighting(authority, effectiveState),
+      buildMaterials(authority, effectiveState),
+      buildPackaging(effectiveState),
+      buildGeometry(authority, effectiveState),
       ...protectionLayer,
       ...buildAdvancedOverrideParts(effectiveState),
     ];
