@@ -40,8 +40,12 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
   if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
     const action = String(state.wineAction || 'static-presentation').trim();
+    const wineMood = String(state.wineMoodProfile || '')
+      .trim()
+      .toLowerCase();
+    const compositionModel = wineMood === 'prestige' ? 'wine-prestige' : 'wine-hero';
     return [
-      'STUDIO_COMPOSITION_MODEL: wine-hero.',
+      `STUDIO_COMPOSITION_MODEL: ${compositionModel}.`,
       `WINE_ACTION: ${action}.`,
       'COMPOSITION_OVERRIDE: Product First composition is mandatory.',
       'RULE_OF_THIRDS_DEFAULT: enabled.',

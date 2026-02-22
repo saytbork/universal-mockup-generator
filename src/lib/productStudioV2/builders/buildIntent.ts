@@ -2,7 +2,7 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 
 export function buildIntent(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.winePrestigeMode || state?.visualProfile === 'wine') {
-    const wineMood = String(state?.wineMoodProfile || state?.wineMoodModifier || '')
+    const wineMood = String(state?.wineMoodProfile || '')
       .trim()
       .toLowerCase();
     return wineMood === 'prestige'

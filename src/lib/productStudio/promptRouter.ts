@@ -276,19 +276,28 @@ function resolveWineEnvironmentVariation(
 }
 
 function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUIState['wineMoodProfile']> {
+  const explicitProfile = normalize((state as any).wineMoodProfile);
   const moodModifier = normalize(state.wineMoodModifier);
-  const visualIntent = normalize(state.visualIntent);
-  const contextPreset = normalize(state.contextPreset);
-  const photoMode = normalize(state.photoMode);
-
-  if (visualIntent === 'conversion') return 'ecommerce';
-  if (moodModifier.includes('prestige') || moodModifier.includes('luxury')) return 'prestige';
-  if (moodModifier.includes('vintage') || moodModifier.includes('terroir')) return 'editorial';
-  if (moodModifier.includes('burgundy') || moodModifier.includes('barrel') || contextPreset.includes('cellar')) {
-    return 'dark-luxury';
+  if (
+    explicitProfile === 'neutral' ||
+    explicitProfile === 'prestige' ||
+    explicitProfile === 'editorial' ||
+    explicitProfile === 'ecommerce' ||
+    explicitProfile === 'dark-luxury' ||
+    explicitProfile === 'modern-minimal'
+  ) {
+    return explicitProfile as NonNullable<StudioUIState['wineMoodProfile']>;
   }
-  if (moodModifier.includes('reflection') || contextPreset.includes('minimal')) return 'modern-minimal';
-  if (photoMode === 'hero landing page') return 'neutral';
+  if (
+    moodModifier === 'neutral' ||
+    moodModifier === 'prestige' ||
+    moodModifier === 'editorial' ||
+    moodModifier === 'ecommerce' ||
+    moodModifier === 'dark-luxury' ||
+    moodModifier === 'modern-minimal'
+  ) {
+    return moodModifier as NonNullable<StudioUIState['wineMoodProfile']>;
+  }
   return 'neutral';
 }
 
