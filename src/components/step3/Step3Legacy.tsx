@@ -2919,7 +2919,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="relative z-10 mx-auto w-full max-w-[640px] px-6 transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
-            <div className="space-y-8 text-center rounded-3xl border border-gray-200 bg-white p-8 shadow-xl dark:bg-[#101014] dark:border-white/10">
+            <div className="space-y-8 text-center rounded-3xl border border-gray-200 bg-white p-8 shadow-xl dark:bg-black/70 dark:border-white/10">
               <div className="space-y-3">
                 <h3 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   {mode === 'studio' ? 'Make something beautiful.' : 'Show it in the real world.'}
