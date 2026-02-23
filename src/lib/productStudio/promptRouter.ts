@@ -675,6 +675,14 @@ function resolveIndustryProductState(
   resolvedCoffeeIntent?: CoffeeIndustryIntent
 ): ProductStateMotion {
   if (industryProfile === 'wine') {
+    // Wine open/served is primarily represented by wineBottleState / wineGlassMode (not stateMotion).
+    // If we keep returning `static` while the bottle is open, V2 can emit contradictory packaging cues
+    // (e.g. closed crown-cap) and create artifacts like "double closures".
+    const wineBottleState = String((state as any).wineBottleState || '').trim().toLowerCase();
+    const wineGlassMode = String((state as any).wineGlassMode || '').trim().toLowerCase();
+    const isOpen = wineBottleState !== '' && wineBottleState !== 'sealed';
+    const hasGlass = wineGlassMode === 'empty' || wineGlassMode === 'filled';
+    if (isOpen || hasGlass) return 'opened';
     return state.stateMotion === 'opened' ? 'opened' : 'static';
   }
 
@@ -701,7 +709,14 @@ function resolvePackagingBehavior(
 ): string {
   if (industryProfile === 'wine') {
     const closure = String((state as any).wineClosureType || '').trim().toLowerCase();
-    const opened = stateMotion === 'opened' || stateMotion === 'pouring';
+    const wineBottleState = String((state as any).wineBottleState || '').trim().toLowerCase();
+    const wineGlassMode = String((state as any).wineGlassMode || '').trim().toLowerCase();
+    const opened =
+      stateMotion === 'opened' ||
+      stateMotion === 'pouring' ||
+      (wineBottleState !== '' && wineBottleState !== 'sealed') ||
+      wineGlassMode === 'empty' ||
+      wineGlassMode === 'filled';
     if (!closure || closure === 'from-reference' || closure === 'from reference') {
       return opened ? 'wine-closure-from-reference-open' : 'wine-closure-from-reference';
     }
@@ -790,8 +805,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     state.definition.type,
     coffeeLayer?.intent
   );
-  const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
-    ? state.stateMotion
+  const resolvedIndustryMotion = resolveIndustryProductState(state, industryProfile, coffeeLayer?.intent);
+  const capabilityResolvedProductState = resolvedAllowedMotions.includes(resolvedIndustryMotion)
+    ? resolvedIndustryMotion
     : 'static';
   const packagingBehavior = resolvePackagingBehavior(
     industryProfile,
@@ -837,7 +853,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const splashAdMode =
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
-  const winePrestigeMode = industryProfile === 'wine' && !wineManualConfigActive;
+  // Wine should keep its environment/mood pipeline even when the user explicitly selects wine type/closure.
+  // Otherwise, selecting these chips disables the wine environment layer and can clamp photoMode back to hero.
+  const winePrestigeMode = industryProfile === 'wine';
   const winePrestigeV2Mode = false;
   const resolvedWineType = industryProfile === 'wine' ? resolveWineTypeForV2(state) : undefined;
   const wineEnvironment = winePrestigeMode
@@ -957,7 +975,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const rules = industryRules[industryProfile];
   let allowedInteractions = ['none'];
 
-  if (rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
+  // Do not clamp Wine photo modes to a small allow-list: Wine uses a mixed set of photo modes + visual styles.
+  // Clamping here is what makes "Hero Landing Page" leak when the user selects wine visual styles.
+  if (industryProfile !== 'wine' && rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
+    v2State.photoMode = rules.allowedPhotoModes[0];
+  }
+  if (industryProfile === 'wine' && (!v2State.photoMode || !String(v2State.photoMode).trim()) && rules?.allowedPhotoModes?.length) {
     v2State.photoMode = rules.allowedPhotoModes[0];
   }
 

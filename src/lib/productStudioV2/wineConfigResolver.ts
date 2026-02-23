@@ -193,6 +193,8 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
 
   return [
     'WINE_TRUTH_LOCK:',
+    // Stability/orientation: prevents "falling bottle" artifacts when other blocks are strict.
+    'BOTTLE_ORIENTATION_LOCK: Bottle must be perfectly upright (0° tilt). Stable base contact on the surface. No leaning, no tipping, no toppling.',
     'PRODUCT_WINE_COLOR_LOCK: Bottle liquid color must match reference exactly.',
     'LIQUID_MATCH_RULE: If glass is present, liquid color in glass MUST match bottle liquid exactly.',
     'LIQUID_ABSOLUTE_LOCK: Bottle liquid color must match reference exactly. Glass liquid color must match bottle liquid exactly. No hue shift. No reinterpretation. No brightness shift. No saturation drift.',
@@ -210,6 +212,7 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     closurePlacementRule,
     neckClearanceRule,
     'VOLUME_CONSISTENCY_RULE: If glassFillLevel != none: Bottle liquid height must be visibly reduced. Amount of reduction must match serveAmount and glassFillLevel (quarter/half/three-quarters). No full bottle + filled glass state. Meniscus must match liquid density.',
+    'BOTTLE_FILL_SANITY: If glassFillLevel != none: bottle cannot appear filled up to the neck. The bottle fill line must be clearly lower than the sealed/reference fill height.',
     'MENISCUS_HEIGHT_LOCK: If bottlePresentationMode != sealed: Bottle liquid meniscus must appear below the reference sealed liquid height. The reduction must be visually measurable. No full-height liquid allowed when glass contains liquid.',
   ].join(' ');
 }
