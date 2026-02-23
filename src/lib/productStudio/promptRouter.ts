@@ -301,8 +301,13 @@ function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUI
   return 'neutral';
 }
 
-function resolveWineTypeForV2(state: ProductStudioState): NonNullable<StudioUIState['wineType']> {
+function resolveWineTypeForV2(state: ProductStudioState): StudioUIState['wineType'] | undefined {
   const explicit = String((state as any).wineType || '').trim().toLowerCase();
+  const hasReferenceProduct = Array.isArray((state as any).products) && (state as any).products.length > 0;
+  if (hasReferenceProduct && (explicit === '' || explicit === 'auto')) {
+    // With a reference product image, do not guess wine type/color. Let the reference drive the liquid color.
+    return undefined;
+  }
   if (
     explicit === 'red' ||
     explicit === 'white' ||
@@ -317,7 +322,7 @@ function resolveWineTypeForV2(state: ProductStudioState): NonNullable<StudioUISt
   if (signal.includes('sparkling')) return 'sparkling-white';
   if (signal.includes('rose') || signal.includes('rosé') || signal.includes('pink')) return 'rosé';
   if (signal.includes('white') || signal.includes('viognier') || signal.includes('chardonnay') || signal.includes('sauvignon')) return 'white';
-  return 'red';
+  return undefined;
 }
 
 const COFFEE_ENVIRONMENT_VARIATIONS: Array<
@@ -695,8 +700,16 @@ function resolvePackagingBehavior(
   state: ProductStudioState
 ): string {
   if (industryProfile === 'wine') {
-    if (stateMotion === 'opened' || stateMotion === 'pouring') return 'wine-cork-removal';
-    return 'wine-cork';
+    const closure = String((state as any).wineClosureType || '').trim().toLowerCase();
+    const opened = stateMotion === 'opened' || stateMotion === 'pouring';
+    if (!closure || closure === 'from-reference' || closure === 'from reference') {
+      return opened ? 'wine-closure-from-reference-open' : 'wine-closure-from-reference';
+    }
+    if (closure.includes('crown')) return opened ? 'wine-crown-cap-removal' : 'wine-crown-cap';
+    if (closure.includes('screw')) return opened ? 'wine-screw-cap-open' : 'wine-screw-cap';
+    if (closure.includes('synthetic')) return opened ? 'wine-synthetic-closure-open' : 'wine-synthetic-closure';
+    if (closure.includes('cage')) return opened ? 'wine-cork-cage-removal' : 'wine-cork-cage';
+    return opened ? 'wine-cork-removal' : 'wine-cork';
   }
 
   if (industryProfile === 'supplements') {
@@ -837,6 +850,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     visualProfile: industryProfile,
     coffeeIndustryLayer: false,
     autoRandomizeCoffeeEnvironment: false,
+    productReferencePresent: Array.isArray((state as any).products) && (state as any).products.length > 0,
     world: inferStudioWorld(state),
     motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
     composition: inferStudioComposition(state),

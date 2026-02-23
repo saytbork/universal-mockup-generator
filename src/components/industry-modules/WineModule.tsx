@@ -158,15 +158,15 @@ export function WineModule({
         return;
       case 'open':
         onWineGlassModeChange('none');
-        onWineBottleStateChange('opened-with-cork-out');
+        onWineBottleStateChange('opened-with-cork-nearby');
         return;
       case 'open-glass-empty':
         onWineGlassModeChange('empty');
-        onWineBottleStateChange('opened-with-cork-out');
+        onWineBottleStateChange('opened-with-cork-nearby');
         return;
       case 'open-glass-served':
         onWineGlassModeChange('filled');
-        onWineBottleStateChange('opened-with-cork-out');
+        onWineBottleStateChange('opened-with-cork-nearby');
         return;
       default:
         return;

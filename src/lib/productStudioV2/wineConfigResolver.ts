@@ -14,7 +14,7 @@ export type ResolvedWineConfig = {
   glassMode: 'none' | 'present';
   glassFillLevel: WineGlassFillLevel;
   closurePlacement: 'in-neck' | 'on-surface';
-  closureType: 'cork' | 'screwcap' | 'synthetic' | 'crown';
+  closureType: 'reference' | 'cork' | 'screwcap' | 'synthetic' | 'crown';
   allowGlassDependentLighting: boolean;
 };
 
@@ -24,6 +24,7 @@ function normalize(value: unknown): string {
 
 function resolveClosureType(closureType?: string): ResolvedWineConfig['closureType'] {
   const normalized = normalize(closureType);
+  if (!normalized || normalized === 'from-reference' || normalized === 'from reference') return 'reference';
   if (normalized.includes('screw')) return 'screwcap';
   if (normalized.includes('synthetic')) return 'synthetic';
   if (normalized.includes('crown')) return 'crown';
@@ -147,6 +148,9 @@ export function buildWineEngineStatusBlock(): string {
 }
 
 function buildClosureTypeRule(closureType: ResolvedWineConfig['closureType']): string {
+  if (closureType === 'reference') {
+    return 'If closure is from-reference -> use exactly the closure shown in the reference image. Do not invent cork/cage/screwcap/crown.';
+  }
   if (closureType === 'screwcap') return 'If screwcap -> same screwcap model only.';
   if (closureType === 'synthetic') return 'If synthetic -> preserve synthetic closure.';
   if (closureType === 'crown') return 'If crown -> metal crown only.';

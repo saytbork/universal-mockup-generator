@@ -16,6 +16,13 @@ import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
+import {
+  applyWineDeterministicStateMachine,
+  buildWineConfigResolvedBlock,
+  buildWineEngineStatusBlock,
+  buildWineTruthLockBlock,
+  resolveDeterministicWineConfig,
+} from './wineConfigResolver.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 
 const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
@@ -211,9 +218,14 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   }
 
   if (isWineIndustry) {
+    const wineEffectiveState = applyWineDeterministicStateMachine(state);
+    const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineBlocks = [
       buildIntent(authority, state),
       buildWorld(authority, effectiveState.world, state),
+      buildWineEngineStatusBlock(),
+      buildWineTruthLockBlock(wineEffectiveState, resolvedWineConfig),
+      buildWineConfigResolvedBlock(wineEffectiveState, resolvedWineConfig),
       buildWineIndustryLayerV2(state),
       buildCameraOverrides(effectiveState),
       buildComposition(authority, state),

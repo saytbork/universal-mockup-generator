@@ -1,5 +1,71 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
+function normalize(value: unknown): string {
+  return String(value || '').trim().toLowerCase();
+}
+
+function buildWineLiquidPhysics(state: StudioUIState): string {
+  const wineType = String(state.wineType || '').trim().toLowerCase();
+  const carbonation = normalize(state.carbonationLevel);
+
+  // If we don't know wine type (especially when a reference image exists), never guess the liquid color.
+  if (!wineType || wineType === 'auto') {
+    return [
+      'WINE_LIQUID_PHYSICS:',
+      'Match the exact liquid color from the reference product.',
+      'No hue shift. No saturation drift. No cinematic grading on liquid.',
+      carbonation === 'high' ? 'If sparkling: visible bubbles + fine effervescence.' : 'No invented bubbles unless reference shows them.',
+      'Natural meniscus and realistic light absorption.',
+    ].join(' ');
+  }
+
+  const base =
+    wineType === 'white'
+      ? 'Pale straw-to-golden translucency. Clean clarity. Subtle edge luminosity. Natural meniscus.'
+      : wineType === 'rosé'
+        ? 'Pale salmon-to-rose translucency. Soft blush core. Natural meniscus.'
+        : wineType === 'sparkling-white'
+          ? 'Pale straw sparkling translucency. Fine effervescence. Bubble columns. Light foam ring at rim. Natural meniscus.'
+          : wineType === 'sparkling-rosé'
+            ? 'Pale rose sparkling translucency. Fine effervescence. Bubble columns. Light foam ring at rim. Natural meniscus.'
+            : 'Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.';
+
+  return `WINE_LIQUID_PHYSICS: ${base}`;
+}
+
+function buildClosureLogic(state: StudioUIState): string {
+  const closure = normalize(state.wineClosureType);
+  const bottleState = normalize(state.wineBottleState);
+  const glassMode = normalize(state.wineGlassMode);
+  const isOpen = bottleState !== 'sealed';
+
+  const closureName =
+    closure.includes('crown') ? 'metal crown cap' :
+      closure.includes('screw') ? 'screw cap' :
+        closure.includes('synthetic') ? 'synthetic closure' :
+          closure.includes('cage') ? 'cork with cage' :
+            closure === 'from-reference' || closure === 'from reference' || !closure ? 'reference closure' :
+              'natural cork';
+
+  if (!isOpen) {
+    return `WINE_CORK_LOGIC: bottle sealed. Closure must remain on neck. closureType=${closureName}. Do not invent alternate closures.`;
+  }
+
+  const volumeRule = glassMode === 'filled'
+    ? 'If glass contains liquid: bottle liquid level must be reduced proportionally. Forbid full bottle + filled glass.'
+    : 'If glass is empty/none: bottle liquid level unchanged.';
+
+  return [
+    'WINE_CORK_LOGIC:',
+    'bottle open presentation.',
+    `Remove ${closureName} from neck.`,
+    `Place the same ${closureName} on the surface nearby.`,
+    'Neck must appear physically open (no attached closure artifacts).',
+    volumeRule,
+    'Do not invent cork if reference uses crown-cap or screw-cap.',
+  ].join(' ');
+}
+
 function buildWineMoodProfile(state: StudioUIState): string {
   const mood = state.wineMoodProfile || 'prestige';
   const moodMap: Record<string, string> = {
@@ -42,11 +108,9 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
 
   return [
     'WINE_PHYSICS_PROFILE: enabled.',
-    'WINE_LIQUID_PHYSICS: Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.',
+    buildWineLiquidPhysics(state),
     'WINE_GLASS_BEHAVIOR: Realistic refraction. Micro-specular highlights. Natural liquid distortion through glass.',
-    action === 'controlled-pour' || motion === 'opened'
-      ? 'WINE_CORK_LOGIC: natural cork removal active. No beer caps. No synthetic closures unless explicitly defined.'
-      : 'WINE_CORK_LOGIC: cork-secured presentation. No beer caps. No synthetic closures unless explicitly defined.',
+    buildClosureLogic(state),
     motion === 'spilled'
       ? 'GRAVITY_RULE: Liquid obeys gravity with controlled spill behavior. No chaotic splash system.'
       : 'GRAVITY_RULE: Liquid obeys gravity. No splash chaos.',

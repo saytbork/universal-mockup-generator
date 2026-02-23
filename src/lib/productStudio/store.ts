@@ -1367,7 +1367,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set((state) => {
             const next: Partial<ProductStudioState> = { wineGlassMode };
             if (wineGlassMode === 'filled' && state.wineBottleState === 'sealed') {
-                next.wineBottleState = 'opened-with-cork-out';
+                // "Filled glass" implies an open bottle with the closure placed nearby (not still in the neck).
+                next.wineBottleState = 'opened-with-cork-nearby';
             }
             return next;
         }),
