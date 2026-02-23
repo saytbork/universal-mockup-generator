@@ -844,27 +844,27 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
     : null;
   const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
-  const v2State: StudioUIState = {
-    creativeIntent: inferStudioIntent(state),
-    visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
-    visualProfile: industryProfile,
-    coffeeIndustryLayer: false,
-    autoRandomizeCoffeeEnvironment: false,
-    productReferencePresent: Array.isArray((state as any).products) && (state as any).products.length > 0,
-    world: inferStudioWorld(state),
-    motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
-    composition: inferStudioComposition(state),
-    ...(advancedControls ? { advancedControls: true } : {}),
-    lightingModelOverride: inferLightingOverride(state),
-    aspectRatio: state.aspectRatio,
-    ...(industryProfile === 'wine' ? {} : { photoMode: state.photoMode }),
-    subjectOrientation: inferSubjectOrientation(state),
-    cameraSystem: resolvedCamera.cameraSystem,
-    cameraAngle: resolvedCamera.cameraAngle,
-    cameraDistance: resolvedCamera.cameraDistance,
-    cameraRotation: resolvedCamera.cameraRotation,
-    framingGuide: resolvedCamera.framingGuide,
-    requestedModifiers,
+	  const v2State: StudioUIState = {
+	    creativeIntent: inferStudioIntent(state),
+	    visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
+	    visualProfile: industryProfile,
+	    coffeeIndustryLayer: false,
+	    autoRandomizeCoffeeEnvironment: false,
+	    productReferencePresent: Array.isArray((state as any).products) && (state as any).products.length > 0,
+	    world: inferStudioWorld(state),
+	    motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
+	    composition: inferStudioComposition(state),
+	    ...(advancedControls ? { advancedControls: true } : {}),
+	    lightingModelOverride: inferLightingOverride(state),
+	    aspectRatio: state.aspectRatio,
+	    photoMode: state.photoMode,
+	    subjectOrientation: inferSubjectOrientation(state),
+	    cameraSystem: resolvedCamera.cameraSystem,
+	    cameraAngle: resolvedCamera.cameraAngle,
+	    cameraDistance: resolvedCamera.cameraDistance,
+	    cameraRotation: resolvedCamera.cameraRotation,
+	    framingGuide: resolvedCamera.framingGuide,
+	    requestedModifiers,
     ...(state.category ? { referenceProductCategory: state.category } : {}),
     // Bundle state (for framing logic)
     ...(state.bundle?.enabled && state.bundle.primaryProductId
@@ -916,15 +916,15 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.finish ? { finishOverride: state.finish } : {}),
         }
       : {}),
-    productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
-    specialEffect:
-      industryProfile === 'wine' ? undefined : (SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined),
-    visualStyle:
-      industryProfile === 'wine' ? undefined : (VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined),
-    ...(coffeeLayer
-      ? {
-          coffeeIndustryLayer: true,
-          coffeeVariant: coffeeLayer.variant,
+	    productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
+	    specialEffect:
+	      SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined,
+	    visualStyle:
+	      VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined,
+	    ...(coffeeLayer
+	      ? {
+	          coffeeIndustryLayer: true,
+	          coffeeVariant: coffeeLayer.variant,
           coffeeMode: coffeeLayer.mode,
           coffeeMotion: coffeeLayer.motion,
           coffeeEnvironment: coffeeLayer.environment,
@@ -968,13 +968,15 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     v2State.productType = rules.allowedProductTypes[0];
   }
 
-  if (rules?.allowedSpecialEffects && v2State.specialEffect && !rules.allowedSpecialEffects.includes(v2State.specialEffect)) {
-    v2State.specialEffect = undefined;
-  }
+	  if (rules?.allowedSpecialEffects && v2State.specialEffect && !rules.allowedSpecialEffects.includes(v2State.specialEffect)) {
+	    v2State.specialEffect = undefined;
+	  }
 
-  if (rules?.allowedVisualStyles && v2State.visualStyle && !rules.allowedVisualStyles.includes(v2State.visualStyle)) {
-    v2State.visualStyle = rules.allowedVisualStyles[0];
-  }
+	  if (rules?.allowedVisualStyles) {
+	    if (!v2State.visualStyle || !rules.allowedVisualStyles.includes(v2State.visualStyle)) {
+	      v2State.visualStyle = rules.allowedVisualStyles[0];
+	    }
+	  }
 
   if (industryProfile === 'coffee') {
     const resolvedIntent = coffeeLayer?.intent || 'editorial-ritual';

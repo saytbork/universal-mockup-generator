@@ -9,7 +9,7 @@ export type ProductStoreType = {
       | 'None'
       | 'Vintage Film Grain'
       | 'Terroir Mood Tone'
-      | 'Deep Burgundy Contrast Boost'
+      | 'Deep Contrast Boost'
       | 'Soft Barrel Ambient Haze'
       | 'Elegant Reflection Layer'
   ) => void;

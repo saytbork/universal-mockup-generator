@@ -4,10 +4,17 @@ import type { StudioUIState } from '../types/studioTypes.ts';
 
 export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIState): string {
   if (state?.winePrestigeMode) {
-    const mood = String(state.wineMoodModifier || '').trim();
+    const rawMood = String(state.wineMoodModifier || '').trim();
+    const mood = rawMood === 'Deep Burgundy Contrast Boost' ? 'Deep Contrast Boost' : rawMood;
     const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
     const pourStyle = String(state.winePourStyle || 'mid-flow-elegance').trim();
-    const maybeMood = mood && mood !== 'None' ? `WINE_PRESTIGE_MODIFIER: ${mood}.` : '';
+    const maybeMood = (() => {
+      if (!mood || mood === 'None') return '';
+      if (mood === 'Deep Contrast Boost') {
+        return 'WINE_PRESTIGE_MODIFIER: Deep Contrast Boost. Contrast applies to environment/material separation only. Product and liquid color must remain reference-accurate.';
+      }
+      return `WINE_PRESTIGE_MODIFIER: ${mood}.`;
+    })();
     const v2PourModel = winePrestigeV2Mode
       ? [
           'WINE_POUR_MODEL:',

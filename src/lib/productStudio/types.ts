@@ -579,7 +579,10 @@ export type WineMoodModifier =
     | 'None'
     | 'Vintage Film Grain'
     | 'Terroir Mood Tone'
+    // Back-compat: this legacy label biased the generator toward burgundy liquid color.
+    // Keep it accepted in state, but UIs/builders should map it to `Deep Contrast Boost`.
     | 'Deep Burgundy Contrast Boost'
+    | 'Deep Contrast Boost'
     | 'Soft Barrel Ambient Haze'
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
