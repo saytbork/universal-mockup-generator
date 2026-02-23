@@ -33,6 +33,8 @@ function resolveClosureType(closureType?: string): ResolvedWineConfig['closureTy
 function inferBottlePresentationMode(state: StudioUIState): BottlePresentationMode {
   const fromState = normalize((state as StudioUIState & { bottlePresentationMode?: string }).bottlePresentationMode);
   const wineAction = normalize(state.wineAction);
+  const bottleState = normalize(state.wineBottleState);
+  const glassMode = normalize(state.wineGlassMode);
 
   if (wineAction === 'controlled-pour') return 'open-glass-served';
   switch (fromState) {
@@ -45,6 +47,13 @@ function inferBottlePresentationMode(state: StudioUIState): BottlePresentationMo
     case 'open-glass-served':
       return 'open-glass-served';
     default:
+      // Backward-compatible fallback when UI has not yet sent bottlePresentationMode.
+      if (bottleState === 'sealed') return 'sealed';
+      if (glassMode === 'filled') return 'open-glass-served';
+      if (glassMode === 'empty') return 'open-glass-empty';
+      if (bottleState === 'opened-with-cork-nearby' || bottleState === 'opened-with-cork-out' || bottleState === 'open') {
+        return 'open';
+      }
       return 'sealed';
   }
 }
