@@ -16,13 +16,6 @@ import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
-import {
-  applyWineDeterministicStateMachine,
-  buildWineConfigResolvedBlock,
-  buildWineEngineStatusBlock,
-  buildWineTruthLockBlock,
-  resolveDeterministicWineConfig,
-} from './wineConfigResolver.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 
 const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
@@ -183,20 +176,7 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     String((state as any).referenceProductCategory || '')
       .trim()
       .toLowerCase() === 'wine';
-  const effectiveState: StudioUIState = isWineIndustry ? applyWineDeterministicStateMachine(state) : state;
-  if (isWineIndustry) {
-    console.log('[WINE CONFIG RESOLVED]', {
-      wineType: effectiveState.wineType,
-      carbonationLevel: effectiveState.carbonationLevel,
-      closureType: effectiveState.wineClosureType,
-      bottleState: effectiveState.wineBottleState,
-      glassMode: effectiveState.wineGlassMode,
-      wineAction: effectiveState.wineAction,
-      environmentPreset: effectiveState.wineEnvironmentVariation ?? effectiveState.wineContextPreset ?? '',
-      lightingTone: effectiveState.wineLightingTone ?? '',
-      mood: effectiveState.wineMoodModifier ?? effectiveState.wineMoodProfile ?? '',
-    });
-  }
+  const effectiveState: StudioUIState = state;
   const authority = resolveStudioAuthority(effectiveState);
   const modifiers = getAllowedStudioModifiers(authority, effectiveState);
   const protectionLayer = buildProtectionLayer(authority, effectiveState);
@@ -231,28 +211,22 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   }
 
   if (isWineIndustry) {
-    const resolvedWineConfig = resolveDeterministicWineConfig(effectiveState);
     const wineBlocks = [
-      buildWineConfigResolvedBlock(effectiveState, resolvedWineConfig),
-      buildWineEngineStatusBlock(),
-      buildWineTruthLockBlock(effectiveState, resolvedWineConfig),
-      buildIntent(authority, effectiveState),
-      buildWorld(authority, effectiveState.world, effectiveState),
-      buildWineIndustryLayerV2(effectiveState),
+      buildIntent(authority, state),
+      buildWorld(authority, effectiveState.world, state),
+      buildWineIndustryLayerV2(state),
       buildCameraOverrides(effectiveState),
-      buildComposition(authority, effectiveState),
-      buildMotion(authority, effectiveState),
-      winePrestigeMode ? '' : buildPhysics(authority, effectiveState),
-      buildModifiers(modifiers, effectiveState),
-      buildLighting(authority, effectiveState),
-      buildMaterials(authority, effectiveState),
-      buildPackaging(effectiveState),
-      buildGeometry(authority, effectiveState),
+      buildComposition(authority, state),
+      buildMotion(authority, state),
+      winePrestigeMode ? '' : buildPhysics(authority, state),
+      buildModifiers(modifiers, state),
+      buildLighting(authority, state),
+      buildMaterials(authority, state),
+      buildPackaging(state),
+      buildGeometry(authority, state),
       ...protectionLayer,
-      ...buildAdvancedOverrideParts(effectiveState),
     ];
-    const sanitizedParts = sanitizePromptParts(wineBlocks);
-    const finalPrompt = assembleStudioPrompt(sanitizedParts);
+    const finalPrompt = assembleStudioPrompt(wineBlocks);
     const sanitizedFinalPrompt = sanitizeFinalPromptOutput(finalPrompt);
     validateStudioPrompt(sanitizedFinalPrompt, authority);
     return sanitizedFinalPrompt;
