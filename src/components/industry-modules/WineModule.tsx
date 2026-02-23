@@ -11,6 +11,8 @@ import type {
   WineBottleState,
   WineClosureType,
   WineGlassMode,
+  WineLightingTone,
+  WineMoodModifier,
   WinePourStyle,
   WineServeAmount,
   WineType,
@@ -26,8 +28,8 @@ type WineModuleProps = {
   wineServeAmount: WineServeAmount;
   hasReferenceProduct?: boolean;
   contextPreset: string;
-  wineLightingTone: string;
-  wineMoodModifier: string;
+  wineLightingTone: WineLightingTone;
+  wineMoodModifier: WineMoodModifier;
   onWineActionChange: (action: WineAction) => void;
   onWinePourStyleChange: (style: WinePourStyle) => void;
   onWineTypeChange: (type: WineType) => void;
@@ -37,8 +39,8 @@ type WineModuleProps = {
   onWineServeAmountChange: (amount: WineServeAmount) => void;
   onBottlePresentationModeChange?: (mode: BottlePresentationMode) => void;
   onContextPresetChange: (preset: string) => void;
-  onWineLightingToneChange: (tone: string) => void;
-  onWineMoodModifierChange: (modifier: string) => void;
+  onWineLightingToneChange: (tone: WineLightingTone) => void;
+  onWineMoodModifierChange: (modifier: WineMoodModifier) => void;
 };
 
 type BottlePresentationMode =
