@@ -266,6 +266,30 @@ function sanitizeCampaignConstraintText(text: string): string {
   return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
 }
 
+function stripPhotoModeBackgroundFeatures(text: string): string {
+  return String(text || '')
+    .replace(/(?:^|;\s*)backgroundType=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)gradientStyle=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)colorSource=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)paletteSource=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)negativeSpace=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)contrastLevel=[^;]*/gi, '')
+    .replace(/^\s*;\s*/g, '')
+    .replace(/\s*;\s*;/g, ';')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function stripStudioLightingOverrides(text: string): string {
+  return String(text || '')
+    .replace(/Lighting rig:[^.]*\./gi, '')
+    .replace(/Use this rig as the authoritative lighting setup\.[^.]*\./gi, '')
+    .replace(/LIGHTING_RIG_OVERRIDE:[^.]*\./gi, '')
+    .replace(/STUDIO_LIGHTING_PROFILE:[^.]*\./gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
@@ -1266,6 +1290,15 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const adaptedPhotoModeModifiers = isCampaignIntent
     ? sanitizeCampaignConstraintText(adaptedPhotoModeModifiersRaw)
     : adaptedPhotoModeModifiersRaw;
+  const wineWorldAuthorityAbsolute =
+    String((state as any).wineWorldAuthority || '').trim().toLowerCase() === 'absolute';
+  const adaptedPhotoModeModifiersForAssembly = wineWorldAuthorityAbsolute
+    ? stripPhotoModeBackgroundFeatures(adaptedPhotoModeModifiers)
+    : adaptedPhotoModeModifiers;
+  const lightingOverrideTextForAssembly = wineWorldAuthorityAbsolute
+    ? stripStudioLightingOverrides('')
+    : lightingOverrideText;
+  const strictLightingRigLockForAssembly = wineWorldAuthorityAbsolute ? false : strictLightingRigLock;
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
       `PHOTO MODE (${getSafePhotoModeLabel(state.photoMode)}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
@@ -1273,7 +1306,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'Keep hero-level product prominence, clean negative space, and conversion-first readability while preserving environment realism.'
         : 'Do not switch to abstract studio or blank set logic; environment remains physically present and coherent.',
       adaptedPhotoModeBasePrompt ? `Mode style cues: ${adaptedPhotoModeBasePrompt}.` : '',
-      adaptedPhotoModeModifiers ? `Mode settings: ${adaptedPhotoModeModifiers}.` : '',
+      adaptedPhotoModeModifiersForAssembly ? `Mode settings: ${adaptedPhotoModeModifiersForAssembly}.` : '',
     ].filter(Boolean).join(' ')
     : '';
 
@@ -1778,7 +1811,7 @@ No studio-style suspension shadows underwater.
     buildProductStateBlock(authorities.motion),
     gravitationalBlock,
     viewpointDirectiveText,
-    environmentModeActive ? '' : adaptedPhotoModeModifiers,
+    environmentModeActive ? '' : adaptedPhotoModeModifiersForAssembly,
     mode === 'INGREDIENT_STACK' ||
       mode === 'INGREDIENT_FLAT_LAY' ||
       state.photoMode === 'Macro Dew Label' ||
@@ -1805,9 +1838,9 @@ No studio-style suspension shadows underwater.
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       authority: authorities,
-      ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
+      ...(lightingOverrideTextForAssembly ? { override: { text: lightingOverrideTextForAssembly } } : {}),
       ...(splashAdMode ? { splashAdMode: true, splashAdPeakMode } : {}),
-      strictRigLock: strictLightingRigLock,
+      strictRigLock: strictLightingRigLockForAssembly,
     }),
     lightCoherenceBlock,
     underwaterRefractionBlock,
