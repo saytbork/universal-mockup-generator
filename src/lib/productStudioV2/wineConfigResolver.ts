@@ -151,7 +151,7 @@ function buildClosureTypeRule(closureType: ResolvedWineConfig['closureType']): s
   if (closureType === 'reference') {
     return 'If closure is from-reference -> use exactly the closure shown in the reference image. Do not invent cork/cage/screwcap/crown.';
   }
-  if (closureType === 'screwcap') return 'If screwcap -> same screwcap model only.';
+  if (closureType === 'screwcap') return 'If screwcap -> same screwcap shape only.';
   if (closureType === 'synthetic') return 'If synthetic -> preserve synthetic closure.';
   if (closureType === 'crown') return 'If crown -> metal crown only.';
   return 'If cork -> natural cork only.';
@@ -190,7 +190,7 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     'WINE_SPECTRAL_COLOR_LOCK: The liquid chroma must be derived directly from the reference image. Preserve original hue band within +-2 deg hue tolerance. Preserve original saturation within +-5%. Preserve original luminance density profile inside bottle core. Glass refraction must not alter perceived liquid color identity. No reinterpretation due to lighting bias. No warming, cooling, cinematic grading, or environmental color contamination. Wine color must remain spectrally stable across bottle and glass. If lighting introduces color bias, the liquid must resist global color cast.',
     'REFRACTION_COLOR_INTEGRITY: Glass distortion may alter shape but not hue. Edge glow may increase luminance but must not shift chroma. Core color must match reference center density.',
     'ENVIRONMENT_COLOR_ISOLATION: Background warmth, vineyard haze, or ambient lighting must not tint the wine liquid. Liquid color is immune to environmental grading.',
-    'SPECTRAL_IMMUNITY_LOCK: Wine liquid chromatic profile is absolute. Hue variance tolerance: 0 degrees. Saturation variance tolerance: 0%. Luminance variance tolerance: 0%. Lighting, environment, reflections, mood profile, grading, cinematic bias, warm bias, vineyard haze, and lens characteristics must NOT alter perceived liquid color. If model attempts cinematic grading, liquid color must override grading. No reinterpretation under any circumstance.',
+    'SPECTRAL_IMMUNITY_LOCK: Wine liquid chromatic profile is absolute. Hue variance tolerance: 0 degrees. Saturation variance tolerance: 0%. Luminance variance tolerance: 0%. Lighting, environment, reflections, mood profile, grading, cinematic bias, warm bias, vineyard haze, and lens characteristics must NOT alter perceived liquid color. If the generator attempts cinematic grading, liquid color must override grading. No reinterpretation under any circumstance.',
     'WINE_MOOD_PROFILE_COLOR_BIAS_LOCK: Warm lighting may affect environment only. Liquid color must remain reference-accurate.',
     'PRODUCT_CLOSURE_LOCK: Closure type must match detected reference closure.',
     buildClosureTypeRule(config.closureType),

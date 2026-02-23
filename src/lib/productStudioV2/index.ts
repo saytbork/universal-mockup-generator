@@ -36,7 +36,8 @@ function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUI
 function injectWineEngine(parts: string[], state: StudioUIState): string[] {
   const next = [...parts];
   next.push('LIQUID_ENGINE: active');
-  next.push('LIQUID_PHYSICS_MODEL: deterministic');
+  // Avoid forbidden term "model" in Product Studio prompts.
+  next.push('LIQUID_PHYSICS_SYSTEM: deterministic');
 
   const wineAction = String(state.wineAction || '').trim().toLowerCase();
   if (wineAction === 'controlled-pour' || wineAction === 'controlled pour') {

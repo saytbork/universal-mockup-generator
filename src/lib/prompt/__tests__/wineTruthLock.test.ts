@@ -92,7 +92,7 @@ describe('wine truth lock enforcement', () => {
     expect(prompt).toContain('WINE_CONFIG_RESOLVED:');
     expect(prompt).toContain('PRODUCT_WINE_COLOR_LOCK: Bottle liquid color must match reference exactly.');
     expect(prompt).toContain('PRODUCT_CLOSURE_LOCK: Closure type must match detected reference closure.');
-    expect(prompt).toContain('If screwcap -> same screwcap model only.');
+    expect(prompt).toContain('If screwcap -> same screwcap shape only.');
     expect(prompt).toContain('LIQUID_MATCH_RULE: If glass is present, liquid color in glass MUST match bottle liquid exactly.');
     expect(prompt).toContain('LIQUID_ABSOLUTE_LOCK: Bottle liquid color must match reference exactly.');
     expect(prompt).toContain('CLOSURE_TRANSFER_RULE: Detect closure type from reference image.');
