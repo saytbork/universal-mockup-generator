@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   WINE_ACTION_OPTIONS,
   WINE_ENVIRONMENT_PRESETS,
@@ -80,7 +80,8 @@ function WineChipButton({
 }: WineChipButtonProps): React.ReactElement {
   const baseClass =
     'inline-flex max-w-full items-center gap-1 rounded-full border transition-colors whitespace-nowrap text-xs font-semibold focus:outline-none min-w-0 px-4 py-2';
-  const accentColor = 'var(--studio-accent, #111827)';
+  // Match the default `Chip` active tone (Tailwind indigo-600) when studio accent is not set.
+  const accentColor = 'var(--studio-accent, #4f46e5)';
   const style = selected && !disabled
     ? { backgroundColor: accentColor, borderColor: accentColor }
     : undefined;
@@ -119,15 +120,29 @@ export function WineModule({
 }: WineModuleProps) {
   const [isOpen, setIsOpen] = useState(true);
   const bottlePresentationMode = resolveBottlePresentationMode(wineBottleState, wineGlassMode);
-  const isPourStyleDisabled = wineAction !== 'controlled-pour';
-  const isLightingToneDisabled = wineAction !== 'controlled-pour';
-  const disabledTitle = 'Not compatible with current bottle state.';
+  const isPourStyleDisabled = false;
+  const isLightingToneDisabled = false;
+
+  // Keep both controls always eligible and always with a valid selection.
+  useEffect(() => {
+    if (!WINE_POUR_STYLE_OPTIONS.includes(winePourStyle)) {
+      onWinePourStyleChange(WINE_POUR_STYLE_OPTIONS[0]);
+    }
+  }, [winePourStyle, onWinePourStyleChange]);
+
+  useEffect(() => {
+    if (!WINE_LIGHTING_TONES.includes(wineLightingTone)) {
+      onWineLightingToneChange(WINE_LIGHTING_TONES[0]);
+    }
+  }, [wineLightingTone, onWineLightingToneChange]);
 
   const chipClass = (selected: boolean, disabled = false): string => {
-    if (disabled) return '!opacity-50 !cursor-not-allowed !bg-gray-50 !border-gray-200 !text-gray-400';
+    if (disabled) return 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200 text-gray-400';
+    // Selected color is handled by inline style in WineChipButton (with a fallback).
+    // Avoid `!important` + CSS var classes here; if `--studio-accent` is unset it can make chips look invisible.
     return selected
-      ? '!bg-[var(--studio-accent)] !border-[var(--studio-accent)] !text-white'
-      : '!bg-white !border-gray-200 !text-gray-600 hover:!border-[var(--studio-accent)]';
+      ? 'text-white'
+      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-600';
   };
 
   const applyBottlePresentationMode = (mode: BottlePresentationMode): void => {
@@ -238,7 +253,6 @@ export function WineModule({
                   onClick={() => onWinePourStyleChange(style)}
                   disabled={isPourStyleDisabled}
                   className={chipClass(winePourStyle === style, isPourStyleDisabled)}
-                  title={isPourStyleDisabled ? disabledTitle : undefined}
                 >
                   {style === 'slow-ribbon'
                     ? 'Slow Ribbon'
@@ -259,7 +273,6 @@ export function WineModule({
                   onClick={() => onWineLightingToneChange(tone)}
                   disabled={isLightingToneDisabled}
                   className={chipClass(wineLightingTone === tone, isLightingToneDisabled)}
-                  title={isLightingToneDisabled ? disabledTitle : undefined}
                 >
                   {tone}
                 </WineChipButton>
