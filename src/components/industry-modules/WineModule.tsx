@@ -12,6 +12,7 @@ import type {
   WineClosureType,
   WineGlassMode,
   WinePourStyle,
+  WineServeAmount,
   WineType,
 } from '@/lib/productStudio/types';
 
@@ -22,6 +23,7 @@ type WineModuleProps = {
   wineClosureType: WineClosureType;
   wineBottleState: WineBottleState;
   wineGlassMode: WineGlassMode;
+  wineServeAmount: WineServeAmount;
   hasReferenceProduct?: boolean;
   contextPreset: string;
   wineLightingTone: string;
@@ -32,6 +34,7 @@ type WineModuleProps = {
   onWineClosureTypeChange: (type: WineClosureType) => void;
   onWineBottleStateChange: (bottleState: WineBottleState) => void;
   onWineGlassModeChange: (glassMode: WineGlassMode) => void;
+  onWineServeAmountChange: (amount: WineServeAmount) => void;
   onBottlePresentationModeChange?: (mode: BottlePresentationMode) => void;
   onContextPresetChange: (preset: string) => void;
   onWineLightingToneChange: (tone: string) => void;
@@ -49,6 +52,30 @@ const BOTTLE_PRESENTATION_OPTIONS: Array<{ value: BottlePresentationMode; label:
   { value: 'open', label: 'Open' },
   { value: 'open-glass-empty', label: 'Open + Empty Glass' },
   { value: 'open-glass-served', label: 'Served' },
+];
+
+const WINE_TYPE_OPTIONS: Array<{ value: WineType; label: string }> = [
+  { value: 'auto', label: 'Auto (From Reference)' },
+  { value: 'white', label: 'White' },
+  { value: 'red', label: 'Red' },
+  { value: 'rosé', label: 'Rose' },
+  { value: 'sparkling-white', label: 'Sparkling White' },
+  { value: 'sparkling-rosé', label: 'Sparkling Rose' },
+];
+
+const WINE_CLOSURE_OPTIONS: Array<{ value: WineClosureType; label: string }> = [
+  { value: 'from-reference', label: 'From Reference' },
+  { value: 'crown-cap', label: 'Crown Cap' },
+  { value: 'screw-cap', label: 'Screw Cap' },
+  { value: 'natural-cork', label: 'Natural Cork' },
+  { value: 'cork-with-cage', label: 'Cork + Cage' },
+  { value: 'synthetic-closure', label: 'Synthetic' },
+];
+
+const SERVE_AMOUNT_OPTIONS: Array<{ value: WineServeAmount; label: string; hint: string }> = [
+  { value: 'taste', label: 'Taste', hint: 'quarter glass' },
+  { value: 'standard', label: 'Standard', hint: 'half glass' },
+  { value: 'generous', label: 'Generous', hint: 'three-quarters' },
 ];
 
 function resolveBottlePresentationMode(
@@ -106,6 +133,9 @@ export function WineModule({
   wineBottleState,
   wineGlassMode,
   winePourStyle,
+  wineType,
+  wineClosureType,
+  wineServeAmount,
   contextPreset,
   wineLightingTone,
   wineMoodModifier,
@@ -114,6 +144,9 @@ export function WineModule({
   onWineGlassModeChange,
   onBottlePresentationModeChange,
   onWinePourStyleChange,
+  onWineTypeChange,
+  onWineClosureTypeChange,
+  onWineServeAmountChange,
   onContextPresetChange,
   onWineLightingToneChange,
   onWineMoodModifierChange,
@@ -135,6 +168,24 @@ export function WineModule({
       onWineLightingToneChange(WINE_LIGHTING_TONES[0]);
     }
   }, [wineLightingTone, onWineLightingToneChange]);
+
+  useEffect(() => {
+    if (!WINE_TYPE_OPTIONS.some((opt) => opt.value === wineType)) {
+      onWineTypeChange('auto');
+    }
+  }, [onWineTypeChange, wineType]);
+
+  useEffect(() => {
+    if (!WINE_CLOSURE_OPTIONS.some((opt) => opt.value === wineClosureType)) {
+      onWineClosureTypeChange('from-reference');
+    }
+  }, [onWineClosureTypeChange, wineClosureType]);
+
+  useEffect(() => {
+    if (!SERVE_AMOUNT_OPTIONS.some((opt) => opt.value === wineServeAmount)) {
+      onWineServeAmountChange('standard');
+    }
+  }, [onWineServeAmountChange, wineServeAmount]);
 
   const chipClass = (selected: boolean, disabled = false): string => {
     if (disabled) return 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200 text-gray-400';
@@ -243,6 +294,59 @@ export function WineModule({
               ))}
             </div>
           </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Wine Type</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_TYPE_OPTIONS.map((option) => (
+                <WineChipButton
+                  key={option.value}
+                  selected={wineType === option.value}
+                  onClick={() => onWineTypeChange(option.value)}
+                  className={chipClass(wineType === option.value, false)}
+                  disabled={false}
+                  title={option.label}
+                >
+                  {option.label}
+                </WineChipButton>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 mb-2">Closure Type</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_CLOSURE_OPTIONS.map((option) => (
+                <WineChipButton
+                  key={option.value}
+                  selected={wineClosureType === option.value}
+                  onClick={() => onWineClosureTypeChange(option.value)}
+                  className={chipClass(wineClosureType === option.value, false)}
+                  disabled={false}
+                  title={option.label}
+                >
+                  {option.label}
+                </WineChipButton>
+              ))}
+            </div>
+          </div>
+          {wineGlassMode === 'filled' && (
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-2">Serve Amount</p>
+              <div className="flex flex-wrap gap-2">
+                {SERVE_AMOUNT_OPTIONS.map((option) => (
+                  <WineChipButton
+                    key={option.value}
+                    selected={wineServeAmount === option.value}
+                    onClick={() => onWineServeAmountChange(option.value)}
+                    className={chipClass(wineServeAmount === option.value, false)}
+                    disabled={false}
+                    title={`${option.label} (${option.hint})`}
+                  >
+                    {option.label}
+                  </WineChipButton>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold text-gray-600 mb-2">Pour Style</p>
             <div className="flex flex-wrap gap-2">

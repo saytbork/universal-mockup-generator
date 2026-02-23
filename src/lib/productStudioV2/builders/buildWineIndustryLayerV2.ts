@@ -14,7 +14,9 @@ function buildWineLiquidPhysics(state: StudioUIState): string {
       'WINE_LIQUID_PHYSICS:',
       'Match the exact liquid color from the reference product.',
       'No hue shift. No saturation drift. No cinematic grading on liquid.',
-      carbonation === 'high' ? 'If sparkling: visible bubbles + fine effervescence.' : 'No invented bubbles unless reference shows them.',
+      carbonation === 'high'
+        ? 'If sparkling: fine effervescence with subtle bubble trails in the glass (freshly served look). No exaggerated foam.'
+        : 'No invented bubbles unless reference shows them.',
       'Natural meniscus and realistic light absorption.',
     ].join(' ');
   }

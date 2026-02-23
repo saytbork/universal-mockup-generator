@@ -6,7 +6,7 @@ export type BottlePresentationMode =
   | 'open-glass-empty'
   | 'open-glass-served';
 
-export type WineGlassFillLevel = 'none' | 'half';
+export type WineGlassFillLevel = 'none' | 'quarter' | 'half' | 'three-quarters';
 
 export type ResolvedWineConfig = {
   bottlePresentationMode: BottlePresentationMode;
@@ -17,6 +17,13 @@ export type ResolvedWineConfig = {
   closureType: 'reference' | 'cork' | 'screwcap' | 'synthetic' | 'crown';
   allowGlassDependentLighting: boolean;
 };
+
+function resolveGlassFillLevel(state: StudioUIState): WineGlassFillLevel {
+  const amount = normalize((state as StudioUIState & { wineServeAmount?: string }).wineServeAmount);
+  if (amount === 'taste') return 'quarter';
+  if (amount === 'generous') return 'three-quarters';
+  return 'half';
+}
 
 function normalize(value: unknown): string {
   return String(value || '').trim().toLowerCase();
@@ -103,7 +110,7 @@ export function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWi
     bottlePresentationMode: mode,
     bottleState: 'open',
     glassMode: 'present',
-    glassFillLevel: 'half',
+    glassFillLevel: resolveGlassFillLevel(state),
     closurePlacement: 'on-surface',
     closureType,
     allowGlassDependentLighting: true,
@@ -117,9 +124,9 @@ export function applyWineDeterministicStateMachine(state: StudioUIState): Studio
   const derivedGlassMode: NonNullable<StudioUIState['wineGlassMode']> =
     resolved.glassMode === 'none'
       ? 'none'
-      : resolved.glassFillLevel === 'half'
-        ? 'filled'
-        : 'empty';
+      : resolved.glassFillLevel === 'none'
+        ? 'empty'
+        : 'filled';
   return {
     ...state,
     wineBottleState: derivedBottleState,
@@ -131,6 +138,7 @@ export function buildWineConfigResolvedBlock(state: StudioUIState, config: Resol
   const wineType = String(state.wineType || 'red').trim();
   const closureType = String(state.wineClosureType || config.closureType).trim();
   const carbonationLevel = String(state.carbonationLevel || 'none').trim();
+  const serveAmount = String((state as StudioUIState & { wineServeAmount?: string }).wineServeAmount || 'standard').trim();
   return [
     'WINE_CONFIG_RESOLVED:',
     `wineType=${wineType};`,
@@ -139,6 +147,7 @@ export function buildWineConfigResolvedBlock(state: StudioUIState, config: Resol
     `bottleState=${config.bottleState};`,
     `glassMode=${config.glassMode};`,
     `glassFillLevel=${config.glassFillLevel};`,
+    `serveAmount=${serveAmount};`,
     `carbonationLevel=${carbonationLevel}.`,
   ].join(' ');
 }
@@ -200,7 +209,7 @@ export function buildWineTruthLockBlock(state: StudioUIState, config: ResolvedWi
     buildClosureTypeRule(config.closureType),
     closurePlacementRule,
     neckClearanceRule,
-    'VOLUME_CONSISTENCY_RULE: If glassFillLevel != none: Bottle liquid height must be visibly reduced. Volume transfer must be physically plausible. No full bottle + filled glass state. Meniscus must match liquid density.',
+    'VOLUME_CONSISTENCY_RULE: If glassFillLevel != none: Bottle liquid height must be visibly reduced. Amount of reduction must match serveAmount and glassFillLevel (quarter/half/three-quarters). No full bottle + filled glass state. Meniscus must match liquid density.',
     'MENISCUS_HEIGHT_LOCK: If bottlePresentationMode != sealed: Bottle liquid meniscus must appear below the reference sealed liquid height. The reduction must be visually measurable. No full-height liquid allowed when glass contains liquid.',
   ].join(' ');
 }

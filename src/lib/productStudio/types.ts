@@ -588,9 +588,11 @@ export type WineType = 'auto' | 'red' | 'white' | 'rosé' | 'sparkling-white' | 
 export type WineClosureType =
     | 'from-reference'
     | 'natural-cork'
+    | 'synthetic-closure'
     | 'crown-cap'
     | 'screw-cap'
     | 'cork-with-cage';
+export type WineServeAmount = 'taste' | 'standard' | 'generous';
 export type WineBottleState = 'sealed' | 'opened-with-cork-out' | 'opened-with-cork-nearby';
 export type WineGlassMode = 'none' | 'empty' | 'filled';
 export type CoffeeAction = 'static' | 'controlled-pour';
@@ -755,6 +757,7 @@ export type ProductStudioState = {
     wineClosureType: WineClosureType;
     wineBottleState: WineBottleState;
     wineGlassMode: WineGlassMode;
+    wineServeAmount: WineServeAmount;
     coffeeMode: CoffeeMode;
     coffeeAction: CoffeeAction;
     coffeeLightingTone: CoffeeLightingTone;

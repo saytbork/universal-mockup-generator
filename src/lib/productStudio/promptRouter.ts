@@ -901,6 +901,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.wineGlassMode ? { wineGlassMode: state.wineGlassMode } : {}),
           ...(state.wineClosureType ? { wineClosureType: state.wineClosureType } : {}),
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
+          ...(state.wineServeAmount ? { wineServeAmount: state.wineServeAmount } : {}),
         }
       : {}),
     ...(advancedControls
@@ -947,6 +948,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           coffeeSurfaceStyle: coffeeLayer.surfaceStyle,
           coffeeTemperatureFeel: coffeeLayer.temperatureFeel,
           coffeeServeStyle: coffeeLayer.serveStyle,
+          // Used by Studio V2 builders to avoid guessing liquid/closure details when a reference is present.
           productReferencePresent: Array.isArray(state.products) && state.products.length > 0,
         }
       : {}),

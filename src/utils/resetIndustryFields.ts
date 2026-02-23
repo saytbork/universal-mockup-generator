@@ -13,6 +13,7 @@ export type ProductStoreType = {
       | 'Soft Barrel Ambient Haze'
       | 'Elegant Reflection Layer'
   ) => void;
+  setWineServeAmount?: (amount: 'taste' | 'standard' | 'generous') => void;
   setCoffeeAction?: (action: 'static' | 'controlled-pour') => void;
   setCoffeeMode?: (mode: 'studio' | 'ritual') => void;
   setCoffeeLightingTone?: (tone: 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast') => void;
@@ -47,6 +48,7 @@ export function resetIndustryFields(nextProfile: IndustryProfile, store: Product
     store.setWinePourStyle('mid-flow-elegance');
     store.setWineLightingTone('Warm Lateral');
     store.setWineMoodModifier('None');
+    store.setWineServeAmount?.('standard');
   }
 
   if (nextProfile !== 'coffee') {

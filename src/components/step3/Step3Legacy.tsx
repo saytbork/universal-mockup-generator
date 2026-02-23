@@ -3194,17 +3194,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
 
                     {industryProfile === 'wine' && industryModuleRegistry.wine && (
-                      <industryModuleRegistry.wine
-                        wineAction={productStore.wineAction}
-                        winePourStyle={productStore.winePourStyle}
-                        wineType={productStore.wineType}
-                        wineClosureType={productStore.wineClosureType}
-                        wineBottleState={productStore.wineBottleState}
-                        wineGlassMode={productStore.wineGlassMode}
-                        hasReferenceProduct={hasUploadedProductAsset}
-                        contextPreset={productStore.contextPreset}
-                        wineLightingTone={productStore.wineLightingTone}
-                        wineMoodModifier={productStore.wineMoodModifier}
+	                      <industryModuleRegistry.wine
+	                        wineAction={productStore.wineAction}
+	                        winePourStyle={productStore.winePourStyle}
+	                        wineType={productStore.wineType}
+	                        wineClosureType={productStore.wineClosureType}
+	                        wineBottleState={productStore.wineBottleState}
+	                        wineGlassMode={productStore.wineGlassMode}
+	                        wineServeAmount={productStore.wineServeAmount}
+	                        hasReferenceProduct={hasUploadedProductAsset}
+	                        contextPreset={productStore.contextPreset}
+	                        wineLightingTone={productStore.wineLightingTone}
+	                        wineMoodModifier={productStore.wineMoodModifier}
                         onWineActionChange={(action) => {
                           productStore.setWineAction(action);
                           markSectionTouched('product-setup');
@@ -3225,14 +3226,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           productStore.setWineBottleState(bottleState);
                           markSectionTouched('product-setup');
                         }}
-                        onWineGlassModeChange={(glassMode) => {
-                          productStore.setWineGlassMode(glassMode);
-                          markSectionTouched('product-setup');
-                        }}
-                        onContextPresetChange={(preset) => {
-                          productStore.setContextPreset(preset);
-                          markSectionTouched('product-setup');
-                        }}
+	                        onWineGlassModeChange={(glassMode) => {
+	                          productStore.setWineGlassMode(glassMode);
+	                          markSectionTouched('product-setup');
+	                        }}
+	                        onWineServeAmountChange={(amount) => {
+	                          productStore.setWineServeAmount(amount);
+	                          markSectionTouched('product-setup');
+	                        }}
+	                        onContextPresetChange={(preset) => {
+	                          productStore.setContextPreset(preset);
+	                          markSectionTouched('product-setup');
+	                        }}
                         onWineLightingToneChange={(tone) => {
                           productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
                           markSectionTouched('product-setup');

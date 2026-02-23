@@ -143,6 +143,7 @@ export interface StudioUIState {
   wineClosureType?: string;
   referenceProductCategory?: string;
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+  wineServeAmount?: 'taste' | 'standard' | 'generous';
   cameraSystem?: string;
   cameraAngle?: string;
   cameraDistance?: string;

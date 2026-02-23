@@ -54,6 +54,7 @@ import type {
     WineBottleState,
     WineClosureType,
     WineGlassMode,
+    WineServeAmount,
     WineLightingTone,
     WineMoodModifier,
     WinePourStyle,
@@ -671,6 +672,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     wineClosureType: 'from-reference',
     wineBottleState: 'sealed',
     wineGlassMode: 'none',
+    wineServeAmount: 'standard',
     coffeeMode: 'studio',
     coffeeAction: 'static',
     coffeeLightingTone: 'auto',
@@ -835,6 +837,7 @@ type ProductStudioActions = {
     setWineClosureType: (closureType: WineClosureType) => void;
     setWineBottleState: (bottleState: WineBottleState) => void;
     setWineGlassMode: (glassMode: WineGlassMode) => void;
+    setWineServeAmount: (amount: WineServeAmount) => void;
     setCoffeeAction: (action: CoffeeAction) => void;
     setCoffeeMode: (mode: CoffeeMode) => void;
     setCoffeeLightingTone: (tone: CoffeeLightingTone) => void;
@@ -1306,6 +1309,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     wineClosureType: 'from-reference',
                     wineBottleState: 'sealed',
                     wineGlassMode: 'none',
+                    wineServeAmount: 'standard',
                     coffeeMode: 'studio',
                     coffeeAction: 'static',
                     coffeeMoodModifier: 'coffee-cinematic-luxury',
@@ -1329,13 +1333,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(state.winePourStyle as WinePourStyle)
                     ? state.winePourStyle
                     : 'mid-flow-elegance',
-                wineType: state.wineType || 'auto',
-                wineClosureType: state.wineClosureType || 'from-reference',
-                wineBottleState: state.wineBottleState || 'sealed',
-                wineGlassMode: state.wineGlassMode || 'none',
-                visualIntent: 'campaign',
-                composition: state.composition === 'centered' ? 'thirds' : state.composition,
-            };
+                    wineType: state.wineType || 'auto',
+                    wineClosureType: state.wineClosureType || 'from-reference',
+                    wineBottleState: state.wineBottleState || 'sealed',
+                    wineGlassMode: state.wineGlassMode || 'none',
+                    wineServeAmount: state.wineServeAmount || 'standard',
+                    visualIntent: 'campaign',
+                    composition: state.composition === 'centered' ? 'thirds' : state.composition,
+                };
         }),
     setWineAction: (action) =>
         set((state) => {
@@ -1355,6 +1360,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
     setWineType: (wineType) => set({ wineType }),
     setWineClosureType: (wineClosureType) => set({ wineClosureType }),
+    setWineServeAmount: (wineServeAmount) => set({ wineServeAmount }),
     setWineBottleState: (wineBottleState) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { wineBottleState };
