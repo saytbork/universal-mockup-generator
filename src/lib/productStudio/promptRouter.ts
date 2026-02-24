@@ -834,9 +834,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
-          wineEngineVersion: Number(state.wineEngineVersion || 4),
+          wineEngineVersion: state.wineEngineVersion,
           wineAction: 'static-presentation',
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
+          wineGlassMode: state.wineGlassMode,
+          wineClosureType: state.wineClosureType,
+          wineType: state.wineType,
+          wineBottleState: state.wineBottleState,
+          carbonationLevel: state.carbonationLevel,
         }
       : {}),
     ...(advancedControls

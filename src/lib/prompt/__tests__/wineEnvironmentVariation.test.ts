@@ -51,7 +51,8 @@ describe('wine environment variation', () => {
     const v2State = toStudioV2State(buildWineState({ contextPreset: '' }));
     const prompt = generateStudioPromptV2(v2State);
 
-    expect(prompt).toContain('WINE_ENGINE: deterministic.');
+  expect(prompt).toContain('deterministic.');
+  expect(prompt).toContain('WINE_ENGINE_STATUS:');
     expect(prompt).toContain('WINE_ENVIRONMENT:');
     expect(prompt).toContain('WINE_LIGHTING:');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: Vineyard Golden Hour');

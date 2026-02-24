@@ -478,13 +478,14 @@ export function generateStudioPromptV2(state: StudioUIState): string {
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
     const segments: PromptSegment[] = [];
     pushSegment(segments, 'guardrail', buildIntent(authority, state));
-    pushSegment(
-      segments,
-      'physics',
-      wineEngineVersion >= 4
-        ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
-        : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig)
-    );
+    let winePhysicsBlock = wineEngineVersion >= 4
+      ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
+      : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
+    // PHASE 7: Add vertical enforcement for Wine V4 only
+    if (wineEngineVersion >= 4 && !winePhysicsBlock.includes('Bottle perfectly vertical. Zero roll. No tilt. Stable upright orientation.')) {
+      winePhysicsBlock += ' Bottle perfectly vertical. Zero roll. No tilt. Stable upright orientation.';
+    }
+    pushSegment(segments, 'physics', winePhysicsBlock);
     pushSegment(segments, 'camera', buildCameraOverrides(effectiveState));
     pushSegment(segments, 'composition', buildComposition(authority, state));
     pushSegment(

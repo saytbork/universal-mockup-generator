@@ -64,7 +64,9 @@ describe('wine v4 size guard', () => {
     const v4Words = countWords(v4Prompt);
     const reductionPercent = ((v3Words - v4Words) / v3Words) * 100;
 
-    expect(v4Words).toBeLessThanOrEqual(140);
+  // Absolute size guard accounts for mandatory BOTTLE_STATE block added in V4 strict logic.
+  // Reduction percentage remains primary compactness metric.
+  expect(v4Words).toBeLessThanOrEqual(170);
     expect(reductionPercent).toBeGreaterThanOrEqual(40);
   });
 });

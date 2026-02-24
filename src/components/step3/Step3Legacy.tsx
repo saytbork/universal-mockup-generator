@@ -2706,7 +2706,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     });
   }, [values.visualMode, updateValue]);
   return (
-    <div className={embedded ? 'w-full space-y-5' : 'w-full max-w-2xl mx-auto space-y-5 p-5'}>
+    <div
+      className={embedded ? 'w-full space-y-5' : 'w-full max-w-2xl mx-auto space-y-5 p-5'}
+      style={
+        {
+          '--lifestyle-accent': '#4f46e5',
+          '--studio-accent': '#4f46e5',
+        } as React.CSSProperties
+      }
+    >
       {!embedded && (
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold text-gray-500">Step 3</p>

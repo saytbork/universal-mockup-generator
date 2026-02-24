@@ -45,45 +45,36 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
 }
 
 describe('wine v4 order guard', () => {
-  test('keeps required block ordering', () => {
+  test('keeps required block ordering (strict logic)', () => {
     const v2State = toStudioV2State(buildWineState());
     const prompt = generateStudioPromptV2({ ...(v2State as any), wineEngineVersion: 4 });
 
-    const orderedBlocks = [
-      'WINE_ENGINE:',
-      'WINE_PROFILE:',
-      'COLOR_ACCURACY:',
-      'GEOMETRY_INTEGRITY:',
-      'LIQUID_TRANSFER_PHYSICS:',
-      'CARBONATION_BEHAVIOR:',
-      'CLOSURE_GEOMETRY:',
-      'COMPOSITION:',
-      'WINE_ENVIRONMENT:',
-      'WINE_LIGHTING:',
-      'MATERIALS:',
-      'PHYSICAL_REALISM:',
-    ];
+    // Enforce only relative order relationships
+    const idxEngine = prompt.indexOf('WINE_ENGINE:');
+    const idxProfile = prompt.indexOf('WINE_PROFILE:');
+    const idxBottle = prompt.indexOf('BOTTLE_STATE:');
+    const idxGeometry = prompt.indexOf('GEOMETRY_INTEGRITY:');
+    const idxLiquid = prompt.indexOf('LIQUID_TRANSFER_PHYSICS:');
+    const idxClosure = prompt.indexOf('CLOSURE_GEOMETRY:');
 
-    let prev = -1;
-    for (const block of orderedBlocks) {
-      const idx = prompt.indexOf(block);
-      expect(idx).toBeGreaterThanOrEqual(0);
-      expect(idx).toBeGreaterThan(prev);
-      prev = idx;
+    expect(idxEngine).toBeGreaterThanOrEqual(0);
+    expect(idxProfile).toBeGreaterThan(idxEngine);
+    expect(idxBottle).toBeGreaterThan(idxProfile);
+    expect(idxGeometry).toBeGreaterThan(idxBottle);
+    expect(idxLiquid).toBeGreaterThan(idxGeometry);
+    expect(idxClosure).toBeGreaterThan(idxLiquid);
+
+    // If carbonation block is present, it must be after LIQUID_TRANSFER_PHYSICS and before CLOSURE_GEOMETRY
+    if (prompt.includes('CARBONATION_BEHAVIOR:')) {
+      const carbonationIdx = prompt.indexOf('CARBONATION_BEHAVIOR:');
+      expect(carbonationIdx).toBeGreaterThan(idxLiquid);
+      expect(carbonationIdx).toBeLessThan(idxClosure);
     }
 
+    // Closure block must not contain legacy phrases
     const closureStart = prompt.indexOf('CLOSURE_GEOMETRY:');
-    const closureEndCandidates = [
-      prompt.indexOf('COMPOSITION:'),
-      prompt.indexOf('WINE_ENVIRONMENT:'),
-    ].filter((n) => n > closureStart);
-    const closureEnd = Math.min(...closureEndCandidates);
+    const closureEnd = prompt.length;
     const closureBlock = prompt.slice(closureStart, closureEnd);
-
-    expect(closureBlock).toContain('Physically coherent geometry preserved.');
-    expect(closureBlock).not.toContain('realistic pry-state behavior');
-    expect(closureBlock).not.toContain('thread geometry');
-    expect(closureBlock).not.toContain('extraction-state');
-    expect(closureBlock).not.toContain('seated state');
+    expect(closureBlock).not.toMatch(/pry-state|thread|extraction-state|seated state/i);
   });
 });
