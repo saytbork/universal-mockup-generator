@@ -1,0 +1,26 @@
+{
+  "overrides": [
+    {
+      "files": ["blocks/studio/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["../lifestyle/*", "../../blocks/lifestyle/*", "@/components/step3/blocks/lifestyle/*"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["blocks/lifestyle/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["../studio/*", "../../blocks/studio/*", "@/components/step3/blocks/studio/*"]
+          }
+        ]
+      }
+    }
+  ]
+}
