@@ -359,9 +359,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Model whitelist (V1 logic: always fallback, never block)
   const MODEL_WHITELIST = new Set([
     'gemini-2.0-flash-preview-image-generation',
-    'gemini-2.5-pro-vision',
   ]);
-  const DEFAULT_MODEL = 'gemini-2.5-pro-vision';
+  const DEFAULT_MODEL = 'gemini-2.0-flash-preview-image-generation';
   let safeModel = model;
   if (!MODEL_WHITELIST.has(model)) {
     console.warn(
