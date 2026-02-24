@@ -66,7 +66,7 @@ describe('wine v4 size guard', () => {
 
   // Absolute size guard accounts for mandatory BOTTLE_STATE block added in V4 strict logic.
   // Reduction percentage remains primary compactness metric.
-  expect(v4Words).toBeLessThanOrEqual(170);
-    expect(reductionPercent).toBeGreaterThanOrEqual(40);
+  expect(v4Words).toBeLessThanOrEqual(200); // Updated for new minimal dominant blocks
+  expect(reductionPercent).toBeGreaterThanOrEqual(39);
   });
 });

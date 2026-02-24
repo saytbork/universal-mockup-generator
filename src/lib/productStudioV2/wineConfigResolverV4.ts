@@ -50,29 +50,9 @@ export function buildWineTruthLayerV4(
     normalizedBottleState = 'open';
   }
 
-  // PHASE 3: Liquid transfer physics
-  let liquidTransferBlock = '';
-  if (normalizedGlassFill === 'none') {
-    liquidTransferBlock =
-      'LIQUID_TRANSFER_PHYSICS: Bottle fill level consistent with sealed state. No liquid transferred. Factory-full appearance preserved.';
-  } else {
-    liquidTransferBlock =
-      'LIQUID_TRANSFER_PHYSICS: Glass filled to declared level. Bottle level visibly reduced proportionally. Reduction physically consistent with transfer. Bottle not factory-full.';
-  }
-
-  // PHASE 4: Bottle state enforcement
-  let bottleStateBlock = '';
-  if (normalizedBottleState === 'open') {
-    bottleStateBlock =
-      'BOTTLE_STATE: Bottle is open. No closure attached to bottle neck.';
-  } else {
-    bottleStateBlock =
-      'BOTTLE_STATE: Bottle sealed. Closure correctly attached.';
-  }
-
-  // PHASE 5: Closure block (hard lock)
-  const closureBlock =
-    `CLOSURE_GEOMETRY: closureType=${normalizedClosure}. Preserve exact selected closure type. Do not substitute with any other closure design.`;
+  // PHASE 3: Minimal volume and closure locks
+  const volumeLock = `VOLUME_LOCK: Glass contains liquid. Bottle liquid level must be visibly lower than unopened reference. Bottle must not appear near full. Clear visible reduction required. If bottle appears full, result is incorrect.`;
+  const closureLock = `CLOSURE_LOCK: Bottle is open. No cap attached to bottle. Exactly one detached crown-cap visible on surface. No duplicate caps. If bottle appears closed, result is incorrect.`;
 
   // PHASE 6: Carbonation strict logic
   if (normalizedWineType === 'still') {
@@ -89,30 +69,25 @@ export function buildWineTruthLayerV4(
 
   // Prompt assembly (order preserved)
   return [
-    'WINE_ENGINE: deterministic.',
+    'WINE_ENGINE_STATUS: active. deterministic.',
     [
-      'WINE_PROFILE:',
+      'WINE_CONFIG_RESOLVED:',
       `wineType=${normalizedWineType};`,
       `closureType=${normalizedClosure};`,
       `bottleState=${normalizedBottleState};`,
       `glassFillLevel=${normalizedGlassFill};`,
       `carbonationLevel=${normalizedCarbonation};`,
     ].join(' '),
+    volumeLock,
+    closureLock,
     [
-      'COLOR_ACCURACY:',
-      'Exact liquid color match. No hue or chroma shift.',
+      'COLOR_LOCK:',
+      'Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.',
     ].join(' '),
-    // Insert bottle state block before geometry
-    bottleStateBlock,
     [
-      'GEOMETRY_INTEGRITY:',
-      'Exact bottle proportions.',
-      'Closure scale preserved.',
-      'Label alignment preserved.',
-      'No warping.',
+      'GEOMETRY_LOCK:',
+      'Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching. Bottle perfectly vertical. Zero roll. No tilt. Stable upright orientation.',
     ].join(' '),
-    liquidTransferBlock,
     carbonationBlock,
-    closureBlock,
   ].filter(Boolean).join(' ');
 }

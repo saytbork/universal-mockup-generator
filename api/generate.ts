@@ -328,6 +328,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isUnlimited = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
 
   const body = await parseBody(req);
+  // Defensive validation: payload size
+  const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_INLINE_IMAGES = 1;
+  const MAX_INLINE_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
+  const rawBodyString = JSON.stringify(body);
+  if (Buffer.byteLength(rawBodyString, 'utf8') > MAX_BODY_SIZE) {
+    res.status(413).json({ error: 'Payload too large (max 5MB)' });
+    return;
+  }
   const parts = Array.isArray(body.parts) ? body.parts : null;
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
@@ -345,6 +354,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         aspectRatio: typeof rawDebugMeta.aspectRatio === 'string' ? rawDebugMeta.aspectRatio.slice(0, 16) : undefined,
       }
     : null;
+
+  // Model whitelist
+  const MODEL_WHITELIST = [
+    'gemini-2.0-flash-preview-image-generation',
+    'gemini-2.5-pro-vision',
+  ];
+  if (!MODEL_WHITELIST.includes(model)) {
+    res.status(400).json({ error: 'Model not allowed' });
+    return;
+  }
+
+  // Validate parts structure
+  if (!Array.isArray(parts) || parts.length === 0) {
+    await addDebugLog('generate.reject.missing_parts', {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+    }, email);
+    res.status(400).json({ error: 'Missing prompt parts' });
+    return;
+  }
+  let inlineImageCount = 0;
+  for (const part of parts) {
+    if (typeof part !== 'object' || (!('text' in part) && !('inlineData' in part))) {
+      res.status(400).json({ error: 'Invalid part structure' });
+      return;
+    }
+    if ('inlineData' in part) {
+      inlineImageCount++;
+      const data = part.inlineData?.data;
+      if (typeof data === 'string' && Buffer.byteLength(data, 'base64') > MAX_INLINE_IMAGE_SIZE) {
+        res.status(413).json({ error: 'Inline image too large (max 4MB)' });
+        return;
+      }
+    }
+  }
+  if (inlineImageCount > MAX_INLINE_IMAGES) {
+    res.status(413).json({ error: 'Too many inline images (max 1)' });
+    return;
+  }
+
+  // InlineData control: block if preserveReferenceImage !== true
+  if (!preserveReferenceImage) {
+    const hasInlineData = parts.some(part => 'inlineData' in part);
+    if (hasInlineData) {
+      res.status(400).json({ error: 'InlineData not allowed unless preserveReferenceImage is true' });
+      return;
+    }
+  }
 
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {

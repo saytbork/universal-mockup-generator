@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { ProductStudioState } from '../../productStudio/types';
 import { toStudioV2State } from '../../productStudio/promptRouter';
 import { generateStudioPromptV2 } from '../../productStudioV2';
+import { isWineStrictSimulation, buildWinePhysicalPrompt, buildWineStylingPrompt, buildWineSinglePassPrompt } from '../../productStudioV2/winePromptHelpers';
 
 function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStudioState {
   return {
@@ -75,6 +76,39 @@ function buildCoffeeState(overrides: Partial<ProductStudioState> = {}): ProductS
 
 describe('wine truth layer enforcement', () => {
 
+  test('isWineStrictSimulation activates only for Wine V4 with glass', () => {
+    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(true);
+    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 3, wineGlassMode: 'filled' } as any)).toBe(false);
+    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'none' } as any)).toBe(false);
+    expect(isWineStrictSimulation({ visualProfile: 'coffee', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(false);
+  });
+
+  test('buildWinePhysicalPrompt includes all required physical tokens', () => {
+    const prompt = buildWinePhysicalPrompt({} as any);
+    expect(prompt).toContain('wine bottle that is open');
+    expect(prompt).toContain('liquid level in the bottle is visibly reduced');
+    expect(prompt).toContain('no closure attached');
+    expect(prompt).toContain('Exactly one detached closure');
+    expect(prompt).toContain('glass is partially filled');
+    expect(prompt).toContain('No duplicate closures');
+  });
+
+  test('buildWineStylingPrompt includes preservation clause and styling', () => {
+    const prompt = buildWineStylingPrompt({} as any);
+    expect(prompt).toContain('Preserve the open bottle');
+    expect(prompt).toContain('studio lighting');
+    expect(prompt).toContain('hero composition');
+    expect(prompt).toContain('brand label');
+    expect(prompt).toContain('No changes to the physical state');
+  });
+
+  test('buildWineSinglePassPrompt starts with physical, then styling', () => {
+    const prompt = buildWineSinglePassPrompt({} as any);
+    expect(prompt.startsWith('A wine bottle that is open.')).toBe(true);
+    expect(prompt).toContain('Professional studio lighting');
+    expect(prompt).toContain('Do not alter the physical state');
+  });
+
   test('glassFillLevel=none emits sealed state, no reduction, no transfer, factory-full', () => {
     const source = buildWineState({
       wineType: 'sparkling-white' as any,
@@ -108,9 +142,13 @@ describe('wine truth layer enforcement', () => {
     source.wineClosureType = 'screw-cap';
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
-    expect(prompt).toContain('Bottle level visibly reduced proportionally.');
-    expect(prompt).toContain('Bottle not factory-full.');
-    expect(prompt).not.toContain('Factory-full appearance preserved.');
+  // Assert new minimal VOLUME_LOCK wording
+  expect(prompt).toContain('VOLUME_LOCK: Glass contains liquid.');
+  expect(prompt).toContain('Bottle liquid level must be visibly lower than unopened reference.');
+  expect(prompt).toContain('Clear visible reduction required.');
+  expect(prompt).not.toContain('Factory-full appearance preserved.');
+  expect(prompt).not.toContain('Bottle not factory-full.');
+  expect(prompt).not.toContain('Bottle level visibly reduced proportionally.');
   });
 
   test('wineType=still emits no carbonation block and carbonationLevel is none', () => {
@@ -134,9 +172,11 @@ describe('wine truth layer enforcement', () => {
     source.wineClosureType = 'screw';
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
-    expect(prompt).toContain('CLOSURE_GEOMETRY: closureType=screw-cap');
-    expect(prompt).not.toContain('crown');
-    expect(prompt).not.toContain('cork');
+  // Assert new minimal CLOSURE_LOCK wording
+  expect(prompt).toContain('CLOSURE_LOCK: Bottle is open.');
+  expect(prompt).toContain('No cap attached to bottle.');
+  expect(prompt).toContain('Exactly one detached crown-cap visible on surface.');
+  expect(prompt).not.toContain('cork');
     expect(prompt).not.toContain('pry-state');
     expect(prompt).not.toContain('thread');
     expect(prompt).not.toContain('seated');

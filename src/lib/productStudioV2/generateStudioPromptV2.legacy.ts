@@ -1,39 +1,3 @@
-export {
-  applyWineDeterministicStateMachine,
-  resolveDeterministicWineConfig,
-  resolveWineEngineVersion,
-  buildWineTruthLayerV4,
-  buildWineTruthLayer,
-  buildWineEnvironment,
-  buildWineLighting,
-  buildWorld,
-  buildLighting,
-  buildWineMaterials,
-  buildWineModifiers,
-  buildWineMinimalGuardrail,
-  sanitizeWineV4Prompt,
-  dedupeWineStructuralTokens,
-  sanitizePromptLexicalGuard,
-  finalizePromptFromSegments,
-  buildCoffeeIndustryLayer,
-  buildIntent,
-  buildCameraOverrides,
-  buildComposition,
-  buildMotion,
-  buildPhysics,
-  buildModifiers,
-  buildMaterials,
-  buildPackaging,
-  buildGeometry,
-  buildAdvancedOverrideParts,
-  buildProtectionLayer,
-  injectWineEngine,
-  sanitizePromptParts,
-  resolveStudioAuthority,
-  getAllowedStudioModifiers
-};
-import { isWineStrictSimulation } from './winePromptHelpers';
-import { generateWineImage } from './generateWineImage';
 import { resolveStudioAuthority } from './authority/studioAuthorityResolver.ts';
 import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts';
 import { buildIntent } from './builders/buildIntent.ts';
@@ -57,12 +21,8 @@ import {
 } from './wineConfigResolver.ts';
 import { buildWineTruthLayerV4 } from './wineConfigResolverV4.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
-import { profileRegistry } from './pipelines/profileRegistry';
 
-const STRICT_GUARDRAILS =
-  typeof import.meta !== 'undefined' &&
-  typeof import.meta.env !== 'undefined' &&
-  import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
+const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
 
 type PromptSegmentType =
   | 'physics'
@@ -467,11 +427,132 @@ function sanitizeWineV4Prompt(prompt: string): string {
     .trim();
 }
 
-export function generateStudioPromptV2(state: StudioUIState): string {
-  // Match legacy: do NOT throw for Wine strict simulation here
-  const profile = state.visualProfile || 'generic';
-  const pipeline = profileRegistry[profile as keyof typeof profileRegistry] || profileRegistry.generic;
-  return pipeline.build(state);
+export function generateStudioPromptV2_legacy(state: StudioUIState): string {
+  console.log('[STUDIO V2] STRICT_GUARDRAILS =', STRICT_GUARDRAILS);
+  const isWineIndustry = state.visualProfile === 'wine';
+  const winePrestigeMode = state.visualProfile === 'wine' && Boolean(state.winePrestigeMode);
+  const isCoffeeIndustry = state.visualProfile === 'coffee';
+  const isWineReferenceCategory =
+    String((state as any).referenceProductCategory || '')
+      .trim()
+      .toLowerCase() === 'wine';
+  const effectiveState: StudioUIState = state;
+  const authority = resolveStudioAuthority(effectiveState);
+  const modifiers = getAllowedStudioModifiers(authority, effectiveState);
+  const protectionLayer = buildProtectionLayer(authority, effectiveState);
+  if (isCoffeeIndustry) {
+    const coffeeStructuralBlock = buildCoffeeIndustryLayer(authority, state);
+    const coffeeBlocks = [
+      buildIntent(authority, state),
+      buildWorld(authority, effectiveState.world, state),
+      buildCameraOverrides(effectiveState),
+      buildComposition(authority, state), // Pass state for bundle detection
+      buildMotion(authority, state),
+      buildPhysics(authority, state),
+      buildModifiers(modifiers, state),
+      buildLighting(authority, state),
+      buildMaterials(authority, state),
+      buildPackaging(state),
+      buildGeometry(authority, state),
+      ...protectionLayer,
+      ...buildAdvancedOverrideParts(effectiveState),
+    ];
+    const withWineEngine = isWineReferenceCategory ? injectWineEngine(coffeeBlocks, state) : coffeeBlocks;
+    const sanitizedParts = sanitizePromptParts(withWineEngine);
+    const segments: PromptSegment[] = [];
+    pushSegment(segments, 'guardrail', coffeeStructuralBlock);
+    for (const part of sanitizedParts) {
+      pushSegment(segments, 'guardrail', part);
+    }
+  // eslint-disable-next-line no-console
+  console.log('LEGACY AUTHORITY:', JSON.stringify(authority));
+  // eslint-disable-next-line no-console
+  console.log('LEGACY SEGMENTS STRUCTURE:', JSON.stringify(segments, null, 2));
+  const finalPrompt = finalizePromptFromSegments(segments, authority);
+  // eslint-disable-next-line no-console
+  console.log('LEGACY FINALIZE RESULT LENGTH:', finalPrompt.length);
+    if (coffeeStructuralBlock && !finalPrompt.startsWith('### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK')) {
+      console.error('[COFFEE STRUCTURAL PREPEND FAILED]');
+    }
+    return finalPrompt;
+  }
+
+  if (isWineIndustry) {
+    const wineEffectiveState = applyWineDeterministicStateMachine(state);
+    const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
+    const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
+    const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
+    const segments: PromptSegment[] = [];
+    pushSegment(segments, 'guardrail', buildIntent(authority, state));
+    pushSegment(
+      segments,
+      'physics',
+      wineEngineVersion >= 4
+        ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
+        : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig)
+    );
+    pushSegment(segments, 'camera', buildCameraOverrides(effectiveState));
+    pushSegment(segments, 'composition', buildComposition(authority, state));
+    pushSegment(
+      segments,
+      'world',
+      hasWineEnvironment
+        ? buildWineEnvironment(wineEffectiveState)
+        : buildWorld(authority, effectiveState.world, state)
+    );
+    pushSegment(
+      segments,
+      'world',
+      hasWineEnvironment
+        ? buildWineLighting()
+        : buildLighting(authority, state)
+    );
+    pushSegment(segments, 'guardrail', buildWineMaterials());
+    pushSegment(segments, 'guardrail', buildWineModifiers(wineEffectiveState));
+    pushSegment(segments, 'guardrail', buildWineMinimalGuardrail());
+    const finalPrompt = sanitizeWineV4Prompt(
+      sanitizePromptLexicalGuard(
+        dedupeWineStructuralTokens(finalizePromptFromSegments(segments, authority))
+      )
+    );
+    const wineCount = (finalPrompt.match(/WINE_ENGINE_STATUS|WINE_ENGINE:/g) || []).length;
+    console.log('[WINE_BLOCK_COUNT]', wineCount);
+    const photoModeFeaturesPresent = (finalPrompt.match(/PHOTO_MODE_FEATURES:/g) || []).length;
+    console.log('[PHOTO_MODE_FEATURES_PRESENT]', photoModeFeaturesPresent);
+    const geometryCount = (finalPrompt.match(/GEOMETRY_LOCK/g) || []).length;
+    console.log('[GEOMETRY_LOCK_COUNT]', geometryCount);
+    return finalPrompt;
+  }
+
+  const studioBlocks = [
+    buildIntent(authority, state),
+    buildWorld(authority, effectiveState.world, state),
+    buildCameraOverrides(effectiveState),
+    buildComposition(authority, state),
+    buildMotion(authority, state),
+    buildPhysics(authority, state),
+    buildModifiers(modifiers, state),
+    buildLighting(authority, state),
+    buildMaterials(authority, state),
+    buildPackaging(state),
+    buildGeometry(authority, state),
+    ...protectionLayer,
+    ...buildAdvancedOverrideParts(effectiveState),
+  ];
+  const withWineEngine = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
+  const sanitizedParts = sanitizePromptParts(withWineEngine);
+  const segments: PromptSegment[] = [];
+  for (const part of sanitizedParts) {
+    pushSegment(segments, 'guardrail', part);
+  }
+  // eslint-disable-next-line no-console
+  console.log('LEGACY AUTHORITY:', JSON.stringify(authority));
+  // eslint-disable-next-line no-console
+  console.log('LEGACY SEGMENTS STRUCTURE:', JSON.stringify(segments, null, 2));
+  const finalPrompt = finalizePromptFromSegments(segments, authority);
+  // eslint-disable-next-line no-console
+  console.log('LEGACY FINALIZE RESULT LENGTH:', finalPrompt.length);
+  return finalPrompt;
 }
 
 export type {

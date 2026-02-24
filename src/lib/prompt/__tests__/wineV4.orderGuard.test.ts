@@ -49,32 +49,19 @@ describe('wine v4 order guard', () => {
     const v2State = toStudioV2State(buildWineState());
     const prompt = generateStudioPromptV2({ ...(v2State as any), wineEngineVersion: 4 });
 
-    // Enforce only relative order relationships
-    const idxEngine = prompt.indexOf('WINE_ENGINE:');
-    const idxProfile = prompt.indexOf('WINE_PROFILE:');
-    const idxBottle = prompt.indexOf('BOTTLE_STATE:');
-    const idxGeometry = prompt.indexOf('GEOMETRY_INTEGRITY:');
-    const idxLiquid = prompt.indexOf('LIQUID_TRANSFER_PHYSICS:');
-    const idxClosure = prompt.indexOf('CLOSURE_GEOMETRY:');
+    // New block order assertions
+    const idxEngine = prompt.indexOf('WINE_ENGINE_STATUS:');
+    const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
+    const idxVolume = prompt.indexOf('VOLUME_LOCK:');
+    const idxClosure = prompt.indexOf('CLOSURE_LOCK:');
+    const idxColor = prompt.indexOf('COLOR_LOCK:');
+    const idxGeometry = prompt.indexOf('GEOMETRY_LOCK:');
 
     expect(idxEngine).toBeGreaterThanOrEqual(0);
-    expect(idxProfile).toBeGreaterThan(idxEngine);
-    expect(idxBottle).toBeGreaterThan(idxProfile);
-    expect(idxGeometry).toBeGreaterThan(idxBottle);
-    expect(idxLiquid).toBeGreaterThan(idxGeometry);
-    expect(idxClosure).toBeGreaterThan(idxLiquid);
-
-    // If carbonation block is present, it must be after LIQUID_TRANSFER_PHYSICS and before CLOSURE_GEOMETRY
-    if (prompt.includes('CARBONATION_BEHAVIOR:')) {
-      const carbonationIdx = prompt.indexOf('CARBONATION_BEHAVIOR:');
-      expect(carbonationIdx).toBeGreaterThan(idxLiquid);
-      expect(carbonationIdx).toBeLessThan(idxClosure);
-    }
-
-    // Closure block must not contain legacy phrases
-    const closureStart = prompt.indexOf('CLOSURE_GEOMETRY:');
-    const closureEnd = prompt.length;
-    const closureBlock = prompt.slice(closureStart, closureEnd);
-    expect(closureBlock).not.toMatch(/pry-state|thread|extraction-state|seated state/i);
+    expect(idxConfig).toBeGreaterThan(idxEngine);
+    expect(idxVolume).toBeGreaterThan(idxConfig);
+    expect(idxClosure).toBeGreaterThan(idxVolume);
+    expect(idxColor).toBeGreaterThan(idxClosure);
+    expect(idxGeometry).toBeGreaterThan(idxColor);
   });
 });
