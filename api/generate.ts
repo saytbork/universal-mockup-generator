@@ -356,8 +356,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     : null;
 
-  // Model whitelist
-
+  // Model whitelist (V1 logic: always fallback, never block)
   const MODEL_WHITELIST = new Set([
     'gemini-2.0-flash-preview-image-generation',
     'gemini-2.5-pro-vision',
@@ -365,17 +364,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const DEFAULT_MODEL = 'gemini-2.5-pro-vision';
   let safeModel = model;
   if (!MODEL_WHITELIST.has(model)) {
-    console.warn('[MODEL WHITELIST] Invalid model received:', model);
-    res.status(400).json({ error: 'Model not allowed', received: model });
-    // Fallback logic: use default model for downstream if needed
+    console.warn(
+      '[MODEL WHITELIST] Invalid model received:',
+      model,
+      '→ Falling back to',
+      DEFAULT_MODEL
+    );
     safeModel = DEFAULT_MODEL;
-    // Optionally: continue with fallback instead of returning
-    // Uncomment below to fallback instead of blocking
-    // model = safeModel;
-    // console.log('[MODEL WHITELIST] Falling back to default model:', safeModel);
-    // (do not return here)
-    // else, keep current blocking behavior
-    return;
   }
 
   // Validate parts structure
@@ -453,7 +448,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!creditResult.ok || !creditResult.bucket) {
         await addDebugLog('generate.reject.no_credits', {
           aspectRatio,
-          model,
+          model: safeModel,
           promptHash: debugMeta?.promptHash,
         }, authenticatedEmail);
         res.status(402).json({ error: 'No credits remaining' });
@@ -473,7 +468,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
           return await ai.models.generateContent({
-            model,
+            model: safeModel,
             contents: { parts },
             config: {
               responseModalities: [Modality.IMAGE],
