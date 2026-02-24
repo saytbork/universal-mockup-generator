@@ -356,27 +356,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     : null;
 
-  // Model whitelist (V1 logic: always fallback, never block)
-  const MODEL_WHITELIST = new Set([
-    'gemini-2.0-flash-preview-image-generation',
-  ]);
+  // Model config (restored from 7695e35)
+  // No whitelist/fallback logic
+  const MODEL_WHITELIST = undefined; // Not used in this version
   const DEFAULT_MODEL = 'gemini-2.0-flash-preview-image-generation';
-  let safeModel = model;
-  if (!MODEL_WHITELIST.has(model)) {
-    console.warn(
-      '[MODEL WHITELIST] Invalid model received:',
-      model,
-      '→ Falling back to',
-      DEFAULT_MODEL
-    );
-    safeModel = DEFAULT_MODEL;
-  }
 
   // Validate parts structure
   if (!Array.isArray(parts) || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-  model: safeModel,
+  model,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
@@ -413,7 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {
       aspectRatio,
-  model: safeModel,
+  model,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
@@ -426,7 +415,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!parts || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-  model: safeModel,
+  model,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
@@ -446,7 +435,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!creditResult.ok || !creditResult.bucket) {
         await addDebugLog('generate.reject.no_credits', {
           aspectRatio,
-          model: safeModel,
+          model,
           promptHash: debugMeta?.promptHash,
         }, authenticatedEmail);
         res.status(402).json({ error: 'No credits remaining' });
@@ -458,15 +447,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1' });
+  // Restore GoogleGenAI initialization from 7695e35
+  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 
   try {
     const generateWithRetry = async () => {
       const maxAttempts = 4;
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
+          // Restore model usage from 7695e35 (no safeModel)
           return await ai.models.generateContent({
-            model: safeModel,
+            model,
             contents: { parts },
             config: {
               responseModalities: [Modality.IMAGE],
@@ -474,7 +465,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               generationConfig: {
                 responseMimeType: 'image/png',
                 aspectRatio,
-                preserveReferenceImage: effectivePreserveReferenceImage,
+                preserveReferenceImage,
                 temperature: 0.25,
                 topP: 0.9,
                 seed: crypto.randomUUID(),
@@ -557,7 +548,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await addDebugLog('generate.success', {
       aspectRatio,
-  model: safeModel,
+  model,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
@@ -633,7 +624,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     await addDebugLog('generate.error', {
       aspectRatio,
-  model: safeModel,
+  model,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
