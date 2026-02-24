@@ -339,6 +339,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
+  console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
   const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
@@ -356,12 +357,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : null;
 
   // Model whitelist
-  const MODEL_WHITELIST = [
+
+  const MODEL_WHITELIST = new Set([
     'gemini-2.0-flash-preview-image-generation',
     'gemini-2.5-pro-vision',
-  ];
-  if (!MODEL_WHITELIST.includes(model)) {
-    res.status(400).json({ error: 'Model not allowed' });
+  ]);
+  const DEFAULT_MODEL = 'gemini-2.5-pro-vision';
+  let safeModel = model;
+  if (!MODEL_WHITELIST.has(model)) {
+    console.warn('[MODEL WHITELIST] Invalid model received:', model);
+    res.status(400).json({ error: 'Model not allowed', received: model });
+    // Fallback logic: use default model for downstream if needed
+    safeModel = DEFAULT_MODEL;
+    // Optionally: continue with fallback instead of returning
+    // Uncomment below to fallback instead of blocking
+    // model = safeModel;
+    // console.log('[MODEL WHITELIST] Falling back to default model:', safeModel);
+    // (do not return here)
+    // else, keep current blocking behavior
     return;
   }
 
@@ -369,7 +382,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!Array.isArray(parts) || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-      model,
+  model: safeModel,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
@@ -407,7 +420,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {
       aspectRatio,
-      model,
+  model: safeModel,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
@@ -420,7 +433,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!parts || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-      model,
+  model: safeModel,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
@@ -551,7 +564,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await addDebugLog('generate.success', {
       aspectRatio,
-      model,
+  model: safeModel,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
@@ -627,7 +640,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     await addDebugLog('generate.error', {
       aspectRatio,
-      model,
+  model: safeModel,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
