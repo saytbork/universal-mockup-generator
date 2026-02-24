@@ -10,24 +10,26 @@ const baseWineState: StudioUIState = {
 };
 
 describe('Studio V2 wine tilt rules', () => {
-  test('enforces upright bottle in static presentation', () => {
+  test('enforces compact composition guidance in static presentation', () => {
     const prompt = generateStudioPromptV2({
       ...baseWineState,
       wineAction: 'static-presentation',
     });
 
-    expect(prompt).toContain('BOTTLE_TILT_RULE: static presentation requires vertical bottle orientation (0° tilt, perfectly upright).');
-    expect(prompt).not.toContain('between 5° and 15°');
+    expect(prompt).toContain('COMPOSITION:');
+    expect(prompt).toContain('Bottle upright at 0° tilt unless pouring.');
+    expect(prompt).not.toContain('BOTTLE_TILT_RULE:');
   });
 
-  test('keeps upright bottle even if controlled pour is requested', () => {
+  test('keeps compact composition block even if controlled pour is requested', () => {
     const prompt = generateStudioPromptV2({
       ...baseWineState,
       wineAction: 'controlled-pour',
       winePrestigeV2Mode: true,
     });
 
-    expect(prompt).toContain('WINE_ACTION: controlled-pour.');
-    expect(prompt).toContain('BOTTLE_TILT_RULE: controlled pour supports gentle tilt in physically valid range.');
+    expect(prompt).toContain('COMPOSITION:');
+    expect(prompt).toContain('Bottle upright at 0° tilt unless pouring.');
+    expect(prompt).not.toContain('WINE_ACTION:');
   });
 });

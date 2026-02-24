@@ -137,6 +137,14 @@ export interface StudioUIState {
   autoRandomizeWineEnvironment?: boolean;
   wineAction?: 'static-presentation' | 'controlled-pour';
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+  wineType?: string;
+  carbonationLevel?: string;
+  wineBottleState?: string;
+  wineGlassMode?: string;
+  wineClosureType?: string;
+  wineServeAmount?: string;
+  serveVolumeMode?: string;
+  wineEngineVersion?: number;
   cameraSystem?: string;
   cameraAngle?: string;
   cameraDistance?: string;

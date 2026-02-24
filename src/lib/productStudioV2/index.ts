@@ -19,6 +19,7 @@ import {
   buildWineTruthLayer,
   type ResolvedWineConfig,
 } from './wineConfigResolver.ts';
+import { buildWineTruthLayerV4 } from './wineConfigResolverV4.ts';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 
 const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
@@ -62,13 +63,7 @@ function dedupeWineStructuralTokens(prompt: string): string {
     next = next.replace(pattern, '');
   }
 
-  const keepLastPrefixes = [
-    'FRAME_EDGE_POLICY:',
-    'WINE_WORLD_AUTHORITY:',
-    'WINE_ENVIRONMENT_PRESET:',
-    'WORLD_OVERRIDE_MODE:',
-    'INVALIDATE_PREVIOUS_WORLD_TOKENS:',
-  ];
+  const keepLastPrefixes = ['FRAME_EDGE_POLICY:'];
   for (const prefix of keepLastPrefixes) {
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`${escaped}\\s*[^.]*\\.`, 'g');
@@ -248,7 +243,12 @@ function getPartKey(part: string): string {
 function countEnvironmentBlocks(parts: string[]): number {
   return parts.filter((part) => {
     const key = getPartKey(part);
-    return key === 'STUDIO_WORLD' || key === 'WINE_ENVIRONMENT_VARIATION' || key === 'WINE_ENVIRONMENT_CONTEXT';
+    return (
+      key === 'STUDIO_WORLD' ||
+      key === 'WINE_ENVIRONMENT_VARIATION' ||
+      key === 'WINE_ENVIRONMENT_CONTEXT' ||
+      key === 'WINE_ENVIRONMENT'
+    );
   }).length;
 }
 
@@ -322,6 +322,11 @@ function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWineConfi
   };
 }
 
+function resolveWineEngineVersion(state: StudioUIState): number {
+  const version = Number(state.wineEngineVersion || 3);
+  return Number.isFinite(version) ? version : 3;
+}
+
 function applyWineDeterministicStateMachine(state: StudioUIState): StudioUIState {
   const config = resolveDeterministicWineConfig(state);
   const wineBottleState = config.bottleState === 'sealed' ? 'sealed' : 'opened-with-cork-nearby';
@@ -339,93 +344,87 @@ function applyWineDeterministicStateMachine(state: StudioUIState): StudioUIState
   };
 }
 
-function buildWineWorldOverride(state: StudioUIState): string {
-  const preset = String(state.wineEnvironmentVariation || '').trim();
+function buildWineEnvironment(state: StudioUIState): string {
+  const variation = String(state.wineEnvironmentVariation || '').trim();
+  if (!variation) return '';
 
-  if (!preset) {
-    return '';
-  }
+  const narrativeMap: Record<string, string> = {
+    vineyard:
+      'Golden vineyard at sunset. Soft warm edge light. Background out of focus.',
+    'dark-cellar':
+      'Aged oak cellar. Soft warm edge light. Background out of focus.',
+    'marble-bar':
+      'Luxury marble bar scene. Soft warm edge light. Background out of focus.',
+    'minimal-gradient':
+      'Minimal gradient backdrop. Soft warm edge light. Background out of focus.',
+    'black-studio':
+      'Black studio scene. Soft warm edge light. Background out of focus.',
+    'modern-kitchen':
+      'Modern kitchen environment. Soft warm edge light. Background out of focus.',
+    'luxury-dining':
+      'Fine dining setting. Soft warm edge light. Background out of focus.',
+    'moody-backlight':
+      'Moody backlit scene. Soft warm edge light. Background out of focus.',
+    'sunlit-table':
+      'Sunlit table scene. Soft warm edge light. Background out of focus.',
+    'architectural-shadow':
+      'Architectural shadow scene. Soft warm edge light. Background out of focus.',
+  };
 
+  const narrative = narrativeMap[variation] || narrativeMap['black-studio'];
+  return `WINE_ENVIRONMENT: ${narrative}`;
+}
+
+function buildWineLighting(): string {
   return [
-    'WINE_WORLD_AUTHORITY: absolute.',
-    `WINE_ENVIRONMENT_PRESET: ${preset}.`,
-    'WORLD_OVERRIDE_MODE: HARD_REPLACEMENT.',
-    'INVALIDATE_PREVIOUS_WORLD_TOKENS: true.',
-    'IGNORE_ANY_STUDIO_WORLD_PROFILE.',
-    'IGNORE_PHOTO_MODE_BACKGROUND.',
-    'IGNORE_GRADIENT_BACKGROUND.',
-    'IGNORE_BRAND_WORLD.',
-    'IGNORE_LIFESTYLE_WORLD.',
-    'ONLY_USE_WINE_ENVIRONMENT_DESCRIPTION.',
+    'WINE_LIGHTING:',
+    'Warm lateral key light.',
+    'Soft falloff.',
+    'Controlled glass highlights.',
   ].join(' ');
 }
 
-function buildWineLightingOverride(state: StudioUIState): string {
-  const preset = String(state.wineEnvironmentVariation || '').trim();
+function buildWineModifiers(state: StudioUIState): string {
+  const mood = String(state.wineMoodModifier || '').trim();
+  if (!mood || mood === 'None') return '';
+  return `WINE_MOOD: ${mood}.`;
+}
 
-  if (!preset) {
-    return '';
-  }
-
+function buildWineMinimalGuardrail(): string {
   return [
-    'WINE_LIGHTING_AUTHORITY: active.',
-    'LIGHTING_SOURCE: derived from wine environment preset.',
-    'IGNORE_STUDIO_LIGHTING_PROFILE.',
-    'IGNORE_PHOTO_MODE_LIGHTING.',
+    'PHYSICAL_REALISM:',
+    'Coherent optics.',
+    'Material integrity.',
+    'Gravity consistency.',
   ].join(' ');
 }
 
-function resolveWineEnvironmentPhysicalLayer(state: StudioUIState): string {
-  const preset = String(state.wineEnvironmentVariation || '').trim();
+function buildWineMaterials(): string {
+  return [
+    'MATERIALS:',
+    'Real glass.',
+    'Natural liquid translucency.',
+    'Label fidelity.',
+  ].join(' ');
+}
 
-  if (!preset) return '';
-
-  switch (preset) {
-    case 'Dark Premium Studio':
-      return [
-        'ENVIRONMENT_PHYSICAL_DESCRIPTION:',
-        'Dark luxury studio backdrop.',
-        'Charcoal to black gradient background.',
-        'Soft falloff into deep shadow.',
-        'Subtle vignette.',
-        'High contrast subject separation.',
-        'Minimal reflective surface.',
-      ].join(' ');
-
-    case 'Sunlit Stone Editorial':
-      return [
-        'ENVIRONMENT_PHYSICAL_DESCRIPTION:',
-        'Warm Mediterranean stone surface.',
-        'Natural sunlight from 45° window direction.',
-        'Soft shadow falloff.',
-        'Textured limestone wall background.',
-        'Warm beige and cream tonal palette.',
-        'Editorial lifestyle realism.',
-      ].join(' ');
-
-    case 'Golden Sunset Backlit':
-      return [
-        'ENVIRONMENT_PHYSICAL_DESCRIPTION:',
-        'Outdoor golden hour lighting.',
-        'Low sun angle backlight.',
-        'Warm amber rim light.',
-        'Soft atmospheric haze.',
-        'Natural vineyard background depth blur.',
-      ].join(' ');
-
-    case 'Botanical Water Garden':
-      return [
-        'ENVIRONMENT_PHYSICAL_DESCRIPTION:',
-        'Fresh botanical setting.',
-        'Green foliage depth layering.',
-        'Soft daylight.',
-        'Water reflections.',
-        'Organic natural composition.',
-      ].join(' ');
-
-    default:
-      return '';
-  }
+function sanitizeWineV4Prompt(prompt: string): string {
+  return String(prompt || '')
+    .replace(/STUDIO_VISUAL_INTENT:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_SYSTEM:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_DISTANCE:[^.]*\./gi, ' ')
+    .replace(/LENS_PROFILE:[^.]*\./gi, ' ')
+    .replace(/DISTORTION:[^.]*\./gi, ' ')
+    .replace(/DEPTH_STYLE:[^.]*\./gi, ' ')
+    .replace(/STUDIO_FRAMING_GUIDE:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_\s*/g, ' ')
+    .replace(/STUDIO_PRODUCT_MOTION:[^.]*\./gi, ' ')
+    .replace(/STUDIO_MODIFIERS:\s*wine-prestige\./gi, ' ')
+    .replace(/STUDIO_COMPOSITION_MODEL:[^.]*\./gi, ' ')
+    .replace(/FRAME_EDGE_POLICY:[^.]*\./gi, ' ')
+    .replace(/PHOTO_TYPE:[^.]*\./gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 export function generateStudioPromptV2(state: StudioUIState): string {
@@ -475,31 +474,42 @@ export function generateStudioPromptV2(state: StudioUIState): string {
   if (isWineIndustry) {
     const wineEffectiveState = applyWineDeterministicStateMachine(state);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
+    const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
     const segments: PromptSegment[] = [];
     pushSegment(segments, 'guardrail', buildIntent(authority, state));
-    pushSegment(segments, 'physics', buildWineTruthLayer(wineEffectiveState, resolvedWineConfig));
+    pushSegment(
+      segments,
+      'physics',
+      wineEngineVersion >= 4
+        ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
+        : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig)
+    );
     pushSegment(segments, 'camera', buildCameraOverrides(effectiveState));
     pushSegment(segments, 'composition', buildComposition(authority, state));
-    pushSegment(segments, 'composition', buildMotion(authority, state));
-    pushSegment(segments, 'physics', winePrestigeMode ? '' : buildPhysics(authority, state));
-    pushSegment(segments, 'guardrail', buildModifiers(modifiers, state));
-    pushSegment(segments, 'world', hasWineEnvironment ? '' : buildWorld(authority, effectiveState.world, state));
-    pushSegment(segments, 'world', hasWineEnvironment ? '' : buildLighting(authority, state));
-    pushSegment(segments, 'guardrail', buildMaterials(authority, state));
-    for (const part of protectionLayer) {
-      pushSegment(segments, 'guardrail', part);
-    }
-    if (hasWineEnvironment) {
-      pushSegment(segments, 'world', buildWineWorldOverride(state));
-      pushSegment(segments, 'world', resolveWineEnvironmentPhysicalLayer(state));
-      pushSegment(segments, 'world', buildWineLightingOverride(state));
-      pushSegment(segments, 'world', 'FINAL_WORLD_LOCK: Wine environment preset is the only valid background source.');
-    }
-    const finalPrompt = sanitizePromptLexicalGuard(
-      dedupeWineStructuralTokens(finalizePromptFromSegments(segments, authority))
+    pushSegment(
+      segments,
+      'world',
+      hasWineEnvironment
+        ? buildWineEnvironment(wineEffectiveState)
+        : buildWorld(authority, effectiveState.world, state)
     );
-    const wineCount = (finalPrompt.match(/WINE_ENGINE_STATUS/g) || []).length;
+    pushSegment(
+      segments,
+      'world',
+      hasWineEnvironment
+        ? buildWineLighting()
+        : buildLighting(authority, state)
+    );
+    pushSegment(segments, 'guardrail', buildWineMaterials());
+    pushSegment(segments, 'guardrail', buildWineModifiers(wineEffectiveState));
+    pushSegment(segments, 'guardrail', buildWineMinimalGuardrail());
+    const finalPrompt = sanitizeWineV4Prompt(
+      sanitizePromptLexicalGuard(
+        dedupeWineStructuralTokens(finalizePromptFromSegments(segments, authority))
+      )
+    );
+    const wineCount = (finalPrompt.match(/WINE_ENGINE_STATUS|WINE_ENGINE:/g) || []).length;
     console.log('[WINE_BLOCK_COUNT]', wineCount);
     const photoModeFeaturesPresent = (finalPrompt.match(/PHOTO_MODE_FEATURES:/g) || []).length;
     console.log('[PHOTO_MODE_FEATURES_PRESENT]', photoModeFeaturesPresent);

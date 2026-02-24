@@ -51,8 +51,9 @@ describe('wine environment variation', () => {
     const v2State = toStudioV2State(buildWineState({ contextPreset: '' }));
     const prompt = generateStudioPromptV2(v2State);
 
-    expect(prompt).toContain('WINE_LIQUID_PHYSICS:');
-    expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION:');
+    expect(prompt).toContain('WINE_ENGINE: deterministic.');
+    expect(prompt).toContain('WINE_ENVIRONMENT:');
+    expect(prompt).toContain('WINE_LIGHTING:');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: Vineyard Golden Hour');
     expect(prompt).not.toContain('Render with 85mm premium telephoto prime optical behavior');
   });

@@ -11,7 +11,7 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
     definition: { type: 'custom' } as ProductStudioState['definition'],
     photoMode: 'Hero Landing Page',
     distance: 'standard',
-    stateMotion: 'static',
+    stateMotion: 'opened' as any,
     controlTier: 'basic',
     advancedModeEnabled: false,
     proMode: false,
@@ -32,30 +32,38 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
     cameraUiDistanceLabel: '',
     cameraUiRotationLabel: '',
     cameraUiFramingLabel: '',
-    interaction: 'holding',
-    category: 'Wine',
-    contextPreset: 'Oak Barrel Cellar',
-    wineAction: 'controlled-pour',
+    interaction: 'none',
+    contextPreset: 'Vineyard Golden Hour',
+    wineType: 'sparkling' as any,
+    wineClosureType: 'crown-cap',
+    wineBottleState: 'opened-with-cork-nearby' as any,
+    wineGlassMode: 'filled' as any,
+    carbonationLevel: 'subtle' as any,
+    wineEngineVersion: 4,
     ...overrides,
   } as ProductStudioState;
 }
 
-describe('wine interaction isolation', () => {
-  test('wine prompt excludes interaction/framing/hand tokens and locks static action', () => {
-    const sourceState = buildWineState();
-    const first = toStudioV2State(sourceState);
-    const second = toStudioV2State(sourceState);
-    const finalPrompt = generateStudioPromptV2(first);
+describe('wine v4 token guard', () => {
+  test('does not emit forbidden legacy tokens', () => {
+    const v2State = toStudioV2State(buildWineState());
+    const prompt = generateStudioPromptV2({ ...(v2State as any), wineEngineVersion: 4 });
 
-    expect(first).not.toBe(second);
-    expect(sourceState.interaction).toBe('holding');
-    expect(first.interaction).toBe('none');
-    expect(first.wineAction).toBe('static-presentation');
+    const forbiddenTokens = [
+      'STUDIO_ULTRA_REAL_GUARDRAIL',
+      'WORLD_OVERRIDE_MODE',
+      'INVALIDATE_PREVIOUS_WORLD_TOKENS',
+      'WINE_WORLD_AUTHORITY',
+      'WINE_LIGHTING_AUTHORITY',
+      'STUDIO_COMPOSITION_MODEL',
+      'COMPOSITION_OVERRIDE',
+      'STUDIO_PRODUCT_MOTION',
+      'FRAME_EDGE_POLICY',
+      'PHOTO_TYPE',
+    ];
 
-    expect(finalPrompt).toContain('COMPOSITION:');
-    expect(finalPrompt).not.toContain('STUDIO_PRODUCT_MOTION:');
-    expect(finalPrompt).not.toContain('INTERACTION_');
-    expect(finalPrompt).not.toContain('HAND_');
-    expect(finalPrompt).not.toContain('FRAMING_BIAS');
+    for (const token of forbiddenTokens) {
+      expect(prompt).not.toContain(token);
+    }
   });
 });

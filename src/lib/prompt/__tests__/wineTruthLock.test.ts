@@ -84,15 +84,22 @@ describe('wine truth layer enforcement', () => {
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
 
-    const engineStatusIndex = prompt.indexOf('WINE_ENGINE_STATUS:');
+    const engineStatusIndex = prompt.indexOf('WINE_ENGINE:');
     expect(engineStatusIndex).toBeGreaterThanOrEqual(0);
 
-    expect(prompt).toContain('WINE_CONFIG_RESOLVED:');
-    expect(prompt).toContain('WINE_COLOR_LOCK: Liquid color must match reference exactly.');
-    expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
-    expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
-    expect(prompt).toContain('WINE_STRUCTURAL_LOCK_V3:');
-    expect(prompt).toContain('GEOMETRY_LOCK: Preserve exact bottle proportions.');
+    expect(prompt).toContain('WINE_PROFILE:');
+    expect(prompt).toContain('COLOR_ACCURACY:');
+    expect(prompt).toContain('GEOMETRY_INTEGRITY:');
+    expect(prompt).toContain('LIQUID_TRANSFER_PHYSICS:');
+    expect(prompt).toContain('Bottle level visibly reduced below sealed reference.');
+    expect(prompt).toContain('Not factory-full.');
+    expect(prompt).not.toContain('Bottle cannot appear factory-full.');
+    expect(prompt).toContain('CARBONATION_BEHAVIOR:');
+    expect(prompt).not.toContain('WINE_ENGINE_STATUS:');
+    expect(prompt).not.toContain('WINE_CONFIG_RESOLVED:');
+    expect(prompt).not.toContain('WINE_COLOR_LOCK:');
+    expect(prompt).not.toContain('WINE_STRUCTURAL_LOCK_V3:');
+    expect(prompt).not.toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
     expect(prompt).not.toContain('WINE_TRUTH_LOCK:');
     expect(prompt).not.toContain('PRODUCT_WINE_COLOR_LOCK:');
     expect(prompt).not.toContain('LIQUID_MATCH_RULE:');
@@ -103,15 +110,16 @@ describe('wine truth layer enforcement', () => {
     expect(prompt).not.toContain('SPARKLING_PHYSICS_PROFILE:');
     expect(prompt).not.toContain('NECK_CLEARANCE_RULE:');
     expect(prompt).not.toContain('SCREW_CAP_BEHAVIOR:');
-    expect(prompt).toContain('STUDIO_ULTRA_REAL_GUARDRAIL:');
+    expect(prompt).toContain('PHYSICAL_REALISM:');
+    expect(prompt).not.toContain('STUDIO_ULTRA_REAL_GUARDRAIL:');
   });
 
   test('does not leak wine truth layer into coffee profile', () => {
     const v2State = toStudioV2State(buildCoffeeState());
     const prompt = generateStudioPromptV2(v2State);
 
-    expect(prompt).not.toContain('WINE_CONFIG_RESOLVED:');
-    expect(prompt).not.toContain('WINE_COLOR_LOCK:');
-    expect(prompt).not.toContain('WINE_ENGINE_STATUS:');
+    expect(prompt).not.toContain('WINE_PROFILE:');
+    expect(prompt).not.toContain('COLOR_ACCURACY:');
+    expect(prompt).not.toContain('WINE_ENGINE: deterministic.');
   });
 });

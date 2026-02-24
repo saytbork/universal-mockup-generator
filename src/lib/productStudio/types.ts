@@ -742,6 +742,14 @@ export type ProductStudioState = {
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
     winePourStyle: WinePourStyle;
+    wineType?: string;
+    carbonationLevel?: string;
+    wineBottleState?: string;
+    wineGlassMode?: string;
+    wineClosureType?: string;
+    wineServeAmount?: string;
+    serveVolumeMode?: string;
+    wineEngineVersion?: number;
     coffeeMode: CoffeeMode;
     coffeeAction: CoffeeAction;
     coffeeLightingTone: CoffeeLightingTone;

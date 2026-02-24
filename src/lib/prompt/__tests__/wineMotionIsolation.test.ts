@@ -51,8 +51,8 @@ describe('wine motion isolation', () => {
     expect(first.wineAction).toBe('static-presentation');
     expect(first).not.toBe(second);
 
-    expect(prompt).toContain('WINE_ACTION: static-presentation');
-    expect(prompt).not.toMatch(/\bPOUR(?:ING)?\b/i);
+    expect(prompt).toContain('COMPOSITION:');
+    expect(prompt).not.toContain('STUDIO_PRODUCT_MOTION:');
     expect(prompt).not.toMatch(/\bSPILL(?:ED|ING)?\b/i);
     expect(prompt).not.toMatch(/\bFALL(?:ING)?\b/i);
     expect(prompt).not.toMatch(/\bDISPENS(?:E|ED|ING)\b/i);

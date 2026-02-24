@@ -834,6 +834,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
+          wineEngineVersion: Number(state.wineEngineVersion || 4),
           wineAction: 'static-presentation',
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
         }

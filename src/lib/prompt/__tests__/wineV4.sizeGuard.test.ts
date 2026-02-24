@@ -2,6 +2,11 @@ import { describe, expect, test } from 'vitest';
 import type { ProductStudioState } from '../../productStudio/types';
 import { toStudioV2State } from '../../productStudio/promptRouter';
 import { generateStudioPromptV2 } from '../../productStudioV2';
+import { mapSceneToPrompt } from '../../productStudio/mapSceneToPrompt';
+
+function countWords(text: string): number {
+  return String(text || '').trim().split(/\s+/).filter(Boolean).length;
+}
 
 function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStudioState {
   return {
@@ -11,7 +16,7 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
     definition: { type: 'custom' } as ProductStudioState['definition'],
     photoMode: 'Hero Landing Page',
     distance: 'standard',
-    stateMotion: 'static',
+    stateMotion: 'opened' as any,
     controlTier: 'basic',
     advancedModeEnabled: false,
     proMode: false,
@@ -32,30 +37,34 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
     cameraUiDistanceLabel: '',
     cameraUiRotationLabel: '',
     cameraUiFramingLabel: '',
-    interaction: 'holding',
-    category: 'Wine',
-    contextPreset: 'Oak Barrel Cellar',
-    wineAction: 'controlled-pour',
+    interaction: 'none',
+    contextPreset: 'Vineyard Golden Hour',
+    wineType: 'sparkling' as any,
+    wineClosureType: 'crown-cap',
+    wineBottleState: 'opened-with-cork-nearby' as any,
+    wineGlassMode: 'filled' as any,
+    carbonationLevel: 'subtle' as any,
+    wineEngineVersion: 4,
     ...overrides,
   } as ProductStudioState;
 }
 
-describe('wine interaction isolation', () => {
-  test('wine prompt excludes interaction/framing/hand tokens and locks static action', () => {
-    const sourceState = buildWineState();
-    const first = toStudioV2State(sourceState);
-    const second = toStudioV2State(sourceState);
-    const finalPrompt = generateStudioPromptV2(first);
+describe('wine v4 size guard', () => {
+  test('keeps compact size and >=40% reduction vs dynamic v3 baseline', () => {
+    const v2State = toStudioV2State(buildWineState());
+    const v3Prompt = mapSceneToPrompt(
+      buildWineState({
+        visualProfile: 'wine-prestige',
+        category: 'Wine',
+      })
+    ).prompt;
+    const v4Prompt = generateStudioPromptV2({ ...(v2State as any), wineEngineVersion: 4 });
 
-    expect(first).not.toBe(second);
-    expect(sourceState.interaction).toBe('holding');
-    expect(first.interaction).toBe('none');
-    expect(first.wineAction).toBe('static-presentation');
+    const v3Words = countWords(v3Prompt);
+    const v4Words = countWords(v4Prompt);
+    const reductionPercent = ((v3Words - v4Words) / v3Words) * 100;
 
-    expect(finalPrompt).toContain('COMPOSITION:');
-    expect(finalPrompt).not.toContain('STUDIO_PRODUCT_MOTION:');
-    expect(finalPrompt).not.toContain('INTERACTION_');
-    expect(finalPrompt).not.toContain('HAND_');
-    expect(finalPrompt).not.toContain('FRAMING_BIAS');
+    expect(v4Words).toBeLessThanOrEqual(140);
+    expect(reductionPercent).toBeGreaterThanOrEqual(40);
   });
 });
