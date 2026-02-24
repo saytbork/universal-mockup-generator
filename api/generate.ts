@@ -403,13 +403,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // InlineData control: block if preserveReferenceImage !== true
-  if (!preserveReferenceImage) {
-    const hasInlineData = parts.some(part => 'inlineData' in part);
-    if (hasInlineData) {
-      res.status(400).json({ error: 'InlineData not allowed unless preserveReferenceImage is true' });
-      return;
-    }
+  // InlineData: auto-enable preserveReferenceImage if needed
+  const hasInlineData = parts.some(part => 'inlineData' in part);
+  let effectivePreserveReferenceImage = preserveReferenceImage;
+  if (hasInlineData && !preserveReferenceImage) {
+    console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
+    effectivePreserveReferenceImage = true;
   }
 
   if (!apiKey) {
@@ -476,7 +475,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               generationConfig: {
                 responseMimeType: 'image/png',
                 aspectRatio,
-                preserveReferenceImage,
+                preserveReferenceImage: effectivePreserveReferenceImage,
                 temperature: 0.25,
                 topP: 0.9,
                 seed: crypto.randomUUID(),
