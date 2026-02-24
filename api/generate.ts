@@ -458,7 +458,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+  const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1' });
 
   try {
     const generateWithRetry = async () => {
