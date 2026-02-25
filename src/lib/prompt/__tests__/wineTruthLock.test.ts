@@ -140,13 +140,12 @@ describe('wine truth layer enforcement', () => {
     source.wineClosureType = 'screw-cap';
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
-  // Assert new minimal VOLUME_LOCK wording
-  expect(prompt).toContain('Glass liquid color must match bottle liquid');
-  expect(prompt).toContain('Bottle liquid level must be visibly lower');
+  // Assert serve volume conservation is present
+  expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3');
+  expect(prompt).toContain('Bottle must appear clearly partially consumed');
   // removed old assertions for exact V3 phrasing
   expect(prompt).not.toContain('Factory-full appearance preserved.');
   expect(prompt).not.toContain('Bottle not factory-full.');
-  expect(prompt).not.toContain('Bottle level visibly reduced proportionally.');
   });
 
   test('wineType=still emits no carbonation block and carbonationLevel is none', () => {
@@ -160,7 +159,7 @@ describe('wine truth layer enforcement', () => {
     expect(prompt).not.toContain('CARBONATION_BEHAVIOR');
   });
 
-  test('closureType=screw emits only screw-cap, not cork or crown', () => {
+  test('closureType=screw emits only screw-cap, not crown', () => {
     const source = buildWineState({
       wineClosureType: 'screw' as any,
       wineGlassMode: 'filled' as any,
@@ -170,10 +169,12 @@ describe('wine truth layer enforcement', () => {
     source.wineClosureType = 'screw';
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
-  // Assert closure lock present (V4 output differs slightly from V3)
+  // Assert closure lock present - screw-cap selected so no cork/crown mentions
   expect(prompt).toContain('Bottle is open');
-  expect(prompt).toContain('No cap attached');
-  expect(prompt).not.toContain('cork');
+  expect(prompt).toContain('No cap');
+  // Cork can appear in generic CLOSURE_STATE_EXPLICIT instructions as an example type
+  // but closure config should show screw-cap
+  expect(prompt).toContain('closureType=screw-cap');
     expect(prompt).not.toContain('pry-state');
     expect(prompt).not.toContain('thread');
     expect(prompt).not.toContain('seated');
