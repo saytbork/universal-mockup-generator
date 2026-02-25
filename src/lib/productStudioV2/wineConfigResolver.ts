@@ -43,10 +43,10 @@ export function buildWineTruthLayer(
       ? 'natural'
       : carbonationLevel;
 
-  const crownCapLock = buildCrownCapRemovalLockV3(closureType, bottleState);
+  const closureLock = buildClosureLockStrictV1(closureType, bottleState);
   const volumeLock = buildServeVolumeConservationLockV3(bottleState, serveState, bottleFillState);
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
-  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(crownCapLock));
+  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(closureLock));
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
@@ -55,7 +55,7 @@ export function buildWineTruthLayer(
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, volumeLock, crownCapLock, geometryBlock, colorBlock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, volumeLock, closureLock, geometryBlock, colorBlock].filter(Boolean).join(' ');
   }
 
   return [
@@ -63,8 +63,8 @@ export function buildWineTruthLayer(
     configBlock,
     // Volume lock must be placed immediately after the resolved config so image models
     // prioritize physical plausibility before styling or environment is injected.
-    volumeLock,
-    crownCapLock,
+  volumeLock,
+  closureLock,
     structuralLock,
     geometryBlock,
     colorBlock,
@@ -72,24 +72,22 @@ export function buildWineTruthLayer(
   ].filter(Boolean).join(' ');
 }
 
-function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' | 'open'): string {
-  if (closureType !== 'crown-cap' || bottleState !== 'open') return '';
-  return [
-    'CROWN_CAP_REMOVAL_LOCK_V3:',
-    'Closure type: crimped metal crown-cap only.',
-    'Neck lip must show smooth circular glass rim.',
-    'No cork geometry.',
-    'No screw-thread geometry.',
-    'No foil remnants.',
-    'No hybrid morphology allowed.',
-    'Exactly one detached cap object.',
-    // Stronger enforcement language to make duplicates impossible to miss.
-    'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
-    'Detached cap must show crimp deformation consistent with pry removal.',
-    'No partial ring artifacts.',
-    'No duplicate closure.',
-    'No duplicate closures.',
-  ].join(' ');
+function buildClosureLockStrictV1(closureType: string, bottleState: 'sealed' | 'open'): string {
+  // Centralized strict closure rules applied to all closure types.
+  const parts: string[] = [];
+  parts.push('CLOSURE_LOCK_STRICT_V1: Exactly one closure state allowed.');
+  if (bottleState === 'open') {
+    parts.push('If bottleState=open: Bottle neck must be visibly open.');
+    parts.push('No cap attached.');
+    parts.push('No secondary cap.');
+    parts.push('No ghost cap.');
+    parts.push('At most one detached cap object in scene.');
+  } else {
+    parts.push('If bottleState=sealed: Exactly one closure attached.');
+    parts.push('No detached cap allowed.');
+  }
+  parts.push('Multiple closures invalidate image.');
+  return parts.join(' ');
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {
@@ -143,12 +141,12 @@ function buildServeVolumeConservationLockV3(
 function buildWineStructuralLockV3(
   hasVolumeLock: boolean,
   hasSparklingLock: boolean,
-  hasCrownCapLock: boolean
+  hasClosureLock: boolean
 ): string {
   const apply: string[] = [];
   if (hasVolumeLock) apply.push('SERVE_VOLUME_CONSERVATION_LOCK_V3');
   if (hasSparklingLock) apply.push('SPARKLING_PHYSICS_LOCK_V3');
-  if (hasCrownCapLock) apply.push('CROWN_CAP_REMOVAL_LOCK_V3');
+  if (hasClosureLock) apply.push('CLOSURE_LOCK_STRICT_V1');
 
   return [
     'WINE_STRUCTURAL_LOCK_V3:',

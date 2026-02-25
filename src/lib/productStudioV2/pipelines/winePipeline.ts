@@ -41,14 +41,45 @@ export const winePipeline = {
       if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
         // eslint-disable-next-line no-console
         console.log('[WINE SERVED MODE] early return activated');
-        // Sanitize similarly to the normal finalize path but return only the wine physics block.
-        const final = sanitizeWineV4Prompt(sanitizePromptLexicalGuard(dedupeWineStructuralTokens(winePhysicsBlock)));
+        // STRICT PIPELINE LOG
+        // Build augmented wine physics block with enforced base/serve object coherence locks
+        let augmented = winePhysicsBlock;
+
+        // Insert PHYSICAL_BASE_LOCK_V1 immediately after WINE_CONFIG_RESOLVED
+        const physicalBase = 'PHYSICAL_BASE_LOCK_V1: Bottle must rest on a visible physical surface. No floating objects allowed. No mid-air bottle. No mid-air glass. All objects must cast coherent contact shadows. Surface contact must be visually evident.';
+        augmented = augmented.replace(/(WINE_CONFIG_RESOLVED:[^;]*;)/, `$1 ${physicalBase}`);
+
+        // Insert SERVE_OBJECT_COHERENCE_LOCK_V1 after SERVE_VOLUME_CONSERVATION_LOCK_V3
+        const serveObjectLock = 'SERVE_OBJECT_COHERENCE_LOCK_V1: If serveState=served: Exactly one glass allowed. Glass liquid color must match bottle liquid. Bottle liquid must be reduced accordingly. If serveState=none: No glass allowed in scene.';
+        augmented = augmented.replace(/(SERVE_VOLUME_CONSERVATION_LOCK_V3:[^.]*(?:\.|$))/s, `$1 ${serveObjectLock}`);
+
+        // Hard validation: ensure no world/styling tokens present
+        const forbidden = [
+          'WINE_ENVIRONMENT',
+          'PHOTO_MODE',
+          'PACKAGING',
+          'ADVANCED_CONTROLS',
+          'COMPOSITION'
+        ];
+        const augmentedSan = sanitizePromptLexicalGuard(dedupeWineStructuralTokens(augmented));
+        for (const token of forbidden) {
+          if (augmentedSan.includes(token)) {
+            // eslint-disable-next-line no-console
+            console.error('[WINE SERVED STRICT PIPELINE ACTIVE] contamination detected', token);
+            throw new Error('Wine served pipeline contamination detected');
+          }
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('[WINE SERVED STRICT PIPELINE ACTIVE]');
+
+        const final = sanitizeWineV4Prompt(augmentedSan);
         return final;
       }
     } catch (err) {
-      // non-fatal — fall through to normal behavior
       // eslint-disable-next-line no-console
       console.error('[WINE SERVED MODE] early return detection error', err);
+      throw err;
     }
 
     // Removed conditional appending of 'Bottle perfectly vertical...' for strict segment equality
