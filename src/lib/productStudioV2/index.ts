@@ -32,7 +32,7 @@ export {
   resolveStudioAuthority,
   getAllowedStudioModifiers
 };
-import { isWineStrictSimulation } from './winePromptHelpers';
+// import removed: isWineStrictSimulation no longer exported from winePromptHelpers
 import { generateWineImage } from './generateWineImage';
 import { resolveStudioAuthority } from './authority/studioAuthorityResolver.ts';
 import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts';

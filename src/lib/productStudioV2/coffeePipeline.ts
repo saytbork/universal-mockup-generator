@@ -1,0 +1,1 @@
+export { generateStudioPromptV2 as coffeePipeline } from './index';

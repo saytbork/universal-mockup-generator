@@ -40,7 +40,7 @@ export interface StudioAuthorityBundle {
 }
 
 export interface StudioUIState {
-  creativeIntent: StudioCreativeIntent;
+  creativeIntent?: StudioCreativeIntent;
   world?: StudioWorld;
   motion: StudioMotion;
   composition: StudioComposition;
@@ -142,6 +142,9 @@ export interface StudioUIState {
   wineBottleState?: string;
   wineGlassMode?: string;
   wineClosureType?: string;
+  wineColor?: 'red' | 'white' | 'rose';
+  wineStyle?: 'still' | 'sparkling';
+  sparklingIntensity?: 'None' | 'Subtle' | 'Visible';
   wineServeAmount?: string;
   serveVolumeMode?: string;
   wineEngineVersion?: number;

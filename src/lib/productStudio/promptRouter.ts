@@ -1013,6 +1013,21 @@ function sanitizePromptForIndustry(prompt: string, industryProfile: IndustryProf
 }
 
 export function routeStudioScenePrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
+  // 🧱 WINE ENGINE ISOLATION — NO builder, no finalizePromptFromSegments, no legacy, no modifiers
+  if (state.visualProfile === 'wine') {
+    // Import buildWinePrompt from wineEngine
+    // @ts-ignore
+    const { buildWinePrompt } = require('../lib/wineEngine/wineEngine');
+    const prompt = buildWinePrompt(state);
+    return {
+      prompt,
+      mode: 'HERO_NEUTRAL', // Use valid PhotoModeKey for type compatibility
+      splashMode: undefined,
+      randomSeed: 'wine-engine-v4',
+    };
+  }
+
+  // ...existing code...
   if (!isStudioV2Enabled()) {
     console.log('[STUDIO ROUTER] engine=legacy');
     return mapSceneToPrompt(state, product);

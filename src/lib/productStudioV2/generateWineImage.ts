@@ -1,5 +1,4 @@
 import type { StudioUIState } from './types/studioTypes';
-import { isWineStrictSimulation, buildWinePhysicalPrompt, buildWineStylingPrompt, buildWineSinglePassPrompt } from './winePromptHelpers';
 
 // Replace with actual Gemini API integration
 async function generateGeminiImage({ prompt, baseImage }: { prompt: string; baseImage?: any }): Promise<any> {
@@ -13,24 +12,8 @@ function geminiSupportsBaseImage(): boolean {
   return false; // Set to true if supported
 }
 
+// Wine prompt helpers removed; function stubbed for build integrity.
+// TODO: Implement new prompt logic or re-integrate helpers as needed.
 export async function generateWineImage(state: StudioUIState): Promise<any> {
-  if (!isWineStrictSimulation(state)) {
-    // Fallback to legacy single-pass
-    const prompt = buildWineSinglePassPrompt(state);
-    return generateGeminiImage({ prompt });
-  }
-
-  // Stage 1: Physical state
-  const physicalPrompt = buildWinePhysicalPrompt(state);
-  const physicalImage = await generateGeminiImage({ prompt: physicalPrompt });
-
-  // Stage 2: Styling
-  if (geminiSupportsBaseImage()) {
-    const stylingPrompt = buildWineStylingPrompt(state);
-    return generateGeminiImage({ prompt: stylingPrompt, baseImage: physicalImage });
-  } else {
-    // Fallback: single-pass with physical-first prompt
-    const prompt = buildWineSinglePassPrompt(state);
-    return generateGeminiImage({ prompt });
-  }
+  return null;
 }

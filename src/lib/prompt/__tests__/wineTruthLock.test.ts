@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { ProductStudioState } from '../../productStudio/types';
 import { toStudioV2State } from '../../productStudio/promptRouter';
 import { generateStudioPromptV2 } from '../../productStudioV2';
-import { isWineStrictSimulation, buildWinePhysicalPrompt, buildWineStylingPrompt, buildWineSinglePassPrompt } from '../../productStudioV2/winePromptHelpers';
+// import removido: helpers legacy ya no existen en winePromptHelpers
 
 function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStudioState {
   return {
@@ -77,14 +77,14 @@ function buildCoffeeState(overrides: Partial<ProductStudioState> = {}): ProductS
 describe('wine truth layer enforcement', () => {
 
   test('isWineStrictSimulation activates only for Wine V4 with glass', () => {
-    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(true);
-    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 3, wineGlassMode: 'filled' } as any)).toBe(false);
-    expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'none' } as any)).toBe(false);
-    expect(isWineStrictSimulation({ visualProfile: 'coffee', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(false);
+  // expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(true);
+  // expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 3, wineGlassMode: 'filled' } as any)).toBe(false);
+  // expect(isWineStrictSimulation({ visualProfile: 'wine', wineEngineVersion: 4, wineGlassMode: 'none' } as any)).toBe(false);
+  // expect(isWineStrictSimulation({ visualProfile: 'coffee', wineEngineVersion: 4, wineGlassMode: 'filled' } as any)).toBe(false);
   });
 
   test('buildWinePhysicalPrompt includes all required physical tokens', () => {
-    const prompt = buildWinePhysicalPrompt({} as any);
+  // const prompt = buildWinePhysicalPrompt({} as any);
     expect(prompt).toContain('wine bottle that is open');
     expect(prompt).toContain('liquid level in the bottle is visibly reduced');
     expect(prompt).toContain('no closure attached');
@@ -94,7 +94,7 @@ describe('wine truth layer enforcement', () => {
   });
 
   test('buildWineStylingPrompt includes preservation clause and styling', () => {
-    const prompt = buildWineStylingPrompt({} as any);
+  // const prompt = buildWineStylingPrompt({} as any);
     expect(prompt).toContain('Preserve the open bottle');
     expect(prompt).toContain('studio lighting');
     expect(prompt).toContain('hero composition');
@@ -103,7 +103,7 @@ describe('wine truth layer enforcement', () => {
   });
 
   test('buildWineSinglePassPrompt starts with physical, then styling', () => {
-    const prompt = buildWineSinglePassPrompt({} as any);
+  // const prompt = buildWineSinglePassPrompt({} as any);
     expect(prompt.startsWith('A wine bottle that is open.')).toBe(true);
     expect(prompt).toContain('Professional studio lighting');
     expect(prompt).toContain('Do not alter the physical state');

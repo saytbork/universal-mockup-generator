@@ -1,0 +1,1 @@
+export { generateWineImage as winePipeline } from './generateWineImage';
