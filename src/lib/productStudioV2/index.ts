@@ -166,6 +166,46 @@ function finalizePromptFromSegments(
     .join(' ');
   validateHumanPolicy(interactionLayer);
 
+  // Short-circuit: if wine engine emitted a served state, produce a minimal
+  // physical-only prompt here to ensure no world/styling blocks are injected.
+  // This inspects the resolved config segment for `serveState=served` and
+  // then returns only the required physical blocks in a fixed order.
+  try {
+    const allContents = segments.map((s) => s.content || '').filter(Boolean);
+    const configIndex = allContents.findIndex((c) => c.includes('WINE_CONFIG_RESOLVED:'));
+    if (configIndex >= 0) {
+      const configStr = allContents[configIndex];
+      if (/serveState=served/.test(configStr)) {
+        // Build minimal prompt in deterministic order
+        const requiredOrder = [
+          'WINE_ENGINE_STATUS',
+          'WINE_CONFIG_RESOLVED',
+          'SERVE_VOLUME_CONSERVATION_LOCK_V3',
+          'CROWN_CAP_REMOVAL_LOCK_V3', // optional
+          'GEOMETRY_LOCK',
+          'WINE_COLOR_LOCK',
+        ];
+
+        const minimalParts: string[] = [];
+        for (const prefix of requiredOrder) {
+          const found = allContents.find((c) => c.includes(prefix));
+          if (found) minimalParts.push(found);
+        }
+
+        if (minimalParts.length > 0) {
+          // eslint-disable-next-line no-console
+          console.log('[WINE SERVED MODE] minimal physical prompt activated');
+          const final = minimalParts.join(' ').replace(/\s{2,}/g, ' ').trim();
+          return sanitizeFinalPromptOutput(final);
+        }
+      }
+    }
+  } catch (e) {
+    // Non-fatal; fall through to standard finalization on error
+    // eslint-disable-next-line no-console
+    console.error('[WINE SERVED MODE] detection error', e);
+  }
+
   const contents = segments.map((segment) => segment.content).filter(Boolean);
 
   const validationPrompt = assembleStudioPrompt(contents);
