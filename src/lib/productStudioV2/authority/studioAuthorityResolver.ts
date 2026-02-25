@@ -23,7 +23,7 @@ const resolveWorld = (state: StudioUIState): StudioWorld => {
   return 'studio';
 };
 
-const resolveIntent = (state: StudioUIState): StudioCreativeIntent => state.creativeIntent;
+const resolveIntent = (state: StudioUIState): StudioCreativeIntent => state.creativeIntent as StudioCreativeIntent;
 
 const resolveComposition = (state: StudioUIState): StudioComposition => {
   if (isTexturedBedMode(state.photoMode)) return 'flat-lay';

@@ -53,5 +53,5 @@ export function resolveWineStyleConsistency(state: StudioUIState): {
     sparklingIntensity = 'Subtle';
   }
 
-  return { wineStyle, sparklingIntensity };
+  return { wineStyle, sparkling: sparklingIntensity };
 }

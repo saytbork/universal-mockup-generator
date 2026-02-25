@@ -1,11 +1,15 @@
 import type { StudioUIState } from './types/studioTypes.ts';
 
-export type WineGlassFillLevel = 'none' | 'quarter' | 'half' | 'three-quarters';
+export type ServeState = 'none' | 'served';
+export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
 
 export type ResolvedWineConfig = {
   closureType: string;
   bottleState: 'sealed' | 'open';
-  glassFillLevel: WineGlassFillLevel;
+  // New binary serve state (preferred)
+  serveState?: ServeState;
+  // Derived visual bottle fill state (preferred)
+  bottleFillState?: BottleFillState;
 };
 
 export function buildWineTruthLayer(
@@ -15,8 +19,20 @@ export function buildWineTruthLayer(
   const wineType = String(state.wineType || 'auto').trim();
   const closureType = String(config.closureType || 'from-reference').trim();
   const carbonationLevel = String(state.carbonationLevel || 'none').trim();
-  const fillLevel = config.glassFillLevel;
+  // Backwards-compat: support old "glassFillLevel" if present by deriving serveState.
   const bottleState = config.bottleState;
+  const serveState: ServeState = (config as any).serveState
+    ? (config as any).serveState
+    : (typeof (config as any).glassFillLevel !== 'undefined' && (config as any).glassFillLevel !== 'none')
+    ? 'served'
+    : 'none';
+
+  // Deterministic derived bottle visual state per architecture rules
+  const bottleFillState: BottleFillState = (config as any).bottleFillState
+    ? (config as any).bottleFillState
+    : serveState === 'served'
+    ? 'clearly-partially-consumed'
+    : 'retail-full';
 
   const isSparkling =
     wineType === 'sparkling-white' ||
@@ -28,19 +44,25 @@ export function buildWineTruthLayer(
       : carbonationLevel;
 
   const crownCapLock = buildCrownCapRemovalLockV3(closureType, bottleState);
-  const volumeLock = buildServeVolumeConservationLockV3(bottleState, fillLevel);
+  const volumeLock = buildServeVolumeConservationLockV3(bottleState, serveState, bottleFillState);
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
   const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(crownCapLock));
 
   return [
     'WINE_ENGINE_STATUS: active. deterministic.',
-    `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; glassFillLevel=${fillLevel}; carbonationLevel=${emittedCarbonationLevel};`,
-    'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.',
+    `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`,
+    // Volume lock must be placed immediately after the resolved config so image models
+    // prioritize physical plausibility before styling or environment is injected.
     volumeLock,
-    sparklingLock,
+    // Closure-related locks should follow volume to avoid visual conflicts
     crownCapLock,
+    // Structural enforcement that references applied locks
     structuralLock,
+    // Geometry constraints should be applied before color/styling
     'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.',
+    // Color and stylistic tokens placed after geometry to reduce their dominance over shape
+    'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.',
+    sparklingLock,
   ].filter(Boolean).join(' ');
 }
 
@@ -83,16 +105,31 @@ function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: str
 
 function buildServeVolumeConservationLockV3(
   bottleState: 'sealed' | 'open',
-  fillLevel: WineGlassFillLevel
+  serveState: ServeState,
+  bottleFillState: BottleFillState
 ): string {
-  if (!(bottleState === 'open' && fillLevel !== 'none')) return '';
+  // Only apply when bottle is open and serveState indicates served
+  if (!(bottleState === 'open' && serveState === 'served')) return '';
+
+  // Strong visual-state driven language — no numeric percentages or ml references
+  if (bottleFillState === 'clearly-partially-consumed') {
+    return [
+      'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
+      'When bottleFillState=clearly-partially-consumed:',
+      'Bottle must appear clearly partially consumed.',
+  'Liquid level must sit clearly below the upper third of the bottle.',
+      'Bottle must not resemble retail factory-full condition.',
+      'Reduction must be visually obvious at first glance.',
+      'Physical plausibility overrides composition or aesthetic styling for volume.'
+    ].join(' ');
+  }
+
+  // retail-full case should not normally occur when serveState=served, but provide a clear
+  // statement for completeness when serveState indicates none.
   return [
     'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
-    'When bottleState=open AND glassFillLevel!=none:',
-    'If the glass contains any liquid then the bottle must appear approximately half-full.',
-    'Bottle should sit visibly around mid-height (about half of bottle height).',
-    'If the bottle appears near retail/factory-full while glass contains liquid, the result is invalid.',
-    'Physical plausibility overrides composition or aesthetic styling for volume.',
+    'When bottleFillState=retail-full:',
+    'Bottle appears in standard retail-full condition.'
   ].join(' ');
 }
 

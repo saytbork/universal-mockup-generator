@@ -327,11 +327,16 @@ function normalizeWineValue(value: unknown): string {
   return String(value || '').trim().toLowerCase();
 }
 
-function resolveWineGlassFillLevel(state: StudioUIState): ResolvedWineConfig['glassFillLevel'] {
+// Backwards-compatible mapping: derive a binary serveState from older UI fields.
+function resolveServeState(state: StudioUIState): 'none' | 'served' {
   const amount = normalizeWineValue((state as StudioUIState & { wineServeAmount?: string }).wineServeAmount);
-  if (amount === 'taste') return 'quarter';
-  if (amount === 'generous') return 'three-quarters';
-  if (normalizeWineValue(state.wineGlassMode) === 'filled') return 'half';
+  const glassMode = normalizeWineValue(state.wineGlassMode);
+  const bottleState = normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open';
+
+  if (bottleState === 'sealed') return 'none';
+  // Explicit filled mode or any declared serve amount implies served
+  if (glassMode === 'filled') return 'served';
+  if (amount) return 'served';
   return 'none';
 }
 
@@ -347,18 +352,14 @@ function resolveWineClosureType(state: StudioUIState): string {
 
 function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWineConfig {
   const bottleState = normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open';
-  const glassMode = normalizeWineValue(state.wineGlassMode);
-  const glassFillLevel =
-    bottleState === 'sealed'
-      ? 'none'
-      : glassMode === 'none'
-        ? 'none'
-        : resolveWineGlassFillLevel(state);
+  const serveState = resolveServeState(state);
+  const bottleFillState = serveState === 'served' ? 'clearly-partially-consumed' : 'retail-full';
 
   return {
     closureType: resolveWineClosureType(state),
     bottleState,
-    glassFillLevel,
+    serveState,
+    bottleFillState,
   };
 }
 
@@ -371,7 +372,7 @@ function applyWineDeterministicStateMachine(state: StudioUIState): StudioUIState
   const config = resolveDeterministicWineConfig(state);
   const wineBottleState = config.bottleState === 'sealed' ? 'sealed' : 'opened-with-cork-nearby';
   const wineGlassMode =
-    config.glassFillLevel === 'none'
+    config.serveState === 'none'
       ? normalizeWineValue(state.wineGlassMode) === 'none'
         ? 'none'
         : 'empty'

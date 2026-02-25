@@ -22,11 +22,20 @@
       ]
     },
     "skipLibCheck": true
+    ,
+    "types": ["vitest/globals", "node"]
   },
   "include": [
     "src",
     "api",
     "server",
     "App.tsx"
+  ]
+  ,
+  "exclude": [
+    "**/__tests__",
+    "src/**/__tests__",
+    "**/*.test.ts",
+    "src/**/*.test.ts"
   ]
 }
