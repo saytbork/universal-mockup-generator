@@ -391,8 +391,13 @@ function resolveWineClosureType(state: StudioUIState): string {
 }
 
 function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWineConfig {
-  const bottleState = normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open';
   const serveState = resolveServeState(state);
+  
+  // HARD ENFORCEMENT: if serveState='served', bottle MUST be open (never sealed)
+  const bottleState = serveState === 'served' 
+    ? 'open' 
+    : (normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open');
+  
   const bottleFillState = serveState === 'served' ? 'clearly-partially-consumed' : 'retail-full';
 
   return {

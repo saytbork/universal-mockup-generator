@@ -14,13 +14,17 @@ export function buildWineTruthLayerV4(
   // PHASE 1: Debug trace
   const wineType = String(state.wineType || 'auto').trim();
   const closureType = String(config.closureType || 'from-reference').trim();
-  const bottleState = String(config.bottleState || 'open').trim();
+  
   // Backwards-compat: accept older "glassFillLevel" if present and derive serveState
   const serveState: 'none' | 'served' = (config as any).serveState
     ? (config as any).serveState
     : (typeof (config as any).glassFillLevel !== 'undefined' && (config as any).glassFillLevel !== 'none')
     ? 'served'
     : 'none';
+  
+  // HARD ENFORCEMENT: if serveState='served', bottle MUST be open (override config.bottleState if needed)
+  const bottleState = serveState === 'served' ? 'open' : String(config.bottleState || 'open').trim();
+  
   const bottleFillState = (config as any).bottleFillState
     ? (config as any).bottleFillState
     : serveState === 'served'

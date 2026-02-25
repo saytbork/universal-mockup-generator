@@ -3,11 +3,6 @@ import type { StudioUIState } from './types/studioTypes.ts';
 export type ServeState = 'none' | 'served';
 export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
 
-import type { StudioUIState } from './types/studioTypes.ts';
-
-export type ServeState = 'none' | 'served';
-export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
-
 export type ResolvedWineConfig = {
   closureType: string;
   bottleState: 'sealed' | 'open';
@@ -23,12 +18,15 @@ export function buildWineTruthLayer(
   const closureType = String(config.closureType || 'from-reference').trim();
   const carbonationLevel = String(state.carbonationLevel || 'none').trim();
 
-  const bottleState = config.bottleState;
+  // Derive serveState from config (with backwards compat for glassFillLevel)
   const serveState: ServeState = (config as any).serveState
     ? (config as any).serveState
     : (typeof (config as any).glassFillLevel !== 'undefined' && (config as any).glassFillLevel !== 'none')
     ? 'served'
     : 'none';
+
+  // HARD ENFORCEMENT: if serveState='served', bottle MUST be open (override config.bottleState if needed)
+  const bottleState: 'sealed' | 'open' = serveState === 'served' ? 'open' : config.bottleState;
 
   const bottleFillState: BottleFillState = (config as any).bottleFillState
     ? (config as any).bottleFillState
