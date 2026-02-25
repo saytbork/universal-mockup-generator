@@ -5351,9 +5351,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const rawMode = !!promptOptions.ugcRealModeActive;
         const isNaturalUgc = naturalMode || rawMode;
         
-        // WINE SERVED MODE: Don't send product reference image when wine is in served state
-        // The reference image (full bottle) overrides text instructions to reduce liquid level
-        // By not sending the reference, the AI can generate a half-empty bottle from text alone
+        // WINE SERVED MODE: Detect wine in served state for special handling
         const isWineServedMode = Boolean(
           lifestyleStep3Values?.visualProfile === 'wine' && 
           (lifestyleStep3Values as any)?.serveState === 'served'
@@ -5365,7 +5363,9 @@ If the model attempts to create a scene or environment, override it and force a 
           generationProductsLength: generationProducts.length,
           hideProductMode
         });
-        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode && !isWineServedMode;
+        
+        // Always send product image - we'll control reference strength via imageStrength parameter
+        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
         
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
@@ -5543,6 +5543,12 @@ If the model attempts to create a scene or environment, override it and force a 
         // When `preserveReferenceImage` is true, Gemini may keep the reference image framing/ratio
         // even if we request a different `aspectRatio`. We still pass reference images for grounding.
         const preserveReferenceImage = false;
+        
+        // WINE SERVED MODE: Lower image strength so text instructions can override reference image
+        // When imageStrength is low (0.5), the AI treats the reference as a suggestion, not law
+        const imageStrength = isWineServedMode ? 0.5 : undefined;
+        console.log('[IMAGE STRENGTH]', { isWineServedMode, imageStrength });
+        
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: {
@@ -5556,6 +5562,7 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
+            ...(imageStrength !== undefined ? { imageStrength } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,

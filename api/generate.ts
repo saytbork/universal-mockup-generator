@@ -342,6 +342,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
+  const imageStrength = typeof body.imageStrength === 'number' ? body.imageStrength : undefined;
+  console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
   const bodyApiKeyLength = typeof body.apiKey === 'string' ? body.apiKey.trim().length : 0;
   console.log('[GENAI] GOOGLE_API_KEY length:', String(process.env.GOOGLE_API_KEY || '').trim().length);
@@ -466,6 +468,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 responseMimeType: 'image/png',
                 aspectRatio,
                 preserveReferenceImage,
+                ...(imageStrength !== undefined ? { imageStrength } : {}),
                 temperature: 0.25,
                 topP: 0.9,
                 seed: crypto.randomUUID(),
