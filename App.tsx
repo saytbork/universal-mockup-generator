@@ -5352,13 +5352,24 @@ If the model attempts to create a scene or environment, override it and force a 
         const isNaturalUgc = naturalMode || rawMode;
         
         // WINE SERVED MODE: Detect wine in served state for special handling
+        // For Product Studio mode: read from ProductStudioStore
+        // For Lifestyle mode: read from lifestyleStep3Values
+        const productStateForWine = isProductPlacement ? useProductStudioStore.getState() : null;
+        const wineVisualProfile = isProductPlacement 
+          ? (productStateForWine as any)?.visualProfile 
+          : lifestyleStep3Values?.visualProfile;
+        const wineServeState = isProductPlacement
+          ? (productStateForWine as any)?.serveState
+          : (lifestyleStep3Values as any)?.serveState;
+        
         const isWineServedMode = Boolean(
-          lifestyleStep3Values?.visualProfile === 'wine' && 
-          (lifestyleStep3Values as any)?.serveState === 'served'
+          wineVisualProfile === 'wine' && 
+          wineServeState === 'served'
         );
         console.log('[WINE SERVED MODE DEBUG]', {
-          visualProfile: lifestyleStep3Values?.visualProfile,
-          serveState: (lifestyleStep3Values as any)?.serveState,
+          isProductPlacement,
+          visualProfile: wineVisualProfile,
+          serveState: wineServeState,
           isWineServedMode,
           generationProductsLength: generationProducts.length,
           hideProductMode
