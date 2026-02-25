@@ -5350,7 +5350,16 @@ If the model attempts to create a scene or environment, override it and force a 
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
         const isNaturalUgc = naturalMode || rawMode;
-        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
+        
+        // WINE SERVED MODE: Don't send product reference image when wine is in served state
+        // The reference image (full bottle) overrides text instructions to reduce liquid level
+        // By not sending the reference, the AI can generate a half-empty bottle from text alone
+        const isWineServedMode = Boolean(
+          lifestyleStep3Values?.visualProfile === 'wine' && 
+          (lifestyleStep3Values as any)?.serveState === 'served'
+        );
+        const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode && !isWineServedMode;
+        
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
