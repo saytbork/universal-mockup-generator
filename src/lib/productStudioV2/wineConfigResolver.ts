@@ -48,20 +48,26 @@ export function buildWineTruthLayer(
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
   const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(crownCapLock));
 
+  const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
+  const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
+  const geometryBlock = 'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.';
+  const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
+
+  // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
+  if (serveState === 'served') {
+    return [engineStatusBlock, configBlock, volumeLock, crownCapLock, geometryBlock, colorBlock].filter(Boolean).join(' ');
+  }
+
   return [
-    'WINE_ENGINE_STATUS: active. deterministic.',
-    `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`,
+    engineStatusBlock,
+    configBlock,
     // Volume lock must be placed immediately after the resolved config so image models
     // prioritize physical plausibility before styling or environment is injected.
     volumeLock,
-    // Closure-related locks should follow volume to avoid visual conflicts
     crownCapLock,
-    // Structural enforcement that references applied locks
     structuralLock,
-    // Geometry constraints should be applied before color/styling
-    'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.',
-    // Color and stylistic tokens placed after geometry to reduce their dominance over shape
-    'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.',
+    geometryBlock,
+    colorBlock,
     sparklingLock,
   ].filter(Boolean).join(' ');
 }
@@ -115,12 +121,13 @@ function buildServeVolumeConservationLockV3(
   if (bottleFillState === 'clearly-partially-consumed') {
     return [
       'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
-      'When bottleFillState=clearly-partially-consumed:',
       'Bottle must appear clearly partially consumed.',
-  'Liquid level must sit clearly below the upper third of the bottle.',
-      'Bottle must not resemble retail factory-full condition.',
-      'Reduction must be visually obvious at first glance.',
-      'Physical plausibility overrides composition or aesthetic styling for volume.'
+      'The visible liquid line must intersect the lower half of the front label area.',
+      'If the liquid level appears above the central label zone, the image is invalid.',
+      'The liquid meniscus must be visibly aligned with the reduced fill state relative to the label position.',
+      'Label placement must remain fixed; only the liquid level moves downward.',
+      'A near-full bottle is invalid.',
+      'If the bottle appears retail-full while a glass contains liquid, the image is incorrect.'
     ].join(' ');
   }
 
