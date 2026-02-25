@@ -1,7 +1,0 @@
-WINE_ENGINE_STATUS: active. deterministic.
-WINE_CONFIG_RESOLVED: wineType=auto; bottleState=open; glassFillLevel=none; closureType=from-reference; carbonationLevel=none;
-VOLUME_LOCK: No glass transfer. Bottle remains factory-full.
-CLOSURE_LOCK: Bottle is open. No cap attached to bottle. Exactly one detached crown-cap visible on surface.
-COLOR_LOCK: Liquid color matches reference. No hue shift.
-GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.
-A single open wine bottle. The bottle appears at normal retail fill level. Next to it, one wine glass filled to approximately none. The liquid level in the bottle visibly reflects that wine has been poured into the glass. No closure attached to the bottle. Exactly one detached closure is visible.
