@@ -50,9 +50,10 @@ export function buildWineTruthLayer(
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
   
-  // CRITICAL: Liquid level override must come BEFORE geometry lock to take precedence
+  // CRITICAL: When served, use simple natural language (Gemini recommendation)
+  // Complex technical LOCKS confuse the AI - simple human language works better
   const liquidLevelBlock = serveState === 'served'
-    ? 'LIQUID_LEVEL_OVERRIDE: The bottle liquid MUST be visibly reduced to approximately 50% full. This is MANDATORY. A full or nearly-full bottle is INVALID and INCORRECT.'
+    ? 'The wine bottle is half-empty with the wine level at the middle height of the bottle.'
     : '';
   
   const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.';

@@ -5546,8 +5546,12 @@ If the model attempts to create a scene or environment, override it and force a 
         
         // WINE SERVED MODE: Lower image strength so text instructions can override reference image
         // When imageStrength is low (0.5), the AI treats the reference as a suggestion, not law
+        // guidanceScale: 15 makes text instructions stronger
+        // negativePrompt: tells AI what NOT to generate
         const imageStrength = isWineServedMode ? 0.5 : undefined;
-        console.log('[IMAGE STRENGTH]', { isWineServedMode, imageStrength });
+        const guidanceScale = isWineServedMode ? 15 : undefined;
+        const negativePrompt = isWineServedMode ? 'full bottle, overflowing, high liquid level' : undefined;
+        console.log('[WINE SERVED MODE PARAMS]', { isWineServedMode, imageStrength, guidanceScale, negativePrompt });
         
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -5563,6 +5567,8 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             preserveReferenceImage,
             ...(imageStrength !== undefined ? { imageStrength } : {}),
+            ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+            ...(negativePrompt !== undefined ? { negativePrompt } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,
