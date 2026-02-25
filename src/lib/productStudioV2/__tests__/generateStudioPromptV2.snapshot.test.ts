@@ -4,7 +4,7 @@ import { getTestStates } from './testStates';
 import fs from 'fs';
 import path from 'path';
 
-function loadSnapshot(name) {
+function loadSnapshot(name: string) {
   return fs.readFileSync(
     path.join(__dirname, 'snapshots', name),
     'utf8'

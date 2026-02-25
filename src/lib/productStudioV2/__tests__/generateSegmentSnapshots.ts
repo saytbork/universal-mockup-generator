@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import { winePipeline } from '../winePipeline';
-import { coffeePipeline } from '../coffeePipeline';
-import { genericPipeline } from '../genericPipeline';
+import { winePipeline, __buildSegmentsForTest as __buildWineSegmentsForTest } from '../pipelines/winePipeline';
+import { coffeePipeline, __buildSegmentsForTest as __buildCoffeeSegmentsForTest } from '../pipelines/coffeePipeline';
+import { genericPipeline, __buildSegmentsForTest as __buildGenericSegmentsForTest } from '../pipelines/genericPipeline';
 import { getTestStates } from './testStates';
 
 const snapshotsDir = path.join(__dirname, 'snapshots');
@@ -17,8 +17,8 @@ function write(name: string, data: unknown) {
   );
 }
 
-write('wine.v4.segments.json', winePipeline.__buildSegmentsForTest(wine.state));
-write('coffee.segments.json', coffeePipeline.__buildSegmentsForTest(coffee.state));
-write('generic.segments.json', genericPipeline.__buildSegmentsForTest(generic.state));
+write('wine.v4.segments.json', __buildWineSegmentsForTest(wine.state));
+write('coffee.segments.json', __buildCoffeeSegmentsForTest(coffee.state));
+write('generic.segments.json', __buildGenericSegmentsForTest(generic.state));
 
 console.log('Segment snapshots generated.');
