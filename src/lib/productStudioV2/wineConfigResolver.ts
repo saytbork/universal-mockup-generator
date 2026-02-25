@@ -3,12 +3,15 @@ import type { StudioUIState } from './types/studioTypes.ts';
 export type ServeState = 'none' | 'served';
 export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
 
+import type { StudioUIState } from './types/studioTypes.ts';
+
+export type ServeState = 'none' | 'served';
+export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
+
 export type ResolvedWineConfig = {
   closureType: string;
   bottleState: 'sealed' | 'open';
-  // New binary serve state (preferred)
   serveState?: ServeState;
-  // Derived visual bottle fill state (preferred)
   bottleFillState?: BottleFillState;
 };
 
@@ -19,7 +22,7 @@ export function buildWineTruthLayer(
   const wineType = String(state.wineType || 'auto').trim();
   const closureType = String(config.closureType || 'from-reference').trim();
   const carbonationLevel = String(state.carbonationLevel || 'none').trim();
-  // Backwards-compat: support old "glassFillLevel" if present by deriving serveState.
+
   const bottleState = config.bottleState;
   const serveState: ServeState = (config as any).serveState
     ? (config as any).serveState
@@ -27,7 +30,6 @@ export function buildWineTruthLayer(
     ? 'served'
     : 'none';
 
-  // Deterministic derived bottle visual state per architecture rules
   const bottleFillState: BottleFillState = (config as any).bottleFillState
     ? (config as any).bottleFillState
     : serveState === 'served'
@@ -38,15 +40,14 @@ export function buildWineTruthLayer(
     wineType === 'sparkling-white' ||
     wineType === 'sparkling-rosé' ||
     wineType === 'sparkling-rose';
-  const emittedCarbonationLevel =
-    wineType === 'sparkling-white' && carbonationLevel === 'high'
-      ? 'natural'
-      : carbonationLevel;
 
-  const closureLock = buildClosureLockStrictV1(closureType, bottleState);
+  const emittedCarbonationLevel =
+    wineType === 'sparkling-white' && carbonationLevel === 'high' ? 'natural' : carbonationLevel;
+
+  const crownCapLock = buildCrownCapRemovalLockV3(closureType, bottleState);
   const volumeLock = buildServeVolumeConservationLockV3(bottleState, serveState, bottleFillState);
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
-  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(closureLock));
+  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(crownCapLock));
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
@@ -55,7 +56,7 @@ export function buildWineTruthLayer(
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, volumeLock, closureLock, geometryBlock, colorBlock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   return [
@@ -63,8 +64,8 @@ export function buildWineTruthLayer(
     configBlock,
     // Volume lock must be placed immediately after the resolved config so image models
     // prioritize physical plausibility before styling or environment is injected.
-  volumeLock,
-  closureLock,
+    volumeLock,
+    crownCapLock,
     structuralLock,
     geometryBlock,
     colorBlock,
@@ -72,22 +73,23 @@ export function buildWineTruthLayer(
   ].filter(Boolean).join(' ');
 }
 
-function buildClosureLockStrictV1(closureType: string, bottleState: 'sealed' | 'open'): string {
-  // Centralized strict closure rules applied to all closure types.
-  const parts: string[] = [];
-  parts.push('CLOSURE_LOCK_STRICT_V1: Exactly one closure state allowed.');
-  if (bottleState === 'open') {
-    parts.push('If bottleState=open: Bottle neck must be visibly open.');
-    parts.push('No cap attached.');
-    parts.push('No secondary cap.');
-    parts.push('No ghost cap.');
-    parts.push('At most one detached cap object in scene.');
-  } else {
-    parts.push('If bottleState=sealed: Exactly one closure attached.');
-    parts.push('No detached cap allowed.');
-  }
-  parts.push('Multiple closures invalidate image.');
-  return parts.join(' ');
+function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' | 'open'): string {
+  if (closureType !== 'crown-cap' || bottleState !== 'open') return '';
+  return [
+    'CROWN_CAP_REMOVAL_LOCK_V3:',
+    'Closure type: crimped metal crown-cap only.',
+    'Neck lip must show smooth circular glass rim.',
+    'No cork geometry.',
+    'No screw-thread geometry.',
+    'No foil remnants.',
+    'No hybrid morphology allowed.',
+    'Exactly one detached cap object.',
+    'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
+    'Detached cap must show crimp deformation consistent with pry removal.',
+    'No partial ring artifacts.',
+    'No duplicate closure.',
+    'No duplicate closures.',
+  ].join(' ');
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {
@@ -115,15 +117,11 @@ function buildServeVolumeConservationLockV3(
   // Only apply when bottle is open and serveState indicates served
   if (!(bottleState === 'open' && serveState === 'served')) return '';
 
-  // Strong visual-state driven language — no numeric percentages or ml references
   if (bottleFillState === 'clearly-partially-consumed') {
     return [
       'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
       'Bottle must appear clearly partially consumed.',
-      'The visible liquid line must intersect the lower half of the front label area.',
-      'If the liquid level appears above the central label zone, the image is invalid.',
-      'The liquid meniscus must be visibly aligned with the reduced fill state relative to the label position.',
-      'Label placement must remain fixed; only the liquid level moves downward.',
+      'The liquid level must be visually around the middle of the bottle height.',
       'A near-full bottle is invalid.',
       'If the bottle appears retail-full while a glass contains liquid, the image is incorrect.'
     ].join(' ');
@@ -141,12 +139,12 @@ function buildServeVolumeConservationLockV3(
 function buildWineStructuralLockV3(
   hasVolumeLock: boolean,
   hasSparklingLock: boolean,
-  hasClosureLock: boolean
+  hasCrownCapLock: boolean
 ): string {
   const apply: string[] = [];
   if (hasVolumeLock) apply.push('SERVE_VOLUME_CONSERVATION_LOCK_V3');
   if (hasSparklingLock) apply.push('SPARKLING_PHYSICS_LOCK_V3');
-  if (hasClosureLock) apply.push('CLOSURE_LOCK_STRICT_V1');
+  if (hasCrownCapLock) apply.push('CROWN_CAP_REMOVAL_LOCK_V3');
 
   return [
     'WINE_STRUCTURAL_LOCK_V3:',
@@ -156,3 +154,4 @@ function buildWineStructuralLockV3(
     'If physical coherence between bottle, glass, closure and carbonation is not visually consistent, the result is incorrect.',
   ].filter(Boolean).join(' ');
 }
+

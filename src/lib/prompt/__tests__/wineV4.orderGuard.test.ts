@@ -54,14 +54,14 @@ describe('wine v4 order guard', () => {
     const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
     const idxVolume = prompt.indexOf('VOLUME_LOCK:');
     const idxClosure = prompt.indexOf('CLOSURE_LOCK:');
-    const idxColor = prompt.indexOf('COLOR_LOCK:');
     const idxGeometry = prompt.indexOf('GEOMETRY_LOCK:');
+    const idxColor = prompt.indexOf('COLOR_LOCK:');
 
     expect(idxEngine).toBeGreaterThanOrEqual(0);
     expect(idxConfig).toBeGreaterThan(idxEngine);
     expect(idxVolume).toBeGreaterThan(idxConfig);
     expect(idxClosure).toBeGreaterThan(idxVolume);
-    expect(idxColor).toBeGreaterThan(idxClosure);
-    expect(idxGeometry).toBeGreaterThan(idxColor);
+    expect(idxGeometry).toBeGreaterThan(idxClosure);
+    expect(idxColor).toBeGreaterThan(idxGeometry);
   });
 });

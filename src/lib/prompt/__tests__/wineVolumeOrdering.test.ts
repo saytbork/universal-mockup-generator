@@ -28,7 +28,7 @@ describe('wine volume ordering and binary state', () => {
     expect(idxVolume).toBeGreaterThan(idxConfig);
 
     // new phrasing should be present
-    expect(prompt).toContain('Liquid level must sit clearly below the upper third of the bottle');
+    expect(prompt).toContain('The liquid level must be visually around the middle of the bottle height');
 
     // mapping must be explicit in resolved config block
     expect(prompt).toContain('bottleFillState=clearly-partially-consumed');
@@ -55,8 +55,8 @@ describe('wine volume ordering and binary state', () => {
       bottleFillState: 'clearly-partially-consumed'
     } as any);
 
-    expect(prompt.indexOf('WINE_CONFIG_RESOLVED:')).toBeGreaterThanOrEqual(0);
+    expect(prompt.indexOf('WINE_CONFIG_RESOLVED:')).toBeGreaterThan(-1);
     expect(prompt.indexOf('VOLUME_LOCK:')).toBeGreaterThan(prompt.indexOf('WINE_CONFIG_RESOLVED:'));
-    expect(prompt).toContain('Bottle must appear clearly partially consumed');
+    expect(prompt).toContain('Bottle must appear clearly and visibly lower than standard retail fill height');
   });
 });
