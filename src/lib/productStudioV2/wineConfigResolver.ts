@@ -82,18 +82,14 @@ function buildServeVolumeConservationLockV3(
   bottleState: 'sealed' | 'open',
   fillLevel: WineGlassFillLevel
 ): string {
-  if (!(bottleState === 'open' && fillLevel === 'half')) return '';
+  if (!(bottleState === 'open' && fillLevel !== 'none')) return '';
   return [
     'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
-    'When bottleState=open AND glassFillLevel=half:',
-  'Glass contains approximately 150ml equivalent.',
-  'Bottle liquid level must decrease by at least 15% of total bottle height when glassFillLevel=half.',
-    'Bottle must show visible measurable reduction.',
-    'Liquid level must drop below retail reference height by realistic fraction.',
-    'Bottle cannot appear near factory-full.',
-    'Volume change must be physically coherent.',
-    'No symbolic reduction.',
-    'If glass contains liquid and bottle appears almost full, result is invalid.',
+    'When bottleState=open AND glassFillLevel!=none:',
+    'If the glass contains any liquid then the bottle must appear approximately half-full.',
+    'Bottle should sit visibly around mid-height (about half of bottle height).',
+    'If the bottle appears near retail/factory-full while glass contains liquid, the result is invalid.',
+    'Physical plausibility overrides composition or aesthetic styling for volume.',
   ].join(' ');
 }
 

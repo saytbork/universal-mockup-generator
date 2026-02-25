@@ -32,7 +32,8 @@ describe('wine engine v3 matrix', () => {
 
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
-    expect(prompt).not.toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    // With the simplified rule any non-empty glass should enforce the volume lock
+    expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
   });
 
   test('still-white + natural-cork + open + glass half excludes crown/sparkling locks', () => {
