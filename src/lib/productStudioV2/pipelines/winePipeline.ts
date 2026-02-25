@@ -30,6 +30,25 @@ export const winePipeline = {
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
     const segments: any[] = [];
   segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
+    // HARD SERVE SYNCHRONIZATION
+    // Enforce coherent bottle state when a glass is served. This must run before
+    // we build WINE_CONFIG_RESOLVED / SERVE_VOLUME_CONSERVATION_LOCK_V3 so the
+    // resolved config printed in the prompt always reflects the forced values.
+    try {
+      const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+      if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
+        // Force coherent bottle state independent of UI chips/front-end
+        (resolvedWineConfig as any).bottleState = 'open';
+        (resolvedWineConfig as any).bottleFillState = 'clearly-partially-consumed';
+        (wineEffectiveState as any).bottleState = 'open';
+        (wineEffectiveState as any).bottleFillState = 'clearly-partially-consumed';
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error applying HARD SERVE SYNCHRONIZATION', err);
+      throw err;
+    }
+
     let winePhysicsBlock = wineEngineVersion >= 4
       ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
       : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
@@ -38,6 +57,9 @@ export const winePipeline = {
     // wine truth block immediately before any global/world/styling injection.
     try {
       const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+      // Recompute bottle state / fill state from resolved config (after hard sync)
+      const bottleStateVal = String((resolvedWineConfig as any).bottleState || '').toLowerCase();
+      const bottleFillVal = String((resolvedWineConfig as any).bottleFillState || '').toLowerCase();
       if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
         // eslint-disable-next-line no-console
         console.log('[WINE SERVED MODE] early return activated');
@@ -52,6 +74,14 @@ export const winePipeline = {
         // Insert SERVE_OBJECT_COHERENCE_LOCK_V1 after SERVE_VOLUME_CONSERVATION_LOCK_V3
         const serveObjectLock = 'SERVE_OBJECT_COHERENCE_LOCK_V1: If serveState=served: Exactly one glass allowed. Glass liquid color must match bottle liquid. Bottle liquid must be reduced accordingly. If serveState=none: No glass allowed in scene.';
         augmented = augmented.replace(/(SERVE_VOLUME_CONSERVATION_LOCK_V3:[^.]*(?:\.|$))/s, `$1 ${serveObjectLock}`);
+
+        // Coherence validations: ensure pipeline forced values are present
+        if (serveStateVal === 'served' && bottleFillVal !== 'clearly-partially-consumed') {
+          throw new Error('Serve state incoherent: bottle not reduced');
+        }
+        if (serveStateVal === 'served' && bottleStateVal === 'sealed') {
+          throw new Error('Serve state incoherent: bottle sealed while served');
+        }
 
         // Hard validation: ensure no world/styling tokens present
         const forbidden = [
