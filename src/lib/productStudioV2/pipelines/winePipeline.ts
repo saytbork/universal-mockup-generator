@@ -33,8 +33,26 @@ export const winePipeline = {
     let winePhysicsBlock = wineEngineVersion >= 4
       ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
       : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
+
+    // EARLY EXIT FOR SERVED MODE: if wine is in served state, return the minimal
+    // wine truth block immediately before any global/world/styling injection.
+    try {
+      const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+      if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
+        // eslint-disable-next-line no-console
+        console.log('[WINE SERVED MODE] early return activated');
+        // Sanitize similarly to the normal finalize path but return only the wine physics block.
+        const final = sanitizeWineV4Prompt(sanitizePromptLexicalGuard(dedupeWineStructuralTokens(winePhysicsBlock)));
+        return final;
+      }
+    } catch (err) {
+      // non-fatal — fall through to normal behavior
+      // eslint-disable-next-line no-console
+      console.error('[WINE SERVED MODE] early return detection error', err);
+    }
+
     // Removed conditional appending of 'Bottle perfectly vertical...' for strict segment equality
-  segments.push({ type: 'physics', content: winePhysicsBlock });
+    segments.push({ type: 'physics', content: winePhysicsBlock });
   segments.push({ type: 'camera', content: buildCameraOverrides(wineEffectiveState) });
   segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
