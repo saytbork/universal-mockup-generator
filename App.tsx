@@ -5358,6 +5358,13 @@ If the model attempts to create a scene or environment, override it and force a 
           lifestyleStep3Values?.visualProfile === 'wine' && 
           (lifestyleStep3Values as any)?.serveState === 'served'
         );
+        console.log('[WINE SERVED MODE DEBUG]', {
+          visualProfile: lifestyleStep3Values?.visualProfile,
+          serveState: (lifestyleStep3Values as any)?.serveState,
+          isWineServedMode,
+          generationProductsLength: generationProducts.length,
+          hideProductMode
+        });
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode && !isWineServedMode;
         
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
