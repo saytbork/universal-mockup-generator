@@ -138,6 +138,17 @@ export const winePipeline = {
       console.warn('Post-process compatibility augmentation failed', errAug);
     }
 
+    // FINAL OVERRIDE: If served mode, append a terminal instruction that overrides all previous preservation locks
+    try {
+      const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+      if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
+        prompt = prompt + ' FINAL_OVERRIDE: The reference image shows a full bottle. IGNORE the full bottle state from the reference. The bottle in the final render MUST show visibly reduced liquid at approximately 50% level. This overrides any "preserve", "integrity", or "fidelity" instructions.';
+      }
+    } catch (errOverride) {
+      // eslint-disable-next-line no-console
+      console.warn('FINAL_OVERRIDE injection failed', errOverride);
+    }
+
     return prompt;
   }
 };
