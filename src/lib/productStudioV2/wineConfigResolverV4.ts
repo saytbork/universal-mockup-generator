@@ -86,7 +86,7 @@ export function buildWineTruthLayerV4(
   // STEP 4: Color and geometry locks
   // CRITICAL: GEOMETRY_LOCK must allow liquid level changes when serveState=served
   const geometryLock = serveState === 'served'
-    ? 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Bottle upright. LIQUID LEVEL MUST BE VISIBLY REDUCED - bottle must NOT appear full.'
+    ? 'GEOMETRY_LOCK: Bottle shape and label integrity preserved. Bottle upright. CRITICAL: Liquid inside bottle MUST be visibly reduced to approximately half-full. A full or nearly-full bottle is INCORRECT and INVALID.'
     : 'GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.';
   let colorLock = '';
   switch (wineColor) {
