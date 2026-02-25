@@ -49,20 +49,24 @@ export function buildWineTruthLayer(
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
-  // CRITICAL: GEOMETRY_LOCK must allow liquid level changes when served
-  const geometryBlock = serveState === 'served'
-    ? 'GEOMETRY_LOCK: Bottle shape and label integrity preserved. Closure scale preserved. No warping. No stretching. CRITICAL: Liquid inside bottle MUST be visibly reduced to approximately half-full. A full or nearly-full bottle is INCORRECT and INVALID.'
-    : 'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.';
+  
+  // CRITICAL: Liquid level override must come BEFORE geometry lock to take precedence
+  const liquidLevelBlock = serveState === 'served'
+    ? 'LIQUID_LEVEL_OVERRIDE: The bottle liquid MUST be visibly reduced to approximately 50% full. This is MANDATORY. A full or nearly-full bottle is INVALID and INCORRECT.'
+    : '';
+  
+  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.';
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   return [
     engineStatusBlock,
     configBlock,
+    liquidLevelBlock,
     // Volume lock must be placed immediately after the resolved config so image models
     // prioritize physical plausibility before styling or environment is injected.
     volumeLock,

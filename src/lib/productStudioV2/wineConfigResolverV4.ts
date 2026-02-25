@@ -84,10 +84,12 @@ export function buildWineTruthLayerV4(
   }
 
   // STEP 4: Color and geometry locks
-  // CRITICAL: GEOMETRY_LOCK must allow liquid level changes when serveState=served
-  const geometryLock = serveState === 'served'
-    ? 'GEOMETRY_LOCK: Bottle shape and label integrity preserved. Bottle upright. CRITICAL: Liquid inside bottle MUST be visibly reduced to approximately half-full. A full or nearly-full bottle is INCORRECT and INVALID.'
-    : 'GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.';
+  // CRITICAL: Liquid level override must come BEFORE geometry lock to take precedence
+  const liquidLevelBlock = serveState === 'served'
+    ? 'LIQUID_LEVEL_OVERRIDE: The bottle liquid MUST be visibly reduced to approximately 50% full. This is MANDATORY. A full or nearly-full bottle is INVALID and INCORRECT.'
+    : '';
+  
+  const geometryLock = 'GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.';
   let colorLock = '';
   switch (wineColor) {
     case 'red':
@@ -114,10 +116,11 @@ export function buildWineTruthLayerV4(
   const STRICT_GUARDRAILS = typeof import.meta !== 'undefined' && typeof import.meta.env !== 'undefined' && import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
   const isWineV4Snapshot = !STRICT_GUARDRAILS && state.visualProfile === 'wine' && Number(state.wineEngineVersion) >= 4;
   if (isWineV4Snapshot) {
-    // Minimal snapshot: order prioritizes volume, closure, geometry, then color
+    // Minimal snapshot: order prioritizes liquid level override, volume, closure, geometry, then color
     return [
       engineStatusBlock,
       configBlock,
+      liquidLevelBlock,
       volumeLockBlock,
       closureLockBlock,
       geometryLock,
@@ -129,6 +132,7 @@ export function buildWineTruthLayerV4(
     return [
       engineStatusBlock,
       configBlock,
+      liquidLevelBlock,
       volumeLockBlock,
       closureLockBlock,
       geometryLock,
@@ -140,6 +144,7 @@ export function buildWineTruthLayerV4(
   return [
     engineStatusBlock,
     configBlock,
+    liquidLevelBlock,
     volumeLockBlock,
     closureLockBlock,
     geometryLock,
