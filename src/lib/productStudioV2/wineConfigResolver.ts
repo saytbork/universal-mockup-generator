@@ -55,9 +55,12 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
     'No foil remnants.',
     'No hybrid morphology allowed.',
     'Exactly one detached cap object.',
+    // Stronger enforcement language to make duplicates impossible to miss.
+    'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
     'Detached cap must show crimp deformation consistent with pry removal.',
     'No partial ring artifacts.',
     'No duplicate closure.',
+    'No duplicate closures.',
   ].join(' ');
 }
 
