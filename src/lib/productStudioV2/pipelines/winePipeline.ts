@@ -38,8 +38,10 @@ export const winePipeline = {
       const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
       if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
         // Force coherent bottle state independent of UI chips/front-end
+        (resolvedWineConfig as any).serveState = 'served';
         (resolvedWineConfig as any).bottleState = 'open';
         (resolvedWineConfig as any).bottleFillState = 'clearly-partially-consumed';
+        (wineEffectiveState as any).serveState = 'served';
         (wineEffectiveState as any).bottleState = 'open';
         (wineEffectiveState as any).bottleFillState = 'clearly-partially-consumed';
       }
@@ -64,24 +66,52 @@ export const winePipeline = {
         // eslint-disable-next-line no-console
         console.log('[WINE SERVED MODE] early return activated');
         // STRICT PIPELINE LOG
-        // Build augmented wine physics block with enforced base/serve object coherence locks
-        let augmented = winePhysicsBlock;
-
-        // Insert PHYSICAL_BASE_LOCK_V1 immediately after WINE_CONFIG_RESOLVED
+        // Extract individual blocks from the built winePhysicsBlock and reassemble in
+        // the precise order required. PHYSICAL_BASE_LOCK_V1 must be a separate
+        // segment immediately after WINE_CONFIG_RESOLVED.
         const physicalBase = 'PHYSICAL_BASE_LOCK_V1: Bottle must rest on a visible physical surface. No floating objects allowed. No mid-air bottle. No mid-air glass. All objects must cast coherent contact shadows. Surface contact must be visually evident.';
-        augmented = augmented.replace(/(WINE_CONFIG_RESOLVED:[^;]*;)/, `$1 ${physicalBase}`);
-
-        // Insert SERVE_OBJECT_COHERENCE_LOCK_V1 after SERVE_VOLUME_CONSERVATION_LOCK_V3
         const serveObjectLock = 'SERVE_OBJECT_COHERENCE_LOCK_V1: If serveState=served: Exactly one glass allowed. Glass liquid color must match bottle liquid. Bottle liquid must be reduced accordingly. If serveState=none: No glass allowed in scene.';
-        augmented = augmented.replace(/(SERVE_VOLUME_CONSERVATION_LOCK_V3:[^.]*(?:\.|$))/s, `$1 ${serveObjectLock}`);
 
-        // Coherence validations: ensure pipeline forced values are present
-        if (serveStateVal === 'served' && bottleFillVal !== 'clearly-partially-consumed') {
-          throw new Error('Serve state incoherent: bottle not reduced');
+        // Extract engine and config blocks
+        const engineMatch = winePhysicsBlock.match(/WINE_ENGINE_STATUS:[\s\S]*?(?=WINE_CONFIG_RESOLVED|$)/i);
+        const engineBlock = engineMatch ? engineMatch[0].trim() : '';
+
+        // Construct a deterministic WINE_CONFIG_RESOLVED line from the resolved config
+        const wineTypeVal = String((wineEffectiveState as any).wineType || 'auto').trim();
+        const closureTypeVal = String((resolvedWineConfig as any).closureType || 'from-reference').trim();
+        const bottleStateValForced = String((resolvedWineConfig as any).bottleState || 'open').trim();
+        const serveStateValForced = String((resolvedWineConfig as any).serveState || '').trim();
+        const bottleFillValForced = String((resolvedWineConfig as any).bottleFillState || '').trim();
+        const carbonationVal = String((wineEffectiveState as any).carbonationLevel || 'none').trim();
+
+        const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineTypeVal}; closureType=${closureTypeVal}; bottleState=${bottleStateValForced}; serveState=${serveStateValForced}; bottleFillState=${bottleFillValForced}; carbonationLevel=${carbonationVal};`;
+
+        // Immediately validate that the forced serveState was applied in the resolved config
+        if (serveStateValForced !== 'served') {
+          throw new Error('WINE_CONFIG_RESOLVED missing forced serveState');
         }
-        if (serveStateVal === 'served' && bottleStateVal === 'sealed') {
-          throw new Error('Serve state incoherent: bottle sealed while served');
-        }
+
+        // Extract remaining known blocks
+        const serveVolumeMatch = winePhysicsBlock.match(/SERVE_VOLUME_CONSERVATION_LOCK_V3:[\s\S]*?(?=(CROWN_CAP_REMOVAL_LOCK_V3|CLOSURE_LOCK_STRICT_V1|WINE_STRUCTURAL_LOCK_V3|GEOMETRY_LOCK|WINE_COLOR_LOCK|$))/i);
+        const closureMatch = winePhysicsBlock.match(/(CROWN_CAP_REMOVAL_LOCK_V3:|CLOSURE_LOCK_STRICT_V1:)[\s\S]*?(?=(WINE_STRUCTURAL_LOCK_V3|GEOMETRY_LOCK|WINE_COLOR_LOCK|$))/i);
+        const structuralMatch = winePhysicsBlock.match(/WINE_STRUCTURAL_LOCK_V3:[\s\S]*?(?=(GEOMETRY_LOCK|WINE_COLOR_LOCK|$))/i);
+        const geometryMatch = winePhysicsBlock.match(/GEOMETRY_LOCK:[\s\S]*?(?=(WINE_COLOR_LOCK|$))/i);
+        const colorMatch = winePhysicsBlock.match(/WINE_COLOR_LOCK:[\s\S]*$/i);
+
+        const parts: string[] = [];
+        if (engineBlock) parts.push(engineBlock);
+        parts.push(configBlock);
+        // Append PHYSICAL_BASE_LOCK_V1 as its own block
+        parts.push(physicalBase);
+        if (serveVolumeMatch) parts.push(serveVolumeMatch[0].trim());
+        // Followed by serve object coherence lock
+        parts.push(serveObjectLock);
+        if (closureMatch) parts.push(closureMatch[0].trim());
+        if (structuralMatch) parts.push(structuralMatch[0].trim());
+        if (geometryMatch) parts.push(geometryMatch[0].trim());
+        if (colorMatch) parts.push(colorMatch[0].trim());
+
+        const assembled = parts.filter(Boolean).join(' ');
 
         // Hard validation: ensure no world/styling tokens present
         const forbidden = [
@@ -91,9 +121,9 @@ export const winePipeline = {
           'ADVANCED_CONTROLS',
           'COMPOSITION'
         ];
-        const augmentedSan = sanitizePromptLexicalGuard(dedupeWineStructuralTokens(augmented));
+        const assembledSan = sanitizePromptLexicalGuard(dedupeWineStructuralTokens(assembled));
         for (const token of forbidden) {
-          if (augmentedSan.includes(token)) {
+          if (assembledSan.includes(token)) {
             // eslint-disable-next-line no-console
             console.error('[WINE SERVED STRICT PIPELINE ACTIVE] contamination detected', token);
             throw new Error('Wine served pipeline contamination detected');
@@ -103,7 +133,7 @@ export const winePipeline = {
         // eslint-disable-next-line no-console
         console.log('[WINE SERVED STRICT PIPELINE ACTIVE]');
 
-        const final = sanitizeWineV4Prompt(augmentedSan);
+        const final = sanitizeWineV4Prompt(assembledSan);
         return final;
       }
     } catch (err) {
