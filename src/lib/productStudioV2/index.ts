@@ -449,7 +449,15 @@ function buildWineMinimalGuardrail(): string {
   ].join(' ');
 }
 
-function buildWineMaterials(): string {
+function buildWineMaterials(serveState?: string): string {
+  const isServed = String(serveState || '').toLowerCase() === 'served';
+  if (isServed) {
+    return [
+      'MATERIALS:',
+      'Real glass.',
+      'Natural liquid translucency.',
+    ].join(' ');
+  }
   return [
     'MATERIALS:',
     'Real glass.',

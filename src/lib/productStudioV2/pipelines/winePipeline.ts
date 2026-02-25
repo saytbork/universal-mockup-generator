@@ -14,7 +14,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting() : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
-  segments.push({ type: 'guardrail', content: buildWineMaterials() });
+  segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
   return segments;
@@ -82,7 +82,7 @@ export const winePipeline = {
   segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting() : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
-  segments.push({ type: 'guardrail', content: buildWineMaterials() });
+  segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
     // eslint-disable-next-line no-console
