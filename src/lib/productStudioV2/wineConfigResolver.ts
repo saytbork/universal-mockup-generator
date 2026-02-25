@@ -86,8 +86,8 @@ function buildServeVolumeConservationLockV3(
   return [
     'SERVE_VOLUME_CONSERVATION_LOCK_V3:',
     'When bottleState=open AND glassFillLevel=half:',
-    'Glass contains approximately 150ml equivalent.',
-    'Bottle liquid level must decrease proportionally.',
+  'Glass contains approximately 150ml equivalent.',
+  'Bottle liquid level must decrease by at least 15% of total bottle height when glassFillLevel=half.',
     'Bottle must show visible measurable reduction.',
     'Liquid level must drop below retail reference height by realistic fraction.',
     'Bottle cannot appear near factory-full.',
