@@ -26,7 +26,7 @@ type WineClosureTypeUI =
   | 'cork-with-cage'
   | 'synthetic-closure';
 
-type WineGlassFillLevelUI = 'none' | 'quarter' | 'half' | 'three-quarters';
+  type ServeStateUI = 'none' | 'served';
 type WineCarbonationUI = 'none' | 'subtle' | 'visible';
 
 const WINE_CLOSURE_OPTIONS: Array<{ value: WineClosureTypeUI; label: string }> = [
@@ -44,11 +44,9 @@ const WINE_CARBONATION_OPTIONS: Array<{ value: WineCarbonationUI; label: string 
   { value: 'visible', label: 'Visible' },
 ];
 
-const WINE_GLASS_FILL_OPTIONS: Array<{ value: WineGlassFillLevelUI; label: string }> = [
+const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string }> = [
   { value: 'none', label: 'None' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'half', label: 'Half' },
-  { value: 'three-quarters', label: 'Three-Quarters' },
+  { value: 'served', label: 'Served' },
 ];
 
 type WineModuleProps = {
@@ -85,14 +83,7 @@ export function WineModule({
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
   const wineEngineVersion = Number(useProductStudioStore((s) => (s as any).wineEngineVersion) || 3);
 
-  const currentGlassFillLevel: WineGlassFillLevelUI =
-    wineGlassMode !== 'filled'
-      ? 'none'
-      : wineServeAmount === 'taste'
-        ? 'quarter'
-        : wineServeAmount === 'generous'
-          ? 'three-quarters'
-          : 'half';
+  const currentServeState: ServeStateUI = wineGlassMode !== 'filled' ? 'none' : 'served';
 
   const setWineUiState = (patch: Record<string, unknown>): void => {
     useProductStudioStore.setState(patch as any);
@@ -154,28 +145,26 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Glass Fill Level</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve State</p>
             <div className="flex flex-wrap gap-2">
-              {WINE_GLASS_FILL_OPTIONS.map((option) => (
+              {SERVE_STATE_OPTIONS.map((option) => (
                 <Chip
                   key={option.value}
-                  selected={currentGlassFillLevel === option.value}
+                  selected={currentServeState === option.value}
                   onClick={() => {
                     if (option.value === 'none') {
-                      setWineUiState({ wineGlassMode: 'none' });
+                      setWineUiState({
+                        wineGlassMode: 'none',
+                        wineServeAmount: 'standard',
+                        wineBottleState: 'sealed',
+                      });
                       return;
                     }
-                    const serveAmount =
-                      option.value === 'quarter'
-                        ? 'taste'
-                        : option.value === 'three-quarters'
-                          ? 'generous'
-                          : 'standard';
+
                     setWineUiState({
                       wineGlassMode: 'filled',
-                      wineServeAmount: serveAmount,
-                      wineBottleState:
-                        wineBottleState === 'sealed' ? 'opened-with-cork-nearby' : wineBottleState,
+                      wineServeAmount: 'standard',
+                      wineBottleState: 'open',
                     });
                   }}
                 >
