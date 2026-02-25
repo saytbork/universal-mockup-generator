@@ -49,7 +49,10 @@ export function buildWineTruthLayer(
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
-  const geometryBlock = 'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.';
+  // CRITICAL: GEOMETRY_LOCK must allow liquid level changes when served
+  const geometryBlock = serveState === 'served'
+    ? 'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching. LIQUID LEVEL MUST BE VISIBLY REDUCED - bottle must NOT appear full.'
+    : 'GEOMETRY_LOCK: Preserve exact bottle proportions. Preserve closure scale. Preserve label integrity. No warping. No stretching.';
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
