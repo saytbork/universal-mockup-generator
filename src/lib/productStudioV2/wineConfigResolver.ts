@@ -119,6 +119,7 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
     'Exactly one detached cap object.',
     'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
     'Detached cap must show crimp deformation consistent with pry removal.',
+    'CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright or on its edge is physically impossible due to gravity and is strictly forbidden. The cap rests flat on the table/surface near the bottle base.',
     'No partial ring artifacts.',
     'No duplicate closure.',
     'No duplicate closures.',
