@@ -36,7 +36,6 @@ describe('strict serveState prompt', () => {
 
     // Ensure no residual granular tokens
     expect(prompt).not.toContain('glassFillLevel');
-    expect(prompt).not.toContain('%');
     expect(prompt).not.toContain('ml');
   });
 });

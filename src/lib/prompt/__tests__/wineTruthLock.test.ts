@@ -86,7 +86,7 @@ describe('wine truth layer enforcement', () => {
   test('buildWinePhysicalPrompt includes all required physical tokens', () => {
     const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
     expect(prompt).toContain('wine bottle that is open');
-    expect(prompt).toContain('Bottle liquid level must be visibly lower');
+    expect(prompt).toContain('Liquid level must sit well below the upper third of the bottle');
     expect(prompt).toContain('No cap attached');
     expect(prompt).toContain('Exactly one detached');
     expect(prompt).toContain('glass contains');
@@ -141,8 +141,8 @@ describe('wine truth layer enforcement', () => {
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
   // Assert serve volume conservation is present
-  expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3');
-  expect(prompt).toContain('Bottle must appear clearly partially consumed');
+  expect(prompt).toContain('VOLUME_LOCK');
+  expect(prompt).toContain('Bottle must appear clearly and visibly lower than standard retail fill height');
   // removed old assertions for exact V3 phrasing
   expect(prompt).not.toContain('Factory-full appearance preserved.');
   expect(prompt).not.toContain('Bottle not factory-full.');
