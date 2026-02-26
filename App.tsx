@@ -5358,17 +5358,21 @@ If the model attempts to create a scene or environment, override it and force a 
         const wineVisualProfile = isProductPlacement 
           ? (productStateForWine as any)?.visualProfile 
           : lifestyleStep3Values?.visualProfile;
+        // In Product Studio: serveState is derived from wineGlassMode='filled'
+        // In Lifestyle: serveState is explicit
         const wineServeState = isProductPlacement
-          ? (productStateForWine as any)?.serveState
+          ? ((productStateForWine as any)?.wineGlassMode === 'filled' ? 'served' : 'none')
           : (lifestyleStep3Values as any)?.serveState;
         
+        // visualProfile can be 'wine', 'wine-prestige', 'wine-sparkling', etc.
         const isWineServedMode = Boolean(
-          wineVisualProfile === 'wine' && 
+          (typeof wineVisualProfile === 'string' && wineVisualProfile.startsWith('wine')) && 
           wineServeState === 'served'
         );
         console.log('[WINE SERVED MODE DEBUG]', {
           isProductPlacement,
           visualProfile: wineVisualProfile,
+          wineGlassMode: (productStateForWine as any)?.wineGlassMode,
           serveState: wineServeState,
           isWineServedMode,
           generationProductsLength: generationProducts.length,
