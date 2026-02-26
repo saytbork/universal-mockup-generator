@@ -431,7 +431,7 @@ function buildWineEnvironment(state: StudioUIState): string {
   // the model's "closed bottle in field" advertising pattern — this anchor prevents that.
   const serveStateVal = String((state as any).serveState || '').toLowerCase();
   if (serveStateVal === 'served') {
-    return envBlock + ' ENVIRONMENT_PHYSICS_OVERRIDE: The background setting described above is ONLY the backdrop. It does NOT change the bottle state. The bottle remains open, half-empty, with cap lying flat on the surface and a wine glass filled with wine next to it. Do not apply any advertising/closed-bottle pattern based on the background scene.';
+    return envBlock + ' ENVIRONMENT_PHYSICS_OVERRIDE: The background setting described above is ONLY the backdrop. It does NOT change the bottle state. The bottle remains open and half-empty with a wine glass filled with wine next to it. The closure has already been removed (exactly one detached closure is on the surface). Do not apply any advertising/closed-bottle pattern based on the background scene.';
   }
 
   return envBlock;

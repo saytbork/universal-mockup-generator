@@ -45,7 +45,14 @@ export function buildWineTruthLayer(
   const crownCapLock = buildCrownCapRemovalLockV3(closureType, bottleState);
   const volumeLock = buildServeVolumeConservationLockV3(bottleState, serveState, bottleFillState);
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
-  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), Boolean(crownCapLock));
+  // Derive the token name that actually appears in the prompt so WINE_STRUCTURAL_LOCK_V3
+  // references the correct lock identifier (crown-cap vs generic closure).
+  const closureLockToken = crownCapLock.startsWith('CROWN_CAP_REMOVAL_LOCK_V3')
+    ? 'CROWN_CAP_REMOVAL_LOCK_V3'
+    : crownCapLock.startsWith('CLOSURE_LOCK_V3')
+    ? 'CLOSURE_LOCK_V3'
+    : '';
+  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), closureLockToken);
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
@@ -134,7 +141,7 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
 
   // For any other closure type (from-reference, natural-cork, screw-cap, etc.) when open:
   // The closure/cap must be detached and lying flat — never standing upright
-  return 'CLOSURE_FLAT_PHYSICS: The bottle is open. Any detached closure (cork, cap, or stopper) MUST be lying flat on the surface horizontally. A closure standing vertically upright is physically implausible and strictly forbidden. The closure rests flat near the bottle base.';
+  return 'CLOSURE_LOCK_V3: The bottle is open. The closure (cork, cap, or stopper as shown in the reference) has been removed and is detached from the bottle. CLOSURE_COUNT: There is exactly ONE detached closure object in the scene — no more. The detached closure MUST be lying flat on the surface horizontally, not standing upright. The bottle neck is open with no closure attached.';
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {
@@ -185,12 +192,12 @@ function buildServeVolumeConservationLockV3(
 function buildWineStructuralLockV3(
   hasVolumeLock: boolean,
   hasSparklingLock: boolean,
-  hasCrownCapLock: boolean
+  closureLockToken: string
 ): string {
   const apply: string[] = [];
   if (hasVolumeLock) apply.push('SERVE_VOLUME_CONSERVATION_LOCK_V3');
   if (hasSparklingLock) apply.push('SPARKLING_PHYSICS_LOCK_V3');
-  if (hasCrownCapLock) apply.push('CROWN_CAP_REMOVAL_LOCK_V3');
+  if (closureLockToken) apply.push(closureLockToken);
 
   return [
     'WINE_STRUCTURAL_LOCK_V3:',
