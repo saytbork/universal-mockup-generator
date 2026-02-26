@@ -5446,14 +5446,17 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         if (shouldSendProductImage) {
-          const isMultiProductRequest = generationProducts.length > 1;
+          const productCount = generationProducts.length;
+          const isMultiProductRequest = productCount > 1;
           const maxProductRefs = 5;
-          const totalReferenceBudget = isProductPlacement ? 2_800_000 : 2_200_000;
+          // Total budget scales down as product count grows to stay well under 4MB server limit
+          const totalReferenceBudget = isProductPlacement
+            ? Math.max(1_200_000, 2_800_000 - (productCount - 1) * 400_000)
+            : Math.max(900_000,  2_200_000 - (productCount - 1) * 350_000);
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
             // Calculate relative height scale for this product
-            // Find the tallest product to use as reference (1.0)
             const allHeights = generationProducts.map(p => {
               const heightValue = (p as any).heightValue as number | null | undefined;
               const heightUnit = ((p as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
@@ -5476,30 +5479,33 @@ If the model attempts to create a scene or environment, override it and force a 
             
             const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
             
-            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
+            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}, count: ${productCount}`);
             
-            // GEMINI FIX: Normalize product with light neutral padding
+            // maxLongEdge shrinks as product count increases: 4 products → ~640px each
+            const maxLongEdge = isProductPlacement
+              ? Math.max(640, 1536 - (productCount - 1) * 240)
+              : Math.max(512, 1280 - (productCount - 1) * 200);
+
             const normalized = await normalizeProductWithTransparentPadding(
               `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
               relativeHeight,
               {
-                maxLongEdge: isProductPlacement
-                  ? (isMultiProductRequest ? 1280 : 1536)
-                  : (isMultiProductRequest ? 960 : 1280),
+                maxLongEdge,
                 mimeType: 'image/jpeg',
-                quality: 0.92,
+                quality: productCount >= 3 ? 0.82 : 0.92,
               }
             );
             
-            // Always downscale to enforce a hard per-image size cap (single OR multi)
-            const perImageMaxBase64 = isMultiProductRequest
-              ? (isProductPlacement ? 400_000 : 280_000)
-              : (isProductPlacement ? 600_000 : 480_000);
+            // Per-image hard cap also shrinks with product count
+            const perImageMaxBase64 = isProductPlacement
+              ? Math.max(180_000, 600_000 - (productCount - 1) * 120_000)
+              : Math.max(140_000, 480_000 - (productCount - 1) * 100_000);
+
             const finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-              maxLongEdge: isMultiProductRequest ? (isProductPlacement ? 1100 : 880) : (isProductPlacement ? 1400 : 1200),
+              maxLongEdge: Math.max(512, maxLongEdge - 100),
               maxBase64Length: perImageMaxBase64,
-              quality: 0.84,
+              quality: productCount >= 3 ? 0.78 : 0.84,
             });
 
             if (totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
