@@ -570,8 +570,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
-      imageUrl, // Log the Firebase Storage URL
+      imageUrl,
     }, email);
+
+    // imageBase64 is included in the response so the browser can render the image
+    // directly without a cross-origin fetch to Firebase Storage.
+    // The imageUrl is still returned for gallery/persistence use.
+    const responseImageBase64 = maybeWatermarkedImage;
+
     if (isAnonymousTrial) {
       let remaining = Math.max(anonymousRemaining - 1, 0);
       if (!bypassCreditLimits) {
@@ -597,7 +603,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       res.status(200).json({
         ok: true,
-        imageUrl: imageUrl, // 🔥 Changed from imageBase64 to imageUrl
+        imageUrl,
+        imageBase64: responseImageBase64,
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -606,7 +613,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Use userRecord fetched earlier (no need to call getUser again)
-    const user = userRecord!; // Non-null assertion safe since isAnonymousTrial is false
+    const user = userRecord!;
     if (creditResult?.bucket !== 'admin') {
       await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
@@ -616,7 +623,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     res.status(200).json({
       ok: true,
-      imageUrl: imageUrl, // 🔥 Changed from imageBase64 to imageUrl
+      imageUrl,
+      imageBase64: responseImageBase64,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,

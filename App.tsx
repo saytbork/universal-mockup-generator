@@ -5629,17 +5629,23 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           return;
         }
-        // Use imageUrl directly from Firebase Storage
+        // Prefer imageBase64 for immediate display (avoids cross-origin Firebase CORS issues).
+        // imageUrl is still used for gallery persistence and sharing.
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
-        if (!imageUrl) {
-          throw new Error('Image generation failed or returned no image URL.');
+        const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+        const displayUrl = imageBase64
+          ? `data:image/png;base64,${imageBase64}`
+          : imageUrl;
+        if (!displayUrl) {
+          throw new Error('Image generation failed or returned no image.');
         }
         if (typeof data?.remaining_credits === 'number') {
           setRemoteCredits(data.remaining_credits);
         }
 
-        // NO processing - use Firebase URL directly
-        setGeneratedImageUrl(imageUrl);
+        // Use base64 data URL for immediate display (no CORS dependency on Firebase).
+        // Use Firebase URL for gallery persistence and hi-res pipeline.
+        setGeneratedImageUrl(displayUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         
         if (generationLogId) {
@@ -5647,7 +5653,7 @@ If the model attempts to create a scene or environment, override it and force a 
             status: 'success',
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
-              imageUrl,
+              imageUrl: imageUrl || displayUrl,
             },
           });
         }
@@ -5656,7 +5662,7 @@ If the model attempts to create a scene or environment, override it and force a 
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || displayUrl,
             createdAt: Date.now(),
             plan: resolvedPlanTier,
             aspectRatio,
@@ -5666,8 +5672,8 @@ If the model attempts to create a scene or environment, override it and force a 
           console.warn('Local gallery save failed', e);
         }
         
-        void reportGalleryEntry(imageUrl);
-        runHiResPipeline(imageUrl);
+        void reportGalleryEntry(imageUrl || displayUrl);
+        runHiResPipeline(imageUrl || displayUrl);
         
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
