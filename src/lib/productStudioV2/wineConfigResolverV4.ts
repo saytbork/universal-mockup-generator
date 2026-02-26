@@ -70,7 +70,12 @@ export function buildWineTruthLayerV4(
   // STEP 3: CLOSURE_LOCK
   let closureLockBlock = '';
   if (normalizedBottleState === 'open') {
-    closureLockBlock = 'CLOSURE_LOCK: Bottle is open. No cap attached to bottle. Exactly one detached crown-cap visible on surface. CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright is physically impossible — strictly forbidden. The cap rests flat on the table near the bottle base.';
+    if (normalizedClosure === 'crown-cap') {
+      closureLockBlock = 'CLOSURE_LOCK: Bottle is open. No cap attached to bottle. Exactly one detached crown-cap visible on surface. CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright is physically impossible — strictly forbidden. The cap rests flat on the table near the bottle base.';
+    } else {
+      // cork, screw-cap, from-reference, natural-cork, or any other closure type
+      closureLockBlock = 'CLOSURE_LOCK: Bottle is open. No closure attached to bottle neck. The detached closure (cork, cap, or stopper as shown in the reference) is lying flat horizontally on the surface near the bottle base. A closure standing upright is physically implausible — strictly forbidden.';
+    }
   } else {
     closureLockBlock = 'CLOSURE_LOCK: Bottle is sealed. Closure attached. No detached closure visible.';
   }
@@ -87,10 +92,10 @@ export function buildWineTruthLayerV4(
   // CRITICAL: When served, use EXTREME repetition across multiple instructions
   // Single mention doesn't work - need to repeat in multiple contexts
   const liquidLevelBlock = serveState === 'served'
-    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
+    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle interior. Top half of the interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryLock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-body ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size. Bottle upright.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
+  const geometryLock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-width ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size. Bottle upright.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
   let colorLock = '';
   switch (wineColor) {
     case 'red':

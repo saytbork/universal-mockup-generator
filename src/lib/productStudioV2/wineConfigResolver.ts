@@ -53,10 +53,10 @@ export function buildWineTruthLayer(
   // CRITICAL: When served, use EXTREME repetition across multiple instructions
   // Single mention doesn't work - need to repeat in multiple contexts
   const liquidLevelBlock = serveState === 'served'
-    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
+    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle interior. Top half of the interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryBlock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-body ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size.' +
+  const geometryBlock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-width ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size.' +
     (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height. BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean, no diagonal placement. Bottle base flat on surface.' : ' BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean.');
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
@@ -74,10 +74,10 @@ export function buildWineTruthLayer(
   const wineColor = String((state as any).wineColor || 'auto').trim().toLowerCase();
   const glassLock = (() => {
     if (wineColor === 'red') {
-      return 'GLASS_MATERIAL_LOCK: The bottle is made of dark tinted glass (deep green or near-black). The bottle body is NOT transparent. Do NOT render it as clear or translucent glass. Preserve the exact bottle color and opacity from the reference image.';
+      return 'GLASS_MATERIAL_LOCK: The bottle is made of dark tinted glass (deep green or near-black). The bottle exterior is NOT transparent. Do NOT render it as clear or translucent glass. Preserve the exact bottle color and opacity from the reference image.';
     }
     if (wineColor === 'white' || wineColor === 'rosé' || wineColor === 'rose' || wineColor === 'sparkling') {
-      return 'GLASS_TRANSPARENCY_LOCK: The bottle is made of transparent or lightly tinted glass. The glass body must remain visually transparent, showing the liquid color through the glass walls. Do NOT render the bottle as opaque, frosted, ceramic, or plastic. The glass must show natural light refraction and translucency.';
+      return 'GLASS_TRANSPARENCY_LOCK: The bottle is made of transparent or lightly tinted glass. The glass exterior must remain visually transparent, showing the liquid color through the glass walls. Do NOT render the bottle as opaque, frosted, ceramic, or plastic. The glass must show natural light refraction and translucency.';
     }
     // auto / unknown → just preserve from reference, no assumption
     return 'GLASS_MATERIAL_LOCK: Preserve the exact bottle glass material and color from the reference image. Do NOT change transparency, opacity, tint, or material type.';
@@ -113,23 +113,31 @@ export function buildWineTruthLayer(
 }
 
 function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' | 'open'): string {
-  if (closureType !== 'crown-cap' || bottleState !== 'open') return '';
-  return [
-    'CROWN_CAP_REMOVAL_LOCK_V3:',
-    'Closure type: crimped metal crown-cap only.',
-    'Neck lip must show smooth circular glass rim.',
-    'No cork geometry.',
-    'No screw-thread geometry.',
-    'No foil remnants.',
-    'No hybrid morphology allowed.',
-    'Exactly one detached cap object.',
-    'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
-    'Detached cap must show crimp deformation consistent with pry removal.',
-    'CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright or on its edge is physically impossible due to gravity and is strictly forbidden. The cap rests flat on the table/surface near the bottle base.',
-    'No partial ring artifacts.',
-    'No duplicate closure.',
-    'No duplicate closures.',
-  ].join(' ');
+  if (bottleState !== 'open') return '';
+
+  // For crown-cap: detailed crimp physics
+  if (closureType === 'crown-cap') {
+    return [
+      'CROWN_CAP_REMOVAL_LOCK_V3:',
+      'Closure type: crimped metal crown-cap only.',
+      'Neck lip must show smooth circular glass rim.',
+      'No cork geometry.',
+      'No screw-thread geometry.',
+      'No foil remnants.',
+      'No hybrid morphology allowed.',
+      'Exactly one detached cap object.',
+      'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
+      'Detached cap must show crimp deformation consistent with pry removal.',
+      'CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright or on its edge is physically impossible due to gravity and is strictly forbidden. The cap rests flat on the table/surface near the bottle base.',
+      'No partial ring artifacts.',
+      'No duplicate closure.',
+      'No duplicate closures.',
+    ].join(' ');
+  }
+
+  // For any other closure type (from-reference, natural-cork, screw-cap, etc.) when open:
+  // The closure/cap must be detached and lying flat — never standing upright
+  return 'CLOSURE_FLAT_PHYSICS: The bottle is open. Any detached closure (cork, cap, or stopper) MUST be lying flat on the surface horizontally. A closure standing vertically upright is physically implausible and strictly forbidden. The closure rests flat near the bottle base.';
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {

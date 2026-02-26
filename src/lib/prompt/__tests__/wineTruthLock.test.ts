@@ -87,7 +87,7 @@ describe('wine truth layer enforcement', () => {
     const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
     expect(prompt).toContain('wine bottle that is open');
     expect(prompt).toContain('Liquid level must sit well below the upper third of the bottle');
-    expect(prompt).toContain('No cap attached');
+    expect(prompt).toContain('No closure attached');
     expect(prompt).toContain('Exactly one detached');
     expect(prompt).toContain('glass contains');
   });
@@ -171,7 +171,7 @@ describe('wine truth layer enforcement', () => {
     const prompt = generateStudioPromptV2(v2State);
   // Assert closure lock present - screw-cap selected so no cork/crown mentions
   expect(prompt).toContain('Bottle is open');
-  expect(prompt).toContain('No cap');
+  expect(prompt).toContain('No closure attached');
   // Cork can appear in generic CLOSURE_STATE_EXPLICIT instructions as an example type
   // but closure config should show screw-cap
   expect(prompt).toContain('closureType=screw-cap');
