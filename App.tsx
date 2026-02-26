@@ -5592,6 +5592,7 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
+            isWineServedMode: isWineServedMode || false,
             ...(imageStrength !== undefined ? { imageStrength } : {}),
             ...(guidanceScale !== undefined ? { guidanceScale } : {}),
             ...(negativePrompt !== undefined ? { negativePrompt } : {}),

@@ -397,12 +397,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // InlineData: auto-enable preserveReferenceImage if needed
+  const isWineServedMode = Boolean(body.isWineServedMode);
+
+  // InlineData: auto-enable preserveReferenceImage unless explicitly in wine served mode.
+  // Wine served mode must NOT preserve the reference image — the reference is a closed/full
+  // bottle and preserveReferenceImage=true anchors the model to that visual truth, making
+  // all liquid-level / closure-state prompt instructions ineffective.
   const hasInlineData = parts.some(part => 'inlineData' in part);
   let effectivePreserveReferenceImage = preserveReferenceImage;
-  if (hasInlineData && !preserveReferenceImage) {
+  if (hasInlineData && !preserveReferenceImage && !isWineServedMode) {
     console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
     effectivePreserveReferenceImage = true;
+  }
+  if (isWineServedMode) {
+    effectivePreserveReferenceImage = false;
+    console.log('[WINE SERVED MODE] preserveReferenceImage forced to false — reference image is a physical override target');
   }
 
   if (!apiKey) {
@@ -471,7 +480,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               generationConfig: {
                 responseMimeType: 'image/png',
                 aspectRatio,
-                preserveReferenceImage,
+                preserveReferenceImage: effectivePreserveReferenceImage,
                 ...(imageStrength !== undefined ? { imageStrength } : {}),
                 ...(guidanceScale !== undefined ? { guidanceScale } : {}),
                 ...(negativePrompt !== undefined ? { negativePrompt } : {}),
