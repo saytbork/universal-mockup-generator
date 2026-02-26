@@ -5559,14 +5559,32 @@ If the model attempts to create a scene or environment, override it and force a 
         // even if we request a different `aspectRatio`. We still pass reference images for grounding.
         const preserveReferenceImage = false;
         
-        // WINE SERVED MODE: Lower image strength so text instructions can override reference image
-        // When imageStrength is low (0.5), the AI treats the reference as a suggestion, not law
-        // guidanceScale: 15 makes text instructions stronger
-        // negativePrompt: tells AI what NOT to generate
+        // WINE SERVED MODE: Use inpainting with mask to change liquid level
+        // This is the only way to override reference image (per Gemini API recommendation)
+        let maskBase64: string | undefined;
+        if (isWineServedMode) {
+          console.log('[WINE INPAINTING] Generating mask for bottle liquid area');
+          try {
+            const { generateWineBottleMask } = await import('../utils/generateWineMask');
+            maskBase64 = await generateWineBottleMask(1024, 1024);
+            console.log('[WINE INPAINTING] Mask generated successfully');
+          } catch (error) {
+            console.error('[WINE INPAINTING] Failed to generate mask:', error);
+          }
+        }
+        
         const imageStrength = isWineServedMode ? 0.5 : undefined;
         const guidanceScale = isWineServedMode ? 15 : undefined;
         const negativePrompt = isWineServedMode ? 'full bottle, overflowing, high liquid level' : undefined;
-        console.log('[WINE SERVED MODE PARAMS]', { isWineServedMode, imageStrength, guidanceScale, negativePrompt });
+        const useInpainting = Boolean(isWineServedMode && maskBase64);
+        console.log('[WINE SERVED MODE PARAMS]', { 
+          isWineServedMode, 
+          imageStrength, 
+          guidanceScale, 
+          negativePrompt,
+          useInpainting,
+          hasMask: Boolean(maskBase64)
+        });
         
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -5584,6 +5602,7 @@ If the model attempts to create a scene or environment, override it and force a 
             ...(imageStrength !== undefined ? { imageStrength } : {}),
             ...(guidanceScale !== undefined ? { guidanceScale } : {}),
             ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+            ...(maskBase64 !== undefined ? { maskBase64, useInpainting } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,

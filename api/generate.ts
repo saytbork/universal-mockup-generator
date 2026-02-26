@@ -345,9 +345,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const imageStrength = typeof body.imageStrength === 'number' ? body.imageStrength : undefined;
   const guidanceScale = typeof body.guidanceScale === 'number' ? body.guidanceScale : undefined;
   const negativePrompt = typeof body.negativePrompt === 'string' ? body.negativePrompt : undefined;
+  const maskBase64 = typeof body.maskBase64 === 'string' ? body.maskBase64 : undefined;
+  const useInpainting = Boolean(body.useInpainting);
   console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
+  console.log('[INPAINTING MODE]', useInpainting);
+  console.log('[MASK PROVIDED]', maskBase64 ? 'YES' : 'NO');
   const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
   const bodyApiKeyLength = typeof body.apiKey === 'string' ? body.apiKey.trim().length : 0;
   console.log('[GENAI] GOOGLE_API_KEY length:', String(process.env.GOOGLE_API_KEY || '').trim().length);
@@ -403,6 +407,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (hasInlineData && !preserveReferenceImage) {
     console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
     effectivePreserveReferenceImage = true;
+  }
+
+  // INPAINTING: Add mask to parts if provided
+  let finalParts = parts;
+  if (useInpainting && maskBase64) {
+    console.log('[INPAINTING] Adding mask to parts array');
+    // Add mask as a separate part with special property
+    finalParts = [
+      ...parts,
+      {
+        inlineData: {
+          data: maskBase64,
+          mimeType: 'image/png',
+        },
+        // Mark this as a mask (Gemini API might need special handling)
+        mask: true,
+      } as any,
+    ];
   }
 
   if (!apiKey) {
@@ -464,7 +486,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // Restore model usage from 7695e35 (no safeModel)
           return await ai.models.generateContent({
             model,
-            contents: { parts },
+            contents: { parts: finalParts },
             config: {
               responseModalities: [Modality.IMAGE],
               safetySettings: [],
@@ -475,6 +497,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 ...(imageStrength !== undefined ? { imageStrength } : {}),
                 ...(guidanceScale !== undefined ? { guidanceScale } : {}),
                 ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+                ...(useInpainting ? { editMode: 'inpaint' } : {}),
                 temperature: 0.25,
                 topP: 0.9,
                 seed: crypto.randomUUID(),
