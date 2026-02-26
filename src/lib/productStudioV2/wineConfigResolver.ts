@@ -43,28 +43,24 @@ export function buildWineTruthLayer(
     wineType === 'sparkling-white' && carbonationLevel === 'high' ? 'natural' : carbonationLevel;
 
   const crownCapLock = buildCrownCapRemovalLockV3(closureType, bottleState);
-  const volumeLock = buildServeVolumeConservationLockV3(bottleState, serveState, bottleFillState);
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
-  // Derive the token name that actually appears in the prompt so WINE_STRUCTURAL_LOCK_V3
-  // references the correct lock identifier (crown-cap vs generic closure).
-  const closureLockToken = crownCapLock.startsWith('CROWN_CAP_REMOVAL_LOCK_V3')
-    ? 'CROWN_CAP_REMOVAL_LOCK_V3'
-    : crownCapLock.startsWith('CLOSURE_LOCK_V3')
-    ? 'CLOSURE_LOCK_V3'
-    : '';
-  const structuralLock = buildWineStructuralLockV3(Boolean(volumeLock), Boolean(sparklingLock), closureLockToken);
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
-  
-  // CRITICAL: When served, use EXTREME repetition across multiple instructions
-  // Single mention doesn't work - need to repeat in multiple contexts
-  const liquidLevelBlock = serveState === 'served'
-    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle interior. Top half of the interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
+
+  // SERVED_STATE_LOCK_V4: Single authoritative fill+closure state block.
+  // Replaces all previous CRITICAL LIQUID LEVEL / SERVE_VOLUME_CONSERVATION_LOCK_V3 /
+  // FILL_LEVEL_OVERRIDE fragments — one source of truth, no repetition.
+  const servedStateLock = serveState === 'served'
+    ? 'SERVED_STATE_LOCK_V4: This is a SERVED wine scene. ' +
+      'BOTTLE_STATE: open — the closure has been physically removed from the bottle neck. The neck is bare glass with no cap, cork, or foil attached. ' +
+      'LIQUID_LEVEL: The wine inside the bottle fills exactly the BOTTOM HALF only. The liquid surface is at the midpoint of the bottle body. The top half of the bottle interior is empty air space. ' +
+      'INVALID_RENDERS: A bottle that appears full, retail-fresh, or unopened is an incorrect render and must be rejected. ' +
+      'CLOSURE_COUNT: Exactly ONE detached closure object is visible on the surface near the bottle base, lying flat. No second closure anywhere in the frame.'
     : '';
-  
+
   const geometryBlock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-width ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size.' +
-    (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height. BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean, no diagonal placement. Bottle base flat on surface.' : ' BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean.');
+    ' BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean, no diagonal placement. Bottle base flat on surface.';
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
   // SERVED SCENE COMPOSITION: always require a wine glass with liquid when served
@@ -93,14 +89,10 @@ export function buildWineTruthLayer(
     ? `LABEL_PRESERVATION_LOCK: The bottle label must be fully preserved exactly as in the reference image. Do NOT remove, fade, replace, or alter the label in any way. The label design, text, colors, and position must be identical to the reference. ${glassLock}`
     : '';
 
-  // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
-  // ORDER IS CRITICAL for Gemini: most-violated constraints first.
-  // 1. Crown cap removal (model most often puts cap on bottle) — must be #1
-  // 2. Liquid level / volume (model most often renders bottle as full)
-  // 3. Glass mandatory (model sometimes omits it)
-  // 4. Structural + geometry + label + color
+  // SERVED mode: single physics block, no structural lock forward-reference.
+  // ORDER: state lock (most violated) → closure → glass → geometry → label → color → sparkling
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, crownCapLock, liquidLevelBlock, volumeLock, servedGlassBlock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, servedStateLock, crownCapLock, servedGlassBlock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   // None / closed: sealed bottle, retail-full, no glass — hard rules to prevent model from adding props
@@ -110,11 +102,7 @@ export function buildWineTruthLayer(
     engineStatusBlock,
     configBlock,
     closedBottleBlock,
-    volumeLock,
     crownCapLock,
-    structuralLock,
-    geometryBlock,
-    colorBlock,
     sparklingLock,
   ].filter(Boolean).join(' ');
 }

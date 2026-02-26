@@ -5368,14 +5368,11 @@ If the model attempts to create a scene or environment, override it and force a 
           wineServeState === 'served'
         );
         
-        // CRITICAL: If wine served mode, PREPEND liquid level instructions at START of prompt
-        // This ensures AI sees it FIRST before any reference image instructions
-        if (isWineServedMode) {
-          const liquidOverride = 'ABSOLUTE PRIORITY INSTRUCTION: The wine bottle in this image MUST show liquid level at 50% height (half-full). The wine surface must be visible at the middle of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine. This is a partially consumed bottle. The bottle is NOT full. The bottle is NOT at retail capacity. DO NOT generate a full bottle. ';
-          finalPrompt = liquidOverride + finalPrompt;
-          console.log('[WINE LIQUID OVERRIDE] Prepended to prompt start');
-        }
-        
+        // WINE LIQUID OVERRIDE removed: SERVED_STATE_LOCK_V4 in the physics block is the
+        // single source of truth for fill state. A prepended override before the structured
+        // prompt creates duplicate semantic content that degrades model determinism.
+        // The PHYSICS_FINAL_ANCHOR segment appended last in winePipeline handles recency bias.
+
         console.log('[WINE SERVED MODE DEBUG]', {
           isProductPlacement,
           visualProfile: wineVisualProfile,
@@ -5446,15 +5443,14 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         if (shouldSendProductImage) {
-          const productCount = generationProducts.length;
-          const isMultiProductRequest = productCount > 1;
+          const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
-          // Budget: 10MB server limit, leave room for text + response overhead
-          const totalReferenceBudget = isProductPlacement ? 3_200_000 : 2_800_000;
+          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
             // Calculate relative height scale for this product
+            // Find the tallest product to use as reference (1.0)
             const allHeights = generationProducts.map(p => {
               const heightValue = (p as any).heightValue as number | null | undefined;
               const heightUnit = ((p as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
@@ -5477,29 +5473,37 @@ If the model attempts to create a scene or environment, override it and force a 
             
             const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
             
-            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}, count: ${productCount}`);
+            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
             
-            // Normalize to target aspect ratio — keep quality high, images are small (450KB)
+            // GEMINI FIX: Normalize product with light neutral padding
+            // Creates a canvas at the target aspect ratio with the product centered
+            // Light gray background (#F8F8F8) shows the model the "intended space" to fill with environment
+            // Prevents distortion by pre-formatting the reference to the output aspect ratio
             const normalized = await normalizeProductWithTransparentPadding(
               `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
               relativeHeight,
               {
-                maxLongEdge: isMultiProductRequest ? 1200 : 1536,
-                mimeType: 'image/jpeg',
-                quality: 0.92,
+                maxLongEdge: isProductPlacement
+                  ? (isMultiProductRequest ? 1440 : 2048)
+                  : (isMultiProductRequest ? 1024 : 1536),
+                mimeType: 'image/jpeg', // JPEG with light background
+                quality: 0.96,
               }
             );
+            
+            let finalReference = normalized;
 
-            // Only downscale if somehow over per-image cap (shouldn't happen with 450KB sources)
-            const perImageMaxBase64 = isMultiProductRequest ? 500_000 : 700_000;
-            const finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-              maxLongEdge: isMultiProductRequest ? 1100 : 1400,
-              maxBase64Length: perImageMaxBase64,
-              quality: 0.88,
-            });
+            // Keep total payload under serverless limits when multiple products are attached.
+            if (isMultiProductRequest) {
+              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+                maxLongEdge: isProductPlacement ? 1200 : 960,
+                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
+                quality: 0.86,
+              });
+            }
 
-            if (totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
+            if (isMultiProductRequest && totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
               console.warn('[UGC PAYLOAD] Skipping product reference to stay within payload budget', {
                 productId: product.id,
                 currentTotal: totalAttachedReferenceBase64,

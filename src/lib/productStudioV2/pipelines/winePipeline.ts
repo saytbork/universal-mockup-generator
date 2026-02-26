@@ -105,6 +105,18 @@ export const winePipeline = {
   // ─────────────────────────────────────────────────────────────────────────
 
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
+
+  // TERMINAL PHYSICS ANCHOR — appended LAST to counter recency-bias drift from
+  // aesthetic/archetype/photo-mode segments that arrive after the physics block.
+  // Only injected in served mode where state is most frequently overridden.
+  // 3 sentences max — any longer and it competes with itself.
+  const _serveStateCheck = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+  if (_serveStateCheck === 'served') {
+    segments.push({
+      type: 'guardrail',
+      content: 'PHYSICS_FINAL_ANCHOR: Regardless of background, archetype, or lighting style — the bottle is OPEN and HALF-EMPTY. The closure is detached and lying flat on the surface. These physical states are non-negotiable and supersede all scene or aesthetic instructions.'
+    });
+  }
     // eslint-disable-next-line no-console
     console.log('WINE SEGMENTS LENGTH BEFORE FINALIZE:', segments.length);
     let prompt = sanitizeWineV4Prompt(

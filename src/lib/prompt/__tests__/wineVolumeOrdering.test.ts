@@ -23,12 +23,12 @@ describe('wine volume ordering and binary state', () => {
 
     // config appears first
     const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
-    const idxVolume = prompt.indexOf('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    const idxVolume = prompt.indexOf('SERVED_STATE_LOCK_V4:');
     expect(idxConfig).toBeGreaterThanOrEqual(0);
     expect(idxVolume).toBeGreaterThan(idxConfig);
 
-    // new phrasing should be present
-    expect(prompt).toContain('The liquid level must be visually around the middle of the bottle height');
+    // new V4 phrasing should be present
+    expect(prompt).toContain('The liquid surface is at the midpoint of the bottle body');
 
     // mapping must be explicit in resolved config block
     expect(prompt).toContain('bottleFillState=clearly-partially-consumed');

@@ -17,8 +17,7 @@ describe('wine engine v3 matrix', () => {
     { closureType: 'crown-cap', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
     );
 
-    expect(prompt).toContain('WINE_STRUCTURAL_LOCK_V3:');
-    expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
     expect(prompt).toContain('carbonationLevel=natural;');
@@ -32,8 +31,8 @@ describe('wine engine v3 matrix', () => {
 
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
-    // With the simplified rule any non-empty glass should enforce the volume lock
-    expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    // V4 lock is now the single volume enforcement
+    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
   });
 
   test('still-white + natural-cork + open + glass half excludes crown/sparkling locks', () => {
@@ -42,7 +41,7 @@ describe('wine engine v3 matrix', () => {
     { closureType: 'natural-cork', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
     );
 
-    expect(prompt).toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
     expect(prompt).not.toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).not.toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
   });

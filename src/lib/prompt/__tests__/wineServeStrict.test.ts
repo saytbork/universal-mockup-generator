@@ -25,14 +25,14 @@ describe('strict serveState prompt', () => {
     expect(prompt).not.toContain('composition');
     expect(prompt).not.toContain('STUDIO_LIGHTING_PROFILE');
 
-    // Order: WINE_CONFIG_RESOLVED then SERVE_VOLUME_CONSERVATION_LOCK_V3
+    // Order: WINE_CONFIG_RESOLVED then SERVED_STATE_LOCK_V4
     const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
-    const idxVolume = prompt.indexOf('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
+    const idxVolume = prompt.indexOf('SERVED_STATE_LOCK_V4:');
     expect(idxConfig).toBeGreaterThanOrEqual(0);
     expect(idxVolume).toBeGreaterThan(idxConfig);
 
-    // Phrase must be exact
-    expect(prompt).toContain('The liquid level must be visually around the middle of the bottle height');
+    // Phrase must be exact (V4 phrasing)
+    expect(prompt).toContain('The liquid surface is at the midpoint of the bottle body');
 
     // Ensure no residual granular tokens
     expect(prompt).not.toContain('glassFillLevel');
