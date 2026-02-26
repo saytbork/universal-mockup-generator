@@ -584,6 +584,14 @@ export type WineMoodModifier =
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
 export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type WineStyleArchetype =
+    | 'Minimal Editorial Studio'
+    | 'Ultra Minimal Black Luxury'
+    | 'Backlit Premium Studio'
+    | 'Moody Wood Editorial'
+    | 'Macro Label Branding'
+    | 'Action Pour Photography'
+    | 'Cinematic Vineyard';
 export type CoffeeAction = 'static' | 'controlled-pour';
 export type CoffeeMode = 'studio' | 'ritual';
 export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
@@ -750,6 +758,7 @@ export type ProductStudioState = {
     wineServeAmount?: string;
     serveVolumeMode?: string;
     wineEngineVersion?: number;
+    wineStyleArchetype?: WineStyleArchetype | null;
     coffeeMode: CoffeeMode;
     coffeeAction: CoffeeAction;
     coffeeLightingTone: CoffeeLightingTone;

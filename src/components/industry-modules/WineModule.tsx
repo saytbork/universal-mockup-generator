@@ -6,8 +6,9 @@ import {
   WINE_LIGHTING_TONES,
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
+  WINE_STYLE_ARCHETYPES,
 } from '@/lib/productStudio/winePrestige';
-import type { WineAction, WinePourStyle } from '@/lib/productStudio/types';
+import type { WineAction, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI =
@@ -82,6 +83,7 @@ export function WineModule({
   const wineServeAmount = (useProductStudioStore((s) => (s as any).wineServeAmount) || 'standard') as string;
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
   const wineEngineVersion = Number(useProductStudioStore((s) => (s as any).wineEngineVersion) || 3);
+  const wineStyleArchetype = (useProductStudioStore((s) => (s as any).wineStyleArchetype) ?? null) as WineStyleArchetype | null;
 
   const currentServeState: ServeStateUI = wineGlassMode !== 'filled' ? 'none' : 'served';
 
@@ -102,6 +104,31 @@ export function WineModule({
 
       {isOpen && (
         <div className="mt-4 space-y-4">
+          {/* ── WINE STYLE ARCHETYPE ─────────────────────────────── */}
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Style Archetype</p>
+            <p className="text-[11px] text-gray-400 mb-2">High-level visual preset. Applies defaults only — manual controls override.</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_STYLE_ARCHETYPES.map((archetype) => (
+                <Chip
+                  key={archetype}
+                  selected={wineStyleArchetype === archetype}
+                  onClick={() => {
+                    const next = wineStyleArchetype === archetype ? null : archetype;
+                    useProductStudioStore.getState().setWineStyleArchetype(next);
+                  }}
+                >
+                  {archetype}
+                </Chip>
+              ))}
+            </div>
+            {wineStyleArchetype && (
+              <p className="text-[11px] text-violet-600 mt-1 font-medium">
+                ✦ {wineStyleArchetype} active — change any control to override
+              </p>
+            )}
+          </div>
+          {/* ── WINE ACTION ──────────────────────────────────────── */}
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Action</p>
             <div className="flex flex-wrap gap-2">

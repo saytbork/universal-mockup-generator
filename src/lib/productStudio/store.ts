@@ -54,13 +54,14 @@ import type {
     WineLightingTone,
     WineMoodModifier,
     WinePourStyle,
+    WineStyleArchetype,
     CoffeeAction,
     CoffeeMode,
     CoffeeLightingTone,
     CoffeeMoodModifier,
     CoffeeSteamLevel,
 } from './types';
-import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS } from './winePrestige';
+import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
 
 
 // ============================================================================
@@ -663,6 +664,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
     winePourStyle: 'mid-flow-elegance',
+    wineStyleArchetype: null,
     coffeeMode: 'studio',
     coffeeAction: 'static',
     coffeeLightingTone: 'auto',
@@ -823,6 +825,7 @@ type ProductStudioActions = {
     setWinePourStyle: (style: WinePourStyle) => void;
     setWineLightingTone: (tone: WineLightingTone) => void;
     setWineMoodModifier: (modifier: WineMoodModifier) => void;
+    setWineStyleArchetype: (archetype: WineStyleArchetype | null) => void;
     setCoffeeAction: (action: CoffeeAction) => void;
     setCoffeeMode: (mode: CoffeeMode) => void;
     setCoffeeLightingTone: (tone: CoffeeLightingTone) => void;
@@ -1333,6 +1336,28 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     }),
     setWineLightingTone: (tone) => set({ wineLightingTone: tone }),
     setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
+    setWineStyleArchetype: (archetype) =>
+        set((state) => {
+            if (!archetype) return { wineStyleArchetype: null };
+            const patch = getWineArchetypePatch(archetype);
+            if (!patch) return { wineStyleArchetype: null };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { _archetypeNarrative, ambientLighting: _al, ...visualFields } = patch;
+            // For Action Pour Photography: only apply wineAction if physics allow it
+            if (archetype === 'Action Pour Photography') {
+                const pourOk = isActionPourCompatible({
+                    wineBottleState: state.wineBottleState,
+                    wineClosureType: state.wineClosureType,
+                });
+                if (!pourOk) {
+                    delete (visualFields as Record<string, unknown>).wineAction;
+                }
+            }
+            return {
+                wineStyleArchetype: archetype,
+                ...(visualFields as Partial<ProductStudioState>),
+            };
+        }),
     setCoffeeAction: (action) =>
         set({
             coffeeAction: action === 'controlled-pour' ? 'controlled-pour' : 'static',

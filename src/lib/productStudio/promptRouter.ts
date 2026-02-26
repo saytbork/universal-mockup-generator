@@ -3,6 +3,7 @@ import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
 import { industryRules } from './industryRules';
 import { resolveCoffeeIndustryIntent, type CoffeeIndustryIntent } from './resolveCoffeeIntent';
+import { getWineArchetypeNarrative } from './winePrestige';
 import {
   getIndustryDefaultInteraction,
   getPhotoModeCapabilities,
@@ -789,6 +790,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
     : null;
   const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
+  const wineArchetypeNarrative = winePrestigeMode
+    ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
+    : '';
   const v2State: StudioUIState = {
     creativeIntent: inferStudioIntent(state),
     visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
@@ -842,6 +846,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           wineType: state.wineType,
           wineBottleState: state.wineBottleState,
           carbonationLevel: state.carbonationLevel,
+          ...((state as any).wineStyleArchetype ? { wineStyleArchetype: (state as any).wineStyleArchetype } : {}),
+          ...(wineArchetypeNarrative ? { wineArchetypeNarrative } : {}),
         }
       : {}),
     ...(advancedControls
