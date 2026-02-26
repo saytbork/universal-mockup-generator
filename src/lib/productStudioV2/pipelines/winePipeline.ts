@@ -21,6 +21,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
 }
 import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
 import type { StudioUIState } from '../index';
+import { getWineAestheticProfile, buildWineAestheticSegment } from '../../productStudio/winePrestige';
 
 export const winePipeline = {
   build(state: StudioUIState): string {
@@ -82,6 +83,27 @@ export const winePipeline = {
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting(wineEffectiveState) : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
+
+  // ── WINE STYLE ARCHETYPE + AESTHETIC PROFILE ──────────────────────────────
+  // Injection order:
+  //   1. wineArchetypeNarrative  — descriptive scene intent (set by promptRouter)
+  //   2. WINE_AESTHETIC_PROFILE  — micro-level visual bias (soft, non-constraining)
+  //   3. PHYSICAL_REALISM        — hard guardrail (buildWineMinimalGuardrail below)
+  //
+  // Manual camera/lighting overrides are already locked into the physics and
+  // camera segments above, so they always supersede these soft bias values.
+  // Physics fields (closure, carbonation, volume) are never touched here.
+  const _archetypeNarrative = String((wineEffectiveState as any).wineArchetypeNarrative || '').trim();
+  if (_archetypeNarrative) {
+    segments.push({ type: 'guardrail', content: _archetypeNarrative });
+  }
+  const _aestheticProfile = getWineAestheticProfile((wineEffectiveState as any).wineStyleArchetype ?? null);
+  const _aestheticSegment = buildWineAestheticSegment(_aestheticProfile);
+  if (_aestheticSegment) {
+    segments.push({ type: 'guardrail', content: _aestheticSegment });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
     // eslint-disable-next-line no-console
     console.log('WINE SEGMENTS LENGTH BEFORE FINALIZE:', segments.length);

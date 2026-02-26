@@ -278,3 +278,210 @@ export function isActionPourCompatible(
   if (bottleState === 'sealed') return false;
   return true;
 }
+
+// ============================================================================
+// WINE AESTHETIC PROFILE SYSTEM
+// Internal non-UI bias layer — prompt-only, no state fields.
+// Values are 0–1 normalized unless otherwise noted.
+// All values are soft biases only — manual camera/lighting overrides supersede.
+// ============================================================================
+
+export type WineAestheticProfile = {
+  /** Surface and glass reflection intensity. 0=flat/matte, 1=maximum specular */
+  reflectionIntensity?: number;
+  /** Local contrast between fine details — label texture, glass edge, neck ring. 0=flat, 1=high micro-contrast */
+  microContrast?: number;
+  /** Label texture and embossing detail push. 0=default, 1=maximum texture reveal */
+  labelTextureBoost?: number;
+  /** Internal liquid luminosity / glow-through bias. 0=opaque, 1=maximum translucency glow */
+  liquidGlowBias?: number;
+  /** Background separation softness. 0=in-focus/flat, 1=maximum bokeh separation */
+  depthOfFieldBias?: number;
+  /** Shadow transition character. soft=gradual rolloff, neutral=standard, crisp=hard edge */
+  shadowRollOff?: 'soft' | 'neutral' | 'crisp';
+  /** Specular highlight sharpness on bottle/glass surface. 0=diffused, 1=pinpoint */
+  highlightSharpness?: number;
+  /** Edge vignette strength. 0=none, 1=heavy peripheral darkening */
+  vignetteBias?: number;
+};
+
+const ARCHETYPE_AESTHETIC_PROFILES: Record<WineStyleArchetype, WineAestheticProfile> = {
+  'Minimal Editorial Studio': {
+    reflectionIntensity: 0.35,
+    microContrast: 0.45,
+    labelTextureBoost: 0.6,
+    liquidGlowBias: 0.2,
+    depthOfFieldBias: 0.25,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.4,
+    vignetteBias: 0.1,
+  },
+  'Ultra Minimal Black Luxury': {
+    reflectionIntensity: 0.75,
+    microContrast: 0.85,
+    labelTextureBoost: 0.7,
+    liquidGlowBias: 0.15,
+    depthOfFieldBias: 0.2,
+    shadowRollOff: 'crisp',
+    highlightSharpness: 0.9,
+    vignetteBias: 0.35,
+  },
+  'Backlit Premium Studio': {
+    reflectionIntensity: 0.5,
+    microContrast: 0.4,
+    labelTextureBoost: 0.3,
+    liquidGlowBias: 0.9,
+    depthOfFieldBias: 0.3,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.35,
+    vignetteBias: 0.5,
+  },
+  'Moody Wood Editorial': {
+    reflectionIntensity: 0.2,
+    microContrast: 0.8,
+    labelTextureBoost: 0.55,
+    liquidGlowBias: 0.1,
+    depthOfFieldBias: 0.15,
+    shadowRollOff: 'crisp',
+    highlightSharpness: 0.65,
+    vignetteBias: 0.6,
+  },
+  'Macro Label Branding': {
+    reflectionIntensity: 0.3,
+    microContrast: 0.7,
+    labelTextureBoost: 0.95,
+    liquidGlowBias: 0.1,
+    depthOfFieldBias: 0.7,
+    shadowRollOff: 'neutral',
+    highlightSharpness: 0.5,
+    vignetteBias: 0.15,
+  },
+  'Action Pour Photography': {
+    reflectionIntensity: 0.6,
+    microContrast: 0.75,
+    labelTextureBoost: 0.4,
+    liquidGlowBias: 0.55,
+    depthOfFieldBias: 0.5,
+    shadowRollOff: 'crisp',
+    highlightSharpness: 0.8,
+    vignetteBias: 0.25,
+  },
+  'Cinematic Vineyard': {
+    reflectionIntensity: 0.4,
+    microContrast: 0.5,
+    labelTextureBoost: 0.45,
+    liquidGlowBias: 0.35,
+    depthOfFieldBias: 0.75,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.3,
+    vignetteBias: 0.4,
+  },
+};
+
+/**
+ * Returns the internal aesthetic bias profile for a given archetype.
+ * Returns null if archetype is unrecognized or null.
+ * This profile is NEVER exposed to UI — prompt-only.
+ */
+export function getWineAestheticProfile(
+  archetype: WineStyleArchetype | string | null | undefined
+): WineAestheticProfile | null {
+  if (!archetype) return null;
+  return ARCHETYPE_AESTHETIC_PROFILES[archetype as WineStyleArchetype] ?? null;
+}
+
+/**
+ * Converts a WineAestheticProfile into a structured prompt segment string.
+ *
+ * Injection order contract:
+ *   1. WINE_STYLE_ARCHETYPE narrative  (already in wineArchetypeNarrative)
+ *   2. WINE_AESTHETIC_PROFILE          ← this function's output
+ *   3. PHYSICAL_REALISM guardrail      (buildWineMinimalGuardrail)
+ *   4. Wine V4 STRUCTURAL LOCK         (in physics block, assembled before this call)
+ *
+ * Manual camera/lighting overrides in v2State supersede all bias values because
+ * they are applied to the physics/camera segments which the model treats as
+ * hard constraints — this segment carries no constraint language.
+ *
+ * Returns empty string if profile is null or has no meaningful values.
+ */
+export function buildWineAestheticSegment(profile: WineAestheticProfile | null): string {
+  if (!profile) return '';
+
+  const parts: string[] = [];
+
+  if (profile.liquidGlowBias !== undefined && profile.liquidGlowBias > 0.5) {
+    parts.push(
+      `liquid luminosity bias: ${profile.liquidGlowBias >= 0.8 ? 'strong internal glow, light transmitting through glass, backlit translucency' : 'moderate internal glow, slight liquid luminosity'}`
+    );
+  }
+
+  if (profile.reflectionIntensity !== undefined) {
+    if (profile.reflectionIntensity >= 0.7) {
+      parts.push('surface reflections: high-intensity specular highlights, crisp glass and bottle reflections');
+    } else if (profile.reflectionIntensity >= 0.4) {
+      parts.push('surface reflections: controlled mid-intensity specular, natural glass sheen');
+    } else {
+      parts.push('surface reflections: minimal, restrained matte-leaning surface');
+    }
+  }
+
+  if (profile.microContrast !== undefined) {
+    if (profile.microContrast >= 0.75) {
+      parts.push('micro-contrast: high local contrast on label edges, glass rim, and neck ring — fine detail acuity');
+    } else if (profile.microContrast >= 0.45) {
+      parts.push('micro-contrast: moderate local contrast, natural tonal separation');
+    } else {
+      parts.push('micro-contrast: low, smooth tonal transitions, painterly rendition');
+    }
+  }
+
+  if (profile.labelTextureBoost !== undefined && profile.labelTextureBoost >= 0.5) {
+    parts.push(
+      profile.labelTextureBoost >= 0.85
+        ? 'label texture: maximum detail — paper grain, embossing relief, foil texture all clearly rendered'
+        : 'label texture: enhanced surface detail, subtle embossing and paper texture visible'
+    );
+  }
+
+  if (profile.depthOfFieldBias !== undefined) {
+    if (profile.depthOfFieldBias >= 0.65) {
+      parts.push('depth of field: pronounced background bokeh, strong subject isolation, foreground elements soft');
+    } else if (profile.depthOfFieldBias >= 0.3) {
+      parts.push('depth of field: moderate separation, background recognizable but gently diffused');
+    } else {
+      parts.push('depth of field: deep focus, background rendered with clarity');
+    }
+  }
+
+  if (profile.shadowRollOff) {
+    const shadowMap: Record<NonNullable<WineAestheticProfile['shadowRollOff']>, string> = {
+      soft: 'shadow rolloff: gradual — wide penumbra, smooth gradient from lit to shadow',
+      neutral: 'shadow rolloff: standard falloff, natural shadow transition',
+      crisp: 'shadow rolloff: hard-edge shadow terminator, minimal penumbra, graphic shadow definition',
+    };
+    parts.push(shadowMap[profile.shadowRollOff]);
+  }
+
+  if (profile.highlightSharpness !== undefined) {
+    if (profile.highlightSharpness >= 0.75) {
+      parts.push('highlights: pinpoint specular, tight catchlights, sharp specular pool on glass');
+    } else if (profile.highlightSharpness >= 0.35) {
+      parts.push('highlights: controlled softbox specular, oval catchlight, diffused edge');
+    } else {
+      parts.push('highlights: fully diffused, no specular hotspot, even surface luminance');
+    }
+  }
+
+  if (profile.vignetteBias !== undefined && profile.vignetteBias > 0.1) {
+    parts.push(
+      profile.vignetteBias >= 0.45
+        ? 'vignette: strong peripheral darkening, drawing attention to center subject'
+        : 'vignette: subtle edge darkening, natural optical falloff'
+    );
+  }
+
+  if (parts.length === 0) return '';
+
+  return 'WINE_AESTHETIC_PROFILE: ' + parts.join('; ') + '.';
+}
