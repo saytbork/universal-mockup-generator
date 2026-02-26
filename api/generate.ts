@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Modality, MaskReferenceImage, MaskReferenceMode, RawReferenceImage } from '@google/genai';
+import { GoogleGenAI, Modality, PersonGeneration } from '@google/genai';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -465,57 +465,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 
-  // ── WINE SERVED MODE: Imagen 3 inpainting branch ──────────────────────────
-  // When productImageBase64 is supplied, skip gemini-2.5-flash-image entirely.
-  // Imagen 3 editImage + MASK_MODE_FOREGROUND auto-segments the bottle foreground
-  // and re-diffuses only the masked interior from the text prompt.
-  // Background, label, glass material are identity-copied (outside mask).
+  // ── WINE SERVED MODE: Imagen 3 text-to-image branch ──────────────────────
+  // editImage (inpainting) is Vertex AI only — not available on Developer API keys.
+  // Instead: use generateImages with imagen-3.0-generate-002 on the Developer API.
+  // The reference bottle image is NOT passed (it anchors the closed/full geometry).
+  // The prompt fully describes the bottle appearance (label text, color, shape) so
+  // Imagen 3 generates the correct served state from scratch with high fidelity.
   const productImageBase64 = typeof body.productImageBase64 === 'string' ? body.productImageBase64 : '';
-  const productMimeType = typeof body.productMimeType === 'string' ? body.productMimeType : 'image/png';
-  const IMAGEN3_MODEL = 'imagen-3.0-capability-001';
+  const IMAGEN3_GENERATE_MODEL = 'imagen-3.0-generate-002';
 
-  if (isWineServedMode && productImageBase64) {
+  if (isWineServedMode) {
     try {
       const textPart = Array.isArray(parts) ? parts.find((p: any) => typeof p.text === 'string') : null;
       const basePrompt = typeof textPart?.text === 'string' ? textPart.text : '';
-      const inpaintPrompt = [
+
+      // Build a concise, highly directive served-state prompt.
+      // Imagen 3 text-to-image responds better to concrete visual descriptions
+      // than structured token blocks. Keep it under 1000 chars.
+      const servedPrompt = [
         basePrompt,
-        'The wine bottle is half-empty. Red or white wine fills only the bottom half of the bottle interior.',
-        'The liquid surface is clearly visible at the midpoint of the bottle height.',
-        'The top half of the bottle interior is empty air space.',
-        'The bottle neck is open — no cap, cork, or closure attached.',
-        'Exactly one detached closure is lying flat on the surface near the bottle base.',
-        'A wine glass filled to one-third with wine is present next to the bottle.',
-        'Preserve the exact bottle shape, label design, glass material, and background from the reference.',
+        'The wine bottle is half-empty: liquid fills only the lower half of the bottle interior, with a visible liquid surface at the midpoint.',
+        'The bottle neck is open with no cap, cork, or closure attached to the bottle.',
+        'Exactly one cork or cap lies on the flat surface beside the bottle base.',
+        'A wine glass filled to one-third is placed next to the bottle.',
+        'Professional product photography, studio lighting, sharp focus.',
       ].filter(Boolean).join(' ');
 
-      const inpaintResponse = await ai.models.editImage({
-        model: IMAGEN3_MODEL,
-        prompt: inpaintPrompt,
-        referenceImages: [
-          Object.assign(new RawReferenceImage(), {
-            referenceImage: { imageBytes: productImageBase64 },
-            referenceId: 1,
-          }),
-          Object.assign(new MaskReferenceImage(), {
-            referenceId: 1,
-            config: {
-              maskMode: MaskReferenceMode.MASK_MODE_FOREGROUND,
-              maskDilation: 0.02,
-            },
-          }),
-        ],
+      const imgResponse = await ai.models.generateImages({
+        model: IMAGEN3_GENERATE_MODEL,
+        prompt: servedPrompt,
         config: {
           numberOfImages: 1,
           aspectRatio,
-          negativePrompt: 'full wine bottle, bottle filled to the top, retail full bottle, closure attached to neck, cap on bottle neck, cork in bottle neck, sealed bottle, unopened bottle',
+          negativePrompt: 'full wine bottle, filled to the top, sealed bottle, unopened bottle, cork in bottle neck, cap on bottle neck, closed bottle',
+          personGeneration: PersonGeneration.ALLOW_ADULT,
         },
       });
 
-      const generatedImage = inpaintResponse?.generatedImages?.[0];
+      const generatedImage = imgResponse?.generatedImages?.[0];
       const imageBytes = generatedImage?.image?.imageBytes;
 
-      if (!imageBytes) throw new Error('Imagen 3 inpaint returned no image.');
+      if (!imageBytes) throw new Error('Imagen 3 generateImages returned no image.');
 
       const buffer = Buffer.from(imageBytes, 'base64');
       const fileName = `generations/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.png`;
@@ -526,7 +516,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await file.makePublic();
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
-      await addDebugLog('generate.wine-inpaint.success', { aspectRatio, model: IMAGEN3_MODEL, imageUrl }, email);
+      await addDebugLog('generate.wine-served.success', { aspectRatio, model: IMAGEN3_GENERATE_MODEL, imageUrl }, email);
 
       const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
       const unlimitedUser = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
@@ -537,13 +527,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         imageBase64: imageBytes,
         remaining_credits: (isUnlimited || unlimitedUser) ? 999_999 : (userRecord ? getEffectiveCredits(userRecord) : anonymousRemaining),
       });
-    } catch (inpaintError: any) {
-      await addDebugLog('generate.wine-inpaint.error', { error: String(inpaintError?.message || '').slice(0, 280) }, email);
+    } catch (servedError: any) {
+      await addDebugLog('generate.wine-served.error', { error: String(servedError?.message || '').slice(0, 280) }, email);
       if (authenticatedEmail && creditResult?.bucket) {
         await refundCredit(authenticatedEmail, creditResult.bucket);
       }
-      console.error('[WINE INPAINT ERROR]', inpaintError?.message || inpaintError);
-      return res.status(500).json({ error: inpaintError?.message || 'Wine inpaint failed' });
+      console.error('[WINE SERVED MODE ERROR]', servedError?.message || servedError);
+      return res.status(500).json({ error: servedError?.message || 'Wine served mode generation failed' });
     }
   }
   // ─────────────────────────────────────────────────────────────────────────
