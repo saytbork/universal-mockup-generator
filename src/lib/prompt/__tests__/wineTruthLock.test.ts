@@ -88,7 +88,10 @@ describe('wine truth layer enforcement', () => {
     expect(prompt).toContain('wine bottle that is open');
     expect(prompt).toContain('Liquid level must sit well below the upper third of the bottle');
     expect(prompt).toContain('No closure attached');
-    expect(prompt).toContain('Exactly one detached');
+    // "Exactly one detached" removed from physicalStateBlock to prevent double-closure rendering
+    // (model was generating two closure objects from two independent "one detached" mentions).
+    // Closure count is now authoritative only in CLOSURE_LOCK block.
+    expect(prompt).toContain('detached closure');
     expect(prompt).toContain('glass contains');
   });
 

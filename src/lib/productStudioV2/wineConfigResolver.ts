@@ -113,6 +113,9 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
   if (bottleState !== 'open') return '';
 
   // For crown-cap: detailed crimp physics
+  // NOTE: CAP_COUNT_LOCK intentionally removed — count is already authoritative in
+  // SERVED_STATE_LOCK_V4 (CLOSURE_COUNT token). Two independent "one detached" mentions
+  // cause the model to render two separate physical closure objects.
   if (closureType === 'crown-cap') {
     return [
       'CROWN_CAP_REMOVAL_LOCK_V3:',
@@ -122,7 +125,6 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
       'No screw-thread geometry.',
       'No foil remnants.',
       'No hybrid morphology allowed.',
-      'CAP_COUNT_LOCK: The scene must contain exactly ONE detached crown-cap — not zero, not two, not more. A scene with more than one cap visible is physically impossible and invalid.',
       'Detached cap must show crimp deformation consistent with pry removal.',
       'CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright or on its edge is physically impossible due to gravity and is strictly forbidden. The cap rests flat on the table/surface near the bottle base.',
       'No partial ring artifacts.',

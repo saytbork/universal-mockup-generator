@@ -23,7 +23,7 @@ export function buildWineTruthLayerV4(
     : 'none';
   
   // HARD ENFORCEMENT: if serveState='served', bottle MUST be open (override config.bottleState if needed)
-  const bottleState = serveState === 'served' ? 'open' : String(config.bottleState || 'open').trim();
+  const bottleState = serveState === 'served' ? 'open' : String(config.bottleState || 'sealed').trim();
   
   const bottleFillState = (config as any).bottleFillState
     ? (config as any).bottleFillState
@@ -111,11 +111,13 @@ export function buildWineTruthLayerV4(
       colorLock = 'COLOR_LOCK: Liquid color matches reference.';
   }
 
-  // STEP 5: Physical description (neutral — no volume statements here)
+  // STEP 5: Physical description (neutral — no volume or closure count statements here,
+  // closure count is already authoritative in closureLockBlock to avoid the model
+  // rendering two separate closure objects from two independent "one detached" mentions)
   const physicalStateBlock = [
     'A single wine bottle.',
     serveState === 'served' ? 'Next to it, one wine glass contains served liquid.' : 'No glass served.',
-    normalizedBottleState === 'open' ? 'No closure attached to the bottle. Exactly one detached closure is visible.' : 'Closure attached to bottle.'
+    normalizedBottleState === 'open' ? 'Bottle neck is open. No closure on neck.' : 'Closure attached to bottle.',
   ].filter(Boolean).join(' ');
 
   // STEP 6: Snapshot stability
