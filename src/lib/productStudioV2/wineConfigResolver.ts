@@ -56,8 +56,14 @@ export function buildWineTruthLayer(
     ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
+  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.' +
+    (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height. BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean, no diagonal placement. Bottle base flat on surface.' : ' BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean.');
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
+
+  // SERVED SCENE COMPOSITION: always require a wine glass with liquid when served
+  const servedGlassBlock = serveState === 'served'
+    ? 'SERVED_SCENE_MANDATORY: A wine glass containing poured liquid MUST be present in the scene next to the bottle. The glass must be clearly visible, filled with wine to approximately 1/3 height. The glass and bottle must both be in the frame. This is non-negotiable — a served scene without a visible wine glass is invalid.'
+    : '';
 
   // LABEL + GLASS PRESERVATION lock — only critical in served mode where the model tends
   // to regenerate the bottle body and strip label graphics or make glass opaque.
@@ -82,7 +88,7 @@ export function buildWineTruthLayer(
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, servedGlassBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   return [
