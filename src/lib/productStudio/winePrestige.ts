@@ -172,8 +172,11 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
     negativeSpace: 'subtle',
     _archetypeNarrative:
       'WINE_STYLE_ARCHETYPE: Macro Label Branding. ' +
-      'Macro distance with focus locked on label zone, grazing side light revealing label texture and embossing, ' +
-      'shallow depth of field with soft background falloff, neutral clean background. ' +
+      'FRAMING: The COMPLETE wine bottle must be visible in frame from base to neck — no cropping. ' +
+      'Camera is positioned at medium-close distance: the bottle fills approximately 70–80% of the frame height. ' +
+      'The label zone is the visual focal point — sharp focus locked on the label, grazing side light revealing label texture and embossing. ' +
+      'Shallow depth of field with soft background falloff, neutral clean background. ' +
+      'ONE bottle, ONE closure (detached and lying flat if open), no duplicate objects. ' +
       'Label-first wine photography — typographic detail, brand clarity, premium packaging showcase.',
   },
   'Action Pour Photography': {
