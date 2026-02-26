@@ -125,13 +125,10 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
       'No screw-thread geometry.',
       'No foil remnants.',
       'No hybrid morphology allowed.',
-      'Exactly one detached cap object.',
-      'There must be at most one detached cap in the scene; if more than one cap is present the image is invalid.',
+      'CAP_COUNT_LOCK: The scene must contain exactly ONE detached crown-cap — not zero, not two, not more. A scene with more than one cap visible is physically impossible and invalid.',
       'Detached cap must show crimp deformation consistent with pry removal.',
       'CAP_PLACEMENT_PHYSICS: The detached crown cap MUST be lying flat on the surface (horizontal, face-up or face-down). A crown cap standing upright or on its edge is physically impossible due to gravity and is strictly forbidden. The cap rests flat on the table/surface near the bottle base.',
       'No partial ring artifacts.',
-      'No duplicate closure.',
-      'No duplicate closures.',
     ].join(' ');
   }
 
@@ -171,7 +168,8 @@ function buildServeVolumeConservationLockV3(
       'Bottle must appear clearly partially consumed.',
       'The liquid level must be visually around the middle of the bottle height.',
       'A near-full bottle is invalid.',
-      'If the bottle appears retail-full while a glass contains liquid, the image is incorrect.'
+      'If the bottle appears retail-full while a glass contains liquid, the image is incorrect.',
+      'FILL_LEVEL_OVERRIDE: The bottle is approximately half-empty. The liquid inside is only halfway up the bottle. Do NOT render a full, completely-filled, or unopened-looking bottle. This is the most important constraint — a full bottle is an incorrect render.',
     ].join(' ');
   }
 

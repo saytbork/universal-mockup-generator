@@ -167,6 +167,14 @@ export const winePipeline = {
       console.warn('Post-process compatibility augmentation failed', errAug);
     }
 
+    // Universal post-process: collapse any legacy duplicate-closure language left in the prompt
+    // (guards against old V3 wording "No duplicate closure. No duplicate closures." which reads as
+    // a list of objects to the model rather than a prohibition)
+    prompt = prompt.replace(
+      /No duplicate closure\.\s*No duplicate closures\./gi,
+      'CAP_COUNT_LOCK: The scene must contain exactly ONE detached crown-cap — not zero, not two, not more. A scene with more than one cap visible is physically impossible and invalid.'
+    );
+
     return prompt;
   }
 };
