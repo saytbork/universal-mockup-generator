@@ -5561,9 +5561,13 @@ If the model attempts to create a scene or environment, override it and force a 
         // IMPORTANT: Output Format must control the result aspect ratio.
         const preserveReferenceImage = false;
 
-        // WINE SERVED MODE: pass productImageBase64 so /api/generate routes to
-        // the Imagen 3 inpaint branch (MASK_MODE_FOREGROUND) server-side.
-        const primaryProduct = (isWineServedMode && generationProducts.length > 0) ? generationProducts[0] : null;
+        // WINE SERVED MODE: Aggressive parameters to override reference image
+        // Strategy: Very low imageStrength + high guidanceScale + aggressive negative prompt
+        const imageStrength = isWineServedMode ? 0.3 : undefined;
+        const guidanceScale = isWineServedMode ? 20 : undefined;
+        const negativePrompt = isWineServedMode
+          ? 'full wine bottle, completely full bottle, high liquid level, overflowing bottle, retail-full bottle, unopened bottle, sealed bottle, bottle filled to the top, maximum liquid level, 100% full, bottle with cork in neck'
+          : undefined;
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -5579,7 +5583,9 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             preserveReferenceImage,
             isWineServedMode: isWineServedMode || false,
-            ...(primaryProduct ? { productImageBase64: primaryProduct.base64, productMimeType: primaryProduct.mimeType } : {}),
+            ...(imageStrength !== undefined ? { imageStrength } : {}),
+            ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+            ...(negativePrompt !== undefined ? { negativePrompt } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,
