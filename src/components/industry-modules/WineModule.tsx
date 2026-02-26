@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
 import {
   WINE_ACTION_OPTIONS,
-  WINE_ENVIRONMENT_PRESETS,
   WINE_LIGHTING_TONES,
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
@@ -144,20 +143,6 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment Preset</p>
-            <div className="flex flex-wrap gap-2">
-              {WINE_ENVIRONMENT_PRESETS.map((preset) => (
-                <Chip
-                  key={preset}
-                  selected={String(contextPreset || '').trim() === preset}
-                  onClick={() => onContextPresetChange(preset)}
-                >
-                  {preset}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Closure Type</p>
             <div className="flex flex-wrap gap-2">
               {WINE_CLOSURE_OPTIONS.map((option) => (
@@ -204,7 +189,9 @@ export function WineModule({
             <p className="text-[11px] text-gray-400 mt-1">
               {currentServeState === 'none'
                 ? 'Sealed bottle · Full · No glass'
-                : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
+                : wineStyleArchetype
+                  ? `Open bottle · Half-empty · Cap on surface · Glass with wine · ${wineStyleArchetype} lighting`
+                  : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
             </p>
           </div>
           <div>
