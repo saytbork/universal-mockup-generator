@@ -5563,13 +5563,13 @@ If the model attempts to create a scene or environment, override it and force a 
         // even if we request a different `aspectRatio`. We still pass reference images for grounding.
         const preserveReferenceImage = false;
         
-        // WINE SERVED MODE: Aggressive parameters to override reference image
-        // After testing: inpainting/masking doesn't work reliably with Google Imagen
-        // Strategy: Very low imageStrength + high guidanceScale + aggressive negative prompt
-        const imageStrength = isWineServedMode ? 0.3 : undefined; // Lower = more text control (was 0.5)
-        const guidanceScale = isWineServedMode ? 20 : undefined; // Higher = stronger prompt (was 15)
-        const negativePrompt = isWineServedMode 
-          ? 'full wine bottle, completely full bottle, high liquid level, overflowing bottle, retail-full bottle, unopened bottle, sealed bottle, bottle filled to the top, maximum liquid level, 100% full, bottle with cork in neck' 
+        // WINE SERVED MODE: Balanced parameters — enough text control without destroying reference fidelity
+        // imageStrength 0.45: reduces reference-image pull while keeping label/geometry intact
+        // guidanceScale 18: strong text priority without over-constraining fine details
+        const imageStrength = isWineServedMode ? 0.45 : undefined;
+        const guidanceScale = isWineServedMode ? 18.0 : undefined;
+        const negativePrompt = isWineServedMode
+          ? 'full wine bottle, completely full bottle, high liquid level, overflowing bottle, retail-full bottle, unopened bottle, sealed bottle, bottle filled to the top, maximum liquid level, 100% full, bottle with cork in neck, closure attached, cap on bottle, cork in neck, closed bottle'
           : undefined;
         
         console.log('[WINE SERVED MODE PARAMS]', { 

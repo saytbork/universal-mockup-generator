@@ -27,8 +27,8 @@ describe('wine volume ordering and binary state', () => {
     expect(idxConfig).toBeGreaterThanOrEqual(0);
     expect(idxVolume).toBeGreaterThan(idxConfig);
 
-    // new V4 phrasing should be present
-    expect(prompt).toContain('The liquid surface is at the midpoint of the bottle body');
+    // new V4 short-form phrasing should be present
+    expect(prompt).toContain('Liquid line clearly at midpoint of bottle height');
 
     // mapping must be explicit in resolved config block
     expect(prompt).toContain('bottleFillState=clearly-partially-consumed');

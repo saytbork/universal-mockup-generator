@@ -31,8 +31,8 @@ describe('strict serveState prompt', () => {
     expect(idxConfig).toBeGreaterThanOrEqual(0);
     expect(idxVolume).toBeGreaterThan(idxConfig);
 
-    // Phrase must be exact (V4 phrasing)
-    expect(prompt).toContain('The liquid surface is at the midpoint of the bottle body');
+    // Phrase must be exact (V4 short-form phrasing)
+    expect(prompt).toContain('Liquid line clearly at midpoint of bottle height');
 
     // Ensure no residual granular tokens
     expect(prompt).not.toContain('glassFillLevel');

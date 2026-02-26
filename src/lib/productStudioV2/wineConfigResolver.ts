@@ -51,12 +51,14 @@ export function buildWineTruthLayer(
   // SERVED_STATE_LOCK_V4: Single authoritative fill+closure state block.
   // Replaces all previous CRITICAL LIQUID LEVEL / SERVE_VOLUME_CONSERVATION_LOCK_V3 /
   // FILL_LEVEL_OVERRIDE fragments — one source of truth, no repetition.
+  // Short-form deterministic phrasing: reduces semantic noise, improves model compliance.
   const servedStateLock = serveState === 'served'
-    ? 'SERVED_STATE_LOCK_V4: This is a SERVED wine scene. ' +
-      'BOTTLE_STATE: open — the closure has been physically removed from the bottle neck. The neck is bare glass with no cap, cork, or foil attached. ' +
-      'LIQUID_LEVEL: The wine inside the bottle fills exactly the BOTTOM HALF only. The liquid surface is at the midpoint of the bottle body. The top half of the bottle interior is empty air space. ' +
-      'INVALID_RENDERS: A bottle that appears full, retail-fresh, or unopened is an incorrect render and must be rejected. ' +
-      'CLOSURE_COUNT: Exactly ONE detached closure object is visible on the surface near the bottle base, lying flat. No second closure anywhere in the frame.'
+    ? 'SERVED_STATE_LOCK_V4: This is a served wine scene. ' +
+      'Bottle is open. No closure attached to neck. ' +
+      'LIQUID_LEVEL: Bottle is 50% full. Liquid line clearly at midpoint of bottle height. Top half empty air. Bottom half wine. ' +
+      'CLOSURE_COUNT: Exactly one detached closure lies flat on the surface near the bottle base. No second closure anywhere in the frame. ' +
+      'GLASS_STATE: A wine glass is present, filled with wine to 1/3 height. ' +
+      'INVALID: Full retail bottle, closure on neck, or missing glass are all invalid renders.'
     : '';
 
   const geometryBlock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-width ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size.' +
@@ -128,8 +130,8 @@ function buildCrownCapRemovalLockV3(closureType: string, bottleState: 'sealed' |
   }
 
   // For any other closure type (from-reference, natural-cork, screw-cap, etc.) when open:
-  // The closure/cap must be detached and lying flat — never standing upright
-  return 'CLOSURE_LOCK_V3: The bottle is open. The closure (cork, cap, or stopper as shown in the reference) has been removed and is detached from the bottle. CLOSURE_COUNT: There is exactly ONE detached closure object in the scene — no more. The detached closure MUST be lying flat on the surface horizontally, not standing upright. The bottle neck is open with no closure attached.';
+  // CLOSURE_COUNT is already enforced in SERVED_STATE_LOCK_V4 — do not repeat it here.
+  return 'CLOSURE_LOCK_V3: The bottle is open. The closure (cork, cap, or stopper as shown in the reference) has been removed and is detached from the bottle. The detached closure MUST be lying flat on the surface horizontally, not standing upright. The bottle neck is open with no closure attached.';
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {

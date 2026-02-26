@@ -90,16 +90,18 @@ export const winePipeline = {
   //   2. WINE_AESTHETIC_PROFILE  — micro-level visual bias (soft, non-constraining)
   //   3. PHYSICAL_REALISM        — hard guardrail (buildWineMinimalGuardrail below)
   //
-  // Manual camera/lighting overrides are already locked into the physics and
-  // camera segments above, so they always supersede these soft bias values.
-  // Physics fields (closure, carbonation, volume) are never touched here.
+  // SERVED MODE GATE: When serveState=served, aesthetic/archetype segments are
+  // suppressed entirely. They contain scene-composition language that reactivates
+  // the model's retail-bottle advertising prior and overrides physical state locks.
+  const _serveStateSuppressAesthetic = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase() === 'served';
+
   const _archetypeNarrative = String((wineEffectiveState as any).wineArchetypeNarrative || '').trim();
-  if (_archetypeNarrative) {
+  if (_archetypeNarrative && !_serveStateSuppressAesthetic) {
     segments.push({ type: 'guardrail', content: _archetypeNarrative });
   }
   const _aestheticProfile = getWineAestheticProfile((wineEffectiveState as any).wineStyleArchetype ?? null);
   const _aestheticSegment = buildWineAestheticSegment(_aestheticProfile);
-  if (_aestheticSegment) {
+  if (_aestheticSegment && !_serveStateSuppressAesthetic) {
     segments.push({ type: 'guardrail', content: _aestheticSegment });
   }
   // ─────────────────────────────────────────────────────────────────────────
