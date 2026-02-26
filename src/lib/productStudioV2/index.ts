@@ -400,25 +400,25 @@ function buildWineEnvironment(state: StudioUIState): string {
 
   const narrativeMap: Record<string, string> = {
     vineyard:
-      'Golden vineyard at sunset. Soft warm edge light. Background out of focus.',
+      'Vineyard at golden hour. Long parallel rows of grapevines receding into the distance. Warm amber-orange sunlight from low angle. Bokeh depth — background recognizably vineyard, slightly soft but NOT fully blurred. Earthy tones, golden haze in the air. Wooden surface in foreground. Sunlight catches bottle and glass edges.',
     'dark-cellar':
-      'Aged oak cellar. Soft warm edge light. Background out of focus.',
+      'Aged oak barrel cellar. Stone walls with moss texture. Wooden barrel staves visible in the background, clearly identifiable. Moody warm amber side light. Background moderately soft but barrels recognizable. Candlelight-warm tones. Moist cellar atmosphere with subtle depth haze.',
     'marble-bar':
-      'Luxury marble bar scene. Soft warm edge light. Background out of focus.',
+      'Luxury marble bar counter. White and grey veined marble surface. Polished black background with dim overhead spotlights. Background slightly soft but marble texture still visible. Premium bar atmosphere. Cool neutral-warm light blend. Reflections on polished surface.',
     'minimal-gradient':
-      'Minimal gradient backdrop. Soft warm edge light. Background out of focus.',
+      'Minimal gradient backdrop. Soft warm gradient from deep charcoal to warm grey. Clean studio floor line. No distracting elements. Background fully in focus as it is flat. Subtle vignette at edges.',
     'black-studio':
-      'Black studio scene. Soft warm edge light. Background out of focus.',
+      'Dark premium studio. Matte black backdrop. Controlled directional key light from upper-left. Deep shadows on right side. Dramatic subject separation. Background fully in focus as it is flat. Stone or slate surface under the bottle.',
     'modern-kitchen':
-      'Modern kitchen environment. Soft warm edge light. Background out of focus.',
+      'Modern kitchen countertop. Light marble or quartz counter surface. Kitchen cabinets visible in background, slightly soft but recognizable. Natural window light from the side. Clean and editorial.',
     'luxury-dining':
-      'Fine dining setting. Soft warm edge light. Background out of focus.',
+      'Fine dining table. Dark polished wood surface. Linen texture visible. Candlelight and warm pendant lights in background, slightly soft but recognizable warm orbs. White tablecloth. Intimate restaurant atmosphere.',
     'moody-backlight':
-      'Moody backlit scene. Soft warm edge light. Background out of focus.',
+      'Moody backlit scene. Strong backlight creating a rim glow around bottle and glass. Dark foreground. Background extremely dark with subtle atmospheric haze. Cinematic tone.',
     'sunlit-table':
-      'Sunlit table scene. Soft warm edge light. Background out of focus.',
+      'Sunlit outdoor table. Warm natural daylight. Stone or weathered wood table surface. Green foliage in the background, slightly soft but color clearly present. Soft shadow cast by bottle.',
     'architectural-shadow':
-      'Architectural shadow scene. Soft warm edge light. Background out of focus.',
+      'Architectural shadow scene. Geometric shadow lines across the surface. Neutral concrete or plaster background. Strong directional natural light creating graphic shadow patterns.',
   };
 
   const narrative = narrativeMap[variation] || narrativeMap['black-studio'];
@@ -437,13 +437,16 @@ function buildWineEnvironment(state: StudioUIState): string {
   return envBlock;
 }
 
-function buildWineLighting(): string {
-  return [
-    'WINE_LIGHTING:',
-    'Warm lateral key light.',
-    'Soft falloff.',
-    'Controlled glass highlights.',
-  ].join(' ');
+function buildWineLighting(state?: StudioUIState): string {
+  const tone = String((state as any)?.wineLightingTone || '').trim();
+  const toneMap: Record<string, string> = {
+    'Warm Lateral': 'Warm lateral key light from the side. Soft falloff. Controlled glass highlights.',
+    'Golden Ambient': 'Diffused golden ambient light. Warm all-around glow. Soft lens flare. Glowing atmosphere around bottle.',
+    'Cellar Dramatic': 'Dramatic low-key side light. Deep shadows on opposite side. Strong subject separation. Theatrical contrast.',
+    'Candle Intimate': 'Intimate warm candlelight. Flickering orange-amber tones. Soft glow on label. Dark surroundings.',
+  };
+  const description = toneMap[tone] || toneMap['Warm Lateral'];
+  return `WINE_LIGHTING: ${description}`;
 }
 
 function buildWineModifiers(state: StudioUIState): string {

@@ -13,7 +13,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   segments.push({ type: 'camera', content: buildCameraOverrides(wineEffectiveState) });
   segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
-  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting() : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
+  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting(wineEffectiveState) : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
@@ -62,14 +62,9 @@ export const winePipeline = {
       if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
         // eslint-disable-next-line no-console
         console.log('[WINE SERVED MODE] injecting closure AND liquid level instructions');
-        
-        const closureInstructions = ' CLOSURE_STATE_EXPLICIT: Bottle is open. No cap or cork attached to bottle neck. Exactly one detached closure visible on surface near bottle. Closure must show it was removed (crimp marks for crown-cap, cork texture for natural cork). No duplicate closures. No closure on bottle neck.';
-        
-        // CRITICAL: Inject liquid level instructions MULTIPLE times for emphasis
-        const liquidLevelInstructions = ' MANDATORY_LIQUID_LEVEL: Wine bottle is 50% full (half-empty). Wine surface visible at middle of bottle body. Top half is empty air. Bottom half contains liquid. NOT a full bottle. NOT at maximum capacity. Partially consumed state.';
-        
-        // Inject BOTH closure AND liquid instructions into the physics block
-        winePhysicsBlock = winePhysicsBlock + closureInstructions + liquidLevelInstructions;
+        // NOTE: CLOSURE_STATE_EXPLICIT and MANDATORY_LIQUID_LEVEL are already present in
+        // winePhysicsBlock from wineConfigResolver. Do NOT re-inject them here to avoid
+        // duplicate/contradictory instructions that confuse the model.
       }
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -84,7 +79,7 @@ export const winePipeline = {
   segments.push({ type: 'camera', content: buildCameraOverrides(wineEffectiveState) });
   segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
-  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting() : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
+  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting(wineEffectiveState) : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
@@ -122,15 +117,24 @@ export const winePipeline = {
           augmented = augmented + ' ' + 'CLOSURE_LOCK: Bottle is open.';
         }
 
-        // 3) Restore legacy physical wording expected by tests
-        if (!augmented.includes('wine bottle that is open')) augmented = augmented + ' ' + 'wine bottle that is open';
-        if (!augmented.includes('Preserve the open bottle')) augmented = augmented + ' ' + 'Preserve the open bottle';
-        if (!augmented.includes('Liquid level must sit clearly below the upper third of the bottle')) augmented = augmented + ' ' + 'Liquid level must sit clearly below the upper third of the bottle';
+        // 3) Restore legacy physical wording — ONLY for served mode
+        // CRITICAL: never inject "open bottle" tokens when serveState=none (closed bottle)
+        const serveStateCheck = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
+        if (serveStateCheck === 'served') {
+          if (!augmented.includes('wine bottle that is open')) augmented = augmented + ' ' + 'wine bottle that is open';
+          if (!augmented.includes('Preserve the open bottle')) augmented = augmented + ' ' + 'Preserve the open bottle';
+          if (!augmented.includes('Liquid level must sit clearly below the upper third of the bottle')) augmented = augmented + ' ' + 'Liquid level must sit clearly below the upper third of the bottle';
+        }
 
-        // 5) Single-pass prompt start enforcement: if segments represent a single-pass run (physics + composition/world present)
+        // 5) Single-pass prompt start enforcement
         const singlePassDetected = segments.some((s: any) => s.type === 'physics') && segments.some((s: any) => s.type === 'composition' || s.type === 'world');
-        if (singlePassDetected && !augmented.trim().startsWith('A wine bottle that is open')) {
-          augmented = 'A wine bottle that is open. ' + augmented;
+        if (singlePassDetected) {
+          if (serveStateCheck === 'served') {
+            if (!augmented.trim().startsWith('WINE_ENGINE_STATUS')) {
+              augmented = 'WINE_ENGINE_STATUS: active. deterministic. ' + augmented;
+            }
+          }
+          // NOTE: for closed/none state, do NOT prepend "A wine bottle that is open" — bottle is sealed
         }
 
         // Final sanitize

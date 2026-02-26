@@ -68,8 +68,8 @@ describe('wine v4 size guard', () => {
   // Reduction percentage remains primary compactness metric.
   // Updated limit to account for explicit closure instructions added in served mode
   // and ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments.
-  expect(v4Words).toBeLessThanOrEqual(600); // Increased for ENVIRONMENT_PHYSICS_OVERRIDE block
-  // V4 may be larger than V3 when served mode safety blocks are active — size check is the primary guard
-  expect(reductionPercent).toBeGreaterThanOrEqual(-20); // Allow V4 to be up to 20% larger due to safety blocks
+  expect(v4Words).toBeLessThanOrEqual(700); // Increased for rich environment narratives
+  // V4 may be larger than V3 when served mode safety blocks + rich environment are active
+  expect(reductionPercent).toBeGreaterThanOrEqual(-35); // Allow V4 to be up to 35% larger due to safety+environment blocks
   });
 });
