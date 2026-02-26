@@ -59,9 +59,30 @@ export function buildWineTruthLayer(
   const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
+  // LABEL + GLASS PRESERVATION lock — only critical in served mode where the model tends
+  // to regenerate the bottle body and strip label graphics or make glass opaque.
+  // Glass behavior is wine-type aware:
+  //   - white/rosé/sparkling → transparent glass (liquid color visible through walls)
+  //   - red → dark tinted glass (deep green/black bottle, liquid NOT visible through walls)
+  //   - auto → match reference exactly, no material change
+  const wineColor = String((state as any).wineColor || 'auto').trim().toLowerCase();
+  const glassLock = (() => {
+    if (wineColor === 'red') {
+      return 'GLASS_MATERIAL_LOCK: The bottle is made of dark tinted glass (deep green or near-black). The bottle body is NOT transparent. Do NOT render it as clear or translucent glass. Preserve the exact bottle color and opacity from the reference image.';
+    }
+    if (wineColor === 'white' || wineColor === 'rosé' || wineColor === 'rose' || wineColor === 'sparkling') {
+      return 'GLASS_TRANSPARENCY_LOCK: The bottle is made of transparent or lightly tinted glass. The glass body must remain visually transparent, showing the liquid color through the glass walls. Do NOT render the bottle as opaque, frosted, ceramic, or plastic. The glass must show natural light refraction and translucency.';
+    }
+    // auto / unknown → just preserve from reference, no assumption
+    return 'GLASS_MATERIAL_LOCK: Preserve the exact bottle glass material and color from the reference image. Do NOT change transparency, opacity, tint, or material type.';
+  })();
+  const labelGlassBlock = serveState === 'served'
+    ? `LABEL_PRESERVATION_LOCK: The bottle label must be fully preserved exactly as in the reference image. Do NOT remove, fade, replace, or alter the label in any way. The label design, text, colors, and position must be identical to the reference. ${glassLock}`
+    : '';
+
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   return [
