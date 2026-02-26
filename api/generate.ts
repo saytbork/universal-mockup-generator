@@ -329,9 +329,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = await parseBody(req);
   // Defensive validation: payload size
-  const MAX_BODY_SIZE = 5 * 1024 * 1024; // 5MB
-  const MAX_INLINE_IMAGES = 1;
-  const MAX_INLINE_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
+  const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_INLINE_IMAGES = 6; // 1 human reference + up to 5 product images
+  const MAX_INLINE_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB per image
   const rawBodyString = JSON.stringify(body);
   if (Buffer.byteLength(rawBodyString, 'utf8') > MAX_BODY_SIZE) {
     res.status(413).json({ error: 'Payload too large (max 5MB)' });
