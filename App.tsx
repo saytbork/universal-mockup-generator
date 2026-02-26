@@ -5559,31 +5559,20 @@ If the model attempts to create a scene or environment, override it and force a 
         // even if we request a different `aspectRatio`. We still pass reference images for grounding.
         const preserveReferenceImage = false;
         
-        // WINE SERVED MODE: Use inpainting with mask to change liquid level
-        // This is the only way to override reference image (per Gemini API recommendation)
-        let maskBase64: string | undefined;
-        if (isWineServedMode) {
-          console.log('[WINE INPAINTING] Generating mask for bottle liquid area');
-          try {
-            const { generateWineBottleMask } = await import('./utils/generateWineMask');
-            maskBase64 = await generateWineBottleMask(1024, 1024);
-            console.log('[WINE INPAINTING] Mask generated successfully');
-          } catch (error) {
-            console.error('[WINE INPAINTING] Failed to generate mask:', error);
-          }
-        }
+        // WINE SERVED MODE: Aggressive parameters to override reference image
+        // After testing: inpainting/masking doesn't work reliably with Google Imagen
+        // Strategy: Very low imageStrength + high guidanceScale + aggressive negative prompt
+        const imageStrength = isWineServedMode ? 0.3 : undefined; // Lower = more text control (was 0.5)
+        const guidanceScale = isWineServedMode ? 20 : undefined; // Higher = stronger prompt (was 15)
+        const negativePrompt = isWineServedMode 
+          ? 'full wine bottle, completely full bottle, high liquid level, overflowing bottle, retail-full bottle, unopened bottle, sealed bottle, bottle filled to the top, maximum liquid level, 100% full, bottle with cork in neck' 
+          : undefined;
         
-        const imageStrength = isWineServedMode ? 0.5 : undefined;
-        const guidanceScale = isWineServedMode ? 15 : undefined;
-        const negativePrompt = isWineServedMode ? 'full bottle, overflowing, high liquid level' : undefined;
-        const useInpainting = Boolean(isWineServedMode && maskBase64);
         console.log('[WINE SERVED MODE PARAMS]', { 
           isWineServedMode, 
           imageStrength, 
           guidanceScale, 
-          negativePrompt,
-          useInpainting,
-          hasMask: Boolean(maskBase64)
+          negativePromptLength: negativePrompt?.length || 0
         });
         
         const response = await fetch('/api/generate', {
@@ -5602,7 +5591,6 @@ If the model attempts to create a scene or environment, override it and force a 
             ...(imageStrength !== undefined ? { imageStrength } : {}),
             ...(guidanceScale !== undefined ? { guidanceScale } : {}),
             ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-            ...(maskBase64 !== undefined ? { maskBase64, useInpainting } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,
