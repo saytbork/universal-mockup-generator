@@ -91,12 +91,13 @@ export function buildWineTruthLayer(
     return [engineStatusBlock, configBlock, servedGlassBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
+  // None / closed: sealed bottle, retail-full, no glass — hard rules to prevent model from adding props
+  const closedBottleBlock = 'CLOSED_BOTTLE_LOCK: The bottle is sealed and closed. The closure (cap, cork, or screw top) is fully attached to the bottle neck. The bottle appears at retail-full level — filled to the top. No wine glass in the scene. No detached closure. No poured liquid. The bottle is in its original unopened presentation state.';
+
   return [
     engineStatusBlock,
     configBlock,
-    liquidLevelBlock,
-    // Volume lock must be placed immediately after the resolved config so image models
-    // prioritize physical plausibility before styling or environment is injected.
+    closedBottleBlock,
     volumeLock,
     crownCapLock,
     structuralLock,

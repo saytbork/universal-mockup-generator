@@ -44,9 +44,9 @@ const WINE_CARBONATION_OPTIONS: Array<{ value: WineCarbonationUI; label: string 
   { value: 'visible', label: 'Visible' },
 ];
 
-const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string }> = [
-  { value: 'none', label: 'None' },
-  { value: 'served', label: 'Served' },
+const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string; description: string }> = [
+  { value: 'none', label: 'Closed', description: 'Sealed bottle, full, no glass' },
+  { value: 'served', label: 'Served', description: 'Open bottle, half-full, cap on surface, glass with wine' },
 ];
 
 type WineModuleProps = {
@@ -153,6 +153,7 @@ export function WineModule({
                   selected={currentServeState === option.value}
                   onClick={() => {
                     if (option.value === 'none') {
+                      // Closed: sealed bottle, full level, no glass
                       setWineUiState({
                         wineGlassMode: 'none',
                         wineServeAmount: 'standard',
@@ -160,18 +161,24 @@ export function WineModule({
                       });
                       return;
                     }
-
+                    // Served: open bottle, half-empty, cap on floor, glass with wine
                     setWineUiState({
                       wineGlassMode: 'filled',
                       wineServeAmount: 'standard',
                       wineBottleState: 'open',
                     });
                   }}
+                  title={option.description}
                 >
                   {option.label}
                 </Chip>
               ))}
             </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              {currentServeState === 'none'
+                ? 'Sealed bottle · Full · No glass'
+                : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
+            </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Sparkling</p>
