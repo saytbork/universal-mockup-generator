@@ -5448,7 +5448,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
-          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
+          const totalReferenceBudget = isProductPlacement ? 2_800_000 : 2_200_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
@@ -5479,34 +5479,30 @@ If the model attempts to create a scene or environment, override it and force a 
             console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
             
             // GEMINI FIX: Normalize product with light neutral padding
-            // Creates a canvas at the target aspect ratio with the product centered
-            // Light gray background (#F8F8F8) shows the model the "intended space" to fill with environment
-            // Prevents distortion by pre-formatting the reference to the output aspect ratio
             const normalized = await normalizeProductWithTransparentPadding(
               `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
               relativeHeight,
               {
                 maxLongEdge: isProductPlacement
-                  ? (isMultiProductRequest ? 1440 : 2048)
-                  : (isMultiProductRequest ? 1024 : 1536),
-                mimeType: 'image/jpeg', // JPEG with light background
-                quality: 0.96,
+                  ? (isMultiProductRequest ? 1280 : 1536)
+                  : (isMultiProductRequest ? 960 : 1280),
+                mimeType: 'image/jpeg',
+                quality: 0.92,
               }
             );
             
-            let finalReference = normalized;
+            // Always downscale to enforce a hard per-image size cap (single OR multi)
+            const perImageMaxBase64 = isMultiProductRequest
+              ? (isProductPlacement ? 400_000 : 280_000)
+              : (isProductPlacement ? 600_000 : 480_000);
+            const finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+              maxLongEdge: isMultiProductRequest ? (isProductPlacement ? 1100 : 880) : (isProductPlacement ? 1400 : 1200),
+              maxBase64Length: perImageMaxBase64,
+              quality: 0.84,
+            });
 
-            // Keep total payload under serverless limits when multiple products are attached.
-            if (isMultiProductRequest) {
-              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-                maxLongEdge: isProductPlacement ? 1200 : 960,
-                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
-                quality: 0.86,
-              });
-            }
-
-            if (isMultiProductRequest && totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
+            if (totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
               console.warn('[UGC PAYLOAD] Skipping product reference to stay within payload budget', {
                 productId: product.id,
                 currentTotal: totalAttachedReferenceBase64,
