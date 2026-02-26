@@ -70,6 +70,6 @@ describe('wine v4 size guard', () => {
   // and ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments.
   expect(v4Words).toBeLessThanOrEqual(700); // Increased for rich environment narratives
   // V4 may be larger than V3 when served mode safety blocks + rich environment are active
-  expect(reductionPercent).toBeGreaterThanOrEqual(-35); // Allow V4 to be up to 35% larger due to safety+environment blocks
+  expect(reductionPercent).toBeGreaterThanOrEqual(-50); // Allow V4 to be up to 50% larger due to safety+environment+geometry blocks
   });
 });

@@ -56,7 +56,7 @@ export function buildWineTruthLayer(
     ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.' +
+  const geometryBlock = 'GEOMETRY_LOCK: The bottle silhouette, proportions, shoulder angle, neck length, and base width MUST exactly match the reference image. Do NOT substitute a generic Bordeaux or Burgundy bottle shape. Preserve the exact bottle geometry from the reference — including neck-to-body ratio, shoulder curvature, and overall height-to-width ratio. No warping. No stretching. No shape substitution. Preserve closure scale. Label must remain in its exact position and size.' +
     (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height. BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean, no diagonal placement. Bottle base flat on surface.' : ' BOTTLE_ORIENTATION: The bottle must stand perfectly upright and vertical. No tilt, no lean.');
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
@@ -87,8 +87,13 @@ export function buildWineTruthLayer(
     : '';
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
+  // ORDER IS CRITICAL for Gemini: most-violated constraints first.
+  // 1. Crown cap removal (model most often puts cap on bottle) — must be #1
+  // 2. Liquid level / volume (model most often renders bottle as full)
+  // 3. Glass mandatory (model sometimes omits it)
+  // 4. Structural + geometry + label + color
   if (serveState === 'served') {
-    return [engineStatusBlock, configBlock, servedGlassBlock, liquidLevelBlock, volumeLock, crownCapLock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
+    return [engineStatusBlock, configBlock, crownCapLock, liquidLevelBlock, volumeLock, servedGlassBlock, structuralLock, geometryBlock, labelGlassBlock, colorBlock, sparklingLock].filter(Boolean).join(' ');
   }
 
   // None / closed: sealed bottle, retail-full, no glass — hard rules to prevent model from adding props
