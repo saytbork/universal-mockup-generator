@@ -422,7 +422,19 @@ function buildWineEnvironment(state: StudioUIState): string {
   };
 
   const narrative = narrativeMap[variation] || narrativeMap['black-studio'];
-  return `WINE_ENVIRONMENT: ${narrative}`;
+  const envBlock = `WINE_ENVIRONMENT: ${narrative}`;
+
+  // CRITICAL: When served, the environment is BACKGROUND ONLY.
+  // The bottle physical state (open, half-empty, cap on surface, glass with wine) is ALREADY FIXED
+  // and must NOT be altered by the background/environment preset.
+  // Outdoor/natural environments (vineyard, sunlit-table) are especially prone to trigger
+  // the model's "closed bottle in field" advertising pattern — this anchor prevents that.
+  const serveStateVal = String((state as any).serveState || '').toLowerCase();
+  if (serveStateVal === 'served') {
+    return envBlock + ' ENVIRONMENT_PHYSICS_OVERRIDE: The background setting described above is ONLY the backdrop. It does NOT change the bottle state. The bottle remains open, half-empty, with cap lying flat on the surface and a wine glass filled with wine next to it. Do not apply any advertising/closed-bottle pattern based on the background scene.';
+  }
+
+  return envBlock;
 }
 
 function buildWineLighting(): string {
