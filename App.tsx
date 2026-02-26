@@ -5565,7 +5565,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (isWineServedMode) {
           console.log('[WINE INPAINTING] Generating mask for bottle liquid area');
           try {
-            const { generateWineBottleMask } = await import('../utils/generateWineMask');
+            const { generateWineBottleMask } = await import('./utils/generateWineMask');
             maskBase64 = await generateWineBottleMask(1024, 1024);
             console.log('[WINE INPAINTING] Mask generated successfully');
           } catch (error) {
