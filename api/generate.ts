@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, MaskReferenceImage, MaskReferenceMode, RawReferenceImage } from '@google/genai';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -464,6 +464,89 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+
+  // ── WINE SERVED MODE: Imagen 3 inpainting branch ──────────────────────────
+  // When productImageBase64 is supplied, skip gemini-2.5-flash-image entirely.
+  // Imagen 3 editImage + MASK_MODE_FOREGROUND auto-segments the bottle foreground
+  // and re-diffuses only the masked interior from the text prompt.
+  // Background, label, glass material are identity-copied (outside mask).
+  const productImageBase64 = typeof body.productImageBase64 === 'string' ? body.productImageBase64 : '';
+  const productMimeType = typeof body.productMimeType === 'string' ? body.productMimeType : 'image/png';
+  const IMAGEN3_MODEL = 'imagen-3.0-capability-001';
+
+  if (isWineServedMode && productImageBase64) {
+    try {
+      const textPart = Array.isArray(parts) ? parts.find((p: any) => typeof p.text === 'string') : null;
+      const basePrompt = typeof textPart?.text === 'string' ? textPart.text : '';
+      const inpaintPrompt = [
+        basePrompt,
+        'The wine bottle is half-empty. Red or white wine fills only the bottom half of the bottle interior.',
+        'The liquid surface is clearly visible at the midpoint of the bottle height.',
+        'The top half of the bottle interior is empty air space.',
+        'The bottle neck is open — no cap, cork, or closure attached.',
+        'Exactly one detached closure is lying flat on the surface near the bottle base.',
+        'A wine glass filled to one-third with wine is present next to the bottle.',
+        'Preserve the exact bottle shape, label design, glass material, and background from the reference.',
+      ].filter(Boolean).join(' ');
+
+      const inpaintResponse = await ai.models.editImage({
+        model: IMAGEN3_MODEL,
+        prompt: inpaintPrompt,
+        referenceImages: [
+          Object.assign(new RawReferenceImage(), {
+            referenceImage: { imageBytes: productImageBase64 },
+            referenceId: 1,
+          }),
+          Object.assign(new MaskReferenceImage(), {
+            referenceId: 1,
+            config: {
+              maskMode: MaskReferenceMode.MASK_MODE_FOREGROUND,
+              maskDilation: 0.02,
+            },
+          }),
+        ],
+        config: {
+          numberOfImages: 1,
+          aspectRatio,
+          negativePrompt: 'full wine bottle, bottle filled to the top, retail full bottle, closure attached to neck, cap on bottle neck, cork in bottle neck, sealed bottle, unopened bottle',
+        },
+      });
+
+      const generatedImage = inpaintResponse?.generatedImages?.[0];
+      const imageBytes = generatedImage?.image?.imageBytes;
+
+      if (!imageBytes) throw new Error('Imagen 3 inpaint returned no image.');
+
+      const buffer = Buffer.from(imageBytes, 'base64');
+      const fileName = `generations/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.png`;
+      const file = bucket.file(fileName);
+      await file.save(buffer, {
+        metadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000, immutable' },
+      });
+      await file.makePublic();
+      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+      await addDebugLog('generate.wine-inpaint.success', { aspectRatio, model: IMAGEN3_MODEL, imageUrl }, email);
+
+      const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
+      const unlimitedUser = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
+
+      return res.status(200).json({
+        ok: true,
+        imageUrl,
+        imageBase64: imageBytes,
+        remaining_credits: (isUnlimited || unlimitedUser) ? 999_999 : (userRecord ? getEffectiveCredits(userRecord) : anonymousRemaining),
+      });
+    } catch (inpaintError: any) {
+      await addDebugLog('generate.wine-inpaint.error', { error: String(inpaintError?.message || '').slice(0, 280) }, email);
+      if (authenticatedEmail && creditResult?.bucket) {
+        await refundCredit(authenticatedEmail, creditResult.bucket);
+      }
+      console.error('[WINE INPAINT ERROR]', inpaintError?.message || inpaintError);
+      return res.status(500).json({ error: inpaintError?.message || 'Wine inpaint failed' });
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   try {
     const generateWithRetry = async () => {

@@ -5561,78 +5561,10 @@ If the model attempts to create a scene or environment, override it and force a 
         // IMPORTANT: Output Format must control the result aspect ratio.
         const preserveReferenceImage = false;
 
-        // ── WINE SERVED MODE: Route to Imagen 3 inpainting pipeline ──────────
-        // gemini-2.5-flash-image cannot structurally edit liquid volume even with
-        // preserveReferenceImage=false — the model treats visual geometry as a strong
-        // prior and reinterprets rather than structurally edits.
-        //
-        // Imagen 3 editImage with MASK_MODE_FOREGROUND: inpaints only the bottle
-        // foreground (auto-segmented). Background, label, and geometry are identity-
-        // copied from the source. Only the masked bottle interior is re-diffused
-        // from the text prompt — the model cannot "see" the original full liquid level.
-        if (isWineServedMode && generationProducts.length > 0) {
-          console.log('[WINE SERVED MODE] Routing to Imagen 3 inpaint pipeline');
-          const primaryProduct = generationProducts[0];
-          const inpaintResponse = await fetch('/api/wine-inpaint', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
-                ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
-                : {}),
-            },
-            body: JSON.stringify({
-              productImageBase64: primaryProduct.base64,
-              productMimeType: primaryProduct.mimeType,
-              prompt: finalPrompt,
-              aspectRatio,
-              apiKey: resolvedApiKey,
-            }),
-          });
-          const inpaintData = await inpaintResponse.json().catch(() => ({}));
-          if (!inpaintResponse.ok) {
-            const msg = typeof inpaintData?.error === 'string' ? inpaintData.error : 'Wine inpaint failed';
-            setImageError(msg);
-            return;
-          }
-          const inpaintBase64 = typeof inpaintData?.imageBase64 === 'string' ? inpaintData.imageBase64 : '';
-          const inpaintUrl = typeof inpaintData?.imageUrl === 'string' ? inpaintData.imageUrl : '';
-          const inpaintDisplay = inpaintBase64 ? `data:image/png;base64,${inpaintBase64}` : inpaintUrl;
-          if (!inpaintDisplay) {
-            setImageError('Wine inpaint returned no image.');
-            return;
-          }
-          if (typeof inpaintData?.remaining_credits === 'number') {
-            setRemoteCredits(inpaintData.remaining_credits);
-          }
-          setGeneratedImageUrl(inpaintDisplay);
-          setHasFirstGenerationComplete(true);
-          try {
-            const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-            void addLocalGalleryEntry({ userId: galleryUserId, imageUrl: inpaintUrl || inpaintDisplay, createdAt: Date.now(), plan: resolvedPlanTier, aspectRatio });
-            void pruneLocalGallery(galleryUserId, 30, 120);
-          } catch (e) { console.warn('Local gallery save failed', e); }
-          void reportGalleryEntry(inpaintUrl || inpaintDisplay);
-          runHiResPipeline(inpaintUrl || inpaintDisplay);
-          if (!isTrialBypassActive && shouldTrackLocalCredits) {
-            const newCount = creditUsage + creditCost;
-            setCreditUsage(newCount);
-            if (typeof window !== 'undefined') window.localStorage.setItem(IMAGE_COUNT_KEY, String(newCount));
-          }
-          return; // ← done, skip the /api/generate call below
-        }
-        // ─────────────────────────────────────────────────────────────────────
+        // WINE SERVED MODE: pass productImageBase64 so /api/generate routes to
+        // the Imagen 3 inpaint branch (MASK_MODE_FOREGROUND) server-side.
+        const primaryProduct = (isWineServedMode && generationProducts.length > 0) ? generationProducts[0] : null;
 
-        const imageStrength = undefined;
-        const guidanceScale = undefined;
-        const negativePrompt = undefined;
-
-        console.log('[WINE SERVED MODE PARAMS]', {
-          isWineServedMode,
-          imageStrength,
-          guidanceScale,
-        });
-        
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: {
@@ -5646,6 +5578,8 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
+            isWineServedMode: isWineServedMode || false,
+            ...(primaryProduct ? { productImageBase64: primaryProduct.base64, productMimeType: primaryProduct.mimeType } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,
