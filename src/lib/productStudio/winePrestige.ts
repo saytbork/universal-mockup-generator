@@ -60,16 +60,16 @@ export function isWinePrestigeV2Mode(
 export function getWineEnvironmentNarrative(preset: string): string {
   switch (preset) {
     case 'Vineyard Golden Hour':
-      return 'WINE_ENVIRONMENT: Vineyard Golden Hour. Long rows of vines, warm sunset light, soft background depth, and subtle wind realism.';
+      return 'WINE_ENVIRONMENT: Vineyard Golden Hour. Golden hour vineyard landscape softly out of focus, long vine rows creating natural leading lines toward the horizon, warm backlight grazing the grape leaves, subtle atmospheric haze in the distance, shallow depth of field, natural lens compression, realistic sunlight bloom, slight organic imperfections in foliage, high-end commercial wine photography style.';
     case 'Oak Barrel Cellar':
-      return 'WINE_ENVIRONMENT: Oak Barrel Cellar. Wooden barrels, warm directional side light, subtle dust particles, and moist cellar atmosphere.';
+      return 'WINE_ENVIRONMENT: Oak Barrel Cellar. Moody underground wine cellar environment, soft directional side lighting cutting across aged oak barrels, subtle dust particles suspended in the air, deep shadow falloff, textured stone surfaces barely visible in darkness, cinematic low-key lighting, natural color absorption from wood tones, premium editorial wine photography mood.';
     case 'Fine Dining Table':
-      return 'WINE_ENVIRONMENT: Fine Dining Table. Dark table surface, crystal glassware, intimate candle glow, and refined ambience.';
+      return 'WINE_ENVIRONMENT: Fine Dining Table. Refined fine-dining setting with shallow depth of field, dark walnut table surface with soft natural grain reflections, diffused ambient lighting from the side, elegant background bokeh from distant candlelight, subtle linen texture slightly out of focus, high-end restaurant commercial photography aesthetic.';
     case 'Dark Luxury Studio':
-      return 'WINE_ENVIRONMENT: Dark Luxury Studio. Matte black background, stone or marble base, dramatic spotlight, and controlled reflections.';
+      return 'WINE_ENVIRONMENT: Dark Luxury Studio. High-end black studio setup with seamless backdrop, controlled softbox lighting creating gentle gradient falloff, subtle edge rim light defining bottle silhouette, deep shadows with smooth tonal transitions, realistic light reflections on glass surface, luxury product photography style, ultra-clean yet dimensional.';
     case 'Winery / Vineyard':
-      return 'WINE_ENVIRONMENT: Winery / Vineyard. Vineyard rows with warm golden-hour atmosphere and cinematic depth.';
+      return 'WINE_ENVIRONMENT: Winery / Vineyard. Golden hour vineyard landscape softly out of focus, long vine rows creating natural leading lines toward the horizon, warm backlight grazing the grape leaves, subtle atmospheric haze in the distance, shallow depth of field, natural lens compression, realistic sunlight bloom, high-end commercial wine photography style.';
     default:
-      return 'WINE_ENVIRONMENT: Dark Luxury Studio. Matte black background, stone or marble base, dramatic spotlight, and controlled reflections.';
+      return 'WINE_ENVIRONMENT: Dark Luxury Studio. High-end black studio setup with seamless backdrop, controlled softbox lighting creating gentle gradient falloff, subtle edge rim light defining bottle silhouette, deep shadows with smooth tonal transitions, realistic light reflections on glass surface, luxury product photography style, ultra-clean yet dimensional.';
   }
 }
