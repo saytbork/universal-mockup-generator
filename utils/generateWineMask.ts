@@ -28,12 +28,12 @@ export async function generateWineBottleMask(
   // This covers approximately the bottle body area (avoiding neck and base)
   ctx.fillStyle = 'white';
   
-  // Vertical: from 30% to 80% of height (middle section of bottle)
-  // Horizontal: from 25% to 75% of width (center of bottle)
-  const maskTop = height * 0.30;
-  const maskHeight = height * 0.50; // 50% height coverage
-  const maskLeft = width * 0.25;
-  const maskWidth = width * 0.50; // 50% width coverage
+  // Vertical: from 20% to 90% of height (larger coverage - 70% of image)
+  // Horizontal: from 20% to 80% of width (larger coverage - 60% of image)
+  const maskTop = height * 0.20;
+  const maskHeight = height * 0.70; // 70% height coverage (increased from 50%)
+  const maskLeft = width * 0.20;
+  const maskWidth = width * 0.60; // 60% width coverage (increased from 50%)
   
   // Draw ellipse instead of rectangle for more natural bottle shape
   ctx.beginPath();
