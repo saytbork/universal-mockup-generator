@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Modality, PersonGeneration } from '@google/genai';
+import { GoogleGenAI, Modality } from '@google/genai';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -465,77 +465,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 
-  // ── WINE SERVED MODE: Imagen 3 text-to-image branch ──────────────────────
-  // editImage (inpainting) is Vertex AI only — not available on Developer API keys.
-  // Instead: use generateImages with imagen-3.0-generate-002 on the Developer API.
-  // The reference bottle image is NOT passed (it anchors the closed/full geometry).
-  // The prompt fully describes the bottle appearance (label text, color, shape) so
-  // Imagen 3 generates the correct served state from scratch with high fidelity.
-  const productImageBase64 = typeof body.productImageBase64 === 'string' ? body.productImageBase64 : '';
-  const IMAGEN3_GENERATE_MODEL = 'imagen-3.0-generate-002';
-
-  if (isWineServedMode) {
-    try {
-      const textPart = Array.isArray(parts) ? parts.find((p: any) => typeof p.text === 'string') : null;
-      const basePrompt = typeof textPart?.text === 'string' ? textPart.text : '';
-
-      // Build a concise, highly directive served-state prompt.
-      // Imagen 3 text-to-image responds better to concrete visual descriptions
-      // than structured token blocks. Keep it under 1000 chars.
-      const servedPrompt = [
-        basePrompt,
-        'The wine bottle is half-empty: liquid fills only the lower half of the bottle interior, with a visible liquid surface at the midpoint.',
-        'The bottle neck is open with no cap, cork, or closure attached to the bottle.',
-        'Exactly one cork or cap lies on the flat surface beside the bottle base.',
-        'A wine glass filled to one-third is placed next to the bottle.',
-        'Professional product photography, studio lighting, sharp focus.',
-      ].filter(Boolean).join(' ');
-
-      const imgResponse = await ai.models.generateImages({
-        model: IMAGEN3_GENERATE_MODEL,
-        prompt: servedPrompt,
-        config: {
-          numberOfImages: 1,
-          aspectRatio,
-          negativePrompt: 'full wine bottle, filled to the top, sealed bottle, unopened bottle, cork in bottle neck, cap on bottle neck, closed bottle',
-          personGeneration: PersonGeneration.ALLOW_ADULT,
-        },
-      });
-
-      const generatedImage = imgResponse?.generatedImages?.[0];
-      const imageBytes = generatedImage?.image?.imageBytes;
-
-      if (!imageBytes) throw new Error('Imagen 3 generateImages returned no image.');
-
-      const buffer = Buffer.from(imageBytes, 'base64');
-      const fileName = `generations/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.png`;
-      const file = bucket.file(fileName);
-      await file.save(buffer, {
-        metadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000, immutable' },
-      });
-      await file.makePublic();
-      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-
-      await addDebugLog('generate.wine-served.success', { aspectRatio, model: IMAGEN3_GENERATE_MODEL, imageUrl }, email);
-
-      const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
-      const unlimitedUser = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
-
-      return res.status(200).json({
-        ok: true,
-        imageUrl,
-        imageBase64: imageBytes,
-        remaining_credits: (isUnlimited || unlimitedUser) ? 999_999 : (userRecord ? getEffectiveCredits(userRecord) : anonymousRemaining),
-      });
-    } catch (servedError: any) {
-      await addDebugLog('generate.wine-served.error', { error: String(servedError?.message || '').slice(0, 280) }, email);
-      if (authenticatedEmail && creditResult?.bucket) {
-        await refundCredit(authenticatedEmail, creditResult.bucket);
-      }
-      console.error('[WINE SERVED MODE ERROR]', servedError?.message || servedError);
-      return res.status(500).json({ error: servedError?.message || 'Wine served mode generation failed' });
-    }
-  }
   // ─────────────────────────────────────────────────────────────────────────
 
   try {
