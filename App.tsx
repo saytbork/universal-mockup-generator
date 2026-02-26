@@ -5363,12 +5363,19 @@ If the model attempts to create a scene or environment, override it and force a 
         const wineServeState = isProductPlacement
           ? ((productStateForWine as any)?.wineGlassMode === 'filled' ? 'served' : 'none')
           : (lifestyleStep3Values as any)?.serveState;
-        
-        // visualProfile can be 'wine', 'wine-prestige', 'wine-sparkling', etc.
         const isWineServedMode = Boolean(
           (typeof wineVisualProfile === 'string' && wineVisualProfile.startsWith('wine')) && 
           wineServeState === 'served'
         );
+        
+        // CRITICAL: If wine served mode, PREPEND liquid level instructions at START of prompt
+        // This ensures AI sees it FIRST before any reference image instructions
+        if (isWineServedMode) {
+          const liquidOverride = 'ABSOLUTE PRIORITY INSTRUCTION: The wine bottle in this image MUST show liquid level at 50% height (half-full). The wine surface must be visible at the middle of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine. This is a partially consumed bottle. The bottle is NOT full. The bottle is NOT at retail capacity. DO NOT generate a full bottle. ';
+          finalPrompt = liquidOverride + finalPrompt;
+          console.log('[WINE LIQUID OVERRIDE] Prepended to prompt start');
+        }
+        
         console.log('[WINE SERVED MODE DEBUG]', {
           isProductPlacement,
           visualProfile: wineVisualProfile,

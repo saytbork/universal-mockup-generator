@@ -61,12 +61,15 @@ export const winePipeline = {
       const serveStateVal = String((wineEffectiveState as any).serveState || resolvedWineConfig?.serveState || '').toLowerCase();
       if (String((wineEffectiveState as any).visualProfile || '').trim().toLowerCase() === 'wine' && serveStateVal === 'served') {
         // eslint-disable-next-line no-console
-        console.log('[WINE SERVED MODE] injecting closure instructions');
+        console.log('[WINE SERVED MODE] injecting closure AND liquid level instructions');
         
         const closureInstructions = ' CLOSURE_STATE_EXPLICIT: Bottle is open. No cap or cork attached to bottle neck. Exactly one detached closure visible on surface near bottle. Closure must show it was removed (crimp marks for crown-cap, cork texture for natural cork). No duplicate closures. No closure on bottle neck.';
         
-        // Inject closure instructions into the physics block
-        winePhysicsBlock = winePhysicsBlock + closureInstructions;
+        // CRITICAL: Inject liquid level instructions MULTIPLE times for emphasis
+        const liquidLevelInstructions = ' MANDATORY_LIQUID_LEVEL: Wine bottle is 50% full (half-empty). Wine surface visible at middle of bottle body. Top half is empty air. Bottom half contains liquid. NOT a full bottle. NOT at maximum capacity. Partially consumed state.';
+        
+        // Inject BOTH closure AND liquid instructions into the physics block
+        winePhysicsBlock = winePhysicsBlock + closureInstructions + liquidLevelInstructions;
       }
     } catch (err) {
       // eslint-disable-next-line no-console

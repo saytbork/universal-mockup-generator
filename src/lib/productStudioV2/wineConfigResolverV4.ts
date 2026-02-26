@@ -84,13 +84,13 @@ export function buildWineTruthLayerV4(
   }
 
   // STEP 4: Color and geometry locks
-  // CRITICAL: When served, use simple natural language (Gemini recommendation)
-  // Complex technical LOCKS confuse the AI - simple human language works better
+  // CRITICAL: When served, use EXTREME repetition across multiple instructions
+  // Single mention doesn't work - need to repeat in multiple contexts
   const liquidLevelBlock = serveState === 'served'
-    ? 'The wine bottle is half-empty with the wine level at the middle height of the bottle.'
+    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryLock = 'GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.';
+  const geometryLock = 'GEOMETRY_LOCK: Preserve bottle proportions, closure scale, label integrity. Bottle upright.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
   let colorLock = '';
   switch (wineColor) {
     case 'red':

@@ -50,13 +50,13 @@ export function buildWineTruthLayer(
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${bottleState}; serveState=${serveState}; bottleFillState=${bottleFillState}; carbonationLevel=${emittedCarbonationLevel};`;
   
-  // CRITICAL: When served, use simple natural language (Gemini recommendation)
-  // Complex technical LOCKS confuse the AI - simple human language works better
+  // CRITICAL: When served, use EXTREME repetition across multiple instructions
+  // Single mention doesn't work - need to repeat in multiple contexts
   const liquidLevelBlock = serveState === 'served'
-    ? 'The wine bottle is half-empty with the wine level at the middle height of the bottle.'
+    ? `CRITICAL LIQUID LEVEL: The wine bottle liquid level is at 50% height (half-full/half-empty). The wine surface inside the bottle is visible at the middle point of the bottle body. Top half of bottle interior is empty air space. Bottom half contains wine liquid. This is a partially consumed bottle with significant liquid removed. The bottle is NOT full. The bottle is NOT at maximum capacity. Substantial amount of wine has been poured out.`
     : '';
   
-  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.';
+  const geometryBlock = 'GEOMETRY_LOCK: Preserve bottle shape and label integrity. Preserve closure scale. No warping. No stretching.' + (serveState === 'served' ? ' LIQUID LEVEL: Visible at 50% bottle height.' : '');
   const colorBlock = 'WINE_COLOR_LOCK: Liquid color must match reference exactly. No hue shift. No reinterpretation. No brightness drift. No environmental tint. Glass refraction must not shift chroma.';
 
   // If served, produce a minimal high-priority prompt containing ONLY the required safety blocks.
