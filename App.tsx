@@ -5449,10 +5449,8 @@ If the model attempts to create a scene or environment, override it and force a 
           const productCount = generationProducts.length;
           const isMultiProductRequest = productCount > 1;
           const maxProductRefs = 5;
-          // Total budget scales down as product count grows to stay well under 4MB server limit
-          const totalReferenceBudget = isProductPlacement
-            ? Math.max(1_200_000, 2_800_000 - (productCount - 1) * 400_000)
-            : Math.max(900_000,  2_200_000 - (productCount - 1) * 350_000);
+          // Budget: 10MB server limit, leave room for text + response overhead
+          const totalReferenceBudget = isProductPlacement ? 3_200_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
@@ -5481,31 +5479,24 @@ If the model attempts to create a scene or environment, override it and force a 
             
             console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}, count: ${productCount}`);
             
-            // maxLongEdge shrinks as product count increases: 4 products → ~640px each
-            const maxLongEdge = isProductPlacement
-              ? Math.max(640, 1536 - (productCount - 1) * 240)
-              : Math.max(512, 1280 - (productCount - 1) * 200);
-
+            // Normalize to target aspect ratio — keep quality high, images are small (450KB)
             const normalized = await normalizeProductWithTransparentPadding(
               `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
               relativeHeight,
               {
-                maxLongEdge,
+                maxLongEdge: isMultiProductRequest ? 1200 : 1536,
                 mimeType: 'image/jpeg',
-                quality: productCount >= 3 ? 0.82 : 0.92,
+                quality: 0.92,
               }
             );
-            
-            // Per-image hard cap also shrinks with product count
-            const perImageMaxBase64 = isProductPlacement
-              ? Math.max(180_000, 600_000 - (productCount - 1) * 120_000)
-              : Math.max(140_000, 480_000 - (productCount - 1) * 100_000);
 
+            // Only downscale if somehow over per-image cap (shouldn't happen with 450KB sources)
+            const perImageMaxBase64 = isMultiProductRequest ? 500_000 : 700_000;
             const finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-              maxLongEdge: Math.max(512, maxLongEdge - 100),
+              maxLongEdge: isMultiProductRequest ? 1100 : 1400,
               maxBase64Length: perImageMaxBase64,
-              quality: productCount >= 3 ? 0.78 : 0.84,
+              quality: 0.88,
             });
 
             if (totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
