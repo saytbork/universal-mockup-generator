@@ -114,6 +114,8 @@ function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?:
 export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
     const lower = prompt.toLowerCase();
     const scrubbed = lower.split(REQUIRED_CLOSING_PHRASE.toLowerCase()).join(' ');
+    console.log('[VALIDATION_TARGET] full prompt:', prompt);
+    console.log('[VALIDATION_TARGET] scrubbed (closing phrase removed):', scrubbed);
     for (const term of FORBIDDEN_TERMS) {
         // Product Studio can optionally allow a cropped hand interaction.
         // When allowed, we only relax the "hand(s)" filter; people/faces/bodies remain blocked.
@@ -123,7 +125,7 @@ export function validatePrompt(prompt: string, options?: { allowHands?: boolean 
         const escaped = term.replace(/\s+/g, '\\s+');
         const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
         if (regex.test(scrubbed)) {
-            console.error(`[PROMPT BLOCKED] "${term}" found in: ...${prompt.slice(0, 100)}...`);
+            console.error(`[PROMPT BLOCKED] "${term}" found in FULL scrubbed string:`, scrubbed);
             throw new Error(`Prompt contains forbidden term: "${term}"`);
         }
     }

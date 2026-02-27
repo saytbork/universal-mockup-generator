@@ -501,7 +501,7 @@ export function buildWineTextIntegrityConstraint(): string {
     'No invented typography. No replacement of words. No added slogans. No removed text.',
     'All visible text on the bottle — front label, back label, neck foil, capsule — must match the reference image exactly.',
     'Text reproduction must be character-accurate, not paraphrased or approximated.',
-    'If the model cannot reproduce text with full fidelity, it must preserve the reference image label region unchanged.',
+    'If text cannot be reproduced with full fidelity, the reference image label region must be preserved unchanged.',
   ].join(' ');
 }
 
