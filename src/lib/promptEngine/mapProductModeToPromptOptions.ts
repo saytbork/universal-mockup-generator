@@ -220,6 +220,7 @@ export function validateProductModePrompt(prompt: string): boolean {
     'selfie',
     'phone',
     'creator',
+    'model',
     'person',
     'people',
     'human',
@@ -228,8 +229,13 @@ export function validateProductModePrompt(prompt: string): boolean {
     'age',
     'face',
   ];
-  const lower = prompt.toLowerCase();
-  const hit = forbidden.find((term) => lower.includes(term));
+  // Use hyphen-safe whole-word matching: prevents false positives like
+  // "model-based", "personal", "lifestyle-inspired", "interface", etc.
+  const hit = forbidden.find((term) => {
+    const escaped = term.replace(/\s+/g, '\\s+');
+    const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
+    return regex.test(prompt);
+  });
   if (hit) {
     console.error(`[PRODUCT MODE VALIDATION FAILED] Forbidden term detected: "${hit}"`);
     return false;

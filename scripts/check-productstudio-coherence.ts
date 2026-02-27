@@ -126,7 +126,7 @@ function runChecks(mode: PhotoMode, state: ProductStudioState, prompt: string): 
     }
   }
 
-  if (lower.includes('creator') || lower.includes('identity')) {
+  if (/\bcreator\b/i.test(lower) || /\bidentity\b/i.test(lower)) {
     push('forbidden-terms', 'Prompt contains forbidden term (creator/identity).');
   }
 

@@ -22,11 +22,20 @@ const FORBIDDEN_TERMS = [
 // Exception: "cropped hand" is allowed when handsHolding is true
 const ALLOWED_EXCEPTIONS = ['cropped hand', 'cropped wrist'];
 
+/**
+ * Whole-word match that also excludes hyphenated compounds.
+ * \b treats '-' as a boundary, so this adds explicit hyphen guards.
+ */
+function buildWholeWordRegex(term: string): RegExp {
+    const escaped = term.replace(/\s+/g, '\\s+');
+    return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
+}
+
 export function validateNoHumanLanguage(prompt: string, allowCroppedHand: boolean): void {
     const lower = prompt.toLowerCase();
 
     for (const term of FORBIDDEN_TERMS) {
-        if (lower.includes(term)) {
+        if (buildWholeWordRegex(term).test(lower)) {
             // Check if it's an allowed exception
             const isException = allowCroppedHand && ALLOWED_EXCEPTIONS.some(ex => lower.includes(ex));
             if (!isException) {
