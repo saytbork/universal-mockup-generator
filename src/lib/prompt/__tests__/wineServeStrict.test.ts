@@ -10,7 +10,7 @@ function baseState() {
 }
 
 describe('strict serveState prompt', () => {
-  test('served mode contains only priority blocks and exact wording', () => {
+  test('served mode contains BOTTLE_PRESERVATION_LOCK + WINE_GLASS, no open-bottle tokens', () => {
     const state = baseState();
     const prompt = buildWineTruthLayer(state, {
       closureType: 'from-reference',
@@ -25,17 +25,20 @@ describe('strict serveState prompt', () => {
     expect(prompt).not.toContain('composition');
     expect(prompt).not.toContain('STUDIO_LIGHTING_PROFILE');
 
-    // Order: WINE_CONFIG_RESOLVED then SERVED_STATE_LOCK_V4
-    const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
-    const idxVolume = prompt.indexOf('SERVED_STATE_LOCK_V4:');
-    expect(idxConfig).toBeGreaterThanOrEqual(0);
-    expect(idxVolume).toBeGreaterThan(idxConfig);
+    // New model: bottle is sealed, served adds WINE_GLASS only
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).toContain('WINE_GLASS:');
 
-    // Phrase must be exact (V4 short-form phrasing)
-    expect(prompt).toContain('Liquid line clearly at midpoint of bottle height');
-
-    // Ensure no residual granular tokens
+    // Old open-bottle tokens must NOT appear
+    expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).not.toContain('Liquid line clearly at midpoint');
     expect(prompt).not.toContain('glassFillLevel');
     expect(prompt).not.toContain('ml');
+
+    // Order: WINE_CONFIG_RESOLVED before BOTTLE_PRESERVATION_LOCK
+    const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
+    const idxPres = prompt.indexOf('BOTTLE_PRESERVATION_LOCK:');
+    expect(idxConfig).toBeGreaterThanOrEqual(0);
+    expect(idxPres).toBeGreaterThan(idxConfig);
   });
 });

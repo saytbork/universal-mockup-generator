@@ -5558,16 +5558,9 @@ If the model attempts to create a scene or environment, override it and force a 
             productCount: generationProducts.length,
           },
         });
-        // IMPORTANT: Output Format must control the result aspect ratio.
-        const preserveReferenceImage = false;
-
-        // WINE SERVED MODE: Aggressive parameters to override reference image
-        // Strategy: Very low imageStrength + high guidanceScale + aggressive negative prompt
-        const imageStrength = isWineServedMode ? 0.3 : undefined;
-        const guidanceScale = isWineServedMode ? 20 : undefined;
-        const negativePrompt = isWineServedMode
-          ? 'full wine bottle, completely full bottle, high liquid level, overflowing bottle, retail-full bottle, unopened bottle, sealed bottle, bottle filled to the top, maximum liquid level, 100% full, bottle with cork in neck'
-          : undefined;
+        // IMPORTANT: preserveReferenceImage=true — bottle must be preserved exactly as reference.
+        // This applies to both closed and served mode (served adds a glass but never modifies the bottle).
+        const preserveReferenceImage = true;
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -5582,10 +5575,6 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
-            isWineServedMode: isWineServedMode || false,
-            ...(imageStrength !== undefined ? { imageStrength } : {}),
-            ...(guidanceScale !== undefined ? { guidanceScale } : {}),
-            ...(negativePrompt !== undefined ? { negativePrompt } : {}),
             apiKey: resolvedApiKey,
             debugMeta: {
               promptHash,

@@ -12,7 +12,9 @@ function baseState(): StudioUIState {
 }
 
 describe('wine volume ordering and binary state', () => {
-  test('V3: serveState=served maps to clearly-partially-consumed and volume lock placed after config', () => {
+  // New model: bottle always sealed/closed. Served adds WINE_GLASS only. No liquid level changes.
+
+  test('V3: serveState=served has BOTTLE_PRESERVATION_LOCK + WINE_GLASS, config comes first', () => {
     const state = baseState();
     const prompt = buildWineTruthLayer(state, {
       closureType: 'from-reference',
@@ -21,20 +23,17 @@ describe('wine volume ordering and binary state', () => {
       bottleFillState: 'clearly-partially-consumed'
     } as any);
 
-    // config appears first
     const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
-    const idxVolume = prompt.indexOf('SERVED_STATE_LOCK_V4:');
+    const idxPres = prompt.indexOf('BOTTLE_PRESERVATION_LOCK:');
     expect(idxConfig).toBeGreaterThanOrEqual(0);
-    expect(idxVolume).toBeGreaterThan(idxConfig);
+    expect(idxPres).toBeGreaterThan(idxConfig);
 
-    // new V4 short-form phrasing should be present
-    expect(prompt).toContain('Liquid line clearly at midpoint of bottle height');
-
-    // mapping must be explicit in resolved config block
-    expect(prompt).toContain('bottleFillState=clearly-partially-consumed');
+    expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).not.toContain('Liquid line clearly at midpoint');
   });
 
-  test('V3: serveState=none maps to retail-full', () => {
+  test('V3: serveState=none has no WINE_GLASS, BOTTLE_PRESERVATION_LOCK present', () => {
     const state = baseState();
     const prompt = buildWineTruthLayer(state, {
       closureType: 'from-reference',
@@ -43,10 +42,13 @@ describe('wine volume ordering and binary state', () => {
       bottleFillState: 'retail-full'
     } as any);
 
-    expect(prompt).toContain('bottleFillState=retail-full');
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).not.toContain('WINE_GLASS:');
+    // bottleFillState no longer in configBlock — bottle is always retail-full (sealed)
+    expect(prompt).toContain('bottleState=sealed');
   });
 
-  test('V4: serveState=served includes VOLUME_LOCK early and appropriate phrasing', () => {
+  test('V4: serveState=served has BOTTLE_PRESERVATION_LOCK + WINE_GLASS, no VOLUME_LOCK for half-empty', () => {
     const state = baseState();
     const prompt = buildWineTruthLayerV4(state, {
       closureType: 'from-reference',
@@ -56,7 +58,8 @@ describe('wine volume ordering and binary state', () => {
     } as any);
 
     expect(prompt.indexOf('WINE_CONFIG_RESOLVED:')).toBeGreaterThan(-1);
-    expect(prompt.indexOf('VOLUME_LOCK:')).toBeGreaterThan(prompt.indexOf('WINE_CONFIG_RESOLVED:'));
-    expect(prompt).toContain('Bottle must appear clearly and visibly lower than standard retail fill height');
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).not.toContain('Bottle must appear clearly and visibly lower than standard retail fill height');
   });
 });

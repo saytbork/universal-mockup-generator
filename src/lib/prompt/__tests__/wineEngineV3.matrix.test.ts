@@ -11,59 +11,67 @@ function buildState(overrides: Partial<StudioUIState> = {}): StudioUIState {
 }
 
 describe('wine engine v3 matrix', () => {
-  test('sparkling-white + crown-cap + open + glass half emits V3 locks', () => {
+  // New model: bottle is ALWAYS sealed/closed. served only adds WINE_GLASS.
+  // SERVED_STATE_LOCK_V4 and CROWN_CAP_REMOVAL_LOCK_V3 no longer emitted.
+
+  test('sparkling-white + crown-cap + served emits BOTTLE_PRESERVATION_LOCK + WINE_GLASS + SPARKLING', () => {
     const prompt = buildWineTruthLayer(
       buildState({ wineType: 'sparkling-white', carbonationLevel: 'high' }),
-    { closureType: 'crown-cap', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
+      { closureType: 'crown-cap', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
     );
 
-    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).toContain('WINE_GLASS:');
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
-    expect(prompt).toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
-    expect(prompt).toContain('carbonationLevel=natural;');
+    expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).not.toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
   });
 
-  test('sparkling-white + crown-cap + open + glass three-quarters keeps subtle sparkling without volume lock', () => {
+  test('sparkling-white + crown-cap + served keeps sparkling lock', () => {
     const prompt = buildWineTruthLayer(
       buildState({ wineType: 'sparkling-white', carbonationLevel: 'high' }),
-    { closureType: 'crown-cap', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
+      { closureType: 'crown-cap', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
     );
 
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
-    expect(prompt).toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
-    // V4 lock is now the single volume enforcement
-    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
   });
 
-  test('still-white + natural-cork + open + glass half excludes crown/sparkling locks', () => {
+  test('still-white + natural-cork + served: no sparkling lock, has WINE_GLASS', () => {
     const prompt = buildWineTruthLayer(
       buildState({ wineType: 'white', carbonationLevel: 'none' }),
-    { closureType: 'natural-cork', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
+      { closureType: 'natural-cork', bottleState: 'open', serveState: 'served', bottleFillState: 'clearly-partially-consumed' }
     );
 
-    expect(prompt).toContain('SERVED_STATE_LOCK_V4:');
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
     expect(prompt).not.toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).not.toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
   });
 
-  test('still-white + screw-cap + sealed excludes open-state locks', () => {
+  test('still-white + screw-cap + sealed: no glass, BOTTLE_PRESERVATION_LOCK present', () => {
     const prompt = buildWineTruthLayer(
       buildState({ wineType: 'white', carbonationLevel: 'none' }),
-    { closureType: 'screw-cap', bottleState: 'sealed', serveState: 'none', bottleFillState: 'retail-full' }
+      { closureType: 'screw-cap', bottleState: 'sealed', serveState: 'none', bottleFillState: 'retail-full' }
     );
 
+    expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
+    expect(prompt).not.toContain('WINE_GLASS:');
     expect(prompt).not.toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
     expect(prompt).not.toContain('SPARKLING_PHYSICS_LOCK_V3:');
     expect(prompt).not.toContain('CROWN_CAP_REMOVAL_LOCK_V3:');
   });
 
-  test('sparkling-rose + open + glass empty keeps subtle sparkling lock', () => {
+  test('sparkling-rose + open emits sparkling lock without WINE_GLASS when serveState=none', () => {
     const prompt = buildWineTruthLayer(
       buildState({ wineType: 'sparkling-rosé', carbonationLevel: 'medium' }),
-    { closureType: 'from-reference', bottleState: 'open', serveState: 'none', bottleFillState: 'retail-full' }
+      { closureType: 'from-reference', bottleState: 'open', serveState: 'none', bottleFillState: 'retail-full' }
     );
 
     expect(prompt).toContain('SPARKLING_PHYSICS_LOCK_V3:');
+    expect(prompt).not.toContain('WINE_GLASS:');
     expect(prompt).not.toContain('SERVE_VOLUME_CONSERVATION_LOCK_V3:');
   });
 });

@@ -49,21 +49,21 @@ describe('wine v4 order guard', () => {
     const v2State = toStudioV2State(buildWineState());
     const prompt = generateStudioPromptV2({ ...(v2State as any), wineEngineVersion: 4 });
 
-    // New block order assertions
+    // New block order: ENGINE → CONFIG → BOTTLE_PRESERVATION_LOCK → GEOMETRY_LOCK
     const idxEngine = prompt.indexOf('WINE_ENGINE_STATUS:');
     const idxConfig = prompt.indexOf('WINE_CONFIG_RESOLVED:');
-    const idxVolume = prompt.indexOf('VOLUME_LOCK:');
-    const idxClosure = prompt.indexOf('CLOSURE_LOCK:');
+    const idxPres = prompt.indexOf('BOTTLE_PRESERVATION_LOCK:');
     const idxGeometry = prompt.indexOf('GEOMETRY_LOCK:');
-    const idxColor = prompt.indexOf('COLOR_LOCK:');
+    const idxGlass = prompt.indexOf('WINE_GLASS:'); // may or may not be present (served mode)
 
     expect(idxEngine).toBeGreaterThanOrEqual(0);
     expect(idxConfig).toBeGreaterThan(idxEngine);
-    expect(idxVolume).toBeGreaterThanOrEqual(0);
-    expect(idxClosure).toBeGreaterThanOrEqual(0);
-    // VOLUME_LOCK and CLOSURE_LOCK both present; GEOMETRY_LOCK and COLOR_LOCK come after both
-    const idxAfterPhysics = Math.max(idxVolume, idxClosure);
+    expect(idxPres).toBeGreaterThan(idxConfig);
     expect(idxGeometry).toBeGreaterThan(idxConfig);
-    expect(idxColor).toBeGreaterThanOrEqual(0);
+    // WINE_GLASS present (wineGlassMode=filled in buildWineState)
+    expect(idxGlass).toBeGreaterThanOrEqual(0);
+    // No open-bottle tokens
+    expect(prompt).not.toContain('VOLUME_LOCK:');
+    expect(prompt).not.toContain('CLOSURE_LOCK:');
   });
 });
