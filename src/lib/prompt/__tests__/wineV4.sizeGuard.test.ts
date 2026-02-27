@@ -66,10 +66,11 @@ describe('wine v4 size guard', () => {
 
   // Absolute size guard accounts for mandatory BOTTLE_STATE block added in V4 strict logic.
   // Reduction percentage remains primary compactness metric.
-  // Updated limit to account for explicit closure instructions added in served mode
-  // and ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments.
-  expect(v4Words).toBeLessThanOrEqual(700); // Increased for rich environment narratives
-  // V4 may be larger than V3 when served mode safety blocks + rich environment are active
-  expect(reductionPercent).toBeGreaterThanOrEqual(-50); // Allow V4 to be up to 50% larger due to safety+environment+geometry blocks
+  // Updated limit to account for explicit closure instructions added in served mode,
+  // ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments,
+  // and mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix).
+  expect(v4Words).toBeLessThanOrEqual(800); // Increased for TEXT_INTEGRITY_CONSTRAINT + rich environment narratives
+  // V4 may be larger than V3 when served mode safety blocks + rich environment + text integrity are active
+  expect(reductionPercent).toBeGreaterThanOrEqual(-100); // Allow V4 to be up to 100% larger due to mandatory safety+integrity blocks
   });
 });

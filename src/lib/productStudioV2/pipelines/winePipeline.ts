@@ -1,4 +1,4 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
@@ -57,6 +57,8 @@ export const winePipeline = {
           ].join(' '),
         },
         { type: 'guardrail', content: buildWineMinimalGuardrail() },
+        // TEXT_INTEGRITY_CONSTRAINT is mandatory on all wine paths
+        { type: 'guardrail', content: buildWineTextIntegrityConstraint() },
       ];
       return sanitizeWineV4Prompt(
         sanitizePromptLexicalGuard(
@@ -148,6 +150,11 @@ export const winePipeline = {
 
     // [9] Physical realism guardrail
     segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
+
+    // [10] TEXT_INTEGRITY_CONSTRAINT — terminal. Must be last before sanitize.
+    // Overrides any text hints that may have leaked from upstream segments.
+    // NEVER reorder this below sanitize.
+    segments.push({ type: 'guardrail', content: buildWineTextIntegrityConstraint() });
 
     const prompt = sanitizeWineV4Prompt(
       sanitizePromptLexicalGuard(

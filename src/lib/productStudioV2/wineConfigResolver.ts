@@ -59,14 +59,19 @@ export function buildWineTruthLayer(
   // LABEL LOCK — separate block, placed independently for maximum model weight.
   // Gemini tends to re-generate or hallucinate label text when scene/environment changes.
   // Explicit text-level prohibition is required.
+  // RULE: Label content must NEVER be described in prose anywhere else in the prompt.
+  // The label is a photographic asset — not a generative element.
   const labelLock = [
-    'LABEL_PRESERVATION_LOCK: The bottle label is a photographic asset — it must be reproduced pixel-accurately from the reference image.',
-    'Every word, letter, number, logo, graphic, and typographic element on the label must be IDENTICAL to the reference.',
-    'Do NOT rewrite, translate, reinterpret, paraphrase, or invent any text on the label.',
-    'Do NOT change font, size, spacing, color, or position of any label element.',
-    'Do NOT replace the brand name or product name with generic text.',
-    'The label must look like a photograph of the same physical label — not an AI-generated approximation.',
-    'If you cannot reproduce the label text exactly, preserve the reference image label region without modification.',
+    'LABEL_PRESERVATION_LOCK: The bottle label region must be preserved exactly as in the reference image.',
+    'The label must NOT be regenerated, redrawn, reinterpreted, or approximated.',
+    'Treat the label as a fixed photographic surface — not a generative element.',
+    'Every word, letter, number, logo, graphic element, typographic style, spacing, alignment, color, and font must be PIXEL-IDENTICAL to the reference image.',
+    'Do NOT rewrite, translate, paraphrase, or invent any text on the label.',
+    'Do NOT change font, size, weight, spacing, color, or position of any label element.',
+    'Do NOT replace, invent, or omit the brand name, product name, varietal, vintage year, or any other text.',
+    'Do NOT derive label content from wineType, closureType, or any other state variable.',
+    'If reproduction of label text is not achievable at full fidelity, preserve the reference image label region without any modification.',
+    'The label is the highest-priority locked region in the image.',
   ].join(' ');
 
   // GLASS — only for served mode
@@ -78,7 +83,13 @@ export function buildWineTruthLayer(
 
   // labelLock appears twice: once after bottlePreservationBlock (early weight) and once
   // at the end (recency bias) — sandwiching the glass/sparkling content.
-  const labelRepeat = 'LABEL_FINAL_ANCHOR: Label text, brand name, and all typographic elements must match the reference exactly — no exceptions, no reinterpretation.';
+  // LABEL_FINAL_ANCHOR uses imperative restatement, not prose description of label content.
+  const labelRepeat = [
+    'LABEL_FINAL_ANCHOR:',
+    'All text on the bottle — brand name, product name, varietal, vintage, and every other typographic element — must match the reference image exactly.',
+    'No new text. No altered text. No invented text. No removed text.',
+    'The label is a locked photographic region. Treat it as immutable.',
+  ].join(' ');
 
   return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
 }

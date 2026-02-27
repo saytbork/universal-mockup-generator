@@ -443,7 +443,8 @@ function buildWineLighting(state?: StudioUIState): string {
     'Warm Lateral': 'Warm lateral key light from the side. Soft falloff. Controlled glass highlights.',
     'Golden Ambient': 'Diffused golden ambient light. Warm all-around glow. Soft lens flare. Glowing atmosphere around bottle.',
     'Cellar Dramatic': 'Dramatic low-key side light. Deep shadows on opposite side. Strong subject separation. Theatrical contrast.',
-    'Candle Intimate': 'Intimate warm candlelight. Flickering orange-amber tones. Soft glow on label. Dark surroundings.',
+    // NOTE: "Soft glow on label" removed — lighting descriptions must not reference label content
+    'Candle Intimate': 'Intimate warm candlelight. Flickering orange-amber tones. Warm bottle surface tone. Dark surroundings.',
   };
   const description = toneMap[tone] || toneMap['Warm Lateral'];
   return `WINE_LIGHTING: ${description}`;
@@ -484,6 +485,24 @@ export function buildWineRealismCore(): string {
   ].join(' ');
 }
 
+/**
+ * TEXT_INTEGRITY_CONSTRAINT — terminal segment injected at end of all wine prompts.
+ * Prevents generative text drift on label, neck foil, back label, or any bottle surface.
+ * Must be the last segment before the final guardrail so it overrides any upstream text hints.
+ * Do NOT describe label content in any other segment.
+ */
+export function buildWineTextIntegrityConstraint(): string {
+  return [
+    'TEXT_INTEGRITY_CONSTRAINT:',
+    'No new text may appear anywhere on the product.',
+    'No alteration of brand name, product name, varietal, vintage year, or any label text.',
+    'No invented typography. No replacement of words. No added slogans. No removed text.',
+    'All visible text on the bottle — front label, back label, neck foil, capsule — must match the reference image exactly.',
+    'Text reproduction must be character-accurate, not paraphrased or approximated.',
+    'If the model cannot reproduce text with full fidelity, it must preserve the reference image label region unchanged.',
+  ].join(' ');
+}
+
 function buildWineMaterials(serveState?: string): string {
   const isServed = String(serveState || '').toLowerCase() === 'served';
   if (isServed) {
@@ -497,7 +516,8 @@ function buildWineMaterials(serveState?: string): string {
     'MATERIALS:',
     'Real glass.',
     'Natural liquid translucency.',
-    'Label fidelity.',
+    // Label is a locked photographic surface — not a material to describe or regenerate
+    'Label surface: preserve from reference exactly. No material reinterpretation of label.',
   ].join(' ');
 }
 

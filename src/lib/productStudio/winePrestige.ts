@@ -126,7 +126,7 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'WINE_STYLE_ARCHETYPE: Minimal Editorial Studio. ' +
       'Premium beige seamless background, soft lateral lighting with high-key but controlled exposure, ' +
       'clean pedestal or cube surface, warm editorial grading, eye-level camera, centered composition, ' +
-      'medium-tight framing. Commercial wine photography — restrained, elegant, brand-forward.',
+      'medium-tight framing. Commercial wine photography — restrained, elegant, precision-focused.',
   },
   'Ultra Minimal Black Luxury': {
     contextPreset: 'Dark Luxury Studio',
@@ -180,8 +180,8 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Camera is positioned at medium-close distance: the bottle fills approximately 70–80% of the frame height. ' +
       'The label zone is the visual focal point — sharp focus locked on the label, grazing side light revealing label texture and embossing. ' +
       'Shallow depth of field with soft background falloff, neutral clean background. ' +
-      'ONE bottle, ONE closure (detached and lying flat if open), no duplicate objects. ' +
-      'Label-first wine photography — typographic detail, brand clarity, premium packaging showcase.',
+      'ONE bottle, ONE closure, no duplicate objects. ' +
+      'Label surface is a locked photographic region — preserve from reference exactly.',
   },
   'Action Pour Photography': {
     contextPreset: 'Dark Luxury Studio',
