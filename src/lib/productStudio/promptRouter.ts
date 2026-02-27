@@ -551,7 +551,7 @@ function resolveCoffeeIndustryLayer(
 
   if (intent === 'conversion') {
     const inferredMoodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
-      environment.variation === 'minimal-gradient' ? 'modern-commercial' : 'premium-minimal';
+      !environment.autoRandomize && environment.variation === 'minimal-gradient' ? 'modern-commercial' : 'premium-minimal';
     const moodProfile: NonNullable<StudioUIState['coffeeMoodProfile']> =
       (selectedMoodModifier || inferredMoodProfile) as NonNullable<StudioUIState['coffeeMoodProfile']>;
     const cinematicConversion = moodProfile === 'coffee-cinematic-luxury';
