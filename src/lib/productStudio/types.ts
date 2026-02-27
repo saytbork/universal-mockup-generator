@@ -592,6 +592,55 @@ export type WineStyleArchetype =
     | 'Macro Label Branding'
     | 'Action Pour Photography'
     | 'Cinematic Vineyard';
+
+// ============================================================================
+// WINE ARCHETYPE SYSTEM v4 — ENTERPRISE TYPES
+// ============================================================================
+
+/** 15 production winery environments for v4 engine */
+export type WineEnvironmentV4 =
+    | 'Vineyard Golden Hour'
+    | 'Vineyard Blue Hour'
+    | 'Vineyard Misty Dawn'
+    | 'Oak Barrel Cellar'
+    | 'Stone Cave Cellar'
+    | 'Cathedral Wine Cellar'
+    | 'Fine Dining Table'
+    | 'Outdoor Terrace Dining'
+    | 'Private Wine Library'
+    | 'Dark Luxury Studio'
+    | 'Concrete Architectural Studio'
+    | 'White Marble Studio'
+    | 'Rustic Estate Kitchen'
+    | 'Glass Winery Modern'
+    | 'Hillside Terroir Landscape';
+
+/** Luxury intensity tiers — control contrast, DOF, prop density, grading */
+export type WineLuxuryIntensity =
+    | 'Editorial'
+    | 'Premium'
+    | 'Ultra Premium'
+    | 'Heritage Luxury'
+    | 'Modern Architectural Luxury';
+
+/** Multi-SKU and single-bottle composition modes */
+export type WineCompositionMode =
+    | 'single-hero'
+    | 'bottle-and-glass'
+    | 'horizontal-editorial'
+    | 'premium-lineup'
+    | 'gift-celebration'
+    | 'macro-label';
+
+/** Micro variation parameters — non-physics scene enrichment */
+export type WineMicroVariation = {
+    season?: 'spring' | 'summer' | 'autumn' | 'winter' | 'none';
+    dewOnGlass?: boolean;
+    atmosphericHaze?: 'none' | 'subtle' | 'moderate';
+    floralProps?: boolean;
+    microProps?: 'none' | 'cork-and-corkscrew' | 'vine-leaves' | 'cheese-board' | 'linen-napkin';
+    backgroundDepthBoost?: boolean;
+};
 export type CoffeeAction = 'static' | 'controlled-pour';
 export type CoffeeMode = 'studio' | 'ritual';
 export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
