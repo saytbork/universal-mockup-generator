@@ -26,11 +26,21 @@ export function __buildSegmentsForTest(state: StudioUIState) {
 
 export const winePipeline = {
   build(state: StudioUIState): string {
-    const wineEffectiveState = applyWineDeterministicStateMachine(state);
+    const photoMode = String((state as any).photoMode || '').trim();
+
+    // RULE 3: Bottle + Glass forces serve state = served.
+    // Pre-patch the state before the deterministic machine runs so that
+    // resolveServeState() sees wineGlassMode='filled' and bottleState='open'.
+    // This also prevents the Closed option from being effective when this mode is active.
+    const stateForMachine: StudioUIState =
+      photoMode === 'Bottle + Glass'
+        ? { ...state, wineGlassMode: 'filled', wineBottleState: 'open' } as StudioUIState
+        : state;
+
+    const wineEffectiveState = applyWineDeterministicStateMachine(stateForMachine);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
-    const photoMode = String((state as any).photoMode || '').trim();
 
     // ── WINE MACRO LABEL — Hard override path ─────────────────────────────
     // When Photo Mode === 'Wine Macro Label', the label region is the ONLY subject.

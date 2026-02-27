@@ -83,6 +83,18 @@ export function WineModule({
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
   const wineEngineVersion = Number(useProductStudioStore((s) => (s as any).wineEngineVersion) || 3);
   const wineStyleArchetype = (useProductStudioStore((s) => (s as any).wineStyleArchetype) ?? null) as WineStyleArchetype | null;
+  const photoMode = (useProductStudioStore((s) => (s as any).photoMode) || '') as string;
+
+  // ── Derived coherence flags ────────────────────────────────────────────
+  const isBottleAndGlassMode = photoMode === 'Bottle + Glass';
+  const isMacroLabelMode = photoMode === 'Wine Macro Label';
+
+  // RULE 5: Sparkling visible only when wineType resolves to sparkling
+  // OR closure is champagne wire (cork-with-cage implies sparkling physics)
+  const isSparklingRelevant =
+    wineType === 'sparkling-white' ||
+    wineType === 'sparkling-rosé' ||
+    wineClosureType === 'cork-with-cage';
 
   const currentServeState: ServeStateUI = wineGlassMode !== 'filled' ? 'none' : 'served';
 
@@ -158,42 +170,63 @@ export function WineModule({
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve State</p>
+            {isBottleAndGlassMode && (
+              <p className="text-[11px] text-violet-500 mb-1 font-medium">
+                ✦ Bottle + Glass mode — Served is enforced automatically
+              </p>
+            )}
+            {isMacroLabelMode && (
+              <p className="text-[11px] text-amber-500 mb-1 font-medium">
+                ✦ Macro Label mode — serve state is not applicable
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
-              {SERVE_STATE_OPTIONS.map((option) => (
-                <Chip
-                  key={option.value}
-                  selected={currentServeState === option.value}
-                  onClick={() => {
-                    if (option.value === 'none') {
-                      // Closed: sealed bottle, full level, no glass
+              {SERVE_STATE_OPTIONS.map((option) => {
+                // RULE 3: Bottle + Glass forces Served — Closed is locked out
+                const isDisabled =
+                  (isBottleAndGlassMode && option.value === 'none') ||
+                  isMacroLabelMode;
+                return (
+                  <Chip
+                    key={option.value}
+                    selected={isBottleAndGlassMode ? option.value === 'served' : currentServeState === option.value}
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (isDisabled) return;
+                      if (option.value === 'none') {
+                        setWineUiState({
+                          wineGlassMode: 'none',
+                          wineServeAmount: 'standard',
+                          wineBottleState: 'sealed',
+                        });
+                        return;
+                      }
                       setWineUiState({
-                        wineGlassMode: 'none',
+                        wineGlassMode: 'filled',
                         wineServeAmount: 'standard',
-                        wineBottleState: 'sealed',
+                        wineBottleState: 'open',
                       });
-                      return;
-                    }
-                    // Served: open bottle, half-empty, cap on floor, glass with wine
-                    setWineUiState({
-                      wineGlassMode: 'filled',
-                      wineServeAmount: 'standard',
-                      wineBottleState: 'open',
-                    });
-                  }}
-                  title={option.description}
-                >
-                  {option.label}
-                </Chip>
-              ))}
+                    }}
+                    title={option.description}
+                  >
+                    {option.label}
+                  </Chip>
+                );
+              })}
             </div>
             <p className="text-[11px] text-gray-400 mt-1">
-              {currentServeState === 'none'
+              {isBottleAndGlassMode
+                ? 'Open bottle · Half-empty · Cap on surface · Glass with wine'
+                : currentServeState === 'none'
                 ? 'Sealed bottle · Full · No glass'
                 : wineStyleArchetype
                   ? `Open bottle · Half-empty · Cap on surface · Glass with wine · ${wineStyleArchetype} lighting`
                   : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
             </p>
           </div>
+          {/* RULE 5: Sparkling only visible when wineType resolves to sparkling
+               or closure implies champagne/sparkling physics */}
+          {isSparklingRelevant && (
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Sparkling</p>
             <div className="flex flex-wrap gap-2">
@@ -208,6 +241,7 @@ export function WineModule({
               ))}
             </div>
           </div>
+          )}
           {wineEngineVersion >= 4 && (
             <div className="text-[11px] text-gray-500">
               Wine Engine v{wineEngineVersion} active
@@ -236,7 +270,12 @@ export function WineModule({
             </div>
           )}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">
+              Lighting Tone
+              {wineStyleArchetype && (
+                <span className="ml-2 text-[10px] text-violet-400 font-medium normal-case">preset by archetype · select to override</span>
+              )}
+            </p>
             <div className="flex flex-wrap gap-2">
               {WINE_LIGHTING_TONES.map((tone) => (
                 <Chip
@@ -250,7 +289,12 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Modifier</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">
+              Mood Modifier
+              {wineStyleArchetype && (
+                <span className="ml-2 text-[10px] text-violet-400 font-medium normal-case">preset by archetype · select to override</span>
+              )}
+            </p>
             <div className="flex flex-wrap gap-2">
               {WINE_MODIFIERS.map((modifier) => (
                 <Chip
