@@ -69,8 +69,8 @@ describe('wine v4 size guard', () => {
   // Updated limit to account for explicit closure instructions added in served mode,
   // ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments,
   // and mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix).
-  expect(v4Words).toBeLessThanOrEqual(800); // Increased for TEXT_INTEGRITY_CONSTRAINT + rich environment narratives
+  expect(v4Words).toBeLessThanOrEqual(900); // Increased for anti-CGI material/lighting specificity blocks
   // V4 may be larger than V3 when served mode safety blocks + rich environment + text integrity are active
-  expect(reductionPercent).toBeGreaterThanOrEqual(-100); // Allow V4 to be up to 100% larger due to mandatory safety+integrity blocks
+  expect(reductionPercent).toBeGreaterThanOrEqual(-130); // Allow V4 to be up to 130% larger due to mandatory safety+integrity+anti-CGI blocks
   });
 });
