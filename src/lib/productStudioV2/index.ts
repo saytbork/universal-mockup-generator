@@ -89,7 +89,8 @@ function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUI
 function sanitizePromptLexicalGuard(prompt: string): string {
   let next = String(prompt || '');
   for (const term of FORBIDDEN_TERMS) {
-    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+    const escaped = term.replace(/\s+/g, '\\s+');
+    const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'gi');
     next = next.replace(regex, '');
   }
   return next.replace(/\s{2,}/g, ' ').trim();
@@ -149,7 +150,8 @@ function validateHumanPolicy(interactionLayer: string): void {
   ];
 
   for (const term of forbiddenTerms) {
-    const regex = new RegExp(`\\b${term.replace(/\s+/g, '\\s+')}\\b`, 'i');
+    const escaped = term.replace(/\s+/g, '\\s+');
+    const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
     if (regex.test(interaction)) {
       throw new Error(`Studio interaction policy rejected forbidden human term: "${term}"`);
     }

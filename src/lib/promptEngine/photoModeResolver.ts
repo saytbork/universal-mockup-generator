@@ -49,7 +49,8 @@ const stripUgcToken = (text: string): string =>
 const findForbiddenPhotoModeTerm = (text: string): string | null => {
     const lower = text.toLowerCase();
     for (const term of PHOTO_MODE_FORBIDDEN_TERMS) {
-        const regex = new RegExp(`\\b${term}\\b`, 'i');
+        const escaped = term.replace(/\s+/g, '\\s+');
+        const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
         if (regex.test(lower)) return term;
     }
     return null;

@@ -120,7 +120,8 @@ export function validatePrompt(prompt: string, options?: { allowHands?: boolean 
         if (options?.allowHands === true && (term === 'hand' || term === 'hands')) {
             continue;
         }
-        const regex = new RegExp(`\\b${term}\\b`, 'i');
+        const escaped = term.replace(/\s+/g, '\\s+');
+        const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
         if (regex.test(scrubbed)) {
             console.error(`[PROMPT BLOCKED] "${term}" found in: ...${prompt.slice(0, 100)}...`);
             throw new Error(`Prompt contains forbidden term: "${term}"`);
