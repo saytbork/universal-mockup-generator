@@ -30,6 +30,48 @@ export const winePipeline = {
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
+    const photoMode = String((state as any).photoMode || '').trim();
+
+    // ── WINE MACRO LABEL — Hard override path ─────────────────────────────
+    // When Photo Mode === 'Wine Macro Label', the label region is the ONLY subject.
+    // No full bottle. No environment. No glass. No fallback to hero.
+    // FRAME_CONSTRAINT + COMPOSITION + CAMERA are all hard-overridden here.
+    if (photoMode === 'Wine Macro Label') {
+      const physicsBlock = wineEngineVersion >= 4
+        ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
+        : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
+      const macroSegments: any[] = [
+        { type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) },
+        { type: 'physics', content: physicsBlock },
+        {
+          type: 'guardrail',
+          content: [
+            'PHOTO_MODE: Wine Macro Label.',
+            'FRAME_CONSTRAINT: Label region only. Bottle neck excluded. Bottle base excluded. No full bottle framing allowed.',
+            'COMPOSITION: Label panel centered and dominant. Fills minimum 70% of frame. No environmental expansion. No negative-space copy zone.',
+            'CAMERA: 100mm macro lens simulation. f/4 aperture. Ultra-high micro contrast. No wide framing. No environment in background.',
+            'NEGATIVE_SPACE_POLICY: Minimal. Label is the complete subject.',
+            'LABEL_MACRO_DETAIL: Maximum label typography fidelity. Paper/foil surface texture rendered at full micro resolution. No label blur on any text element.',
+            'BAN: No glass addition. No full bottle render. No gradient background injection. No clinical-softbox bloom. No environment expansion. No hero mode fallback.',
+            'PHYSICAL_REALISM: True macro optical behavior. Natural surface micro-texture. Controlled specular highlights on label material.',
+          ].join(' '),
+        },
+        { type: 'guardrail', content: buildWineMinimalGuardrail() },
+      ];
+      return sanitizeWineV4Prompt(
+        sanitizePromptLexicalGuard(
+          dedupeWineStructuralTokens(finalizePromptFromSegments(macroSegments, resolveStudioAuthority(wineEffectiveState)))
+        )
+      );
+    }
+
+    // ── BOTTLE + GLASS — Served composition shortcut ──────────────────────
+    // Routes to bottle-and-glass composition mode via winePipelineV4 composition logic.
+    const bottleAndGlassMode = photoMode === 'Bottle + Glass';
+
+    // ── WINERY SCENE — Environment injection shortcut ─────────────────────
+    // Forces stone-cellar environment if wineEnvironmentVariation not already set.
+    const winerysceneActive = photoMode === 'Winery Scene';
 
     // ── Strict hierarchy — one of each, no duplicates ─────────────────────
     // [0] Engine status / intent
@@ -38,15 +80,10 @@ export const winePipeline = {
     // [3] Camera overrides (only if state has explicit camera)
     // [4] Composition (only if state has explicit composition)
     // [5] Environment context             (depth/surface only — no lighting redefinition)
-    // [6] Materials
-    // [7] Modifiers (neutral — WINE_MOOD eliminated)
-    // [8] Physical realism guardrail
-    //
-    // REMOVED from this pipeline:
-    //   ✗ WINE_AESTHETIC_PROFILE   (synthetic bias layering)
-    //   ✗ WINE_MOOD tokens         (Film Grain / Terroir Tone / Reflection Layer)
-    //   ✗ _archetypeNarrative      (visual-style override conflicting with realism core)
-    //   ✗ Duplicate lighting       (environment and lighting both called → conflict)
+    // [6] Photo Mode context block        (for Editorial Table / Winery Scene / Bottle+Glass)
+    // [7] Materials
+    // [8] Modifiers (neutral — WINE_MOOD eliminated)
+    // [9] Physical realism guardrail
 
     const segments: any[] = [];
 
@@ -68,29 +105,48 @@ export const winePipeline = {
       segments.push({ type: 'camera', content: cameraOverride });
     }
 
-    // [4] Composition — only if explicit composition state is set
-    const compositionOverride = buildComposition(resolveStudioAuthority(wineEffectiveState), state);
-    if (compositionOverride) {
-      segments.push({ type: 'composition', content: compositionOverride });
+    // [4] Composition — Bottle+Glass mode forces 3/4 angle with glass
+    if (bottleAndGlassMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS. Sealed bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. No full pour-in-progress.',
+      });
+    } else {
+      const compositionOverride = buildComposition(resolveStudioAuthority(wineEffectiveState), state);
+      if (compositionOverride) {
+        segments.push({ type: 'composition', content: compositionOverride });
+      }
     }
 
     // [5] Environment context (surface, depth-field only — no light source redefinition)
-    // Only injected if user explicitly set wineEnvironmentVariation.
-    // We do NOT inject buildWineLighting here — that would conflict with LIGHT_SOURCE in [2].
-    if (hasWineEnvironment) {
+    if (winerysceneActive && !hasWineEnvironment) {
+      // Winery Scene mode: inject cellar environment if none explicitly set
+      segments.push({
+        type: 'world',
+        content: 'WINE_ENVIRONMENT: Authentic stone wine cellar. Wooden barrels in background. Irregular stone wall texture. Natural ambient cellar light. No stylized fog. No fantasy atmosphere.',
+      });
+    } else if (hasWineEnvironment) {
       segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
     }
 
-    // [6] Materials
+    // [6] Photo Mode context block for Editorial Table
+    if (photoMode === 'Editorial Table') {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth.',
+      });
+    }
+
+    // [7] Materials
     segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
 
-    // [7] Modifiers (returns '' — WINE_MOOD eliminated)
+    // [8] Modifiers (returns '' — WINE_MOOD eliminated)
     const modifiers = buildWineModifiers(wineEffectiveState);
     if (modifiers) {
       segments.push({ type: 'guardrail', content: modifiers });
     }
 
-    // [8] Physical realism guardrail
+    // [9] Physical realism guardrail
     segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
 
     const prompt = sanitizeWineV4Prompt(

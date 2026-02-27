@@ -15,17 +15,6 @@ export const industryRules: Record<
     allowedVisualStyles?: string[];
   }
 > = {
-  supplements: {
-    productStateWhitelist: ['static', 'opened', 'dispensed', 'falling', 'spilled', 'pouring'],
-    interactionWhitelist: [
-      'none',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-      'capsule-display',
-      'applying-opening',
-    ],
-  },
   wine: {
     productStateWhitelist: ['static', 'opened'],
     interactionWhitelist: [
@@ -35,11 +24,16 @@ export const industryRules: Record<
       'presenting',
       'cheers',
     ],
+    // Wine-exclusive Photo Modes — ONLY these appear in wine UI
     allowedPhotoModes: [
       'Hero Landing Page',
-      'Color Pop Hero',
-      'Macro Dew Label',
+      'Wine Macro Label',
+      'Bottle + Glass',
+      'Editorial Table',
+      'Winery Scene',
     ],
+    // Macro Dew Label is FORBIDDEN for wine — supplement-only mode
+    // DO NOT add 'Macro Dew Label' here under any circumstances
     allowedProductTypes: ['Custom'],
     allowedSpecialEffects: [
       'Cheers (Hands Clink)',
@@ -53,6 +47,26 @@ export const industryRules: Record<
       'Sunlit Stone Editorial',
       'Golden Sunset Backlit',
       'Botanical Water Garden',
+    ],
+  },
+  supplements: {
+    productStateWhitelist: ['static', 'opened', 'dispensed', 'falling', 'spilled', 'pouring'],
+    interactionWhitelist: [
+      'none',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+      'capsule-display',
+      'applying-opening',
+    ],
+    // Supplement-exclusive macro modes — not available for wine
+    allowedPhotoModes: [
+      'Hero Landing Page',
+      'Color Pop Hero',
+      'Ingredient Stack',
+      'Ingredient Flat Lay',
+      'Routine Carousel',
+      'Macro Dew Label',
     ],
   },
   beauty: {

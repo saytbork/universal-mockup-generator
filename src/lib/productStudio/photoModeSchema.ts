@@ -997,5 +997,103 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'resting-interaction',
         ],
         allowsPersonPresence: true
-    }
+    },
+
+    // ── WINE-EXCLUSIVE PHOTO MODES ─────────────────────────────────────────
+    // These modes are ONLY available when industryProfile === 'wine'.
+    // They must never appear in supplement/generic pipelines.
+
+    'Wine Macro Label': {
+        id: 'wine-macro-label',
+        label: 'Wine Macro Label',
+        scope: 'studio',
+        description: 'Extreme close-up cropped to label region only. No full bottle. No environment. Label fidelity is the only subject.',
+        basePrompt: 'extreme macro close-up cropped to the wine bottle label region only, bottle neck excluded, bottle base excluded, frame centers on label panel, 100mm macro lens simulation, f/4 aperture, ultra-sharp label typography, high micro contrast, natural paper/foil texture, label fully readable with maximum detail fidelity',
+        subOptions: [
+            { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
+            { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
+            { key: 'surfaceTone', label: 'Surface Tone', values: ['Dark neutral', 'Stone', 'Warm wood'] },
+        ],
+        constraints: [
+            'FRAME_CONSTRAINT: Label region only. Neck and base must be cropped out or fully out of frame.',
+            'COMPOSITION: Label panel centered. No environmental expansion.',
+            'CAMERA: 100mm macro lens. f/4. No wide framing. No environment in background.',
+            'NEGATIVE_SPACE_POLICY: Minimal. Label fills at least 70% of frame.',
+            'No glass addition',
+            'No full bottle framing',
+            'No gradient background injection',
+            'No clinical-softbox bloom',
+            'No environment expansion',
+            'Fallback to Hero Landing Page is FORBIDDEN',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Bottle + Glass': {
+        id: 'bottle-and-glass',
+        label: 'Bottle + Glass',
+        scope: 'studio',
+        description: 'Wine bottle and filled glass composition. Served state. Bottle sealed.',
+        basePrompt: 'wine bottle and filled wine glass composition, bottle remains sealed, glass positioned at complementary angle, 3/4 camera angle, premium wine photography, label fully legible',
+        subOptions: [
+            { key: 'glassPosition', label: 'Glass Position', values: ['Right', 'Left', 'Behind'] },
+            { key: 'fillLevel', label: 'Glass Fill Level', values: ['Half', 'Two-thirds'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Dark slate', 'Warm wood'] },
+        ],
+        constraints: [
+            'Bottle must remain sealed',
+            'Label fully readable',
+            'Glass must contain wine liquid',
+            'No full pour-in-progress motion',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Editorial Table': {
+        id: 'editorial-table',
+        label: 'Editorial Table',
+        scope: 'studio',
+        description: 'Wine editorial tabletop composition with controlled props and surface texture.',
+        basePrompt: 'premium wine editorial tabletop composition, authentic surface texture, editorial balance, minimal controlled props, bottle as focal point with subtle environmental depth',
+        subOptions: [
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Dark slate', 'Warm wood', 'Marble'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['None', 'Minimal', 'Balanced'] },
+            { key: 'lightingMood', label: 'Lighting Mood', values: ['Warm side', 'Dramatic', 'Diffused'] },
+        ],
+        constraints: [
+            'No synthetic fog',
+            'No fantasy backgrounds',
+            'Label must be legible',
+            'Props must be wine-appropriate only',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Winery Scene': {
+        id: 'winery-scene',
+        label: 'Winery Scene',
+        scope: 'environment',
+        description: 'Wine bottle in an authentic winery or cellar environment.',
+        basePrompt: 'wine bottle in authentic winery environment, stone cellar or barrel room background, natural imperfect lighting, editorial depth of field, bottle as primary subject',
+        subOptions: [
+            { key: 'environment', label: 'Environment', values: ['Stone cellar', 'Barrel room', 'Vineyard terrace'] },
+            { key: 'depthOfField', label: 'Depth of Field', values: ['Shallow', 'Moderate'] },
+            { key: 'lightingMood', label: 'Lighting Mood', values: ['Warm ambient', 'Dramatic side', 'Golden hour'] },
+        ],
+        constraints: [
+            'No stylized fog or fantasy atmosphere',
+            'Bottle must be primary subject',
+            'Label must be legible',
+            'No CGI environment rendering',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
 };

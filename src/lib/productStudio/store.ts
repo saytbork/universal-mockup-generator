@@ -1793,6 +1793,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Fruit Garnish / Citrus Accents',
                 'Textured Bed / Scatter Base',
                 'Floating Particles',
+                // Wine-exclusive photo modes
+                'Wine Macro Label',
+                'Bottle + Glass',
+                'Editorial Table',
+                'Winery Scene',
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
@@ -1802,7 +1807,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 (resolvedMode === 'Splash Shot' ||
                     resolvedMode === 'Beach Foam Splash' ||
                     resolvedMode === 'Pool Water');
-            const effectiveMode: PhotoMode = splashBlockedInWineMode ? 'Dark Premium Studio' : resolvedMode;
+            // Macro Dew Label is supplement-only — block it in wine engine
+            const macroDewBlockedInWineMode = wineModeActive && resolvedMode === 'Macro Dew Label';
+            const effectiveMode: PhotoMode = splashBlockedInWineMode || macroDewBlockedInWineMode
+                ? 'Hero Landing Page'
+                : resolvedMode;
             const hadEnvironmentEnabled = state.environmentContext != null;
             const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
             // Preserve environment only when the user is already in Lifestyle mode.

@@ -294,7 +294,12 @@ export type PhotoMode =
     | 'Condensation Droplets'
     | 'Fruit Garnish / Citrus Accents'
     | 'Textured Bed / Scatter Base'
-    | 'Floating Particles';
+    | 'Floating Particles'
+    // ── Wine-exclusive Photo Modes (wine engine only) ──────────────────────
+    | 'Wine Macro Label'
+    | 'Bottle + Glass'
+    | 'Editorial Table'
+    | 'Winery Scene';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;

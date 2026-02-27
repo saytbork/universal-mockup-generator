@@ -1465,7 +1465,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (softState.composition && softState.composition !== productStore.composition) {
       productStore.setComposition(softState.composition as ProductStudioState['composition']);
     }
-    if (softState.photoMode && softState.photoMode !== productStore.photoMode) {
+
+    // ── Photo mode stale-mode guard on industry switch ─────────────────────
+    // When switching TO wine: clear any supplement-only modes (Macro Dew Label, etc.)
+    // When switching FROM wine: clear any wine-only modes (Wine Macro Label, Bottle+Glass, etc.)
+    const WINE_ONLY_MODES: PhotoMode[] = ['Wine Macro Label', 'Bottle + Glass', 'Editorial Table', 'Winery Scene'];
+    const SUPPLEMENT_ONLY_MODES: PhotoMode[] = ['Macro Dew Label', 'Ingredient Stack', 'Ingredient Flat Lay'];
+    const currentPhotoMode = productStore.photoMode as PhotoMode;
+    if (nextProfile === 'wine' && SUPPLEMENT_ONLY_MODES.includes(currentPhotoMode)) {
+      productStore.setPhotoMode('Hero Landing Page');
+    } else if (nextProfile !== 'wine' && WINE_ONLY_MODES.includes(currentPhotoMode)) {
+      productStore.setPhotoMode('Hero Landing Page');
+    } else if (softState.photoMode && softState.photoMode !== productStore.photoMode) {
       productStore.setPhotoMode(softState.photoMode as ProductStudioState['photoMode']);
     }
     if (softState.wineLightingTone && softState.wineLightingTone !== productStore.wineLightingTone) {
@@ -2983,14 +2994,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <div className={SECTION_GROUP_CLASS}>
                           <p className="text-xs font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
                           {(() => {
-                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = [
+                            // ── WINE-EXCLUSIVE COMPOSITION OPTIONS ────────────────────────────
+                            // These modes are only shown when industryProfile === 'wine'.
+                            // Macro Dew Label is SUPPLEMENT-ONLY and must never appear here.
+                            const wineCompositionOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
-                              { label: 'Color Pop Hero', mode: 'Color Pop Hero' },
-                              { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
-                              { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
-                              { label: 'Routine Carousel', mode: 'Routine Carousel' },
-                              { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
+                              { label: 'Wine Macro Label', mode: 'Wine Macro Label' },
+                              { label: 'Bottle + Glass', mode: 'Bottle + Glass' },
+                              { label: 'Editorial Table', mode: 'Editorial Table' },
+                              { label: 'Winery Scene', mode: 'Winery Scene' },
                             ];
+
+                            // ── SUPPLEMENT/GENERIC COMPOSITION OPTIONS ───────────────────────
+                            // Macro Dew Label is supplement-only — never shown in wine mode.
+                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = winePrestigeModeActive
+                              ? wineCompositionOptions
+                              : [
+                                  { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
+                                  { label: 'Color Pop Hero', mode: 'Color Pop Hero' },
+                                  { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
+                                  { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
+                                  { label: 'Routine Carousel', mode: 'Routine Carousel' },
+                                  { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
+                                ];
 
                             const visualStyleOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Clinical Lab Counter', mode: 'Clinical Lab Counter' },
@@ -3086,6 +3112,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Floating Particles': 'Subtle atmosphere particles (premium, controlled).',
                               'Gel Smear Editorial': 'Editorial gel smear accents (controlled).',
                               'Underwater Split': 'Split-style underwater look with clean physics.',
+                              // Wine-exclusive tooltips
+                              'Wine Macro Label': 'Extreme close-up of label region only. No full bottle. 100mm macro lens.',
+                              'Bottle + Glass': 'Sealed bottle with filled wine glass at 3/4 angle.',
+                              'Editorial Table': 'Premium tabletop editorial with controlled wine-appropriate props.',
+                              'Winery Scene': 'Bottle in authentic cellar or barrel room environment.',
                             };
 
                             const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
@@ -3106,13 +3137,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               // REMOVED: 'Botanical Water Garden' - already in Visual Style group (line 2439)
                             ];
                             const filteredSpecialEffectsOptions = winePrestigeModeActive
+                              // In wine mode, only wine-appropriate special effects are shown
                               ? specialEffectsOptions.filter(({ mode }) =>
-                                  mode !== 'Splash Shot' &&
-                                  mode !== 'Beach Foam Splash' &&
-                                  mode !== 'Pool Water' &&
-                                  mode !== 'Underwater Split'
+                                  mode === 'Cheers (Hands Clink)' ||
+                                  mode === 'Condensation Droplets' ||
+                                  mode === 'Fruit Garnish / Citrus Accents'
                                 )
                               : specialEffectsOptions;
+                            // In wine mode, compositionOptions is already gated to wine-exclusive modes.
+                            // allowedPhotoModes filter applies on top for completeness.
                             const filteredCompositionOptions = compositionOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedPhotoModes || activeIndustryRules.allowedPhotoModes.includes(mode)
                             );
