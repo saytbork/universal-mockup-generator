@@ -5,6 +5,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   const protectionLayer = buildProtectionLayer(authority, state);
   const studioBlocks = [
     buildIntent(authority, state),
+    buildArtworkImmutability(),
     buildWorld(authority, state.world, state),
     buildCameraOverrides(state),
     buildComposition(authority, state),
@@ -27,7 +28,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -37,6 +38,7 @@ export const genericPipeline = {
     const protectionLayer = buildProtectionLayer(authority, state);
     const studioBlocks = [
       buildIntent(authority, state),
+      buildArtworkImmutability(),
       buildWorld(authority, state.world, state),
       buildCameraOverrides(state),
       buildComposition(authority, state),

@@ -16,6 +16,7 @@ export {
   sanitizePromptLexicalGuard,
   finalizePromptFromSegments,
   buildCoffeeIndustryLayer,
+  buildArtworkImmutability,
   buildIntent,
   buildCameraOverrides,
   buildComposition,
@@ -37,6 +38,7 @@ import { generateWineImage } from './generateWineImage';
 import { resolveStudioAuthority } from './authority/studioAuthorityResolver.ts';
 import { getAllowedStudioModifiers } from './modifiers/studioModifierRegistry.ts';
 import { buildIntent } from './builders/buildIntent.ts';
+import { buildArtworkImmutability } from './builders/buildArtworkImmutability.ts';
 import { buildWorld } from './builders/buildWorld.ts';
 import { buildCoffeeIndustryLayer } from './builders/buildCoffeeIndustryLayer.ts';
 import { buildComposition } from './builders/buildComposition.ts';

@@ -1,4 +1,4 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
@@ -11,6 +11,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
   const segments: any[] = [];
   segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
+  segments.push({ type: 'guardrail', content: buildArtworkImmutability() });
   const winePhysicsBlock = wineEngineVersion >= 4
     ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
     : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
@@ -52,6 +53,7 @@ export const winePipeline = {
         : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
       const macroSegments: any[] = [
         { type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) },
+        { type: 'guardrail', content: buildArtworkImmutability() },
         { type: 'physics', content: physicsBlock },
         {
           type: 'guardrail',
@@ -101,6 +103,9 @@ export const winePipeline = {
 
     // [0] Intent
     segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
+
+    // [0.5] Global artwork immutability — applies to all industries including wine
+    segments.push({ type: 'guardrail', content: buildArtworkImmutability() });
 
     // [1] Physical + label (immutable)
     const winePhysicsBlock = wineEngineVersion >= 4

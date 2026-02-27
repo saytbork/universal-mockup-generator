@@ -6,6 +6,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   const coffeeStructuralBlock = buildCoffeeIndustryLayer(authority, state);
   const coffeeBlocks = [
     buildIntent(authority, state),
+    buildArtworkImmutability(),
     buildWorld(authority, state.world, state),
     buildCameraOverrides(state),
     buildComposition(authority, state),
@@ -29,7 +30,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildCoffeeIndustryLayer, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildCoffeeIndustryLayer, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const coffeePipeline = {
@@ -40,6 +41,7 @@ export const coffeePipeline = {
     const coffeeStructuralBlock = buildCoffeeIndustryLayer(authority, state);
     const coffeeBlocks = [
       buildIntent(authority, state),
+      buildArtworkImmutability(),
       buildWorld(authority, state.world, state),
       buildCameraOverrides(state),
       buildComposition(authority, state),
