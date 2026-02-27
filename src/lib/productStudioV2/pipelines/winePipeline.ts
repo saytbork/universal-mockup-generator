@@ -1,6 +1,6 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
 import type { StudioUIState } from '../index';
-import { getWineAestheticProfile, buildWineAestheticSegment, assembleWineV4Prompt, getWineEnvironmentV4Spec, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES, ALL_WINE_ENVIRONMENTS_V4 } from '../../productStudio/winePrestige';
+import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
 
 // For structural testing only
@@ -15,12 +15,11 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
     : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
   segments.push({ type: 'physics', content: winePhysicsBlock });
-  segments.push({ type: 'camera', content: buildCameraOverrides(wineEffectiveState) });
-  segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
-  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
-  segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting(wineEffectiveState) : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
+  segments.push({ type: 'guardrail', content: buildWineRealismCore() });
+  if (hasWineEnvironment) {
+    segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
+  }
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
-  segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
   return segments;
 }
@@ -31,37 +30,68 @@ export const winePipeline = {
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
+
+    // ── Strict hierarchy — one of each, no duplicates ─────────────────────
+    // [0] Engine status / intent
+    // [1] Physical product + label locks  (IMMUTABLE — never overridden)
+    // [2] Realism core                    (camera, light, env, materials, grade, ban-list)
+    // [3] Camera overrides (only if state has explicit camera)
+    // [4] Composition (only if state has explicit composition)
+    // [5] Environment context             (depth/surface only — no lighting redefinition)
+    // [6] Materials
+    // [7] Modifiers (neutral — WINE_MOOD eliminated)
+    // [8] Physical realism guardrail
+    //
+    // REMOVED from this pipeline:
+    //   ✗ WINE_AESTHETIC_PROFILE   (synthetic bias layering)
+    //   ✗ WINE_MOOD tokens         (Film Grain / Terroir Tone / Reflection Layer)
+    //   ✗ _archetypeNarrative      (visual-style override conflicting with realism core)
+    //   ✗ Duplicate lighting       (environment and lighting both called → conflict)
+
     const segments: any[] = [];
 
+    // [0] Intent
     segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
 
+    // [1] Physical + label (immutable)
     const winePhysicsBlock = wineEngineVersion >= 4
       ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
       : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
-
     segments.push({ type: 'physics', content: winePhysicsBlock });
-    segments.push({ type: 'camera', content: buildCameraOverrides(wineEffectiveState) });
-    segments.push({ type: 'composition', content: buildComposition(resolveStudioAuthority(wineEffectiveState), state) });
-    segments.push({ type: 'world', content: hasWineEnvironment ? buildWineEnvironment(wineEffectiveState) : buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, state) });
-    segments.push({ type: 'world', content: hasWineEnvironment ? buildWineLighting(wineEffectiveState) : buildLighting(resolveStudioAuthority(wineEffectiveState), state) });
+
+    // [2] Realism core — single authoritative block for camera/light/env/material/grade/bans
+    segments.push({ type: 'guardrail', content: buildWineRealismCore() });
+
+    // [3] Camera overrides — only if explicit camera state is set (guards against duplication)
+    const cameraOverride = buildCameraOverrides(wineEffectiveState);
+    if (cameraOverride) {
+      segments.push({ type: 'camera', content: cameraOverride });
+    }
+
+    // [4] Composition — only if explicit composition state is set
+    const compositionOverride = buildComposition(resolveStudioAuthority(wineEffectiveState), state);
+    if (compositionOverride) {
+      segments.push({ type: 'composition', content: compositionOverride });
+    }
+
+    // [5] Environment context (surface, depth-field only — no light source redefinition)
+    // Only injected if user explicitly set wineEnvironmentVariation.
+    // We do NOT inject buildWineLighting here — that would conflict with LIGHT_SOURCE in [2].
+    if (hasWineEnvironment) {
+      segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
+    }
+
+    // [6] Materials
     segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
-    segments.push({ type: 'guardrail', content: buildWineModifiers(wineEffectiveState) });
 
-    // Archetype + Aesthetic Profile (apply to both closed and served — bottle is always sealed)
-    const _archetypeNarrative = String((wineEffectiveState as any).wineArchetypeNarrative || '').trim();
-    if (_archetypeNarrative) {
-      segments.push({ type: 'guardrail', content: _archetypeNarrative });
-    }
-    const _aestheticProfile = getWineAestheticProfile((wineEffectiveState as any).wineStyleArchetype ?? null);
-    const _aestheticSegment = buildWineAestheticSegment(_aestheticProfile);
-    if (_aestheticSegment) {
-      segments.push({ type: 'guardrail', content: _aestheticSegment });
+    // [7] Modifiers (returns '' — WINE_MOOD eliminated)
+    const modifiers = buildWineModifiers(wineEffectiveState);
+    if (modifiers) {
+      segments.push({ type: 'guardrail', content: modifiers });
     }
 
+    // [8] Physical realism guardrail
     segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
-
-    // eslint-disable-next-line no-console
-    console.log('WINE SEGMENTS LENGTH BEFORE FINALIZE:', segments.length);
 
     const prompt = sanitizeWineV4Prompt(
       sanitizePromptLexicalGuard(
@@ -137,12 +167,12 @@ export const winePipelineV4 = {
     // ── Layer 6: Micro variation ──────────────────────────────────────────
     const microVariation = options.microVariation ?? null;
 
-    // ── Layer 7+8: Archetype + Aesthetic ─────────────────────────────────
-    const _archetypeNarrative = String((wineEffectiveState as any).wineArchetypeNarrative || '').trim();
-    const _aestheticProfile = getWineAestheticProfile((wineEffectiveState as any).wineStyleArchetype ?? null);
-    const _aestheticSegment = buildWineAestheticSegment(_aestheticProfile);
-
     // ── Assembly ──────────────────────────────────────────────────────────
+    // NOTE: archetypeNarrative and aestheticSegment are intentionally omitted.
+    // They introduced WINE_AESTHETIC_PROFILE / glow / film-grain / reflection-layer
+    // tokens that conflict with REAL_WORLD_PHOTOGRAPHY_MODE.
+    // The realism core (injected by winePipeline.build via buildWineRealismCore)
+    // is the single authoritative aesthetic/material/lighting authority.
     const rawPrompt = assembleWineV4Prompt({
       physicsBlock,
       labelBlock,
@@ -152,8 +182,6 @@ export const winePipelineV4 = {
       cameraAngle,
       compositionMode: baseCompositionMode,
       microVariation,
-      archetypeNarrative: _archetypeNarrative || undefined,
-      aestheticSegment: _aestheticSegment || undefined,
     });
 
     return sanitizeWineV4Prompt(

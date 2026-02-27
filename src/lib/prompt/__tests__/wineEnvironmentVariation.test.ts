@@ -54,7 +54,8 @@ describe('wine environment variation', () => {
   expect(prompt).toContain('deterministic.');
   expect(prompt).toContain('WINE_ENGINE_STATUS:');
     expect(prompt).toContain('WINE_ENVIRONMENT:');
-    expect(prompt).toContain('WINE_LIGHTING:');
+    // WINE_LIGHTING: was replaced by LIGHT_SOURCE: inside REAL_WORLD_PHOTOGRAPHY_MODE block
+    expect(prompt).toContain('LIGHT_SOURCE:');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: Vineyard Golden Hour');
     expect(prompt).not.toContain('Render with 85mm premium telephoto prime optical behavior');
   });

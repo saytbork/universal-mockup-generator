@@ -449,10 +449,12 @@ function buildWineLighting(state?: StudioUIState): string {
   return `WINE_LIGHTING: ${description}`;
 }
 
-function buildWineModifiers(state: StudioUIState): string {
-  const mood = String(state.wineMoodModifier || '').trim();
-  if (!mood || mood === 'None') return '';
-  return `WINE_MOOD: ${mood}.`;
+function buildWineModifiers(_state: StudioUIState): string {
+  // WINE_MOOD and aesthetic modifier injection eliminated — Step 1 conflict cleanup.
+  // Mood tokens (Film Grain, Terroir Tone, Reflection Layer) caused synthetic/CGI
+  // aesthetic stacking. Physical realism is enforced via REAL_WORLD_PHOTOGRAPHY_MODE
+  // and the BAN_LIST in buildWineRealismCore(). Returning empty string always.
+  return '';
 }
 
 function buildWineMinimalGuardrail(): string {
@@ -461,6 +463,24 @@ function buildWineMinimalGuardrail(): string {
     'Coherent optics.',
     'Material integrity.',
     'Gravity consistency.',
+  ].join(' ');
+}
+
+/**
+ * REAL_WORLD_PHOTOGRAPHY_MODE block — Step 3 realism rebuild.
+ * Inserted after LABEL_FINAL_ANCHOR in the prompt hierarchy.
+ * Single authoritative block covering camera, light, environment, material, grade, and ban list.
+ * Must not be duplicated. Must not be overridden by aesthetic layers.
+ */
+export function buildWineRealismCore(): string {
+  return [
+    'REAL_WORLD_PHOTOGRAPHY_MODE: enabled.',
+    'CAMERA: Full-frame DSLR realism. 85mm lens. f/2.8 aperture. Natural depth falloff. No extreme depth manipulation. No artificial tilt.',
+    'LIGHT_SOURCE: Single directional warm key light. Soft natural bounce fill. No artificial halo. No volumetric glow. No rim light exaggeration. No studio bloom. No Unreal-style lighting.',
+    'ENVIRONMENT_REALISM: Authentic aged stone cellar. Irregular surface texture. Asymmetrical barrel placement. Real wood grain variation. Natural dust in air. No stylized fog. No fantasy atmosphere.',
+    'MATERIAL_BEHAVIOR: True glass refraction. Imperfect highlight shape. Micro-surface irregularity. Natural reflection distortion. No plastic CGI sheen. No hyper-clean symmetry.',
+    'COLOR_GRADING: Subtle cinematic grade. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal contrast only.',
+    'BAN_LIST: No glow. No artificial flare. No hyper-polished render look. No CGI plastic reflections. No volumetric god rays. No gradient studio backdrop. No aesthetic stacking. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
   ].join(' ');
 }
 
