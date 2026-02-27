@@ -52,9 +52,21 @@ export function buildWineTruthLayer(
     'Do NOT open the bottle. Do NOT remove or detach the closure.',
     'Do NOT alter the liquid level. Do NOT add a half-empty appearance.',
     'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
-    'LABEL_LOCK: The label design, text, colors, logo, and position must be identical to the reference. Do NOT fade, replace, blur, or alter the label in any way.',
     'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
     'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt.',
+  ].join(' ');
+
+  // LABEL LOCK — separate block, placed independently for maximum model weight.
+  // Gemini tends to re-generate or hallucinate label text when scene/environment changes.
+  // Explicit text-level prohibition is required.
+  const labelLock = [
+    'LABEL_PRESERVATION_LOCK: The bottle label is a photographic asset — it must be reproduced pixel-accurately from the reference image.',
+    'Every word, letter, number, logo, graphic, and typographic element on the label must be IDENTICAL to the reference.',
+    'Do NOT rewrite, translate, reinterpret, paraphrase, or invent any text on the label.',
+    'Do NOT change font, size, spacing, color, or position of any label element.',
+    'Do NOT replace the brand name or product name with generic text.',
+    'The label must look like a photograph of the same physical label — not an AI-generated approximation.',
+    'If you cannot reproduce the label text exactly, preserve the reference image label region without modification.',
   ].join(' ');
 
   // GLASS — only for served mode
@@ -64,7 +76,11 @@ export function buildWineTruthLayer(
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
 
-  return [engineStatusBlock, configBlock, bottlePreservationBlock, glassBlock, sparklingLock].filter(Boolean).join(' ');
+  // labelLock appears twice: once after bottlePreservationBlock (early weight) and once
+  // at the end (recency bias) — sandwiching the glass/sparkling content.
+  const labelRepeat = 'LABEL_FINAL_ANCHOR: Label text, brand name, and all typographic elements must match the reference exactly — no exceptions, no reinterpretation.';
+
+  return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {
