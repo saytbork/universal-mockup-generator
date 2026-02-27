@@ -598,9 +598,7 @@ const createDefaultOptions = (): MockupOptions => ({
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
-import VideoGenerator from './components/VideoGenerator';
 import Accordion from './components/Accordion';
-import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
 import ChipSelectGroup from './components/ChipSelectGroup';
 
@@ -6964,51 +6962,24 @@ If the model attempts to create a scene or environment, override it and force a 
                     isAnonymousTrial={isAnonymousTrialMode}
                     downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
                     onChargeDownloadCredits={handleDownloadCreditCharge}
+                    editPrompt={editPrompt}
+                    onEditPromptChange={(e) => setEditPrompt(e.target.value)}
+                    onEditImage={handleEditImage}
+                    videoPrompt={videoPrompt}
+                    onVideoPromptChange={(e) => setVideoPrompt(e.target.value)}
+                    onGenerateVideo={handleGenerateVideo}
+                    isVideoLoading={isVideoLoading}
+                    videoError={videoError}
+                    generatedVideoUrl={generatedVideoUrl}
+                    hasPlanVideoAccess={hasPlanVideoAccess}
+                    planVideoLimit={planVideoLimit}
+                    remainingVideos={remainingVideos}
+                    planLabel={currentPlan.label}
+                    videoAccessCode={videoAccessInput}
+                    onVideoAccessCodeChange={handleVideoAccessCodeChange}
+                    onVideoAccessSubmit={handleVideoAccessSubmit}
+                    videoAccessError={videoAccessError}
                   />
-
-                  {generatedImageUrl && (
-                    <details key={`edit-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
-                        Edit image
-                      </summary>
-                      <div className="mt-3">
-                        <ImageEditor
-                          editPrompt={editPrompt}
-                          onPromptChange={(e) => setEditPrompt(e.target.value)}
-                          onEditImage={handleEditImage}
-                          isEditing={isImageLoading}
-                        />
-                      </div>
-                    </details>
-                  )}
-
-                  {generatedImageUrl && (
-                    <details key={`video-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
-                        Video
-                      </summary>
-                      <div className="mt-3">
-                        <VideoGenerator
-                          videoPrompt={videoPrompt}
-                          onPromptChange={(e) => setVideoPrompt(e.target.value)}
-                          onGenerateVideo={handleGenerateVideo}
-                          isVideoLoading={isVideoLoading}
-                          videoError={videoError}
-                          generatedVideoUrl={generatedVideoUrl}
-                          isGenerating={isVideoLoading || isImageLoading}
-                          hasAccess={hasPlanVideoAccess}
-                          lockMessage={planVideoLimit === 0 ? "Video generation is disabled." : undefined}
-                          showAccessCodeField={planVideoLimit === 0}
-                          remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-                          planLabel={currentPlan.label}
-                          accessCode={videoAccessInput}
-                          onAccessCodeChange={handleVideoAccessCodeChange}
-                          onAccessSubmit={handleVideoAccessSubmit}
-                          accessError={videoAccessError}
-                        />
-                      </div>
-                    </details>
-                  )}
                 </div>
               </div>
             </fieldset>

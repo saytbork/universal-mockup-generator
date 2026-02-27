@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import { HIGH_RES_UNAVAILABLE_MESSAGE } from '../constants';
 import type { DownloadCreditConfig, DownloadResolution } from '../constants';
+import ImageEditor from './ImageEditor';
+import VideoGenerator from './VideoGenerator';
 
 // ============================================================================
 // GENERATION PROGRESS COMPONENT - Modern 2026 design with subtle animations
@@ -143,6 +145,25 @@ interface GeneratedImageProps {
   onChargeDownloadCredits: (
     resolution: DownloadResolution
   ) => Promise<{ ok: boolean; message?: string }> | { ok: boolean; message?: string };
+  // Edit image
+  editPrompt: string;
+  onEditPromptChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onEditImage: () => void;
+  // Video
+  videoPrompt: string;
+  onVideoPromptChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onGenerateVideo: () => void;
+  isVideoLoading: boolean;
+  videoError: string | null;
+  generatedVideoUrl: string | null;
+  hasPlanVideoAccess: boolean;
+  planVideoLimit: number;
+  remainingVideos: number | null;
+  planLabel: string;
+  videoAccessCode: string;
+  onVideoAccessCodeChange: (value: string) => void;
+  onVideoAccessSubmit: () => void;
+  videoAccessError: string | null;
 }
 
 const DOWNLOAD_RESOLUTION_OPTIONS: { label: string; value: DownloadResolution }[] = [
@@ -170,12 +191,30 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   isAnonymousTrial,
   downloadCreditConfig,
   onChargeDownloadCredits,
+  editPrompt,
+  onEditPromptChange,
+  onEditImage,
+  videoPrompt,
+  onVideoPromptChange,
+  onGenerateVideo,
+  isVideoLoading,
+  videoError,
+  generatedVideoUrl,
+  hasPlanVideoAccess,
+  planVideoLimit,
+  remainingVideos,
+  planLabel,
+  videoAccessCode,
+  onVideoAccessCodeChange,
+  onVideoAccessSubmit,
+  videoAccessError,
 }) => {
-
-	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
+	const [downloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showEditPanel, setShowEditPanel] = useState(false);
+  const [showVideoPanel, setShowVideoPanel] = useState(false);
 
   const parsedAspectRatio = useMemo(() => {
     const raw = String(targetAspectRatio ?? '').trim();
@@ -222,7 +261,6 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   }, [parsedAspectRatio]);
 
   useEffect(() => {
-    setDownloadResolution('original');
     setDownloadError(null);
   }, [imageUrl]);
 
@@ -304,22 +342,13 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return imageUrl;
   };
 
-  const getResolutionCost = (resolution: DownloadResolution) => {
-    if (resolution === '4k') return downloadCreditConfig.downloadCost4K;
-    if (resolution === '2k') return downloadCreditConfig.downloadCost2K;
-    return downloadCreditConfig.original;
-  };
-
-  const formatCreditLabel = (cost: number) => `${cost} ${cost === 1 ? 'credit' : 'credits'}`;
+  const getResolutionCost = (_resolution: DownloadResolution) => downloadCreditConfig.original;
 
   const exportResolutionBlob = async (resolution: DownloadResolution) => {
     const preferredSource = getResolutionSource(resolution);
     const sourceUrl = preferredSource ?? imageUrl;
     if (!sourceUrl) {
-      if (resolution === 'original') {
-        throw new Error('Original export is unavailable. Generate the scene again.');
-      }
-      throw new Error(HIGH_RES_UNAVAILABLE_MESSAGE);
+      throw new Error('Original export is unavailable. Generate the scene again.');
     }
     const img = await loadImageElement(sourceUrl);
     const canvas = document.createElement('canvas');
@@ -347,40 +376,32 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return canvasToBlob(canvas);
   };
 
-  const buildFilename = () => `ai-mockup-${downloadResolution}.png`;
-
-  const showHiResStatus = isHiResProcessing || Boolean(fourKVariant || twoKVariant || hiResError);
-
   const handleDownload = async () => {
     if (!imageUrl) return;
     setDownloadError(null);
-
     setIsProcessingDownload(true);
     try {
       const blob = await exportResolutionBlob(downloadResolution);
-
       const chargeResult = await Promise.resolve(onChargeDownloadCredits(downloadResolution));
       if (!chargeResult.ok) {
-        setDownloadError(
-          chargeResult.message ?? 'Not enough credits available for this download.'
-        );
+        setDownloadError(chargeResult.message ?? 'Not enough credits available for this download.');
         return;
       }
-
       const url = URL.createObjectURL(blob);
-      triggerDownload(url, buildFilename());
+      triggerDownload(url, `ai-mockup.png`);
       URL.revokeObjectURL(url);
     } catch (error) {
-      setDownloadError(
-        error instanceof Error ? error.message : HIGH_RES_UNAVAILABLE_MESSAGE
-      );
+      setDownloadError(error instanceof Error ? error.message : HIGH_RES_UNAVAILABLE_MESSAGE);
     } finally {
       setIsProcessingDownload(false);
     }
   };
 
+  const isVideoLocked = planVideoLimit === 0;
+
   return (
     <div className="flex flex-col w-full">
+      {/* Lightbox */}
       {isLightboxOpen && imageUrl && (
         <div
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
@@ -391,10 +412,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
         >
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsLightboxOpen(false);
-            }}
+            onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
             className="absolute top-4 right-4 h-10 w-10 rounded-full border border-white/20 bg-black/40 text-white/90 hover:bg-black/60 transition flex items-center justify-center"
             aria-label="Close preview"
             title="Close"
@@ -410,6 +428,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
         </div>
       )}
 
+      {/* Preview frame */}
       <div
         ref={containerRef}
         className="relative w-full min-h-[22rem] sm:min-h-[40rem] max-h-[70vh] flex items-center justify-center rounded-xl bg-white overflow-hidden dark:bg-white/5 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
@@ -426,10 +445,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
             className="overflow-hidden rounded-xl"
             style={
               frameSize
-                ? ({
-                  width: `${frameSize.width}px`,
-                  height: `${frameSize.height}px`,
-                } as React.CSSProperties)
+                ? ({ width: `${frameSize.width}px`, height: `${frameSize.height}px` } as React.CSSProperties)
                 : parsedAspectRatio
                   ? ({ aspectRatio: parsedAspectRatio.css, width: '100%', height: '100%' } as React.CSSProperties)
                   : undefined
@@ -449,78 +465,134 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
         )}
       </div>
 
+      {/* ── Unified Action Bar ─────────────────────────────────────────── */}
       {(imageUrl || imageError) && !isImageLoading && (
-        <div className="mt-4 w-full flex flex-col gap-3 bg-white rounded-xl px-4 py-3 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-          <div className="flex flex-col gap-3 w-full">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 uppercase tracking-[0.3em] dark:text-white/40">Download resolution</label>
-              <div className="flex flex-wrap items-center gap-2">
-                {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
-                  const isActive = downloadResolution === option.value;
-                  const cost = getResolutionCost(option.value);
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => {
-                        setDownloadResolution(option.value);
-                        setDownloadError(null);
-                      }}
-                      disabled={!imageUrl}
-                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${isActive
-                        ? 'bg-indigo-600 text-white border-indigo-600 scale-105 duration-500 dark:bg-indigo-500 dark:border-indigo-500'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-600 hover:text-gray-900 dark:border-white/10 dark:bg-black/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:text-white'
-                      } disabled:cursor-not-allowed disabled:opacity-50`}
-                    >
-                      {option.label} · {formatCreditLabel(cost)}
-                    </button>
-                  );
-                })}
-              </div>
-              {showHiResStatus && (
-                <span className="text-[11px] text-gray-600 dark:text-white/50">
-                  {isHiResProcessing
-                    ? 'Preparing 4K / 2K masters…'
-                    : hiResError ?? 'High-resolution exports ready.'}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-white/60">
+        <>
+          <div className="mt-3 border-t border-gray-100 dark:border-white/8 pt-3 flex flex-wrap items-center gap-2">
+
+            {/* Ghost: Reset */}
+            <button
+              onClick={onReset}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-transparent text-gray-700 font-semibold px-3 py-2 text-sm transition hover:border-indigo-600 hover:text-indigo-600 dark:border-white/10 dark:text-white/70 dark:hover:border-white/30 dark:hover:text-white"
+              aria-label="Reset"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h5M20 20v-5h-5" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 9a9 9 0 0114.13-5.12M20 15a9 9 0 01-14.13 5.12" />
+              </svg>
+              Reset
+            </button>
+
+            {/* Primary: Download */}
+            {imageUrl && (
               <button
-                onClick={onReset}
-                className="border border-gray-200 bg-white text-gray-900 font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 hover:border-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]"
-                aria-label="Reset"
+                onClick={handleDownload}
+                disabled={isProcessingDownload}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 text-white font-semibold px-4 py-2 text-sm transition hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                aria-label="Download Image"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h5M20 20v-5h-5" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 9a9 9 0 0114.13-5.12M20 15a9 9 0 01-14.13 5.12" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
-                Reset
+                {isProcessingDownload ? 'Preparing…' : 'Download'}
               </button>
-              {imageUrl && (
-                <button
-                  onClick={handleDownload}
-                  disabled={isProcessingDownload || !imageUrl}
-                  className="bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed font-semibold px-3 py-1.5 rounded-2xl transition flex items-center gap-1 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-white/10 dark:disabled:text-white/40"
-                  aria-label="Download Image"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  {isProcessingDownload ? 'Preparing…' : 'Download'}
-                </button>
-              )}
-              {isFreeUser && (
-                <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-white/50">
-                  Watermark applied on Free plan
-                </span>
-              )}
-            </div>
+            )}
+
+            {/* Divider */}
+            {imageUrl && (
+              <span className="hidden sm:block h-5 w-px bg-gray-200 dark:bg-white/10" aria-hidden="true" />
+            )}
+
+            {/* Outlined: Edit Image / Refine Image */}
+            {imageUrl && (
+              <button
+                onClick={() => { setShowEditPanel(v => !v); setShowVideoPanel(false); }}
+                className={`inline-flex items-center gap-1.5 rounded-xl border font-semibold px-3 py-2 text-sm transition ${
+                  showEditPanel
+                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-500/10'
+                    : 'border-gray-200 text-gray-700 hover:border-indigo-600 hover:text-indigo-600 dark:border-white/10 dark:text-white/70 dark:hover:border-white/30 dark:hover:text-white'
+                }`}
+              >
+                {/* Pencil icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                {editPrompt.trim() ? 'Refine Image' : 'Edit Image'}
+              </button>
+            )}
+
+            {/* Outlined: Video */}
+            {imageUrl && (
+              <button
+                onClick={() => { setShowVideoPanel(v => !v); setShowEditPanel(false); }}
+                className={`inline-flex items-center gap-1.5 rounded-xl border font-semibold px-3 py-2 text-sm transition ${
+                  showVideoPanel
+                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:bg-indigo-500/10'
+                    : 'border-gray-200 text-gray-700 hover:border-indigo-600 hover:text-indigo-600 dark:border-white/10 dark:text-white/70 dark:hover:border-white/30 dark:hover:text-white'
+                }`}
+              >
+                {isVideoLocked ? (
+                  <>
+                    {/* Lock icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Video (Locked)
+                  </>
+                ) : (
+                  <>
+                    {/* Film icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                    </svg>
+                    Create Video
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Download error */}
             {downloadError && (
-              <span className="text-xs text-gray-500 dark:text-white/50">{downloadError}</span>
+              <span className="w-full mt-1 text-xs text-red-500 dark:text-red-400">{downloadError}</span>
             )}
           </div>
-        </div>
+
+          {/* Edit Image panel — inline, no card border */}
+          {showEditPanel && imageUrl && (
+            <div className="mt-3">
+              <ImageEditor
+                editPrompt={editPrompt}
+                onPromptChange={onEditPromptChange}
+                onEditImage={onEditImage}
+                isEditing={isImageLoading}
+              />
+            </div>
+          )}
+
+          {/* Video panel — inline, no card border */}
+          {showVideoPanel && imageUrl && (
+            <div className="mt-3">
+              <VideoGenerator
+                videoPrompt={videoPrompt}
+                onPromptChange={onVideoPromptChange}
+                onGenerateVideo={onGenerateVideo}
+                isVideoLoading={isVideoLoading}
+                videoError={videoError}
+                generatedVideoUrl={generatedVideoUrl}
+                isGenerating={isVideoLoading || isImageLoading}
+                hasAccess={hasPlanVideoAccess}
+                lockMessage={planVideoLimit === 0 ? 'Video generation is disabled.' : undefined}
+                showAccessCodeField={planVideoLimit === 0}
+                remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
+                planLabel={planLabel}
+                accessCode={videoAccessCode}
+                onAccessCodeChange={onVideoAccessCodeChange}
+                onAccessSubmit={onVideoAccessSubmit}
+                accessError={videoAccessError}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
