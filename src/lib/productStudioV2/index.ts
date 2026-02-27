@@ -462,9 +462,14 @@ function buildWineModifiers(_state: StudioUIState): string {
 
 function buildWineMinimalGuardrail(): string {
   return [
-    'PHYSICAL_REALISM:',
-    'Coherent optics.',
-    'Material integrity.',
+    'PHOTOGRAPHIC_AUTHENTICITY:',
+    'Natural real-world capture.',
+    'Subtle sensor noise in midtones.',
+    'Tiny optical imperfections.',
+    'Lens breathing micro-distortion.',
+    'Imperfect highlight bloom.',
+    'No render-engine polish.',
+    'No CGI precision.',
     'Gravity consistency.',
   ].join(' ');
 }
@@ -478,12 +483,14 @@ function buildWineMinimalGuardrail(): string {
 export function buildWineRealismCore(): string {
   return [
     'REAL_WORLD_PHOTOGRAPHY_MODE: enabled.',
-    'CAMERA: Full-frame DSLR realism. 85mm lens. f/2.8 aperture. Natural depth falloff. No extreme depth manipulation. No artificial tilt.',
-    'LIGHT_SOURCE: Single directional warm key light. Soft natural bounce fill. No artificial halo. No volumetric glow. No rim light exaggeration. No studio bloom. No Unreal-style lighting.',
-    'ENVIRONMENT_REALISM: Authentic aged stone cellar. Irregular surface texture. Asymmetrical barrel placement. Real wood grain variation. Natural dust in air. No stylized fog. No fantasy atmosphere.',
-    'MATERIAL_BEHAVIOR: True glass refraction. Imperfect highlight shape. Micro-surface irregularity. Natural reflection distortion. No plastic CGI sheen. No hyper-clean symmetry.',
+    'CAMERA: Captured on professional full-frame camera. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
+    'LIGHT_SOURCE: Single directional warm key light. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
+    'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Very subtle surface scuffs or cleaning marks. No perfectly symmetrical highlight strips. No plastic-looking specular.',
+    'LABEL_MATERIAL: Microscopic paper texture visible under raking light. Slight edge lift or micro-shadow along label border. Very subtle print ink variation. Label surface preserved from reference — no material reinterpretation.',
+    'SURFACE_MATERIAL: Tiny dust particles on table surface. Slight uneven wood grain or stone irregularity. Real texture, not procedural smoothness.',
+    'SHADOW_QUALITY: Soft irregular shadow edges. Natural penumbra variation. Not mathematically perfect falloff.',
     'COLOR_GRADING: Subtle cinematic grade. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal contrast only.',
-    'BAN_LIST: No glow. No artificial flare. No hyper-polished render look. No CGI plastic reflections. No volumetric god rays. No gradient studio backdrop. No aesthetic stacking. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
+    'BAN_LIST: No CGI plastic reflections. No hyper-polished render look. No perfectly uniform glass thickness. No symmetrical highlight strips. No noise-free shadow gradients. No render-engine precision. No Blender/Unreal/3D render aesthetic. No volumetric god rays. No gradient studio backdrop. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
   ].join(' ');
 }
 
@@ -510,14 +517,16 @@ function buildWineMaterials(serveState?: string): string {
   if (isServed) {
     return [
       'MATERIALS:',
-      'Real glass.',
-      'Natural liquid translucency.',
+      'Authentic glass with natural surface micro-imperfections.',
+      'Natural liquid translucency with organic color variation.',
+      'No plastic CGI sheen. No hyper-clean bottle surface.',
     ].join(' ');
   }
   return [
     'MATERIALS:',
-    'Real glass.',
-    'Natural liquid translucency.',
+    'Authentic glass with natural surface micro-imperfections.',
+    'Natural liquid translucency with organic color variation.',
+    'No plastic CGI sheen. No hyper-clean bottle surface.',
     // Label is a locked photographic surface — not a material to describe or regenerate
     'Label surface: preserve from reference exactly. No material reinterpretation of label.',
   ].join(' ');
