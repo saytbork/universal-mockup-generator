@@ -308,7 +308,7 @@ export function getResolvedAllowedMotions(
   const { stateMotionCapability } = getPhotoModeCapabilities(photoMode);
   const industryAllowed = getIndustryAllowedMotions(industryProfile, productType, coffeeIntent);
 
-  const limitedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed'];
+  const limitedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed', 'pouring', 'spilled', 'falling'];
   const extendedEnvelope: ProductStateMotion[] = ['static', 'opened', 'dispensed', 'pouring', 'spilled', 'falling'];
 
   if (stateMotionCapability !== 'limited' && stateMotionCapability !== 'extended') {
