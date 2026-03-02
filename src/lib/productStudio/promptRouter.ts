@@ -88,13 +88,21 @@ function inferSubjectOrientation(state: ProductStudioState): StudioUIState['subj
 }
 
 function inferLightingOverride(state: ProductStudioState): string | undefined {
-  const rig = String((state as any).lightingRig || '').trim();
-  const style = String((state as any).lighting || '').trim();
-  // lightingModelOverride is PRO-MODE ONLY — it contains technical rig descriptors.
+  // lightingModelOverride is PRO-MODE ONLY — matches V1 behavior.
   // Basic lighting selector (natural-light / overcast / etc.) is handled via basicLighting field.
+  const isProMode =
+    state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+  if (!isProMode) return undefined;
+
+  const rig = String((state as any).lightingRig || '').trim();
+  // Only forward rig if it is a non-default value (user explicitly chose it)
+  const DEFAULT_LIGHTING_RIGS = new Set(['Softbox Wrap', '']);
+  if (!rig || DEFAULT_LIGHTING_RIGS.has(rig)) return undefined;
+
+  // style (lighting) is a different field than rig — only used in PRO mode here
+  const style = String((state as any).lighting || '').trim();
   if (rig && style) return `${rig}; ${style}`;
   if (rig) return rig;
-  // Do NOT forward basic lighting as lightingModelOverride — buildLighting reads basicLighting instead.
   return undefined;
 }
 
@@ -934,6 +942,19 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       }
       return Object.keys(cleaned).length > 0 ? { photoModeDynamicSettings: cleaned } : {};
     })(),
+    // ── Supplement / product type physical definition ──
+    ...(() => {
+      const physical = state.definition?.physical;
+      if (!physical || !physical.kind || physical.kind === 'dummy') return {};
+      return {
+        productPhysicalDef: {
+          kind: physical.kind,
+          v: physical.v as Record<string, unknown>,
+        },
+      };
+    })(),
+    // ── Context preset (studio environment / world context) ──
+    ...(state.contextPreset ? { contextPresetValue: String(state.contextPreset) } : {}),
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];

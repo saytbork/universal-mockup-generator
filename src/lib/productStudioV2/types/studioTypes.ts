@@ -189,4 +189,11 @@ export interface StudioUIState {
   productFormScale?: string;
   /** Photo Mode dynamic sub-settings from photoModeConfig.dynamic (key→value pairs) */
   photoModeDynamicSettings?: Record<string, string>;
+  /** Full physical definition object from state.definition.physical — used by buildProductPhysical */
+  productPhysicalDef?: {
+    kind: string;
+    v: Record<string, unknown>;
+  };
+  /** contextPreset value — used by buildWorld for studio environment context */
+  contextPresetValue?: string;
 }

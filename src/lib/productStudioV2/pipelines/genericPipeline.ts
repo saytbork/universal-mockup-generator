@@ -16,8 +16,8 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildLighting(authority, state),
     buildMaterials(authority, state),
     buildPackaging(state),
-    buildPhotoModeDynamic(state),
-    buildGeometry(authority, state),
+    buildProductPhysical(state),
+    buildPhotoModeDynamic(state),    buildGeometry(authority, state),
     ...protectionLayer,
     ...buildAdvancedOverrideParts(state),
   ];
@@ -30,7 +30,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
