@@ -51,6 +51,7 @@ export const genericPipeline = {
       buildLighting(authority, state),
       buildMaterials(authority, state),
       buildPackaging(state),
+      buildProductPhysical(state),
       buildPhotoModeDynamic(state),
       buildGeometry(authority, state),
       ...protectionLayer,
