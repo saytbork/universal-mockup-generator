@@ -5816,15 +5816,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         detail: 'No hands. No skin. No human shadows.',
                         stateValue: 'none',
                       },
-                      'capsule-display': {
-                        label: 'Capsule Display',
-                        detail: '2–4 capsules in palm + bottle visible. No pouring.',
-                        stateValue: 'capsule-display',
+                      'passive-presence': {
+                        label: 'Passive Presence',
+                        detail: 'Product rests passively. Limbs may be present in background but don\'t touch product.',
+                        stateValue: 'passive-presence',
                       },
-                      'applying-opening': {
-                        label: 'Applying / Opening',
-                        detail: 'One clear action: twist/open. No consumption.',
-                        stateValue: 'applying-opening',
+                      'cropped-hand': {
+                        label: 'Cropped Hand',
+                        detail: 'Partially cropped hand enters frame from edge — only fingers or wrist visible.',
+                        stateValue: 'cropped-hand',
+                      },
+                      'supported-hold': {
+                        label: 'Supported Hold',
+                        detail: 'Open palm supports product from below. Relaxed, no tight grip.',
+                        stateValue: 'supported-hold',
                       },
                       holding: {
                         label: 'Holding',
@@ -5832,7 +5837,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         stateValue: 'holding',
                       },
                       'two-hand-hold': {
-                        label: 'Two-hand Hold',
+                        label: 'Two-Hand Hold',
                         detail: 'Stable two-hand support with controlled framing.',
                         stateValue: 'two-hand-hold',
                       },
@@ -5845,6 +5850,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         label: 'Framed Presentation',
                         detail: 'Hands frame the product edges without blocking label.',
                         stateValue: 'framed-presentation',
+                      },
+                      'applying-opening': {
+                        label: 'Applying / Opening',
+                        detail: 'One clear action: twist/open. No consumption.',
+                        stateValue: 'applying-opening',
+                      },
+                      'capsule-display': {
+                        label: 'Capsule Display',
+                        detail: '2–4 capsules in open palm. Only available for Capsules.',
+                        stateValue: 'capsule-display',
+                      },
+                      'resting-interaction': {
+                        label: 'Resting Interaction',
+                        detail: 'Product on surface. Hand rests nearby without gripping.',
+                        stateValue: 'resting-interaction',
                       },
                     };
                     const visibleInteractionOptions = resolvedInteractionOptions.flatMap((value) => {

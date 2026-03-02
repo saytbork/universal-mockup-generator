@@ -53,11 +53,16 @@ export const industryRules: Record<
     productStateWhitelist: ['static', 'opened', 'dispensed', 'falling', 'spilled', 'pouring'],
     interactionWhitelist: [
       'none',
+      'passive-presence',
+      'cropped-hand',
+      'supported-hold',
       'holding',
       'two-hand-hold',
       'presenting',
-      'capsule-display',
+      'framed-presentation',
       'applying-opening',
+      'capsule-display',
+      'resting-interaction',
     ],
     // Supplement-exclusive macro modes — not available for wine
     allowedPhotoModes: [
@@ -71,7 +76,18 @@ export const industryRules: Record<
   },
   beauty: {
     productStateWhitelist: ['static'],
-    interactionWhitelist: ['none'],
+    interactionWhitelist: [
+      'none',
+      'passive-presence',
+      'cropped-hand',
+      'supported-hold',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+      'framed-presentation',
+      'applying-opening',
+      'resting-interaction',
+    ],
   },
   coffee: {
     conversionPhotoModes: [
@@ -111,7 +127,45 @@ export const industryRules: Record<
       ],
     },
   },
-  luxury: {},
-  tech: {},
-  general: {},
+  luxury: {
+    interactionWhitelist: [
+      'none',
+      'passive-presence',
+      'cropped-hand',
+      'supported-hold',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+      'framed-presentation',
+      'resting-interaction',
+    ],
+  },
+  tech: {
+    interactionWhitelist: [
+      'none',
+      'passive-presence',
+      'cropped-hand',
+      'supported-hold',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+      'framed-presentation',
+      'applying-opening',
+      'resting-interaction',
+    ],
+  },
+  general: {
+    interactionWhitelist: [
+      'none',
+      'passive-presence',
+      'cropped-hand',
+      'supported-hold',
+      'holding',
+      'two-hand-hold',
+      'presenting',
+      'framed-presentation',
+      'applying-opening',
+      'resting-interaction',
+    ],
+  },
 };
