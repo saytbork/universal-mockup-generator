@@ -265,22 +265,25 @@ export function validateAndCorrectCapabilities(
 }
 
 /**
- * Builds the INTERACTION_CONSTRAINT or NO_HANDS_RULE prompt fragment
+ * Builds the hands constraint or no-hands rule prompt fragment
  * based on the current productInteraction value.
  *
- * This is injected once into the V2 pipeline in promptRouter.ts.
- * DO NOT inject PHYSICS_RULES here — it already lives in atmosphereResolver.ts.
+ * Rules:
+ * - Uses no forbidden API terms ("human", "person", "body")
+ * - Safe for all industry profiles
+ * - Injected AFTER sanitizePromptForIndustry in promptRouter.ts
+ * - DO NOT inject PHYSICS_RULES here — it already lives in atmosphereResolver.ts.
  */
 export function buildInteractionConstraintFragment(
     productInteraction?: ProductInteraction
 ): string {
     if (!productInteraction || productInteraction === 'none') {
-        return 'NO_HANDS_RULE: No hands. No skin. No human shadows. No body fragments. No implied human presence.';
+        return 'NO_HANDS: No hands. No fingers. No skin. No shadows implying hands or arms. No limbs of any kind in the frame.';
     }
     return (
-        'INTERACTION_CONSTRAINT: Exactly one interaction mode is active. ' +
-        'No additional hands. No extra limbs. No human shadows unless interaction is explicitly active. ' +
-        'Hands must be natural and relaxed. No mannequin hands. No stiff fingers. ' +
-        'Product is always the visual hero — hands must never overpower the product.'
+        'HANDS_CONSTRAINT: One single hand interaction only. ' +
+        'No additional hands. No extra limbs. No extra arms. ' +
+        'Hands must be natural and relaxed — no stiff fingers, no theatrical gestures. ' +
+        'Product is the visual hero. Hands must never overpower the product.'
     );
 }

@@ -1043,12 +1043,16 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   console.log('[STUDIO ROUTER] v2-state', v2State);
   const v2Prompt = generateStudioPromptV2(v2State);
 
-  // Inject unified interaction constraint / no-hands rule (once, after V2 engine output).
-  // DO NOT inject PHYSICS_RULES here — it already lives in atmosphereResolver.ts.
-  const interactionConstraint = buildInteractionConstraintFragment(state.productInteraction);
-  const promptWithConstraint = `${v2Prompt} ${interactionConstraint}`.trim();
+  // Sanitize first (wine/coffee forbidden patterns run against v2 output only).
+  const sanitizedPrompt = sanitizePromptForIndustry(v2Prompt, v2State.visualProfile as IndustryProfile);
 
-  const prompt = sanitizePromptForIndustry(promptWithConstraint, v2State.visualProfile as IndustryProfile);
+  // Inject hands constraint AFTER sanitize so it is never stripped by industry filters.
+  // Skip for wine — wine enforces interaction=none at the router level already.
+  // DO NOT inject PHYSICS_RULES here — it already lives in atmosphereResolver.ts.
+  const skipConstraint = v2State.visualProfile === 'wine';
+  const prompt = skipConstraint
+    ? sanitizedPrompt
+    : `${sanitizedPrompt} ${buildInteractionConstraintFragment(state.productInteraction)}`.trim();
   if (v2State.visualProfile === 'coffee' && !/\bCOFFEE_PACKAGING_MODE\b/.test(prompt)) {
     console.warn('[COFFEE PACKAGING GUARD MISSING]');
   }
