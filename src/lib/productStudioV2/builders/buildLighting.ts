@@ -1,5 +1,14 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
+/** Maps basic lighting selector values to natural-language descriptions for the image model. */
+const BASIC_LIGHTING_MAP: Record<string, string> = {
+  'natural-light': 'natural diffused daylight with realistic directional shadow falloff',
+  'overcast': 'overcast diffused daylight with flat soft shadows and even illumination',
+  'cozy-indoors': 'warm indoor ambient light with gentle mixed-source shadows and soft highlights',
+  'ring-light': 'ring light frontal fill with even exposure and circular catchlights',
+  'clinical-softbox': 'conversion softbox wrap with label-priority separation',
+};
+
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   if (state?.visualProfile === 'coffee') {
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
@@ -27,6 +36,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   }
 
   const override = String(state?.lightingModelOverride || '').trim();
+  const basicLighting = String(state?.basicLighting || '').trim().toLowerCase();
   const photoMode = String(state?.photoMode || '').trim().toLowerCase();
   const isBeachFoamMode = photoMode === 'beach foam splash';
   const splashAdMode = Boolean(state?.splashAdMode);
@@ -34,6 +44,9 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   
   if (override) {
     parts.push(`STUDIO_LIGHTING_PROFILE: ${override}.`);
+  } else if (basicLighting && BASIC_LIGHTING_MAP[basicLighting]) {
+    // Basic lighting selector — user explicit choice, always wins over world inference
+    parts.push(`STUDIO_LIGHTING_PROFILE: ${BASIC_LIGHTING_MAP[basicLighting]}.`);
   } else {
     const lightingModel = (() => {
       if (photoMode === 'underwater split') {

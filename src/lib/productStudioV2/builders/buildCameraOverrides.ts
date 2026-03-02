@@ -31,12 +31,22 @@ function resolveDepthStyle(distance: string, cameraSystem: string): string {
   return 'balanced optical depth falloff';
 }
 
+/** Maps viewpoint selector values to natural-language directives. */
+const VIEWPOINT_MAP: Record<string, string> = {
+  'eye-level': 'eye-level straight-on — camera at product mid-height, parallel to ground',
+  'top-down': 'top-down overhead — camera directly above product, 90° looking down',
+  'human-pov': 'human point-of-view — slight downward angle as seen by a standing person',
+  'suspended': 'suspended floating — camera slightly below product equator, looking upward',
+  'display-view': 'display-optimized — slight elevated front angle for shelf/display legibility',
+};
+
 export function buildCameraOverrides(state?: StudioUIState): string {
   const cameraSystem = String(state?.cameraSystem || state?.cameraSystemOverride || '').trim();
   const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
   const distance = String(state?.cameraDistance || state?.distanceOverride || '').trim();
   const rotation = String(state?.cameraRotation || state?.rotationOverride || '').trim();
   const framingGuide = String(state?.framingGuide || state?.framingGuideOverride || '').trim();
+  const viewpoint = String(state?.viewpoint || '').trim().toLowerCase();
 
   if (!cameraSystem || !angle || !distance || !rotation || !framingGuide) return '';
 
@@ -44,7 +54,7 @@ export function buildCameraOverrides(state?: StudioUIState): string {
   const distortion = resolveDistortion(distance);
   const depthStyle = resolveDepthStyle(distance, cameraSystem);
 
-  return [
+  const parts = [
     `STUDIO_CAMERA_SYSTEM: ${cameraSystem}.`,
     `STUDIO_CAMERA_ANGLE: ${angle}.`,
     `STUDIO_CAMERA_DISTANCE: ${distance}.`,
@@ -55,5 +65,12 @@ export function buildCameraOverrides(state?: StudioUIState): string {
     `ROTATION: ${rotation}.`,
     `STUDIO_FRAMING_GUIDE: ${framingGuide}.`,
     `FRAMING: ${framingGuide}.`,
-  ].join(' ');
+  ];
+
+  // Viewpoint injection — last-selection-wins, overrides implicit angle when specified
+  if (viewpoint && VIEWPOINT_MAP[viewpoint]) {
+    parts.push(`STUDIO_VIEWPOINT: ${VIEWPOINT_MAP[viewpoint]}.`);
+  }
+
+  return parts.join(' ');
 }

@@ -174,4 +174,17 @@ export interface StudioUIState {
     enabled: boolean;
     primaryProductId?: string;
   };
+  // ── Menu option injections ──────────────────────────────────────────────────
+  /** Basic lighting selector: natural-light | overcast | cozy-indoors | ring-light */
+  basicLighting?: string;
+  /** Viewpoint: eye-level | top-down | human-pov | suspended | display-view */
+  viewpoint?: string;
+  /** Physical placement: surface | held | supported | air-suspended */
+  physicalPlacement?: string;
+  /** Physical Presence — container material: plastic | metal | glass | rubber | mixed */
+  productMaterial?: string;
+  /** Physical Presence — product color descriptor (free text) */
+  productColor?: string;
+  /** Physical Presence — product form scale: small | medium | large */
+  productFormScale?: string;
 }

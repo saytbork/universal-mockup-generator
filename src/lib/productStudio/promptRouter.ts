@@ -90,9 +90,11 @@ function inferSubjectOrientation(state: ProductStudioState): StudioUIState['subj
 function inferLightingOverride(state: ProductStudioState): string | undefined {
   const rig = String((state as any).lightingRig || '').trim();
   const style = String((state as any).lighting || '').trim();
+  // lightingModelOverride is PRO-MODE ONLY — it contains technical rig descriptors.
+  // Basic lighting selector (natural-light / overcast / etc.) is handled via basicLighting field.
   if (rig && style) return `${rig}; ${style}`;
   if (rig) return rig;
-  if (style) return style;
+  // Do NOT forward basic lighting as lightingModelOverride — buildLighting reads basicLighting instead.
   return undefined;
 }
 
@@ -895,6 +897,27 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           productReferencePresent: Array.isArray(state.products) && state.products.length > 0,
         }
       : {}),
+    // ── Menu option injections (last-selection-wins, read directly from state) ──
+    ...(() => {
+      const extras: Record<string, string> = {};
+      // Basic lighting selector (natural-light / overcast / cozy-indoors / ring-light)
+      const basicLighting = String((state as any).lighting || '').trim();
+      if (basicLighting) extras.basicLighting = basicLighting;
+      // Viewpoint (eye-level / top-down / human-pov / suspended / display-view)
+      const viewpoint = String((state as any).viewpoint || '').trim();
+      if (viewpoint) extras.viewpoint = viewpoint;
+      // Physical placement (surface / held / supported / air-suspended)
+      const physicalPlacement = String((state as any).placement || (state as any).physicalPlacement || '').trim();
+      if (physicalPlacement) extras.physicalPlacement = physicalPlacement;
+      // Physical Presence sub-options
+      const productMaterial = String((state as any).productMaterial || '').trim();
+      if (productMaterial) extras.productMaterial = productMaterial;
+      const productColor = String((state as any).productColor || '').trim();
+      if (productColor) extras.productColor = productColor;
+      const productFormScale = String((state as any).productFormScale || (state as any).productScale || '').trim();
+      if (productFormScale) extras.productFormScale = productFormScale;
+      return extras;
+    })(),
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];
