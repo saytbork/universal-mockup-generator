@@ -2745,133 +2745,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-6">
-              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  <Chip
-                    onClick={() => {
-                      productStore.setEnvironmentContext(null);
-                      markSectionTouched('product-setup');
-                    }}
-                    selected={productStore.environmentContext == null}
-                  >
-                    Photo Studio
-                  </Chip>
-                  <Chip
-                    onClick={() => {
-                      productStore.setEnvironmentContext({
-                        macro: (productStore.environmentContext?.macro as any) ?? 'kitchen',
-                        micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
-                      });
-                      markSectionTouched('product-setup');
-                      setOpenAccordionId('product-environment');
-
-                      // Mobile: after expanding, force-scroll to the top of the accordion (not the end of its content).
-                      // Use 'auto' to avoid Safari/iOS smooth-scroll anchoring quirks during layout transitions.
-                      const pinToTop = () => {
-                        const container = document.getElementById('product-environment');
-                        if (!container) return;
-                        const top = container.getBoundingClientRect().top + window.scrollY - 12;
-                        window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
-                      };
-
-                      requestAnimationFrame(() => {
-                        pinToTop();
-                        requestAnimationFrame(pinToTop);
-                      });
-                    }}
-                    selected={productStore.environmentContext != null}
-                  >
-                    Environment
-                  </Chip>
-                </div>
-              </div>
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
-                <div className="flex flex-wrap gap-2">
-                  {([
-                    { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
-                    { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
-                    { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
-                  ] as const).map(opt => (
-                    <Chip
-                      key={opt.id}
-                      onClick={() => {
-                        productStore.setQualityProfile(opt.id as OutputQualityProfile);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={productStore.qualityProfile === opt.id}
-                      description={opt.desc}
-                    >
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                  Defines the global creative intent of the generated prompt.
-                </p>
-              </div>
-
-              {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
-              {!isProductMode && (
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
-                      <Chip
-                        key={type}
-                        onClick={() => {
-                          productStore.setSceneType(type);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={productStore.sceneType === type}
-                      >
-                        {type === 'studio-branding' ? 'Studio' :
-                          type === 'editorial-product' ? 'Editorial' :
-                            type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
-                      </Chip>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                    Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
-                  </p>
-                </div>
-              )}
-
-              {/* PHYSICAL PLACEMENT — Contextual to Photo Type + Photo Mode */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
-                <div className="flex flex-wrap gap-2">
-                  {placementOptions.map(opt => (
-                    <Chip
-                      key={opt.id}
-                      onClick={() => {
-                        if (!opt.enabled) return;
-                        productStore.setPlacement(opt.id as any);
-                        setPlacementCorrectionMessage(null);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={placementResolution.resolvedPlacement === opt.id}
-                      disabled={!opt.enabled}
-                      description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
-                    >
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
-                  Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
-                </p>
-                {placementCorrectionMessage && (
-                  <InterpretationNote message={placementCorrectionMessage} />
-                )}
-              </div>
 
               {/* ============================================================
-                   PRODUCT STUDIO CONTROLS (Studio Mode Only)
-                   Basic/Pro Visibility System
+                   1. INDUSTRY PROFILE — Defines everything that follows
                    ============================================================ */}
               {(productStore.sceneType === 'studio-branding' ||
                 productStore.sceneType === 'editorial-product' ||
@@ -2982,6 +2858,128 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           markSectionTouched('product-setup');
                         }}
                       />
+                    )}
+
+                    {/* ─── 2. PHOTO MODE ─────────────────────────── */}
+                    {/* ─── 3. OUTPUT PROFILE ──────────────────────── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
+                          { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
+                          { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
+                        ] as const).map(opt => (
+                          <Chip
+                            key={opt.id}
+                            onClick={() => {
+                              productStore.setQualityProfile(opt.id as OutputQualityProfile);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={productStore.qualityProfile === opt.id}
+                            description={opt.desc}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                        Defines the global creative intent of the generated prompt.
+                      </p>
+                    </div>
+
+                    {/* ─── 4. PHYSICAL PLACEMENT ──────────────────── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
+                      <div className="flex flex-wrap gap-2">
+                        {placementOptions.map(opt => (
+                          <Chip
+                            key={opt.id}
+                            onClick={() => {
+                              if (!opt.enabled) return;
+                              productStore.setPlacement(opt.id as any);
+                              setPlacementCorrectionMessage(null);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={placementResolution.resolvedPlacement === opt.id}
+                            disabled={!opt.enabled}
+                            description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
+                        Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
+                      </p>
+                      {placementCorrectionMessage && (
+                        <InterpretationNote message={placementCorrectionMessage} />
+                      )}
+                    </div>
+
+                    {/* ─── 5. PHOTO TYPE (technical — Studio vs Environment) ── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Chip
+                          onClick={() => {
+                            productStore.setEnvironmentContext(null);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={productStore.environmentContext == null}
+                        >
+                          Photo Studio
+                        </Chip>
+                        <Chip
+                          onClick={() => {
+                            productStore.setEnvironmentContext({
+                              macro: (productStore.environmentContext?.macro as any) ?? 'kitchen',
+                              micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
+                            });
+                            markSectionTouched('product-setup');
+                            setOpenAccordionId('product-environment');
+                            const pinToTop = () => {
+                              const container = document.getElementById('product-environment');
+                              if (!container) return;
+                              const top = container.getBoundingClientRect().top + window.scrollY - 12;
+                              window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+                            };
+                            requestAnimationFrame(() => {
+                              pinToTop();
+                              requestAnimationFrame(pinToTop);
+                            });
+                          }}
+                          selected={productStore.environmentContext != null}
+                        >
+                          Environment
+                        </Chip>
+                      </div>
+                    </div>
+
+                    {/* ─── SCENE TYPE — Hidden in Product Studio ──── */}
+                    {!isProductMode && (
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
+                            <Chip
+                              key={type}
+                              onClick={() => {
+                                productStore.setSceneType(type);
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.sceneType === type}
+                            >
+                              {type === 'studio-branding' ? 'Studio' :
+                                type === 'editorial-product' ? 'Editorial' :
+                                  type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
+                            </Chip>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                          Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
+                        </p>
+                      </div>
                     )}
 
                     {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
