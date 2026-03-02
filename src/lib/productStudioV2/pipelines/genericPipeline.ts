@@ -10,6 +10,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildCameraOverrides(state),
     buildComposition(authority, state),
     buildMotion(authority, state),
+    buildInteraction(authority, state),
     buildPhysics(authority, state),
     buildModifiers(modifiers, state),
     buildLighting(authority, state),
@@ -28,7 +29,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -43,6 +44,7 @@ export const genericPipeline = {
       buildCameraOverrides(state),
       buildComposition(authority, state),
       buildMotion(authority, state),
+      buildInteraction(authority, state),
       buildPhysics(authority, state),
       buildModifiers(modifiers, state),
       buildLighting(authority, state),

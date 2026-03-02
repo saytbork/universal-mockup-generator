@@ -944,7 +944,17 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     industryProfile,
     capabilityAllowedInteractions
   );
-  const resolvedInteractionInput = industryProfile === 'wine' ? 'none' : state.interaction;
+  // Priority: productStudioInteraction (from UI Physical Presence selector) > productInteraction
+  // (new unified field) > state.interaction (V1 legacy field).
+  // productStudioInteraction is what the Step3 UI emits — it is NOT automatically synced to
+  // state.interaction by the store, so we must read it explicitly here.
+  const productStudioInteractionRaw =
+    String((state as any).productStudioInteraction || '').trim() ||
+    String((state as any).productInteraction || '').trim();
+  const resolvedInteractionInput =
+    industryProfile === 'wine'
+      ? 'none'
+      : productStudioInteractionRaw || state.interaction;
   const interactionKey = String(resolvedInteractionInput || '').trim();
   const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
   const preferredCandidate =

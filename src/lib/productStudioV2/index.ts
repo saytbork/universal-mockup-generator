@@ -22,6 +22,7 @@ export {
   buildComposition,
   buildMotion,
   buildPhysics,
+  buildInteraction,
   buildModifiers,
   buildMaterials,
   buildPackaging,
@@ -45,6 +46,7 @@ import { buildComposition } from './builders/buildComposition.ts';
 import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
 import { buildPhysics } from './builders/buildPhysics.ts';
+import { buildInteraction } from './builders/buildInteraction.ts';
 import { buildModifiers } from './builders/buildModifiers.ts';
 import { buildLighting } from './builders/buildLighting.ts';
 import { buildMaterials } from './builders/buildMaterials.ts';
