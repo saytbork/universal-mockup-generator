@@ -45,6 +45,58 @@ export interface EnvironmentContext {
 
 export type ProductType = 'dummy' | 'capsules' | 'gummies' | 'drops' | 'powder' | 'skincare' | 'device' | 'custom';
 
+// ============================================================================
+// UNIFIED PRODUCT BEHAVIOR — Physical Form Factor + Presence + State + Interaction
+// ============================================================================
+
+/**
+ * PhysicalFormFactor: the container/packaging archetype of the product.
+ * Separate from ProductType (which encodes content/ingredient type).
+ * Keys the PRODUCT_CAPABILITIES map in productCapabilities.ts.
+ */
+export type PhysicalFormFactor =
+    | 'bottle'
+    | 'jar'
+    | 'pouch'
+    | 'box'
+    | 'dropper'
+    | 'can'
+    | 'tube'
+    | 'pump'
+    | 'spray'
+    | 'stick';
+
+/**
+ * PhysicalPresence: how/where the product exists in the scene geometry.
+ * Complements ProductPlacement with action-oriented states.
+ */
+export type PhysicalPresence =
+    | 'surface'
+    | 'held'
+    | 'poured'
+    | 'drop-action';
+
+/**
+ * ProductState: simplified product state for the unified behavior system.
+ * Subset of ProductStateMotion focused on cap/opening/dispensing logic.
+ */
+export type ProductState =
+    | 'static'
+    | 'opened'
+    | 'dispensed';
+
+/**
+ * ProductInteraction: simplified interaction type for the unified behavior system.
+ * Subset of the full `interaction` union, used by the capability validation layer.
+ */
+export type ProductInteraction =
+    | 'none'
+    | 'holding'
+    | 'two-hand-hold'
+    | 'presenting'
+    | 'capsule-display'
+    | 'applying';
+
 export type ProductColor = {
     hex: string;
     semanticName: string;
@@ -921,6 +973,20 @@ export type ProductStudioState = {
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;
+
+    // ========================================================================
+    // UNIFIED PRODUCT BEHAVIOR (physical form factor + presence + state + interaction)
+    // Optional: coexists with existing stateMotion / interaction / placement fields.
+    // Used by the capability validation layer in productCapabilities.ts.
+    // ========================================================================
+    /** Container/packaging archetype — keys the PRODUCT_CAPABILITIES map. */
+    physicalFormFactor?: PhysicalFormFactor;
+    /** How/where the product exists in the scene geometry (action-oriented). */
+    physicalPresence?: PhysicalPresence;
+    /** Simplified product state for cap/opening/dispensing coherence. */
+    productState?: ProductState;
+    /** Simplified interaction type validated against PhysicalFormFactor capabilities. */
+    productInteraction?: ProductInteraction;
 
     // ========================================================================
     // LEGACY (To be removed)

@@ -60,7 +60,12 @@ import type {
     CoffeeLightingTone,
     CoffeeMoodModifier,
     CoffeeSteamLevel,
+    PhysicalFormFactor,
+    PhysicalPresence,
+    ProductState,
+    ProductInteraction,
 } from './types';
+import { validateAndCorrectCapabilities } from './productCapabilities';
 import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
 
 
@@ -753,6 +758,12 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     paletteSource: 'brand',
     lighting: 'clinical-softbox',
     presetTier: 'basic',
+
+    // UNIFIED PRODUCT BEHAVIOR (optional fields — undefined = not yet set by user)
+    physicalFormFactor: undefined,
+    physicalPresence: undefined,
+    productState: undefined,
+    productInteraction: undefined,
 };
 
 // ============================================================================
@@ -917,6 +928,12 @@ type ProductStudioActions = {
     setStateMotion: (motion: ProductStateMotion) => void;
     setProMode: (enabled: boolean) => void;
     setPlacement: (placement: ProductPlacement) => void;
+
+    // Unified Product Behavior
+    setPhysicalFormFactor: (formFactor: PhysicalFormFactor) => void;
+    setPhysicalPresence: (presence: PhysicalPresence) => void;
+    setProductState: (state: ProductState) => void;
+    setProductInteraction: (interaction: ProductInteraction) => void;
     setViewpoint: (viewpoint: string) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
@@ -2181,6 +2198,86 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             return next;
         }),
+
+    // ── Unified Product Behavior setters ────────────────────────────────────
+
+    setPhysicalFormFactor: (formFactor) =>
+        set((state) => {
+            // When form factor changes, auto-validate all dependent fields
+            const presence = state.physicalPresence ?? 'surface';
+            const productState = state.productState ?? 'static';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalFormFactor: formFactor,
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setPhysicalPresence: (presence) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { physicalPresence: presence };
+            const productState = state.productState ?? 'static';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setProductState: (productState) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { productState };
+            const presence = state.physicalPresence ?? 'surface';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setProductInteraction: (productInteraction) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { productInteraction };
+            const presence = state.physicalPresence ?? 'surface';
+            const productState = state.productState ?? 'static';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
     setLens: (lens) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { lens };
