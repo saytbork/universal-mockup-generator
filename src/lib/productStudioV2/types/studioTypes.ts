@@ -187,4 +187,6 @@ export interface StudioUIState {
   productColor?: string;
   /** Physical Presence — product form scale: small | medium | large */
   productFormScale?: string;
+  /** Photo Mode dynamic sub-settings from photoModeConfig.dynamic (key→value pairs) */
+  photoModeDynamicSettings?: Record<string, string>;
 }

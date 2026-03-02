@@ -918,6 +918,22 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       if (productFormScale) extras.productFormScale = productFormScale;
       return extras;
     })(),
+    // ── Photo Mode dynamic sub-settings (last-selection-wins) ──
+    ...(() => {
+      const currentPhotoMode = state.photoMode as string | undefined;
+      if (!currentPhotoMode) return {};
+      const dynamicRaw = (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode];
+      if (!dynamicRaw || typeof dynamicRaw !== 'object') return {};
+      // Sanitize: strip empty values and customIngredients (handled separately)
+      const cleaned: Record<string, string> = {};
+      for (const [k, v] of Object.entries(dynamicRaw)) {
+        if (k === 'customIngredients') continue;
+        const key = String(k).trim().replace(/[^a-zA-Z0-9_\- ]/g, '');
+        const val = String(v ?? '').trim();
+        if (key && val) cleaned[key] = val;
+      }
+      return Object.keys(cleaned).length > 0 ? { photoModeDynamicSettings: cleaned } : {};
+    })(),
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];

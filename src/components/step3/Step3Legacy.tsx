@@ -2889,7 +2889,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           }}
                           description="Supplements industry defaults"
                         >
-                          Supplements (Default)
+                          Supplements
                         </Chip>
                         <Chip
                           selected={industryProfile === 'wine'}
@@ -4610,32 +4610,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                     placeholder="Describe the product category (min 3 words)"
                   />
-                )}
-              </div>
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
-                <div className="flex gap-2">
-                  {(['Without box', 'With box'] as const).map(option => (
-                    <Chip
-                      key={option}
-                      onClick={() => {
-                        updateValue('productPackaging', option);
-                        productStore.setPackagingMode(option === 'With box' ? 'with-box' : 'without-box');
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={
-                        option === 'With box'
-                          ? productStore.packagingMode === 'with-box'
-                          : productStore.packagingMode === 'without-box'
-                      }
-                    >
-                      {option}
-                    </Chip>
-                  ))}
-                </div>
-                {getInterpretationNote('shadow') && (
-                  <InterpretationNote message={getInterpretationNote('shadow')!} />
                 )}
               </div>
 
