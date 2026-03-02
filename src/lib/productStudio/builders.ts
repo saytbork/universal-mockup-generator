@@ -30,7 +30,7 @@ import type {
     CameraFraming,
 } from './types';
 
-import { routeStudioScenePrompt } from './promptRouter';
+import { routeStudioScenePrompt, isStudioV2Enabled } from './promptRouter';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
@@ -2340,7 +2340,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
 
@@ -2361,7 +2364,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
     for (const product of normalizedState.products) {
         let prompt = assembleSingleProductPrompt(normalizedState, product);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
 
@@ -2528,7 +2534,9 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
     if (normalizedState.bundle.enabled) {
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
         return prompt;
     }
 
@@ -2537,7 +2545,9 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
 
     let prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
     prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-    validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+    if (!isStudioV2Enabled()) {
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+    }
 
     return prompt;
 }
