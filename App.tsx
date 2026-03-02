@@ -58,6 +58,7 @@ import {
   type EcommercePdpSafeZone,
 } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
+import { isStudioV2Enabled } from '@/lib/productStudio/promptRouter';
 
 
 
@@ -5228,13 +5229,18 @@ If the model attempts to create a scene or environment, override it and force a 
           finalPrompt = jobs[0].prompt;
 
           // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
-          try {
-            validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
-          } catch (validationError) {
-            console.error('[PROMPT BLOCKED]', validationError);
-            setImageError(`Generation blocked: ${(validationError as Error).message}`);
-            setIsImageLoading(false);
-            return;
+          // Skip when V2 engine is active — V2 has its own internal validation policy
+          // that correctly handles hands/interaction. Running V1 forbidden-terms check
+          // on a V2 prompt incorrectly blocks hands even when interaction is active.
+          if (!isStudioV2Enabled()) {
+            try {
+              validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
+            } catch (validationError) {
+              console.error('[PROMPT BLOCKED]', validationError);
+              setImageError(`Generation blocked: ${(validationError as Error).message}`);
+              setIsImageLoading(false);
+              return;
+            }
           }
 
           console.log('[FINAL PRODUCT PROMPT]', finalPrompt);
