@@ -5700,7 +5700,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </PhysicalPresenceBlock>
       )}
 
-      {mode === 'studio' && (
+      {(mode === 'studio' || uiActiveEngine === 'studio') && (
       <MotionInteractionBlock
         icon={Activity}
         description="What the product is doing."
