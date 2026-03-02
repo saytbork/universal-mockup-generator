@@ -1113,6 +1113,8 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   console.log('[STUDIO ROUTER] engine=v2');
   const v2State = toStudioV2State(state);
   console.log('[STUDIO ROUTER] v2-state', v2State);
+  console.log('[STUDIO ROUTER] v2State.photoMode =', JSON.stringify(v2State.photoMode));
+  console.log('[STUDIO ROUTER] raw state.photoMode =', JSON.stringify(state.photoMode));
   const v2Prompt = generateStudioPromptV2(v2State);
 
   // Sanitize for industry-specific forbidden patterns (wine/coffee).

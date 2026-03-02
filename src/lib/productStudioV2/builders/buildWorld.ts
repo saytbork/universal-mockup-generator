@@ -94,6 +94,8 @@ export function buildWorld(
   // Photo Mode takes scene authority — if a photo mode has a scene, emit it and skip generic studio
   const photoMode = String(state?.photoMode || '').trim();
   const photoModeScene = photoMode ? PHOTO_MODE_SCENE_MAP[photoMode] : undefined;
+  // eslint-disable-next-line no-console
+  console.log('[buildWorld] photoMode=', JSON.stringify(photoMode), '| found=', !!photoModeScene);
   if (photoModeScene) {
     return `PHOTO_MODE_SCENE: ${photoModeScene}. SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
   }
