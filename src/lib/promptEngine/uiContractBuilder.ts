@@ -252,37 +252,37 @@ export const SCENE_TYPE_UI_CONFIG: Record<SceneType, SceneTypeUIConfig> = {
         label: 'Studio Packshot',
         description: 'Clean product shot on studio background',
         tier: 'basic',
-        icon: '📦'
+        icon: 'box'
     },
     editorial_product: {
         label: 'Editorial',
         description: 'Styled product photography with props',
         tier: 'pro',
-        icon: '✨'
+        icon: 'sparkles'
     },
     lifestyle_product: {
         label: 'Lifestyle',
         description: 'Product in natural environment',
         tier: 'basic',
-        icon: '🏠'
+        icon: 'home'
     },
     ugc_phone: {
         label: 'UGC Phone',
         description: 'Authentic smartphone-style photo',
         tier: 'pro',
-        icon: '📱'
+        icon: 'smartphone'
     },
     ecommerce_blank_space: {
         label: 'Ecommerce',
         description: 'Product with space for text overlay',
         tier: 'pro',
-        icon: '🛒'
+        icon: 'shopping-cart'
     },
     bundle_kit: {
         label: 'Bundle Kit',
         description: 'Multiple products together',
         tier: 'pro',
-        icon: '📦📦'
+        icon: 'boxes'
     }
 };
 

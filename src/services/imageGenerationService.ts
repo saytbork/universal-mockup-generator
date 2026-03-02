@@ -66,7 +66,7 @@ export async function generateImageWithGemini({
     const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
     if (isDevelopment) {
-        console.log('🔧 Development mode: Using local backend...');
+        console.log('[Development mode] Using local backend...');
 
         // Prepare model reference from file if needed
         let finalPersonIdentityPackage = personIdentityPackage;

@@ -11,9 +11,12 @@ export type LightingBuildOptions = {
   qualityProfile?: 'luxury-brand' | 'ecommerce-conversion' | 'clinical';
   authority?: AuthorityResolution;
   strictRigLock?: boolean;
+  splashAdMode?: boolean;
+  splashAdPeakMode?: boolean;
 };
 
 export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, options: LightingBuildOptions = {}): string {
+  const splashAdMode = options.splashAdMode === true;
   const authorityLighting = options.authority?.lighting;
   const authorityLine = authorityLighting
     ? `LIGHTING AUTHORITY: ${authorityLighting}.`
@@ -119,9 +122,19 @@ export function buildLighting(mode: PhotoModeKey, randomizer: Randomizer, option
     : qualityProfile === 'clinical'
       ? 'Lighting priority: clinical precision, neutral color response, and contamination-free highlight behavior.'
       : 'Lighting priority: sculpted campaign lighting with dimensional depth and controlled specular highlights. Allow directional shaping and subtle atmosphere depth while maintaining product truth. Require directional key, soft fill, controlled rim, and micro specular highlights.';
+  const splashAdLighting = splashAdMode
+    ? [
+      'SPLASH_AD_LIGHTING: slightly increase contrast ratio and specular highlight crispness.',
+      'Allow micro edge highlights on droplets while preserving product geometry lock and reference integrity.',
+      options.splashAdPeakMode
+        ? 'Peak freeze: raise volumetric contrast priority to preserve kinetic readability.'
+        : '',
+    ].filter(Boolean).join(' ')
+    : '';
+
   if (options.override?.text) {
-    return [authorityLine, base.join(' '), chosen, profileText, options.override.text].filter(Boolean).join(' ');
+    return [authorityLine, base.join(' '), chosen, profileText, splashAdLighting, options.override.text].filter(Boolean).join(' ');
   }
 
-  return [authorityLine, base.join(' '), chosen, profileText].filter(Boolean).join(' ');
+  return [authorityLine, base.join(' '), chosen, profileText, splashAdLighting].filter(Boolean).join(' ');
 }

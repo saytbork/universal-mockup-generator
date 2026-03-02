@@ -23,13 +23,13 @@ export default function CreatorSkinPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Skin
       </h3>
 
       <div className="flex flex-col gap-2">
         <span className="text-gray-600 text-sm">Skin Tone</span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2">
           {skinTones.map((tone) => {
             const isActive = creator.skinTone === tone;
 
@@ -52,7 +52,7 @@ export default function CreatorSkinPanel() {
 
       <div className="flex flex-col gap-2">
         <span className="text-gray-600 text-sm">Skin Realism</span>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="flex flex-wrap gap-2">
           {skinRealismOptions.map((option) => {
             const isActive = creator.skinRealism === option;
 

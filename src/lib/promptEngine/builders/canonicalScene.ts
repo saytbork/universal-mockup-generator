@@ -17,6 +17,12 @@ export interface SceneNarrativeSections {
     identity?: string;
 }
 
+interface SceneNarrativeExtras {
+    identity?: string;
+    constraints?: string;
+    lifestyleProfessionalBias?: string;
+}
+
 const creationModeCopy: Record<string, string> = {
     // Keep lifestyle wording free of explicit "human" to avoid leaking into product-mode guards
     lifestyle: 'Lifestyle environment with the product integrated naturally into the scene.',
@@ -80,7 +86,7 @@ export class SceneNarrativeBuilder {
 
     build(
         options: PromptOptions,
-        extras: { identity?: string; constraints?: string } = {}
+        extras: SceneNarrativeExtras = {}
     ): SceneNarrativeSections {
         const creationIntent = this.buildCreationIntent(options);
         const creationMode = this.buildCreationMode(options);
@@ -88,7 +94,10 @@ export class SceneNarrativeBuilder {
         const formulationStory = this.buildFormulationStory(options);
         const ecommerceBuilder = this.buildEcommerceBuilder(options);
         const cameraFraming = this.buildCameraFraming(options, extras.constraints);
-        const environmentLightingMood = this.buildEnvironmentLightingMood(options);
+        const environmentLightingMood = this.buildEnvironmentLightingMood(
+            options,
+            extras.lifestyleProfessionalBias
+        );
 
         return {
             creationIntent,
@@ -344,6 +353,15 @@ export class SceneNarrativeBuilder {
             ].join(' ');
         }
 
+        // Check if user selected "Holding" interaction
+        const isHoldingProduct = options.productInteraction === 'Holding';
+        
+        // If user selected "Holding", allow active product holding
+        // Otherwise, product should be incidental and secondary
+        const productGuidance = isHoldingProduct
+            ? 'The person holds the product naturally as part of the ritual scene. The product is visible and clear, but the ritual activity remains the primary focus.'
+            : 'If a product appears, it must be incidental and secondary (never a hero packshot).';
+
         return [
             'RITUAL MODE: Lifestyle ritual scene.',
             `Depict a wellness ritual such as ${ritualList}.`,
@@ -352,7 +370,7 @@ export class SceneNarrativeBuilder {
             coupleStagingCopy,
             postureCopy,
             ...constraintLines,
-            'If a product appears, it must be incidental and secondary (never a hero packshot).'
+            productGuidance
         ].join(' ');
     }
 
@@ -366,14 +384,20 @@ export class SceneNarrativeBuilder {
             return 'Lifestyle environment composition with no visible product packaging anywhere in frame.';
         }
 
-        // Ritual Hero Canvas: neutral background + hero placement (Lifestyle-only).
-        // Only active when the user explicitly enables the Hero canvas (neutral background + placement).
-        if (!isProductMode && options.ritualModeActive && options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
-            return [
-                'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
-                'Hero placement: centered composition with clean negative space and intentional framing.',
-                'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
-            ].join(' ');
+        // Ritual Mode: action-first composition (Lifestyle-only)
+        if (!isProductMode && options.ritualModeActive) {
+            // Ritual Hero Canvas: neutral background + hero placement
+            if (options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag) {
+                return [
+                    'RITUAL HERO CANVAS (HARD RULE): neutral seamless background with no location cues.',
+                    'Hero placement: centered composition with clean negative space and intentional framing.',
+                    'If the product is visible, it must be placed cleanly and coherently within the hero layout (not cluttered).'
+                ].join(' ');
+            }
+            // Regular Ritual Mode: action and environment-first
+            return options.ritualHideProduct
+                ? 'Lifestyle ritual composition focused purely on the wellness action and environment. Product-free scene.'
+                : 'Lifestyle ritual composition focused on the wellness action first. If product appears, it must be naturally integrated and secondary to the ritual action.';
         }
 
         // Ecommerce canvas overlay (background replacement) can coexist with environment controls.
@@ -387,7 +411,7 @@ export class SceneNarrativeBuilder {
             ].join(' ');
         }
         if (!isProductMode && options.sceneIntent === 'environment') {
-            return 'Environment-first lifestyle composition with the product grounded in a natural space, avoiding hero or studio framing.';
+            return 'Lifestyle composition in a real environment, guided strictly by selected composition and camera controls.';
         }
         const mode = options.creationMode;
         const copy = creationModeCopy[mode] || (isProductMode ? creationModeCopy.studio : creationModeCopy.lifestyle);
@@ -519,7 +543,8 @@ export class SceneNarrativeBuilder {
     }
 
     private buildCameraFraming(options: PromptOptions, constraints?: string): string {
-        if (options.creationMode === 'lifestyle' && options.contentStyle === 'ugc' && options.ugcRealModeActive) {
+        const isUgcVisualMode = options.visualMode === 'ugc';
+        if (options.creationMode === 'lifestyle' && isUgcVisualMode) {
             return constraints ? constraints : '';
         }
 
@@ -533,14 +558,15 @@ export class SceneNarrativeBuilder {
             cameraType: (options as any).cameraType,
             placementCamera: (options as any).placementCamera,
             productAssets: options.productAssets,
+            visualMode: options.visualMode,
             ugcMode:
-                options.contentStyle === 'ugc' ||
-                options.creationIntent === 'ugc' ||
-                Boolean(options.ugcRealModeActive) ||
-                Boolean(options.rawDomesticUgcActive)
+                isUgcVisualMode
         });
         const parts: string[] = [];
-        const suppressCameraDescriptors = !!options.ugcRealModeActive;
+        const suppressCameraDescriptors = isUgcVisualMode;
+        const selectedComposition =
+            String((options as any).compositionModeStructural || '').trim() ||
+            String(options.compositionMode || '').trim();
 
         if (options.sceneStructure?.cameraLock) {
             const lock = options.sceneStructure.cameraLock;
@@ -566,6 +592,9 @@ export class SceneNarrativeBuilder {
         if (!suppressCameraDescriptors && options.cameraShot) {
             parts.push(`Shot type: ${options.cameraShot}.`);
         }
+        if (selectedComposition) {
+            parts.push(`Composition: ${selectedComposition}.`);
+        }
         const verticalFillRule = String((options as any).verticalFillRule || '').trim();
         if (verticalFillRule) {
             parts.push(verticalFillRule);
@@ -578,7 +607,7 @@ export class SceneNarrativeBuilder {
             parts.push(
                 'Capture is professional and controlled: stabilized camera on tripod or rig, intentional framing, clean exposure, accurate color, and studio-grade lighting discipline. No motion wobble, no accidental framing, and no casual artifacts.'
             );
-        } else if (options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+        } else if (!isUgcVisualMode) {
             parts.push(
                 'This scene is captured using professional-grade camera equipment only, such as DSLR or mirrorless cameras, cinema cameras, or medium format systems. Framing and shot selection are intentional and precise, with a clearly defined shot type and camera angle. The camera is fully stabilized, either on a tripod or controlled rig, with smooth, deliberate movement if any. Lighting is studio-grade or professionally controlled, producing clean exposure, accurate colors, and natural depth. The image must not resemble user-generated content in any way. Exclude all casual, handheld, selfie-based, phone-captured, webcam-style, or amateur artifacts.'
             );
@@ -590,7 +619,10 @@ export class SceneNarrativeBuilder {
         return parts.join(' ');
     }
 
-    private buildEnvironmentLightingMood(options: PromptOptions): string {
+    private buildEnvironmentLightingMood(
+        options: PromptOptions,
+        lifestyleProfessionalBias?: string
+    ): string {
         const isProductMode =
             options.creationIntent === 'product' ||
             options.contentStyle === 'product' ||
@@ -667,7 +699,7 @@ export class SceneNarrativeBuilder {
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
         const compositionModeStructural = (options as any).compositionModeStructural || '';
-        const cameraDeviceSemantic = isLifestyleUgc ? '' : ((options as any).cameraDeviceSemantic || '');
+        const cameraDeviceSemantic = '';
 
         const environmentPhrase = formatEnvironmentPhrase(environmentText);
         const backgroundLine =
@@ -680,6 +712,7 @@ export class SceneNarrativeBuilder {
                 : '';
 
         const narrativeParts = [
+            lifestyleProfessionalBias ? lifestyleProfessionalBias : '',
             creationModeStructural ? `Creation: ${creationModeStructural}.` : '',
             compositionModeStructural ? `Composition: ${compositionModeStructural}.` : '',
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',

@@ -4,9 +4,10 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { checkAuth } from '../server/lib/checkAuth.js';
-import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail } from '../server/lib/store.js';
+import { consumeCredit, refundCredit, getUser, getEffectiveCredits, isUnlimitedCreditsEmail, type UserRecord } from '../server/lib/store.js';
 import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
+import { bucket } from '../server/lib/firebaseAdmin.js';
 import sharp from 'sharp';
 
 const parseBody = async (req: VercelRequest) => {
@@ -21,6 +22,11 @@ const parseBody = async (req: VercelRequest) => {
   } catch {
     return {};
   }
+};
+
+const normalizePlan = (plan?: string | null): string => {
+  const raw = String(plan ?? '').trim().toLowerCase();
+  return raw || 'free';
 };
 
 const hasKV =
@@ -260,6 +266,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const authenticatedEmail = checkAuth(req);
+  const ADMIN_EMAILS = ['juanamisano@gmail.com', 'boostugc@gmail.com'];
+  const isAdminUser = authenticatedEmail ? ADMIN_EMAILS.includes(authenticatedEmail.toLowerCase().trim()) : false;
   const isAnonymousTrial = !authenticatedEmail;
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
@@ -320,11 +328,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isUnlimited = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
 
   const body = await parseBody(req);
+  // Defensive validation: payload size
+  const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_INLINE_IMAGES = 6; // 1 human reference + up to 5 product images
+  const MAX_INLINE_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB per image
+  const rawBodyString = JSON.stringify(body);
+  if (Buffer.byteLength(rawBodyString, 'utf8') > MAX_BODY_SIZE) {
+    res.status(413).json({ error: 'Payload too large (max 5MB)' });
+    return;
+  }
   const parts = Array.isArray(body.parts) ? body.parts : null;
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
+  console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
-  const apiKey = typeof body.apiKey === 'string' && body.apiKey.trim() ? body.apiKey.trim() : process.env.GOOGLE_API_KEY;
+  const imageStrength = typeof body.imageStrength === 'number' ? body.imageStrength : undefined;
+  const guidanceScale = typeof body.guidanceScale === 'number' ? body.guidanceScale : undefined;
+  const negativePrompt = typeof body.negativePrompt === 'string' ? body.negativePrompt : undefined;
+  console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
+  console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
+  console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
+  const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
+  const bodyApiKeyLength = typeof body.apiKey === 'string' ? body.apiKey.trim().length : 0;
+  console.log('[GENAI] GOOGLE_API_KEY length:', String(process.env.GOOGLE_API_KEY || '').trim().length);
+  console.log('[GENAI] body.apiKey length (ignored):', bodyApiKeyLength);
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -335,19 +362,67 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     : null;
 
+  // Model config (restored from 7695e35)
+  // No whitelist/fallback logic
+  const MODEL_WHITELIST = undefined; // Not used in this version
+  const DEFAULT_MODEL = 'gemini-2.0-flash-preview-image-generation';
+
+  // Validate parts structure
+  if (!Array.isArray(parts) || parts.length === 0) {
+    await addDebugLog('generate.reject.missing_parts', {
+      aspectRatio,
+  model,
+      promptHash: debugMeta?.promptHash,
+    }, email);
+    res.status(400).json({ error: 'Missing prompt parts' });
+    return;
+  }
+  let inlineImageCount = 0;
+  for (const part of parts) {
+    if (typeof part !== 'object' || (!('text' in part) && !('inlineData' in part))) {
+      res.status(400).json({ error: 'Invalid part structure' });
+      return;
+    }
+    if ('inlineData' in part) {
+      inlineImageCount++;
+      const data = part.inlineData?.data;
+      if (typeof data === 'string' && Buffer.byteLength(data, 'base64') > MAX_INLINE_IMAGE_SIZE) {
+        res.status(413).json({ error: 'Inline image too large (max 4MB)' });
+        return;
+      }
+    }
+  }
+  if (inlineImageCount > MAX_INLINE_IMAGES) {
+    res.status(413).json({ error: 'Too many inline images (max 1)' });
+    return;
+  }
+
+  // InlineData: always enable preserveReferenceImage when a product reference is present.
+  // Wine served mode no longer modifies the bottle — the reference image must always be preserved.
+  const hasInlineData = parts.some(part => 'inlineData' in part);
+  let effectivePreserveReferenceImage = preserveReferenceImage;
+  if (hasInlineData && !preserveReferenceImage) {
+    console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
+    effectivePreserveReferenceImage = true;
+  }
+
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {
       aspectRatio,
-      model,
+  model,
       promptHash: debugMeta?.promptHash,
     }, email);
-    res.status(400).json({ error: 'Missing API key' });
+    res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
+    return;
+  }
+  if (!apiKey.startsWith('AIza')) {
+    res.status(500).json({ error: 'GOOGLE_API_KEY invalid format (expected API key)' });
     return;
   }
   if (!parts || parts.length === 0) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-      model,
+  model,
       promptHash: debugMeta?.promptHash,
     }, email);
     res.status(400).json({ error: 'Missing prompt parts' });
@@ -379,13 +454,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   try {
     const generateWithRetry = async () => {
       const maxAttempts = 4;
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
+          // Restore model usage from 7695e35 (no safeModel)
           return await ai.models.generateContent({
             model,
             contents: { parts },
@@ -395,7 +474,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               generationConfig: {
                 responseMimeType: 'image/png',
                 aspectRatio,
-                preserveReferenceImage,
+                preserveReferenceImage: effectivePreserveReferenceImage,
+                ...(imageStrength !== undefined ? { imageStrength } : {}),
+                ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+                ...(negativePrompt !== undefined ? { negativePrompt } : {}),
                 temperature: 0.25,
                 topP: 0.9,
                 seed: crypto.randomUUID(),
@@ -433,16 +515,63 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!encodedImage) {
       throw new Error('Image generation failed.');
     }
-    const maybeWatermarkedImage = isAnonymousTrial
+    
+    // Determine user's plan for quality/watermark decisions
+    const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
+    const userPlan = userRecord ? normalizePlan(userRecord.plan) : 'anonymous';
+    const isFreePlan = userPlan === 'free' && !isUnlimited && !isAdminUser;
+    
+    // Apply watermark for anonymous trial users AND free plan users
+    const shouldApplyWatermark = (isAnonymousTrial || isFreePlan) && !isAdminUser && !isPreview;
+    const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
+
+    // 🔥 Reduce quality for free plan users (not paying subscribers)
+    // Free plan: reduced resolution + JPEG compression for lower storage costs
+    // Paid plans: full PNG quality
+    let buffer: Buffer;
+    let contentType = 'image/png';
+    if (isFreePlan && !isPreview) {
+      console.log('[QUALITY] Applying reduced quality for free plan user');
+      buffer = await sharp(Buffer.from(maybeWatermarkedImage, 'base64'))
+        .resize(1536, 1536, { fit: 'inside', withoutEnlargement: true }) // Max 1536px
+        .jpeg({ quality: 75, mozjpeg: true }) // JPEG with 75% quality
+        .toBuffer();
+      contentType = 'image/jpeg';
+    } else {
+      buffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    }
+    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${isFreePlan ? 'jpg' : 'png'}`;
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType,
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+    });
+
+    // Make file publicly accessible (fixes CORS)
+    await file.makePublic();
+    
+    // Use public URL instead of signed URL
+    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
     await addDebugLog('generate.success', {
       aspectRatio,
-      model,
+  model,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
+      imageUrl,
     }, email);
+
+    // imageBase64 is included in the response so the browser can render the image
+    // directly without a cross-origin fetch to Firebase Storage.
+    // The imageUrl is still returned for gallery/persistence use.
+    const responseImageBase64 = maybeWatermarkedImage;
+
     if (isAnonymousTrial) {
       let remaining = Math.max(anonymousRemaining - 1, 0);
       if (!bypassCreditLimits) {
@@ -468,7 +597,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       res.status(200).json({
         ok: true,
-        imageBase64: maybeWatermarkedImage,
+        imageUrl,
+        imageBase64: responseImageBase64,
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -476,7 +606,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const user = await getUser(authenticatedEmail!);
+    // Use userRecord fetched earlier (no need to call getUser again)
+    const user = userRecord!;
     if (creditResult?.bucket !== 'admin') {
       await addActivity(authenticatedEmail!, 'image', {
         kind: 'generation',
@@ -486,16 +617,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     res.status(200).json({
       ok: true,
-      imageBase64: maybeWatermarkedImage,
+      imageUrl,
+      imageBase64: responseImageBase64,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
       subscription_remaining: user.subscriptionRemaining ?? 0,
     });
   } catch (error: any) {
+    const rawErrorText = JSON.stringify(error || {}).toLowerCase();
+    const messageText = String(error?.message || '').toLowerCase();
+    const isApiKeyInvalid =
+      rawErrorText.includes('api_key_invalid') ||
+      rawErrorText.includes('api key not valid') ||
+      messageText.includes('api_key_invalid') ||
+      messageText.includes('api key not valid');
+    if (isApiKeyInvalid) {
+      console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
+        googleApiKeyLength: String(process.env.GOOGLE_API_KEY || '').trim().length,
+        vercelEnv,
+      });
+      res.status(500).json({
+        error: 'SERVER_GOOGLE_API_KEY_INVALID (Preview env key is invalid or restricted)',
+      });
+      return;
+    }
     await addDebugLog('generate.error', {
       aspectRatio,
-      model,
+  model,
       promptHash: debugMeta?.promptHash,
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,

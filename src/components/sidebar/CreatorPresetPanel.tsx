@@ -77,11 +77,11 @@ export default function CreatorPresetPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Creator Presets
       </h3>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="flex flex-wrap gap-2">
         {presets.map((p) => {
           const isActive = preset === p;
 

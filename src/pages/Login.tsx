@@ -68,12 +68,12 @@ export default function Login() {
   if (user) {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex items-center justify-center px-4">
-        <div className="w-full max-w-lg rounded-xl bg-white border border-gray-200 shadow-md shadow-md shadow-indigo-500/20 p-10 space-y-4 text-center">
+        <div className="w-full max-w-lg rounded-xl bg-white border border-gray-200  p-10 space-y-4 text-center">
           <h1 className="text-2xl font-semibold">You’re already signed in</h1>
           <p className="text-gray-600">Continue to your workspace.</p>
           <a
             href="/app"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 text-white px-6 py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white transition"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 text-white px-6 py-3 text-lg font-semibold  hover:bg-indigo-600 text-white transition"
           >
             Go to App
           </a>
@@ -88,7 +88,7 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-lg rounded-xl bg-white border border-gray-200 shadow-md shadow-md shadow-indigo-500/20 p-10 space-y-6"
+        className="w-full max-w-lg rounded-xl bg-white border border-gray-200  p-10 space-y-6"
       >
         <div className="space-y-2 text-center">
           <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</p>
@@ -133,7 +133,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-xl bg-indigo-600 text-white py-3 text-lg font-semibold shadow-md shadow-md shadow-indigo-500/20 hover:bg-indigo-600 text-white transition flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full rounded-xl bg-indigo-600 text-white py-3 text-lg font-semibold  hover:bg-indigo-600 text-white transition flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send Magic Link"}
           </button>

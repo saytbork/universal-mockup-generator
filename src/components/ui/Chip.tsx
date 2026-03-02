@@ -14,19 +14,20 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   size?: ChipSize;
   tone?: 'default' | 'warm';
   tooltip?: string;
+  description?: string;
 }
 
 const baseClass =
-  'inline-flex max-w-full items-center gap-1 rounded-xl border transition-all duration-300 whitespace-nowrap font-bold text-[10px] focus:outline-none min-w-0';
+  'inline-flex max-w-full items-center gap-1 rounded-xl border transition-all duration-300 whitespace-nowrap text-xs focus:outline-none min-w-0';
 
 const activeClass =
-  'border-indigo-600 bg-indigo-600 text-white shadow-lg';
+  'border-indigo-600 bg-indigo-600 text-white';
 
 const inactiveClass =
   'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:bg-white/5 dark:text-white/60 dark:border-white/10 dark:hover:border-white/30';
 
 const warmActiveClass =
-  'border-orange-500 bg-orange-500 text-white shadow-lg';
+  'border-orange-500 bg-orange-500 text-white';
 
 const warmInactiveClass =
   'border-orange-200 bg-orange-50/50 text-orange-700 hover:border-orange-300 dark:bg-orange-500/10 dark:text-orange-200 dark:border-orange-500/30 dark:hover:border-orange-500/50';
@@ -35,7 +36,7 @@ const disabledClass =
   'opacity-70 cursor-not-allowed pointer-events-none bg-gray-50/80 text-gray-400 border-gray-200 dark:bg-white/5 dark:text-white/40 dark:border-white/10';
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
-  ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, className = '', children, ...props }, ref) => {
+  ({ selected = false, disabled = false, size = 'sm', tone = 'default', tooltip, description, className = '', children, ...props }, ref) => {
     const classes = [
       baseClass,
       sizeMap[size],
@@ -70,7 +71,9 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       return { kind: 'text' as const, value: String(children) };
     })();
 
-    const safeTooltip = typeof tooltip === 'string' ? tooltip : undefined;
+    const safeTooltip = typeof tooltip === 'string'
+      ? tooltip
+      : (typeof description === 'string' ? description : undefined);
     const inferredTitle =
       safeTooltip ??
       props.title ??

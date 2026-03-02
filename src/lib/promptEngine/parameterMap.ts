@@ -32,8 +32,13 @@ export const cameraPresets = {
 export const parameterMap: ParameterMap = {
   cameraAngles: {
     fullBody: "full length shot of the subject, showing outfit, posture and action",
+    "Full body": "full length shot of the subject, showing outfit, posture and action",
     closeUp: "tight close up of the subject's face",
+    Close: "tight close up of the subject's face",
     extremeCloseUp: "extreme close up of a specific facial feature",
+    "Extreme close-up": "extreme close up of a specific facial feature",
+    Medium: "medium shot of the subject",
+    Wide: "wide shot showing the subject in environment",
     extremeLongShot: "extreme long shot showing the subject within the full environment",
     highAngleShot: "high angle shot looking down at the subject",
     birdsEyeView: "bird's eye view from top down",
@@ -144,6 +149,24 @@ export const parameterMap: ParameterMap = {
     "Laptop webcam (pro setup)": "captured through a laptop webcam in an intentional professional context such as a remote consultation"
   },
 
+  cameraShot: {
+    "Extreme close-up": "extreme close-up shot with tight framing and intimate detail",
+    "Close": "close-up shot focusing on the subject and product",
+    "Medium": "medium shot capturing upper body and context",
+    "Wide": "wide shot showing full scene and environment",
+    "Full body": "full body shot showing complete figure and action with the product"
+  },
+
+  cameraAngle: {
+    "Eye level": "eye level camera angle with natural perspective",
+    "Slightly above eye level": "slightly above eye level for subtle editorial elevation",
+    "Slightly below eye level": "slightly below eye level for empowered perspective",
+    "High angle": "high angle shot looking down at the subject",
+    "Low angle": "low angle shot looking up at the subject",
+    "Top-down": "top-down overhead perspective",
+    "Bottom-up": "bottom-up angle from below"
+  },
+
   cameraDistance: {
     macro: "extreme macro close up",
     close: "close up shot",
@@ -178,6 +201,10 @@ export const parameterMap: ParameterMap = {
   },
 
   compositionMode: {
+    "Product First": "product is the hero; person supports the story with product as primary focus",
+    "Balanced": "balanced composition with equal attention to product and person",
+    "Fifty / Fifty": "fifty-fifty split giving equal visual weight to product and model",
+    "Model First": "model is the hero; product is naturally integrated into the lifestyle moment",
     "Standard UGC": "standard UGC casual composition",
     "Cinematic UGC": "cinematic UGC composition with depth",
     "Ecommerce Blank Space": "ecommerce layout with clean blank space"

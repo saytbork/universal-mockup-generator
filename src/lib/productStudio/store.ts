@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { extractDominantColors } from './colorExtractor';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
+import { getPhotoModeCapabilities } from './capabilityResolver';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -48,7 +49,24 @@ import type {
     PhotoMode,
     PhotoModeConfig,
     ProductPlacement,
+    VisualProfile,
+    WineAction,
+    WineLightingTone,
+    WineMoodModifier,
+    WinePourStyle,
+    WineStyleArchetype,
+    CoffeeAction,
+    CoffeeMode,
+    CoffeeLightingTone,
+    CoffeeMoodModifier,
+    CoffeeSteamLevel,
+    PhysicalFormFactor,
+    PhysicalPresence,
+    ProductState,
+    ProductInteraction,
 } from './types';
+import { validateAndCorrectCapabilities } from './productCapabilities';
+import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
 
 
 // ============================================================================
@@ -115,6 +133,27 @@ const DEFAULT_CUSTOM: CustomPhysical = {
     color: DEFAULT_COLOR,
     scale: 'medium',
     propsAutoBlocked: true,
+};
+
+const normalizeSplashShotConfig = (
+    splashShot: PhotoModeConfig['splashShot']
+): PhotoModeConfig['splashShot'] => {
+    const motionIntensity = String(splashShot.motionIntensity || '').trim();
+    const splashAdMode = motionIntensity === 'Explosive';
+    if (splashAdMode) {
+        if (splashShot.productStability === 'Fully grounded') return splashShot;
+        return {
+            ...splashShot,
+            productStability: 'Fully grounded',
+        };
+    }
+    const dynamicSplashMode = motionIntensity === 'Dynamic';
+    if (!dynamicSplashMode) return splashShot;
+    if (splashShot.productStability !== 'Fully grounded') return splashShot;
+    return {
+        ...splashShot,
+        productStability: 'Slight interaction',
+    };
 };
 
 const mapQualityProfileToVisualIntent = (
@@ -261,7 +300,7 @@ function withInterpretationNote(
 function isMacroFraming(state: ProductStudioState, next?: { distance?: ProductStudioState['distance']; angle?: ProductStudioState['angle'] }): boolean {
     const distance = next?.distance ?? state.distance;
     const angle = next?.angle ?? state.angle;
-    return distance === 'macro' || angle === 'detail';
+    return distance === 'macro' || angle === 'detail_closeup';
 }
 
 function isInteractionIncompatibleWithMacro(interaction: ProductStudioState['interaction']): boolean {
@@ -292,9 +331,10 @@ function interactionNeedsHands(interaction: ProductStudioState['interaction']): 
 }
 
 function getPhotoModeAllowedInteractions(photoMode: PhotoMode): ProductStudioState['interaction'][] | null {
-    const allowed = PHOTO_MODE_SCHEMAS[photoMode]?.allowedInteractions;
-    if (!allowed || allowed.length === 0) return null;
-    return [...allowed] as ProductStudioState['interaction'][];
+    const schema = PHOTO_MODE_SCHEMAS[photoMode];
+    const { interactionCapability } = getPhotoModeCapabilities(photoMode, schema);
+    if (interactionCapability === 'none') return ['none'];
+    return null;
 }
 
 function getFallbackInteraction(allowed: ProductStudioState['interaction'][] | null): ProductStudioState['interaction'] {
@@ -316,6 +356,7 @@ function getAllowedMotionsForPhotoMode(photoMode: PhotoMode): ProductStateMotion
     if (photoMode === 'Dark Premium Studio') return ['static', 'opened'];
     if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
     if (photoMode === 'Pool Water') return ['static', 'opened'];
+    if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
     return null;
 }
 
@@ -525,7 +566,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
     },
     ingredientStack: {
         ingredientFocus: 'Key active only',
-        stackStyle: 'Vertical stack',
+        stackStyle: 'Surround',
         ingredientPresence: 'Balanced',
         labelPriority: 'Always readable',
         backgroundEnabled: false,
@@ -543,7 +584,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         splashMedium: 'Liquid',
         motionIntensity: 'Dynamic',
         freezeMoment: 'Mid-splash',
-        productStability: 'Fully grounded',
+        productStability: 'Slight interaction',
     },
     foamAndTexture: {
         textureType: 'Foam',
@@ -621,6 +662,20 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     ambientLighting: 'clinical-softbox',
 
     // 5️⃣ CREATIVE DIRECTION
+    category: '',
+    contextPreset: '',
+    visualProfile: 'default',
+    wineLightingTone: 'Warm Lateral',
+    wineMoodModifier: 'None',
+    wineAction: 'static-presentation',
+    winePourStyle: 'mid-flow-elegance',
+    wineStyleArchetype: null,
+    coffeeMode: 'studio',
+    coffeeAction: 'static',
+    coffeeLightingTone: 'auto',
+    coffeeMoodModifier: 'coffee-cinematic-luxury',
+    coffeeSteamLevel: 'auto',
+    coffeeLiquidPhysics: true,
     visualIntent: 'conversion',
     energyLevel: 'low',
     creativityLevel: 1,
@@ -634,11 +689,11 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     lightStyle: 'soft',
 
     // 6️⃣ CAMERA & FRAMING
-    cameraSystem: 'dslr',
-    angle: '45',
-    distance: 'medium',
-    rotation: 'none',
-    framing: 'centered',
+    cameraSystem: 'dslr_mirrorless',
+    angle: '45_hero',
+    distance: 'standard',
+    rotation: 0,
+    framing: 'centered_hero',
     cameraUiSystemLabel: 'DSLR / mirrorless',
     cameraUiAngleLabel: '45° hero',
     cameraUiDistanceLabel: 'Standard',
@@ -693,6 +748,9 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     viewpoint: 'eye-level',
     lens: '50mm Product Prime',
     lightingRig: 'Softbox Wrap',
+    lightColorTemp: 'Neutral (5000K)',
+    customLightColor: '',
+    accentLightIntensity: 50, // Default 50% intensity
     finish: 'High-Gloss Commercial',
 
     // LEGACY (To be removed)
@@ -700,6 +758,12 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     paletteSource: 'brand',
     lighting: 'clinical-softbox',
     presetTier: 'basic',
+
+    // UNIFIED PRODUCT BEHAVIOR (optional fields — undefined = not yet set by user)
+    physicalFormFactor: undefined,
+    physicalPresence: undefined,
+    productState: undefined,
+    productInteraction: undefined,
 };
 
 // ============================================================================
@@ -765,6 +829,20 @@ type ProductStudioActions = {
     setSceneType: (sceneType: SceneType) => void;
 
     // Creativity
+    setCategory: (category: string) => void;
+    setContextPreset: (preset: string) => void;
+    setVisualProfile: (profile: VisualProfile) => void;
+    setWineAction: (action: WineAction) => void;
+    setWinePourStyle: (style: WinePourStyle) => void;
+    setWineLightingTone: (tone: WineLightingTone) => void;
+    setWineMoodModifier: (modifier: WineMoodModifier) => void;
+    setWineStyleArchetype: (archetype: WineStyleArchetype | null) => void;
+    setCoffeeAction: (action: CoffeeAction) => void;
+    setCoffeeMode: (mode: CoffeeMode) => void;
+    setCoffeeLightingTone: (tone: CoffeeLightingTone) => void;
+    setCoffeeMoodModifier: (modifier: CoffeeMoodModifier) => void;
+    setCoffeeSteamLevel: (level: CoffeeSteamLevel) => void;
+    setCoffeeLiquidPhysics: (enabled: boolean) => void;
     setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
     setEnergyLevel: (level: ProductStudioState['energyLevel']) => void;
     setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
@@ -850,9 +928,18 @@ type ProductStudioActions = {
     setStateMotion: (motion: ProductStateMotion) => void;
     setProMode: (enabled: boolean) => void;
     setPlacement: (placement: ProductPlacement) => void;
+
+    // Unified Product Behavior
+    setPhysicalFormFactor: (formFactor: PhysicalFormFactor) => void;
+    setPhysicalPresence: (presence: PhysicalPresence) => void;
+    setProductState: (state: ProductState) => void;
+    setProductInteraction: (interaction: ProductInteraction) => void;
     setViewpoint: (viewpoint: string) => void;
     setLens: (lens: string) => void;
     setLightingRig: (rig: string) => void;
+    setLightColorTemp: (temp: string) => void;
+    setCustomLightColor: (color: string) => void;
+    setAccentLightIntensity: (intensity: number) => void;
     setFinish: (finish: string) => void;
     updatePhotoModeSubSetting: (mode: PhotoMode, category: string, value: string) => void;
 
@@ -1077,16 +1164,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 updates.customMicroPlaceText = '';
             }
 
-            // Map mode to sceneType (legacy compatibility)
-            const modeToSceneType: Record<typeof mode, SceneType> = {
-                'studio': 'studio-branding',
-                'editorial': 'editorial-product',
-                'lifestyle-real': 'lifestyle-real',
-                'ugc': 'ugc-phone',
-                'ecommerce': 'studio-branding',
-            };
-            updates.sceneType = modeToSceneType[mode];
-
             console.log(`[ProductStudio] MODE set to: ${mode}`);
             return updates;
         }),
@@ -1211,38 +1288,107 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     // Scene Type (Legacy)
     setSceneType: (sceneType) =>
-        set((state) => {
-            let newBundle = state.bundle;
-            // lifestyle-real forces bundle off
-            if (sceneType === 'lifestyle-real' && state.bundle.enabled) {
-                newBundle = { ...state.bundle, enabled: false };
-            }
-            // Lifestyle sceneType requires an active environment context.
-            // If environment is missing, keep Studio to avoid accidental mode switching.
-            const requestedSceneType =
-                sceneType === 'lifestyle-real' && state.environmentContext == null
-                    ? 'studio-branding'
-                    : sceneType;
-            // blankSpaceEnabled forces studio
-            const effectiveSceneType = state.blankSpaceEnabled ? 'studio-branding' : requestedSceneType;
-            const isStudioLike =
-                effectiveSceneType === 'studio-branding' ||
-                effectiveSceneType === 'studio-hero' ||
-                effectiveSceneType === 'ecommerce-pdp';
-            return {
-                sceneType: effectiveSceneType,
-                bundle: newBundle,
-                // studio forces neutral-surface
-                microPlace: effectiveSceneType === 'studio-branding' ? 'neutral-surface' : state.microPlace,
-                environmentContext: isStudioLike ? null : state.environmentContext,
-                environmentMacro: isStudioLike ? 'studio' : state.environmentMacro,
-                customEnvironmentText: isStudioLike ? '' : state.customEnvironmentText,
-                customMicroPlaceText: isStudioLike ? '' : state.customMicroPlaceText,
-                mode: isStudioLike ? 'studio' : state.mode,
-            };
-        }),
+        set(() => ({ sceneType })),
 
     // Creativity
+    setCategory: (category) => set({ category: String(category || '').trim() }),
+    setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
+    setVisualProfile: (profile) =>
+        set((state) => {
+            const normalizedProfile = (
+                profile === 'wine-prestige' || profile === 'wine'
+                    ? 'wine'
+                    : profile === 'coffee'
+                        ? 'coffee'
+                        : profile === 'supplements' || profile === 'default'
+                            ? 'supplements'
+                            : 'supplements'
+            ) as 'supplements' | 'wine' | 'coffee';
+            if (normalizedProfile === 'supplements') {
+                return {
+                    visualProfile: 'default',
+                    category: '',
+                    contextPreset: '',
+                    wineAction: 'static-presentation',
+                    coffeeMode: 'studio',
+                    coffeeAction: 'static',
+                    coffeeMoodModifier: 'coffee-cinematic-luxury',
+                };
+            }
+            if (normalizedProfile === 'coffee') {
+                return {
+                    visualProfile: 'coffee',
+                    coffeeMode: state.coffeeMode || 'studio',
+                    coffeeAction: state.coffeeAction || 'static',
+                    coffeeMoodModifier: state.coffeeMoodModifier || 'coffee-cinematic-luxury',
+                };
+            }
+            return {
+                visualProfile: 'wine-prestige',
+                category: state.category || 'Wine',
+                contextPreset: state.contextPreset || '',
+                wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)
+                    ? state.wineAction
+                    : 'static-presentation',
+                winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(state.winePourStyle as WinePourStyle)
+                    ? state.winePourStyle
+                    : 'mid-flow-elegance',
+                visualIntent: 'campaign',
+                composition: state.composition === 'centered' ? 'thirds' : state.composition,
+            };
+        }),
+    setWineAction: (action) =>
+        set((state) => {
+            const normalized: WineAction = action === 'controlled-pour' ? 'controlled-pour' : 'static-presentation';
+            const next: Partial<ProductStudioState> = { wineAction: normalized };
+            if (state.visualProfile === 'wine-prestige' && normalized === 'controlled-pour') {
+                next.stateMotion = 'static';
+            }
+            return next;
+        }),
+    setWinePourStyle: (style) => set({
+        winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(style as WinePourStyle)
+            ? style
+            : 'mid-flow-elegance',
+    }),
+    setWineLightingTone: (tone) => set({ wineLightingTone: tone }),
+    setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
+    setWineStyleArchetype: (archetype) =>
+        set((state) => {
+            if (!archetype) return { wineStyleArchetype: null };
+            const patch = getWineArchetypePatch(archetype);
+            if (!patch) return { wineStyleArchetype: null };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { _archetypeNarrative, ambientLighting: _al, ...visualFields } = patch;
+            // For Action Pour Photography: only apply wineAction if physics allow it
+            if (archetype === 'Action Pour Photography') {
+                const pourOk = isActionPourCompatible({
+                    wineBottleState: state.wineBottleState,
+                    wineClosureType: state.wineClosureType,
+                });
+                if (!pourOk) {
+                    delete (visualFields as Record<string, unknown>).wineAction;
+                }
+            }
+            return {
+                wineStyleArchetype: archetype,
+                ...(visualFields as Partial<ProductStudioState>),
+            };
+        }),
+    setCoffeeAction: (action) =>
+        set({
+            coffeeAction: action === 'controlled-pour' ? 'controlled-pour' : 'static',
+            stateMotion: action === 'controlled-pour' ? 'pouring' : 'static',
+        }),
+    setCoffeeMode: (mode) =>
+        set({
+            coffeeMode: mode === 'ritual' ? 'ritual' : 'studio',
+            visualIntent: mode === 'ritual' ? 'campaign' : 'conversion',
+        }),
+    setCoffeeLightingTone: (tone) => set({ coffeeLightingTone: tone }),
+    setCoffeeMoodModifier: (modifier) => set({ coffeeMoodModifier: modifier }),
+    setCoffeeSteamLevel: (level) => set({ coffeeSteamLevel: level }),
+    setCoffeeLiquidPhysics: (enabled) => set({ coffeeLiquidPhysics: Boolean(enabled) }),
     setVisualIntent: (intent) => set({ visualIntent: intent }),
     setEnergyLevel: (energyLevel) => set({ energyLevel }),
     setCreativityLevel: (level) => set({ creativityLevel: level }),
@@ -1278,8 +1424,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setAngle: (angle) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { angle };
-            if (state.photoMode === 'Foam & Texture' && (angle === 'top' || angle === 'detail')) {
-                next.angle = 'front';
+            if (state.photoMode === 'Foam & Texture' && (angle === 'top_down' || angle === 'detail_closeup')) {
+                next.angle = 'eye_level';
                 Object.assign(next, withInterpretationNote(state, 'angle', INTERPRETATION_MESSAGES.macroTexturesNoAerial));
             }
             if (isMacroFraming(state, { angle }) && isInteractionIncompatibleWithMacro(state.interaction)) {
@@ -1311,8 +1457,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setFraming: (framing) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { framing };
-            if (isTiltShiftLens(state.lens) && framing === 'rule-of-thirds') {
-                next.framing = 'centered';
+            if (isTiltShiftLens(state.lens) && framing === 'rule_of_thirds') {
+                next.framing = 'centered_hero';
                 Object.assign(next, withInterpretationNote(state, 'framing', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             return next;
@@ -1336,8 +1482,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     microPlace: 'neutral-surface',
                     customEnvironmentText: '',
                     customMicroPlaceText: '',
-                    mode: 'studio',
-                    sceneType: 'studio-branding',
                 };
             }
 
@@ -1370,8 +1514,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 environmentMacro: validatedMacro,
                 microPlace: validatedMicro ?? 'neutral-surface',
                 lighting: validatedLighting,
-                mode: validatedMacro === 'studio' ? 'studio' : 'lifestyle-real',
-                sceneType: validatedMacro === 'studio' ? 'studio-branding' : 'lifestyle-real',
             };
         });
     },
@@ -1398,12 +1540,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 lighting: validLighting,
             };
 
-            if (isRealEnvironment && state.mode === 'studio') {
-                updates.mode = 'lifestyle-real';
-                updates.sceneType = 'lifestyle-real';
-                console.log('[ProductStudio] UI LOCK: Real environment selected → Studio Creative disabled');
-            }
-
             return updates;
         }),
     setMicroPlace: (place) => set({ microPlace: place }),
@@ -1414,8 +1550,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (trimmed) {
                 updates.environmentContext = { macro: 'custom', micro: state.environmentContext?.micro ?? null };
                 updates.environmentMacro = 'custom';
-                updates.mode = 'lifestyle-real';
-                updates.sceneType = 'lifestyle-real';
             }
             return updates;
         }),
@@ -1438,7 +1572,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setBlankSpaceEnabled: (enabled) =>
         set((state) => ({
             blankSpaceEnabled: enabled,
-            sceneType: enabled ? 'studio-branding' : state.sceneType,
             microPlace: enabled ? 'neutral-surface' : state.microPlace,
             environmentContext: enabled ? null : state.environmentContext,
             environmentMacro: enabled ? 'studio' : state.environmentMacro,
@@ -1463,6 +1596,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 bundle: {
                     ...state.bundle,
                     enabled,
+                    mode: enabled ? (state.bundle.mode === 'off' ? 'hero' : state.bundle.mode) : 'off', // Auto-set to hero if currently off
                     primaryProductId: enabled ? primaryId : null,
                     secondaryProductIds: enabled ? secondaryIds : [],
                 },
@@ -1471,8 +1605,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
     setBundleMode: (mode) =>
         set((state) => {
-            // Basic tier restricts bundle modes
-            if (state.presetTier === 'basic' && mode !== 'off' && mode !== 'hero') {
+            // Only restrict in basic tier AND not in pro mode
+            const isProModeActive = state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+            if (state.presetTier === 'basic' && !isProModeActive && mode !== 'off' && mode !== 'hero') {
                 return { bundle: { ...state.bundle, mode: 'hero' } };
             }
             return { bundle: { ...state.bundle, mode } };
@@ -1539,7 +1674,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 // Apply basic tier restrictions
                 return {
                     presetTier: tier,
-                    sceneType: 'studio-branding',
                     propDensity: state.propDensity === 'medium' ? 'low' : state.propDensity,
                     bundle: state.bundle.mode !== 'off' && state.bundle.mode !== 'hero'
                         ? { ...state.bundle, mode: 'hero' }
@@ -1552,7 +1686,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     applyBasicPreset: () =>
         set({
             presetTier: 'basic',
-            sceneType: 'studio-branding',
             creativityLevel: 1,
             creativeTheme: 'clinical-minimal',
             propDensity: 'none',
@@ -1677,20 +1810,44 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Fruit Garnish / Citrus Accents',
                 'Textured Bed / Scatter Base',
                 'Floating Particles',
+                // Wine-exclusive photo modes
+                'Wine Macro Label',
+                'Bottle + Glass',
+                'Editorial Table',
+                'Winery Scene',
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+            const wineModeActive = isWinePrestigeMode(state);
+            const splashBlockedInWineMode =
+                wineModeActive &&
+                (resolvedMode === 'Splash Shot' ||
+                    resolvedMode === 'Beach Foam Splash' ||
+                    resolvedMode === 'Pool Water');
+            // Macro Dew Label is supplement-only — block it in wine engine
+            const macroDewBlockedInWineMode = wineModeActive && resolvedMode === 'Macro Dew Label';
+            const effectiveMode: PhotoMode = splashBlockedInWineMode || macroDewBlockedInWineMode
+                ? 'Hero Landing Page'
+                : resolvedMode;
             const hadEnvironmentEnabled = state.environmentContext != null;
             const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
             // Preserve environment only when the user is already in Lifestyle mode.
             // This prevents any stale env state from forcing Studio -> Lifestyle on photo mode changes.
             const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle;
-            const schema = PHOTO_MODE_SCHEMAS[resolvedMode];
-            const allowedInteractions = getPhotoModeAllowedInteractions(resolvedMode);
+            const schema = PHOTO_MODE_SCHEMAS[effectiveMode];
+            const allowedInteractions = getPhotoModeAllowedInteractions(effectiveMode);
             let resolvedPlacement: ProductPlacement = state.placement;
             let resolvedInteraction: ProductStudioState['interaction'] = state.interaction;
             let resolvedHandsHolding = state.handsHolding;
             const notes: Partial<ProductStudioState> = {};
+            
+            // CLEANUP: Clear props/ingredients when switching AWAY from ingredient modes
+            // Only these 3 modes use ingredients field:
+            const ingredientModes = ['Ingredient Stack', 'Ingredient Flat Lay', 'Ice Cubes'];
+            const wasIngredientMode = ingredientModes.includes(state.photoMode);
+            const isIngredientMode = ingredientModes.includes(effectiveMode);
+            const shouldClearProps = wasIngredientMode && !isIngredientMode;
+
 
             if (schema?.allowsPersonPresence === false && resolvedInteraction !== 'none') {
                 resolvedInteraction = 'none';
@@ -1727,7 +1884,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
 
             const common: Partial<ProductStudioState> = {
-                photoMode: resolvedMode,
+                photoMode: effectiveMode,
                 placement: resolvedPlacement,
                 // Preserve environment once user enables it from PHOTO TYPE.
                 environmentContext: shouldUseEnvironment
@@ -1735,13 +1892,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     : null,
                 handsHolding: resolvedHandsHolding,
                 interaction: resolvedInteraction,
+                // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
+                ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
                 ...notes,
             };
 
             // Keep motion coherent with photo mode compatibility matrix.
-            const allowedMotions = getAllowedMotionsForPhotoMode(resolvedMode);
+            const allowedMotions = getAllowedMotionsForPhotoMode(effectiveMode);
             if (allowedMotions && !allowedMotions.includes(state.stateMotion)) {
-                common.stateMotion = getFallbackMotionForPhotoMode(resolvedMode);
+                common.stateMotion = getFallbackMotionForPhotoMode(effectiveMode);
                 common.definition = applyCanonicalPhysicalForMotion(
                     state.definition,
                     common.stateMotion
@@ -1749,10 +1908,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 Object.assign(common, withInterpretationNote(state, 'stateMotion', 'Photo Mode requires a different product motion. Motion was adjusted automatically.'));
             }
 
-            if (resolvedMode === 'Hero Landing Page' && !shouldUseEnvironment) {
+            if (effectiveMode === 'Hero Landing Page' && !shouldUseEnvironment) {
                 const merged = {
                     ...common,
-                    sceneType: 'studio-hero',
                     proMode: false,
                     // Hero Landing Page rules: bundles are not allowed.
                     bundle: { ...state.bundle, enabled: false },
@@ -1766,15 +1924,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (shouldUseEnvironment) {
                 return {
                     ...common,
-                    sceneType: 'lifestyle-real',
-                    mode: 'lifestyle-real',
+                    ...(splashBlockedInWineMode
+                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                        : {}),
                 };
             }
 
             return {
                 ...common,
-                sceneType: 'studio-branding',
-                mode: 'studio',
+                ...(splashBlockedInWineMode
+                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                    : {}),
             };
         }),
     updatePhotoModeSubSetting: (mode, category, value) =>
@@ -1815,10 +1975,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     ...state.photoModeConfig.acrylicBlocks,
                     ...(patch.acrylicBlocks ?? {}),
                 },
-                splashShot: {
+                splashShot: normalizeSplashShotConfig({
                     ...state.photoModeConfig.splashShot,
                     ...(patch.splashShot ?? {}),
-                },
+                }),
                 foamAndTexture: {
                     ...state.photoModeConfig.foamAndTexture,
                     ...(patch.foamAndTexture ?? {}),
@@ -2038,18 +2198,98 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             return next;
         }),
+
+    // ── Unified Product Behavior setters ────────────────────────────────────
+
+    setPhysicalFormFactor: (formFactor) =>
+        set((state) => {
+            // When form factor changes, auto-validate all dependent fields
+            const presence = state.physicalPresence ?? 'surface';
+            const productState = state.productState ?? 'static';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalFormFactor: formFactor,
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setPhysicalPresence: (presence) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { physicalPresence: presence };
+            const productState = state.productState ?? 'static';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setProductState: (productState) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { productState };
+            const presence = state.physicalPresence ?? 'surface';
+            const productInteraction = state.productInteraction ?? 'none';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
+    setProductInteraction: (productInteraction) =>
+        set((state) => {
+            const formFactor = state.physicalFormFactor;
+            if (!formFactor) return { productInteraction };
+            const presence = state.physicalPresence ?? 'surface';
+            const productState = state.productState ?? 'static';
+            const { presence: correctedPresence, state: correctedState, interaction: correctedInteraction } =
+                validateAndCorrectCapabilities(formFactor, {
+                    presence,
+                    state: productState,
+                    interaction: productInteraction,
+                });
+            return {
+                physicalPresence: correctedPresence,
+                productState: correctedState,
+                productInteraction: correctedInteraction,
+            };
+        }),
+
     setLens: (lens) =>
         set((state) => {
             const next: Partial<ProductStudioState> = { lens };
 
             // Telephoto compression cannot coexist with macro framing.
             if (isTelephotoCompressionLens(lens) && state.distance === 'macro') {
-                next.distance = 'close';
+                next.distance = 'tight';
                 Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             // Tilt-shift invalidates strict thirds.
-            if (isTiltShiftLens(lens) && state.framing === 'rule-of-thirds') {
-                next.framing = 'centered';
+            if (isTiltShiftLens(lens) && state.framing === 'rule_of_thirds') {
+                next.framing = 'centered_hero';
                 Object.assign(next, withInterpretationNote(state, 'lens', INTERPRETATION_MESSAGES.cameraOverridesFraming));
             }
             // Macro lens implies macro-safe optics if macro framing is selected.
@@ -2060,6 +2300,9 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return next;
         }),
     setLightingRig: (rig) => set({ lightingRig: rig }),
+    setLightColorTemp: (temp) => set({ lightColorTemp: temp }),
+    setCustomLightColor: (color) => set({ customLightColor: color }),
+    setAccentLightIntensity: (intensity) => set({ accentLightIntensity: Math.max(0, Math.min(100, intensity)) }),
     setFinish: (finish) => set({ finish }),
 
     resetProducts: () =>

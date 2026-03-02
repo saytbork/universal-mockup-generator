@@ -9,12 +9,12 @@ export function validateStudioPrompt(prompt: string, authority: StudioAuthorityB
   const expectedPrefixes = [
     'STUDIO_VISUAL_INTENT:',
     'STUDIO_WORLD:',
-    'STUDIO_COMPOSITION_MODEL:',
+    'STUDIO_COMPOSITION_PROFILE:',
     'STUDIO_PRODUCT_MOTION:',
     'STUDIO_PHYSICS_MODEL:',
     'STUDIO_MODIFIERS:',
-    'STUDIO_LIGHTING_MODEL:',
-    'STUDIO_MATERIAL_MODEL:',
+    'STUDIO_LIGHTING_PROFILE:',
+    'STUDIO_MATERIAL_PROFILE:',
     'STUDIO_ULTRA_REAL_GUARDRAIL:',
   ];
 
@@ -29,9 +29,9 @@ export function validateStudioPrompt(prompt: string, authority: StudioAuthorityB
     throw new Error('Invalid prompt: duplicate STUDIO_VISUAL_INTENT blocks.');
   }
 
-  const lightingCount = blockCount(blocks, 'STUDIO_LIGHTING_MODEL:');
+  const lightingCount = blockCount(blocks, 'STUDIO_LIGHTING_PROFILE:');
   if (lightingCount > 1) {
-    throw new Error('Invalid prompt: duplicate STUDIO_LIGHTING_MODEL blocks.');
+    throw new Error('Invalid prompt: duplicate STUDIO_LIGHTING_PROFILE blocks.');
   }
 
   const motionBlocks = blocks.filter((block) => block.startsWith('STUDIO_PRODUCT_MOTION:'));

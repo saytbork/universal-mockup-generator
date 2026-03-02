@@ -41,20 +41,35 @@ export class FinalizeBuilder implements PromptBuilder {
                 );
             }
         } else {
-            lines.push('Sharp focus on the subject (product), with natural lighting and grounded shadows.');
+            // Ritual Mode: focus on ritual action, not product
+            if (options.ritualModeActive) {
+                lines.push('Sharp focus on the ritual action and body posture, with natural lighting and grounded shadows.');
+            } else {
+                lines.push('Sharp focus on the subject (product), with natural lighting and grounded shadows.');
+            }
             lines.push(
                 'No invented labels or product redesign.',
                 'No hallucinated packaging.',
                 'PRODUCT INTEGRITY (NON-NEGOTIABLE): The product packaging must remain identical across all images in the sequence. Same size, same proportions, and same orientation.',
                 'No deformation, no scaling inconsistencies. Branding must be sharp and readable.',
                 'Material and texture must look photorealistic (e.g., paper pouch, matte finish). product sits naturally on surfaces, not hovering.',
-                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.',
-                'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.',
+                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.'
+            );
+            
+            // Ritual Mode exception: product is secondary to ritual action
+            if (!options.ritualModeActive) {
+                lines.push(
+                    'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.'
+                );
+            }
+            
+            lines.push(
                 'CONTACT REALISM: The product must look physically held or placed naturally (not composited). Natural shadows and believable contact pressure.',
                 ugcDepthLockActive
                     ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
                     : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use eye-level or slight top-down angle (35mm–50mm lens equivalent). Absolutely no wide-angle distortion.',
-                'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.'
+                'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.',
+                'NEGATIVE PRODUCT CONSTRAINT (CRITICAL | HARD BLOCKER): distorted text on product, blurry label, messy letters, deformed logo, misspelled words, unreadable label text, warped typography, invented characters, redrawn text, hallucinated lettering, alien symbols on packaging, neon-like text, glowing letters, stylized font interpretation, AI-generated text, synthesized typography, melted letters, smeared text, pixelated typography, low-resolution label, out-of-focus text, motion-blurred lettering, abstract characters. The product label text MUST be photographic (not illustrated, not reinterpreted, not regenerated). Label must appear as direct photograph from reference image.'
             );
             if (options.ritualModeActive && options.ritualNoObjects) {
                 lines.push(
@@ -72,7 +87,19 @@ export class FinalizeBuilder implements PromptBuilder {
                 'No selfie perspective.',
                 'No phone camera.',
                 'No text or graphic overlays.',
-                'No logos or graphics.'
+                'No logos or graphics.',
+                'CRITICAL BLOCKERS (HARD CONSTRAINT): No visible phone in frame, no arm-extended selfie, no mirror selfie, no front-facing camera perspective, no bathroom mirror photo, no car selfie. Professional photography only.'
+            );
+        }
+
+        // ADDITIONAL CRITICAL BLOCKER: Never show phone or cut-off hands in Lifestyle/Brand mode
+        if (options.personIncluded && intent !== 'ugc' && options.contentStyle !== 'ugc') {
+            lines.push(
+                'HAND INTEGRITY (NON-NEGOTIABLE): Hands must be anatomically correct with exactly 5 fingers per hand. No extra fingers, no missing fingers, no fused fingers, no malformed fingers.',
+                'HAND VISIBILITY (CRITICAL): If hands are visible, they must be complete and not cropped awkwardly at wrists or mid-hand. Either show full hands or keep them out of frame entirely.',
+                'NO PHONE VISIBLE: Absolutely no smartphone visible in the frame. This is professional brand photography, not a selfie.',
+                'LIFESTYLE PHOTOGRAPHY (EDITORIAL STANDARD): This is a professional studio photoshoot for advertising/editorial. Professional model, professional photographer, professional lighting rig (softbox/reflectors), intentional composition. NOT a casual snapshot, NOT a selfie, NOT user-generated content.',
+                'NEGATIVE CONSTRAINT (ABSOLUTE): no phone in hand, no arm extended holding camera, no mirror reflection of photographer, no bathroom selfie, no front-facing camera angle, no accidental framing, no casual snapshot aesthetic.'
             );
         }
 

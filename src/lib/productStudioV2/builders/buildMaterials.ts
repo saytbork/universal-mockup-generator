@@ -1,7 +1,23 @@
-import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
+import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
-export function buildMaterials(authority: StudioAuthorityBundle): string {
+export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.visualProfile === 'coffee') {
+    return [
+      'STUDIO_MATERIAL_PROFILE: coffee-ceramic-priority.',
+      'COFFEE_MATERIAL_PROFILE: Micro specular edge on liquid rim. Soft ceramic highlight rolloff. Controlled reflective hotspots. No plastic gloss. High realism surface diffusion.',
+      'COFFEE_LIQUID_SURFACE: dark core absorption with soft surface diffusion and meniscus coherence.',
+      'COFFEE_GLASS_GUARD: no wine-style glass refraction priority and no cork rendering logic.',
+    ].join(' ');
+  }
+
+  if (state?.winePrestigeMode) {
+    return 'STUDIO_MATERIAL_MODEL: premium wine materials with controlled reflections and strict geometry-preserving integration.';
+  }
+
   const materialModel = (() => {
+    if (authority.world === 'beach-daylight') {
+      return 'natural Caribbean shoreline materials: clean white sand grain, turquoise shallows, sea-foam edge behavior, and physically coherent wet contact zones';
+    }
     if (authority.world === 'underwater') {
       return 'submerged materials with coherent caustics, depth haze, and water-contact realism';
     }
@@ -14,5 +30,5 @@ export function buildMaterials(authority: StudioAuthorityBundle): string {
     return 'clean conversion-grade surfaces optimized for label clarity and edge integrity';
   })();
 
-  return `STUDIO_MATERIAL_MODEL: ${materialModel}.`;
+  return `STUDIO_MATERIAL_PROFILE: ${materialModel}.`;
 }

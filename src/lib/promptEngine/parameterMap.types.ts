@@ -11,7 +11,9 @@ export type CameraAngleKey =
   | "fullBody" | "closeUp" | "extremeCloseUp" | "extremeLongShot"
   | "highAngleShot" | "lowAngleShot" | "birdsEyeView" | "dutchAngle"
   | "sideProfile" | "overTheShoulder" | "offCenterShot"
-  | "shotFromBehind" | "cowboyShot" | "povShot";
+  | "shotFromBehind" | "cowboyShot" | "povShot"
+  | "Eye level" | "Slightly above eye level" | "Slightly below eye level"
+  | "High angle" | "Low angle" | "Top-down" | "Bottom-up";
 
 export type CameraMovementKey =
   | "trackingShot" | "dollyShot" | "craneShot"
@@ -29,7 +31,21 @@ export type CameraShotKey =
   | "birdsEyeView"
   | "dutchAngle"
   | "sideProfile"
-  | "lowAngleShot";
+  | "lowAngleShot"
+  | "Extreme close-up"
+  | "Close"
+  | "Medium"
+  | "Wide"
+  | "Full body";
+
+export type CompositionModeKey =
+  | "Product First"
+  | "Balanced"
+  | "Fifty / Fifty"
+  | "Model First"
+  | "Standard UGC"
+  | "Cinematic UGC"
+  | "Ecommerce Blank Space";
 
 export interface ParameterMap {
   eyeDirection: Record<EyeDirectionKey, string>;
@@ -41,12 +57,14 @@ export interface ParameterMap {
   setting: Record<string, string>;
   environmentOrder: Record<string, string>;
   cameraType: Record<string, string>;
+  cameraShot: Record<string, string>;
+  cameraAngle: Record<string, string>;
   cameraDistance: Record<CameraDistanceKey, string>;
   productMaterial: Record<string, string>;
   cameraAngles?: Record<CameraShotKey, string>;
   lighting: Record<string, string>;
   selfieMode: Record<string, string>;
-  compositionMode: Record<string, string>;
+  compositionMode: Record<CompositionModeKey, string>;
   creationMode: Record<string, string>;
   props: Record<string, string>;
   microLocation: Record<string, string>;

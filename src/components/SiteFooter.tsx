@@ -12,7 +12,7 @@ const SiteFooter: React.FC = () => {
             Perfect Mockup helps ecommerce brands create product mockups, lifestyle visuals and UGC-style content without photoshoots. Designed for product pages, ads, social media and launches.
           </p>
         </div>
-        <div className="grid gap-8 md:grid-cols-3 text-sm">
+        <div className="flex flex-wrap gap-8 text-sm">
           <div className="space-y-2">
             <p className="text-gray-900 font-semibold">Product</p>
             <ul className="space-y-1">

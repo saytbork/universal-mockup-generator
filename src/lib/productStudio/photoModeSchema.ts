@@ -159,13 +159,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Beach Foam Splash',
         scope: 'environment',
         description: 'Beach foam splash moment with clean premium control and readable hero product.',
-        basePrompt: 'premium beach splash setup: product physically grounded on wet compact sand, shallow sea foam and clean micro-droplets only near the base, restrained directional backwash around the product, product remains hero and label stays readable, beach sand tones and coastal light vibe without clutter',
+        basePrompt: 'premium Caribbean beach splash setup in sunny daytime: product physically grounded on wet clean white sand, vivid turquoise seawater and shallow sea foam with clean micro-droplets only near the base, restrained directional backwash around the product, lively coastal atmosphere with product as hero and label fully readable',
         subOptions: [
             { key: 'shoreline', label: 'Shoreline', values: ['Foam line', 'Wave break', 'Backwash'] },
             { key: 'spray', label: 'Spray', values: ['Low', 'Medium', 'High'] },
             { key: 'sand', label: 'Sand', values: ['Clean', 'Wet', 'Glossy'] },
         ],
         constraints: [
+            'Scene must read as sunny tropical Caribbean daytime (not studio, not overcast, not dusk)',
+            'Water should read turquoise and sand should read clean white',
             'Keep foam minimal and controlled (do not bury the product)',
             'Frozen motion with crisp droplets',
             'Label must remain readable and unobstructed',
@@ -203,12 +205,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Cheers (Hands Clink)',
         scope: 'environment',
         description: 'Celebratory clink moment with a clean cropped interaction and premium lifestyle light.',
-        basePrompt: 'celebratory clink moment with two products meeting at center frame, premium lifestyle lighting, clean background with soft bokeh, frozen droplets and crisp highlights, product branding remains readable',
+        basePrompt: 'celebratory clink moment with two products meeting at center frame, premium lifestyle lighting, clean background with soft bokeh, frozen droplets and crisp highlights, product branding remains readable, hands must look real with natural skin texture and anatomically plausible grip',
         subOptions: [],
         constraints: [
             'Cropped interaction only (no faces, no identity)',
             'Branding must remain readable',
-            'No chaotic motion blur'
+            'No chaotic motion blur',
+            'Hands must look real (no doll/mannequin/CGI/waxy skin)',
+            'Finger anatomy and grip pressure must be physically plausible'
         ],
         requiredPlacement: 'held',
         allowedInteractions: ['two-hand-hold', 'holding', 'supported-hold', 'presenting', 'framed-presentation'],
@@ -250,13 +254,14 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         id: 'fruit-garnish-citrus-accents',
         label: 'Fruit Garnish / Citrus Accents',
         scope: 'studio',
-        description: 'Product staged with fruit/citrus accents as clean secondary styling elements.',
-        basePrompt: 'product staged with fruit or citrus accents as clean secondary styling elements (slices, peels, wedges), premium advertising composition, controlled reflections and freshness cues, product remains the hero and label stays readable',
+        description: 'Product staged with fresh citrus slices arranged in a premium flat lay composition.',
+        basePrompt: 'product hero centered on clean surface surrounded by fresh citrus slices (orange, lemon, lime, or grapefruit) arranged in a natural premium flat lay pattern, top-down or slightly angled perspective, fresh cut citrus with visible pulp texture and natural juice droplets, soft directional natural light creating gentle shadows, clean minimal styling with product as hero and label fully readable',
         subOptions: [],
         constraints: [
-            'Accents must be secondary (do not overpower the product)',
-            'Fresh cut realism and correct scale',
-            'Label must remain readable'
+            'Citrus slices must be fresh-cut and realistic (not artificial)',
+            'Product remains dominant hero - citrus is supporting element',
+            'Natural arrangement - avoid overly symmetrical or contrived patterns',
+            'Label must remain fully readable and sharp'
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -267,10 +272,15 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Textured Bed / Scatter Base',
         scope: 'studio',
         description: 'Product grounded on a controlled textured bed or scatter base.',
-        basePrompt: 'product grounded on a controlled textured bed or scatter base around the bottom edge of frame, premium advertising styling, realistic contact shadows, label stays readable, keep scatter minimal and intentional',
-        subOptions: [],
+        basePrompt: 'top-down flat lay product shot with product grounded in a dense, controlled textured ingredient bed (not just loose scatter), premium advertising styling, ingredient field wraps around product contact area with realistic compression and occlusion, product surface remains clean and dry with no drips or residue, label area remains clean and fully readable, keep composition intentional and premium',
+        subOptions: [
+            { key: 'depthLevel', label: 'Depth Level', values: ['Balanced', 'Subtle', 'Immersive'] },
+        ],
         constraints: [
-            'Scatter must be controlled and premium',
+            'Textured bed must feel dense and physically grounded around product base',
+            'No floating product; clear contact and compression into the ingredient bed',
+            'Camera must be top-down flat lay (90° overhead)',
+            'Product must stay clean: no drips, no residue, no foam/liquid attached to container',
             'No messy clutter or noise',
             'Label must remain readable'
         ],
@@ -673,7 +683,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Underwater Split',
         scope: 'environment',
         description: 'Split-level aqua scene with physically credible underwater depth.',
-        basePrompt: 'split-level water composition with realistic waterline, product visibly submerged below the waterline with true underwater depth cues, underwater caustics, particulate diffusion and bubbles, clean hydration-oriented premium look',
+        basePrompt: 'sunlit split-waterline composition: product intersects the water surface with upper section in bright clean air and lower section submerged in clear luminous aqua water, realistic curved meniscus at waterline, visible underwater caustics and light rays, crisp micro-bubbles around submerged edges, premium hydration look with strong product readability',
         subOptions: [
             { key: 'waterlineHeight', label: 'Waterline Height', values: ['Mid', 'Upper-mid'] },
             { key: 'bubbleDensity', label: 'Bubble Density', values: ['Low', 'Balanced'] },
@@ -681,9 +691,11 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         ],
         constraints: [
             'Waterline must be physically coherent',
-            'Submerged portion must clearly read as underwater with authentic light attenuation',
+            'Product must clearly cross the waterline (split-level view), not fully submerged and not fully dry',
+            'Submerged portion must clearly read as underwater with authentic light attenuation and caustic response',
             'Underwater refraction and caustics must be physically plausible',
             'No muddy water color',
+            'Top half should read as bright daylight air environment, clean and minimal',
             'Label remains as readable as perspective allows',
         ],
         requiredPlacement: 'air',
@@ -740,6 +752,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         basePrompt: 'true macro close-up of the product label and bottle material texture, label occupying most of frame, realistic dew droplets with optical magnification behavior, ultra-sharp commercial detail and controlled highlights',
         subOptions: [
             { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
+            { key: 'dropletMode', label: 'Droplet Mode', values: ['Clean', 'Wet', 'Drops'] },
             { key: 'dropletDensity', label: 'Droplet Density', values: ['Low', 'Balanced', 'High'] },
             { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
         ],
@@ -984,5 +997,103 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'resting-interaction',
         ],
         allowsPersonPresence: true
-    }
+    },
+
+    // ── WINE-EXCLUSIVE PHOTO MODES ─────────────────────────────────────────
+    // These modes are ONLY available when industryProfile === 'wine'.
+    // They must never appear in supplement/generic pipelines.
+
+    'Wine Macro Label': {
+        id: 'wine-macro-label',
+        label: 'Wine Macro Label',
+        scope: 'studio',
+        description: 'Extreme close-up cropped to label region only. No full bottle. No environment. Label fidelity is the only subject.',
+        basePrompt: 'extreme macro close-up cropped to the wine bottle label region only, bottle neck excluded, bottle base excluded, frame centers on label panel, 100mm macro lens simulation, f/4 aperture, ultra-sharp label typography, high micro contrast, natural paper/foil texture, label fully readable with maximum detail fidelity',
+        subOptions: [
+            { key: 'macroTightness', label: 'Macro Tightness', values: ['Tight', 'Extreme'] },
+            { key: 'highlightControl', label: 'Highlight Control', values: ['Soft', 'Balanced'] },
+            { key: 'surfaceTone', label: 'Surface Tone', values: ['Dark neutral', 'Stone', 'Warm wood'] },
+        ],
+        constraints: [
+            'FRAME_CONSTRAINT: Label region only. Neck and base must be cropped out or fully out of frame.',
+            'COMPOSITION: Label panel centered. No environmental expansion.',
+            'CAMERA: 100mm macro lens. f/4. No wide framing. No environment in background.',
+            'NEGATIVE_SPACE_POLICY: Minimal. Label fills at least 70% of frame.',
+            'No glass addition',
+            'No full bottle framing',
+            'No gradient background injection',
+            'No clinical-softbox bloom',
+            'No environment expansion',
+            'Fallback to Hero Landing Page is FORBIDDEN',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Bottle + Glass': {
+        id: 'bottle-and-glass',
+        label: 'Bottle + Glass',
+        scope: 'studio',
+        description: 'Wine bottle and filled glass composition. Served state. Bottle sealed.',
+        basePrompt: 'wine bottle and filled wine glass composition, bottle remains sealed, glass positioned at complementary angle, 3/4 camera angle, premium wine photography, label fully legible',
+        subOptions: [
+            { key: 'glassPosition', label: 'Glass Position', values: ['Right', 'Left', 'Behind'] },
+            { key: 'fillLevel', label: 'Glass Fill Level', values: ['Half', 'Two-thirds'] },
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Dark slate', 'Warm wood'] },
+        ],
+        constraints: [
+            'Bottle must remain sealed',
+            'Label fully readable',
+            'Glass must contain wine liquid',
+            'No full pour-in-progress motion',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Editorial Table': {
+        id: 'editorial-table',
+        label: 'Editorial Table',
+        scope: 'studio',
+        description: 'Wine editorial tabletop composition with controlled props and surface texture.',
+        basePrompt: 'premium wine editorial tabletop composition, authentic surface texture, editorial balance, minimal controlled props, bottle as focal point with subtle environmental depth',
+        subOptions: [
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Dark slate', 'Warm wood', 'Marble'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['None', 'Minimal', 'Balanced'] },
+            { key: 'lightingMood', label: 'Lighting Mood', values: ['Warm side', 'Dramatic', 'Diffused'] },
+        ],
+        constraints: [
+            'No synthetic fog',
+            'No fantasy backgrounds',
+            'Label must be legible',
+            'Props must be wine-appropriate only',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Winery Scene': {
+        id: 'winery-scene',
+        label: 'Winery Scene',
+        scope: 'environment',
+        description: 'Wine bottle in an authentic winery or cellar environment.',
+        basePrompt: 'wine bottle in authentic winery environment, stone cellar or barrel room background, natural imperfect lighting, editorial depth of field, bottle as primary subject',
+        subOptions: [
+            { key: 'environment', label: 'Environment', values: ['Stone cellar', 'Barrel room', 'Vineyard terrace'] },
+            { key: 'depthOfField', label: 'Depth of Field', values: ['Shallow', 'Moderate'] },
+            { key: 'lightingMood', label: 'Lighting Mood', values: ['Warm ambient', 'Dramatic side', 'Golden hour'] },
+        ],
+        constraints: [
+            'No stylized fog or fantasy atmosphere',
+            'Bottle must be primary subject',
+            'Label must be legible',
+            'No CGI environment rendering',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
 };

@@ -54,6 +54,10 @@ export class FormulationStoryInjectionBuilder implements PromptBuilder {
             parts.push(badgeText);
         }
 
+        // ANTI-DOLL REINFORCEMENT for Formulation Story
+        // Medical professionals should look real, not retouched/studio-polished
+        parts.push('The expert must appear as a real unedited person with natural skin texture, not studio-retouched or CGI-like.');
+
         return parts.join(' ');
     }
 }

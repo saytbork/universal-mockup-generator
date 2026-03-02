@@ -1,0 +1,1 @@
+export { generateStudioPromptV2 as oldGenerateStudioPromptV2 } from './index';

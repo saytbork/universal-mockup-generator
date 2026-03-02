@@ -28,6 +28,11 @@ const parseAction = (req: VercelRequest) => {
   return typeof raw === "string" ? raw.toLowerCase() : "";
 };
 
+const parseSingleQueryParam = (value: string | string[] | undefined): string => {
+  if (Array.isArray(value)) return value[0]?.toString().trim() ?? "";
+  return typeof value === "string" ? value.trim() : "";
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Add CORS headers for frontend requests
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -188,6 +193,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ images });
       }
 
+      case "proxy": {
+        if (req.method !== "GET") {
+          res.setHeader("Allow", "GET");
+          return res.status(405).json({ error: "Method not allowed" });
+        }
+
+        const rawUrl = parseSingleQueryParam(req.query.url as string | string[] | undefined);
+        if (!rawUrl) {
+          return res.status(400).json({ error: "Missing url" });
+        }
+
+        let parsedUrl: URL;
+        try {
+          parsedUrl = new URL(rawUrl);
+        } catch {
+          return res.status(400).json({ error: "Invalid url" });
+        }
+
+        if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+          return res.status(400).json({ error: "Unsupported url protocol" });
+        }
+
+        const upstream = await fetch(parsedUrl.toString(), {
+          method: "GET",
+          redirect: "follow",
+        });
+
+        if (!upstream.ok) {
+          return res.status(502).json({ error: `Upstream fetch failed (${upstream.status})` });
+        }
+
+        const contentType = String(upstream.headers.get("content-type") || "");
+        if (!/^image\//i.test(contentType)) {
+          return res.status(415).json({ error: "Upstream resource is not an image" });
+        }
+
+        const bytes = Buffer.from(await upstream.arrayBuffer());
+        const maxBytes = 25 * 1024 * 1024;
+        if (bytes.byteLength > maxBytes) {
+          return res.status(413).json({ error: "Image too large to proxy" });
+        }
+
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.setHeader("Content-Type", contentType);
+        return res.status(200).send(bytes);
+      }
+
       case "delete": {
         if (req.method !== "POST") {
           res.setHeader("Allow", "POST");
@@ -237,7 +289,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       default:
-        return res.status(400).json({ error: "Invalid action. Use 'add', 'list', or 'delete'" });
+        return res.status(400).json({ error: "Invalid action. Use 'add', 'list', 'proxy', or 'delete'" });
     }
   } catch (error: any) {
     console.error("❌ Gallery handler error:", error);

@@ -26,6 +26,7 @@ export type AuthorityResolution = {
 };
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
+const isBeachFoamMode = (photoMode: string): boolean => normalize(photoMode) === 'beach foam splash';
 
 const isUnderwaterMode = (photoMode: string): boolean => normalize(photoMode).includes('underwater');
 const isSplashMode = (photoMode: string): boolean => {
@@ -43,6 +44,7 @@ export function getActiveVisualIntent(state: ProductStudioState): ActiveVisualIn
 
 export function getActiveEnvironment(state: ProductStudioState): ActiveEnvironment {
   const photoMode = String(state.photoMode || '');
+  if (isBeachFoamMode(photoMode)) return 'outdoor';
   if (isUnderwaterMode(photoMode)) return 'underwater';
   if (isSplashMode(photoMode)) return 'splash-tank';
 
@@ -65,6 +67,7 @@ export function getActiveMotion(state: ProductStudioState, environment: ActiveEn
 }
 
 export function getActiveLighting(state: ProductStudioState, resolution: Pick<AuthorityResolution, 'visualIntent' | 'environment'>): ActiveLighting {
+  if (isBeachFoamMode(String(state.photoMode || ''))) return 'natural-sunlight';
   const isProRigActive = state.controlTier === 'pro' && Boolean(String((state as any).lightingRig || '').trim());
   if (isProRigActive && resolution.visualIntent !== 'campaign') return 'pro-rig';
 

@@ -79,7 +79,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Clean product shot for homepage or main listing',
         category: 'studio',
         tier: 'basic',
-        icon: '📦',
+        icon: 'box',
         uiState: {
             sceneType: 'studio_packshot',
             physicalScale: 'tabletop',
@@ -101,7 +101,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Fast studio shot with minimal setup',
         category: 'studio',
         tier: 'basic',
-        icon: '⚡',
+        icon: 'bolt',
         uiState: {
             sceneType: 'studio_packshot',
             physicalScale: 'tabletop',
@@ -127,7 +127,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Product detail page with space for text overlay',
         category: 'ecommerce',
         tier: 'pro',
-        icon: '🛒',
+        icon: 'shopping-cart',
         uiState: {
             sceneType: 'ecommerce_blank_space',
             physicalScale: 'tabletop',
@@ -154,7 +154,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Product in natural setting with context',
         category: 'editorial',
         tier: 'basic',
-        icon: '🏠',
+        icon: 'home',
         uiState: {
             sceneType: 'lifestyle_product',
             physicalScale: 'tabletop',
@@ -181,7 +181,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Authentic phone-captured user content',
         category: 'social',
         tier: 'pro',
-        icon: '📱',
+        icon: 'smartphone',
         uiState: {
             sceneType: 'ugc_phone',
             physicalScale: 'handheld',
@@ -204,7 +204,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Vertical format for Instagram/TikTok stories',
         category: 'social',
         tier: 'pro',
-        icon: '📲',
+        icon: 'smartphone-call',
         uiState: {
             sceneType: 'ugc_phone',
             physicalScale: 'handheld',
@@ -227,7 +227,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Square format for Instagram feed',
         category: 'social',
         tier: 'basic',
-        icon: '📸',
+        icon: 'camera',
         uiState: {
             sceneType: 'lifestyle_product',
             physicalScale: 'tabletop',
@@ -254,7 +254,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Top-down styled composition with props',
         category: 'editorial',
         tier: 'pro',
-        icon: '✨',
+        icon: 'sparkles',
         uiState: {
             sceneType: 'editorial_product',
             physicalScale: 'tabletop',
@@ -278,7 +278,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'High-end magazine-style product shot',
         category: 'editorial',
         tier: 'pro',
-        icon: '💎',
+        icon: 'gem',
         uiState: {
             sceneType: 'editorial_product',
             physicalScale: 'tabletop',
@@ -307,7 +307,7 @@ export const PRESETS: Record<PresetId, PresetConfig> = {
         description: 'Multiple products grouped for upsell',
         category: 'bundle',
         tier: 'pro',
-        icon: '📦📦',
+        icon: 'boxes',
         uiState: {
             sceneType: 'bundle_kit',
             physicalScale: 'tabletop',
@@ -387,9 +387,9 @@ export function applyCustomizationsToPreset(
 // ============================================================================
 
 export const PRESET_CATEGORIES: { id: PresetCategory; label: string; icon: string }[] = [
-    { id: 'studio', label: 'Studio', icon: '📦' },
-    { id: 'ecommerce', label: 'Ecommerce', icon: '🛒' },
-    { id: 'social', label: 'Social', icon: '📱' },
-    { id: 'editorial', label: 'Editorial', icon: '✨' },
-    { id: 'bundle', label: 'Bundle', icon: '📦📦' }
+    { id: 'studio', label: 'Studio', icon: 'box' },
+    { id: 'ecommerce', label: 'Ecommerce', icon: 'shopping-cart' },
+    { id: 'social', label: 'Social', icon: 'smartphone' },
+    { id: 'editorial', label: 'Editorial', icon: 'sparkles' },
+    { id: 'bundle', label: 'Bundle', icon: 'boxes' }
 ];

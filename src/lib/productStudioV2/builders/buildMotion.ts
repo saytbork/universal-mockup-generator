@@ -1,5 +1,6 @@
-import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
+import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
-export function buildMotion(authority: StudioAuthorityBundle): string {
-  return `STUDIO_PRODUCT_MOTION: ${authority.motion}.`;
+export function buildMotion(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  const resolvedMotion = state?.motion || authority.motion;
+  return `STUDIO_PRODUCT_MOTION: ${resolvedMotion}.`;
 }

@@ -137,6 +137,8 @@ export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
 
 export interface PromptOptions {
     // Core
+    visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
+    sceneType?: 'studio-branding' | 'lifestyle-real' | string;
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
     ugcStyle?: 'optimized' | 'natural' | 'raw';
@@ -223,6 +225,7 @@ export interface PromptOptions {
     lifestyleHardRestrictions?: string;
 
     compositionMode?: string;
+    productProminence?: 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';
     framing?: string;
     allowHeadroom?: boolean;
     allowTorso?: boolean;
@@ -285,6 +288,11 @@ export interface PromptOptions {
     identityMode?: 'auto' | 'locked';       // auto = different person each render, locked = same person
     identityKey?: string;                   // Internal key for locked mode (persisted)
     identityVariationToken?: string;        // Token for auto mode (regenerated each render)
+    randomCharacterActive?: boolean;        // Random Character override (ignores manual controls)
+    randomFullAutomationActive?: boolean;   // UGC Full Automation (maximum entropy, ignores ALL manual controls)
+    fullAutomationMode?: boolean;           // Alias for randomFullAutomationActive (used in identity builder)
+    fullAutomationGenderPreference?: 'any' | 'male' | 'female'; // Optional gender filter for Full Automation mode
+    fullEntropyOverride?: boolean;          // Internal flag: when true, skip ALL manual mappings in builders
 
     // UGC Real Mode
     ugcRealModeActive?: boolean;      // UGC Real Mode toggle
@@ -309,6 +317,10 @@ export interface PromptOptions {
     backgroundVariationId?: string;
     lastBackgroundId?: string;
 
+    // Diversity Randomization (V2: Prevent AI Clone Syndrome)
+    userId?: string;                  // User ID for deterministic randomization
+    timestamp?: number;               // Timestamp for unique seed generation
+
     compositionIntro?: string;
     identityBlock?: string;
     sceneStructure?: import('../../../types').SceneStructure;
@@ -332,4 +344,30 @@ export interface PromptSegment {
     name: string;
     content: string;
     priority: number;
+}
+
+/**
+ * Helper function to determine if UGC mode is active
+ * CRITICAL: Ritual Mode and Formulation Story are LIFESTYLE-ONLY features
+ * They are mutually exclusive with UGC mode
+ */
+export function isUgcModeActive(options: PromptOptions): boolean {
+    if (options.visualMode) {
+        return options.visualMode === 'ugc';
+    }
+
+    // FORCE disable UGC if Ritual Mode or Formulation Story is active
+    const isLifestyleOnlyFeatureActive = 
+        Boolean(options.ritualModeActive) || Boolean(options.formulationStory);
+    
+    if (isLifestyleOnlyFeatureActive) {
+        return false;  // Lifestyle-only features override UGC
+    }
+    
+    return (
+        options.contentStyle === 'ugc' ||
+        options.creationIntent === 'ugc' ||
+        Boolean(options.ugcRealModeActive) ||
+        Boolean(options.rawDomesticUgcActive)
+    );
 }

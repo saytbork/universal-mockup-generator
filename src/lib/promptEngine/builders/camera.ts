@@ -23,11 +23,9 @@ export function buildCamera(params: any): string {
     params.selfieType ||
     "";
   const selfieActive = /\bselfie\b/i.test(String(selfieRaw)) || /\bfront\b/i.test(String(selfieRaw));
-  const ugcRealActive =
-    Boolean(params.ugcRealMode || params.ugcRealModeActive || params.rawDomesticUgcActive) ||
-    Boolean(params.ugcRealModeLayers);
-  const lifestyleRealActive = params.creationMode === 'lifestyle';
-  const ugcMode = Boolean(params.ugcMode || params.ugcRealMode) || ugcRealActive || selfieActive;
+  const ugcVisualMode = String(params.visualMode || '').trim().toLowerCase() === 'ugc';
+  const ugcRealActive = ugcVisualMode;
+  const ugcMode = ugcVisualMode || Boolean(params.ugcMode) || selfieActive;
   const hasProductAssets = Array.isArray(params.productAssets) && params.productAssets.length > 0;
 
   // Selfie: force front-facing smartphone characteristics (prevents pro-camera DOF blur).
@@ -47,16 +45,6 @@ export function buildCamera(params: any): string {
     delete params.placementCamera;
     return uniqueParts([
       "smartphone capture, casual handheld framing, natural phone photo feel",
-    ]);
-  }
-
-  // Lifestyle Real: enforce a simple smartphone capture description and avoid optics terminology.
-  if (lifestyleRealActive) {
-    delete params.camera;
-    delete params.cameraType;
-    delete params.placementCamera;
-    return uniqueParts([
-      "smartphone capture, natural and unstyled photo feel",
     ]);
   }
 
@@ -93,7 +81,7 @@ export function buildCamera(params: any): string {
   }
 
   const focusLock =
-    hasProductAssets && !ugcRealActive && !lifestyleRealActive
+    hasProductAssets && !ugcRealActive
       ? ugcMode
         ? "VISIBILITY PRIORITY: keep the product and label clearly visible and readable; product remains the primary subject."
         : "FOCUS PRIORITY: lock focus on the product (not the face). The product must be the sharpest object in the frame; the label must be crisp and fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product."

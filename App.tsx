@@ -440,7 +440,7 @@ Avoid oversized or floating product overlays.
   'product-first': `
 Product slightly closer to the camera but still physically integrated in the hand.
 Keep the person in mid-ground, not heavily blurred.
-Maintain flat focus across the frame; no background separation, no bokeh, no portrait mode.
+Maintain flat focus across the frame; no background separation, no bokeh. Avoid shallow consumer blur effects.
 `,
   'model-first': `
 Keep the person in the foreground with clear focus and prominence.
@@ -544,7 +544,10 @@ const createDefaultOptions = (): MockupOptions => ({
   placementStyle: PLACEMENT_STYLE_OPTIONS[0].value,
   placementCamera: PLACEMENT_CAMERA_OPTIONS[0].value,
   lighting: LIGHTING_OPTIONS[0].value,
-  setting: SETTING_OPTIONS[0].value,
+  // CRITICAL: Default environment for Lifestyle mode (when UGC is not active)
+  // When app loads, UGC is OFF by default, so we need Kitchen as the default environment
+  // When UGC activates, handleUGCRealModeToggle will clear this to '' (Random / Auto)
+  setting: SETTING_OPTIONS[2].value, // 'Kitchen' - will be cleared when UGC activates
   ageGroup: DEFAULT_AGE_GROUP,
   camera: CAMERA_OPTIONS[0].value,
   cameraShot: CAMERA_SHOT_OPTIONS[0].value,
@@ -595,9 +598,7 @@ const createDefaultOptions = (): MockupOptions => ({
 });
 import ImageUploader, { ImageUploaderHandle } from './components/ImageUploader';
 import GeneratedImage from './components/GeneratedImage';
-import VideoGenerator from './components/VideoGenerator';
 import Accordion from './components/Accordion';
-import ImageEditor from './components/ImageEditor';
 import ModelReferencePanel from './components/ModelReferencePanel';
 import ChipSelectGroup from './components/ChipSelectGroup';
 
@@ -1369,6 +1370,88 @@ const trimBlackBarsDataUrl = async (
     : outCanvas.toDataURL('image/png');
 };
 
+/**
+ * GEMINI FIX: Normalize product to target aspect ratio with light neutral padding
+ * This prevents distortion by showing the model the "intended space" around the product
+ * Uses a very light gray background instead of transparency for better model comprehension
+ * 
+ * @param dataUrl - Product image data URL
+ * @param targetAspectRatio - Target output aspect ratio (e.g., "1:1", "4:5")
+ * @param relativeHeight - Scale factor based on real-world height (0.0 to 1.0, where 1.0 = tallest product)
+ * @param opts - Canvas and quality options
+ */
+const normalizeProductWithTransparentPadding = async (
+  dataUrl: string,
+  targetAspectRatio: string,
+  relativeHeight: number,
+  opts: { maxLongEdge: number; mimeType: 'image/png' | 'image/jpeg'; quality?: number }
+): Promise<{ base64: string; mimeType: string }> => {
+  const parsed = parseAspectRatio(targetAspectRatio);
+  if (!parsed) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const img = await loadImageFromUrl(dataUrl);
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  if (!imgW || !imgH) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  const targetRatio = parsed.w / parsed.h;
+  
+  // Create canvas with target aspect ratio
+  let canvasW: number;
+  let canvasH: number;
+  if (targetRatio >= 1) {
+    // Landscape or square
+    canvasW = opts.maxLongEdge;
+    canvasH = Math.round(canvasW / targetRatio);
+  } else {
+    // Portrait
+    canvasH = opts.maxLongEdge;
+    canvasW = Math.round(canvasH * targetRatio);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    const [, base64] = String(dataUrl).split(';base64,');
+    return { base64: base64 ?? '', mimeType: opts.mimeType };
+  }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  // GEMINI STRATEGY: Instead of pure transparency, use a very light neutral background
+  // This gives the model a "hint" that this space should be filled with environment
+  // Pure transparency may confuse the model's composition logic
+  ctx.fillStyle = '#F8F8F8'; // Very light gray, almost white
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  // Calculate product dimensions maintaining aspect ratio
+  const imgRatio = imgW / imgH;
+  
+  // Apply relative height scaling (based on cm/in values)
+  const displayHeight = canvasH * Math.min(relativeHeight, 0.95); // Max 95% of canvas height
+  const displayWidth = displayHeight * imgRatio;
+
+  // Center horizontally, align to bottom (product sits on "surface")
+  const x = (canvasW - displayWidth) / 2;
+  const y = canvasH - displayHeight - (canvasH * 0.05); // 5% padding from bottom
+
+  ctx.drawImage(img, x, y, displayWidth, displayHeight);
+
+  // Return as JPEG with light background (no transparency needed)
+  const out = canvas.toDataURL('image/jpeg', 0.95);
+  const [, base64] = out.split(';base64,');
+  return { base64: base64 ?? '', mimeType: 'image/jpeg' };
+};
+
 const maybeDownscaleInlineImage = async (
   base64: string,
   mimeType: string,
@@ -1799,6 +1882,7 @@ const App: React.FC = () => {
   });
   const [isTalentLinkedAcrossScenes, setIsTalentLinkedAcrossScenes] = useState(false);
   const [linkedTalentProfile, setLinkedTalentProfile] = useState<Partial<MockupOptions> | null>(null);
+  const [isRandomCharacterEnabled, setIsRandomCharacterEnabled] = useState(false);
   const heroProductId = activeProducts[0]?.id ?? productAssets[0]?.id ?? null;
   const activeProductAsset = useMemo(
     () => productAssets.find(asset => asset.id === heroProductId) ?? null,
@@ -2126,7 +2210,6 @@ const App: React.FC = () => {
     order.push('Photography');
     if (!isProductPlacement) {
       order.push('Person Details');
-      order.push('UGC Real Mode');
     }
     return order;
   }, [isProductPlacement]);
@@ -2134,9 +2217,6 @@ const App: React.FC = () => {
   const hasSavedTalent = Boolean(savedTalentProfile);
   useEffect(() => {
     if (isProductPlacement && openAccordion === 'Person Details') {
-      setOpenAccordion('Product Details');
-    }
-    if (isProductPlacement && openAccordion === 'UGC Real Mode') {
       setOpenAccordion('Product Details');
     }
     if (!isProductPlacement && openAccordion === 'Product Details') {
@@ -2681,49 +2761,6 @@ const App: React.FC = () => {
           </Accordion>
         </div>
       )}
-      {!isProductPlacement && (
-        <div id={getSectionId('UGC Real Mode')}>
-          <Accordion
-            title="UGC Real Mode"
-            isOpen={openAccordion === 'UGC Real Mode'}
-            onToggle={() => handleToggleAccordion('UGC Real Mode')}
-            disabled={personControlsDisabled}
-          >
-            <UGCRealModePanel
-              disabled={personControlsDisabled}
-              enabled={ugcRealSettings.isEnabled}
-              onToggle={handleUGCRealModeToggle}
-              clothingPresets={UGC_CLOTHING_PRESETS}
-              selectedClothingPresetIds={ugcRealSettings.selectedClothingPresetIds}
-              onToggleClothingPreset={handleClothingPresetToggle}
-              onUploadClothing={handleCustomClothesUpload}
-              onClearClothing={handleClearCustomClothes}
-              clothingPreview={ugcRealSettings.clothingPreview}
-              expressionPresets={UGC_EXPRESSION_PRESETS}
-              selectedExpressionId={ugcRealSettings.selectedExpressionId}
-              onSelectExpression={handleUGCExpressionSelect}
-              blur={ugcRealSettings.blurAmount}
-              grain={ugcRealSettings.grainAmount}
-              onBlurChange={handleBlurChange}
-              onGrainChange={handleGrainChange}
-              lowResolution={ugcRealSettings.lowResolution}
-              onLowResolutionToggle={handleLowResolutionToggle}
-              imperfectLighting={ugcRealSettings.imperfectLighting}
-              onImperfectLightingToggle={handleImperfectLightingToggle}
-              offFocus={ugcRealSettings.offFocus}
-              onOffFocusToggle={handleOffFocusToggle}
-              tiltedPhone={ugcRealSettings.tiltedPhone}
-              onTiltedPhoneToggle={handleTiltedPhoneToggle}
-              offCenterOptions={UGC_OFF_CENTER_OPTIONS}
-              selectedOffCenterId={ugcRealSettings.offCenterId}
-              onSelectOffCenter={handleOffCenterSelect}
-              framingOptions={UGC_SPONTANEOUS_FRAMING_OPTIONS}
-              selectedFramingId={ugcRealSettings.framingId}
-              onSelectFraming={handleFramingSelect}
-            />
-          </Accordion>
-        </div>
-      )}
     </>
   );
 
@@ -3135,6 +3172,13 @@ const App: React.FC = () => {
   const handleUGCRealModeToggle = useCallback(
     (value: boolean) => {
       persistUgcRealSettings(prev => ({ ...prev, isEnabled: value }));
+      // When UGC is activated, clear environment to allow random selection
+      // When UGC is deactivated, restore default environment (Kitchen)
+      if (value) {
+        setOptions(prev => ({ ...prev, setting: '' })); // Random / Auto for UGC
+      } else {
+        setOptions(prev => ({ ...prev, setting: SETTING_OPTIONS[2].value })); // Kitchen for Lifestyle
+      }
     },
     [persistUgcRealSettings]
   );
@@ -3379,6 +3423,87 @@ const App: React.FC = () => {
     applyOptionsUpdate,
   ]);
 
+  const handleRandomCharacterToggle = useCallback(() => {
+    setIsRandomCharacterEnabled(prev => !prev);
+  }, []);
+
+  const randomizeCharacterParameters = useCallback(() => {
+    if (!isRandomCharacterEnabled) return;
+    
+    // Random selection helpers
+    const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+    
+    // Helper: Check if user specified this field (not default/empty/non-specific)
+    const isUserSpecified = (value: string | undefined, nonSpecificValues: string[] = ['', 'Non-specific', 'Prefer not to specify']): boolean => {
+      return Boolean(value && !nonSpecificValues.includes(value));
+    };
+    
+    // Build random character parameters - ONLY randomize fields user did NOT specify
+    const randomUpdates: Partial<MockupOptions> = {};
+    
+    // Age: Only randomize if user did not select specific age
+    if (!isUserSpecified(options.ageGroup, ['', 'no person'])) {
+      randomUpdates.ageGroup = pickRandom(AGE_GROUP_OPTIONS.filter(opt => opt.value !== 'no person')).value;
+    }
+    
+    // Gender: Only randomize if user did not select specific gender
+    if (!isUserSpecified(options.gender, ['', 'Non-specific', 'Prefer not to specify'])) {
+      randomUpdates.gender = pickRandom(GENDER_OPTIONS).value;
+    }
+    
+    // Ethnicity: Only randomize if user did not select specific ethnicity
+    if (!isUserSpecified(options.ethnicity, ['', 'Non-specific', 'Prefer not to specify'])) {
+      randomUpdates.ethnicity = pickRandom(ETHNICITY_OPTIONS).value;
+    }
+    
+    // Hair Style: Only randomize if user did not select specific style
+    if (!isUserSpecified(options.hairStyle, [''])) {
+      randomUpdates.hairStyle = pickRandom(HAIR_STYLE_OPTIONS).value;
+    }
+    
+    // Hair Color: Only randomize if user did not select specific color
+    if (!isUserSpecified(options.hairColor, [''])) {
+      randomUpdates.hairColor = pickRandom(HAIR_COLOR_OPTIONS).value;
+    }
+    
+    // Skin Tone: Only randomize if user did not select specific tone
+    if (!isUserSpecified(options.skinTone, ['', 'Non-specific'])) {
+      randomUpdates.skinTone = pickRandom(SKIN_TONE_OPTIONS).value;
+    }
+    
+    // Eye Color: Only randomize if user did not select specific color
+    if (!isUserSpecified(options.eyeColor, [''])) {
+      randomUpdates.eyeColor = pickRandom(EYE_COLOR_OPTIONS).value;
+    }
+    
+    // Person Appearance: Only randomize if user did not select specific appearance
+    if (!isUserSpecified(options.personAppearance, [''])) {
+      randomUpdates.personAppearance = pickRandom(PERSON_APPEARANCE_OPTIONS).value;
+    }
+    
+    // Person Mood: Only randomize if user did not select specific mood
+    if (!isUserSpecified(options.personMood, [''])) {
+      randomUpdates.personMood = pickRandom(PERSON_MOOD_OPTIONS).value;
+    }
+    
+    // Wardrobe Style: Only randomize if user did not select specific wardrobe
+    if (!isUserSpecified(options.wardrobeStyle, [''])) {
+      randomUpdates.wardrobeStyle = pickRandom(WARDROBE_STYLE_OPTIONS).value;
+    }
+    
+    // Apply randomized parameters ONLY for fields that were not user-specified
+    if (Object.keys(randomUpdates).length > 0) {
+      applyOptionsUpdate(prev => ({ ...prev, ...randomUpdates }));
+    }
+    
+    // Force new identity variation token to ensure different face
+    setPersonIdentityPackage(prev => ({
+      ...prev,
+      identityLock: false,
+      identityVariationToken: undefined, // This will trigger a new random face
+    }));
+  }, [isRandomCharacterEnabled, applyOptionsUpdate, options]);
+
   useEffect(() => {
     if (!isTalentLinkedAcrossScenes) return;
     if (isProductPlacement || options.ageGroup === 'no person') return;
@@ -3555,6 +3680,13 @@ const App: React.FC = () => {
   const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
     // PHASE 3: MANDATORY LOG - Prove App receives sceneState
     console.log('[APP RECEIVED SCENESTATE]', values);
+    console.log('[APP RECEIVED SCENESTATE FIELDS]', {
+      sceneType: values.sceneType,
+      creationMode: values.creationMode,
+      contentStyle: values.contentStyle,
+      personIncluded: values.personIncluded,
+      sceneIntent: values.sceneIntent,
+    });
 
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);
@@ -4770,14 +4902,14 @@ If the model attempts to create a scene or environment, override it and force a 
     const finalPrompt = removeConflictingIdentityPhrases(prompt);
 
     // DEBUG: Log final prompt for validation
-    console.log('🚀 FINAL PROMPT GENERATED:', {
+    console.log('[FINAL PROMPT GENERATED]:', {
       length: finalPrompt.length,
       isLifestyle: isUgcStyle,
       personIncluded,
       hasPreservation: hasUploadedProduct && isUgcStyle,
       mode: options.creationMode,
     });
-    console.log('📝 Prompt Preview (first 800 chars):', finalPrompt.substring(0, 800));
+    console.log('[Prompt Preview (first 800 chars)]:', finalPrompt.substring(0, 800));
 
     return finalPrompt;
   }
@@ -4931,6 +5063,12 @@ If the model attempts to create a scene or environment, override it and force a 
     async (bundleProducts?: ProductId[], overrideActiveList?: ActiveProduct[], runMode: 'generate' | 'validate' = 'generate') => {
       let generationLogId: string | null = null;
       bundleSelectionRef.current = bundleProducts ?? null;
+      
+      // RANDOM CHARACTER: Randomize all person parameters before generation
+      if (isRandomCharacterEnabled) {
+        randomizeCharacterParameters();
+      }
+      
       if (isTrialLocked) {
         setImageError(`You reached the ${currentPlan.label} limit (${planCreditLimit} credits). Upgrade your plan to keep generating scenes.`);
         return;
@@ -4976,6 +5114,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const basePromptOptions: any = {
           ...options,
+          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isProductPlacement ? 'studio-branding' : 'lifestyle-real'),
           modelReferenceLockAccessories,
           contentStyle: isProductPlacement ? 'product' : 'ugc',
           creationIntent: isProductPlacement ? 'product' : options.creationIntent,
@@ -5103,6 +5242,7 @@ If the model attempts to create a scene or environment, override it and force a 
           // Product mode uses minimal prompt options
           promptOptions = {
             ...basePromptOptions,
+            sceneType: 'studio-branding',
             contentStyle: 'product',
             creationIntent: 'product',
             sceneIntent: 'ecommerce',
@@ -5149,7 +5289,7 @@ If the model attempts to create a scene or environment, override it and force a 
             finalPrompt,
             'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
             'The label/logo must be fully readable (no blur, no glare, no occlusion).',
-            'Do NOT use shallow depth of field, portrait mode, bokeh, or background separation. Keep a single-plane image with flat focus.',
+            'Do NOT use shallow depth of field, bokeh, or background separation. Avoid shallow consumer blur effects. Keep a single-plane image with flat focus.',
             'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
           ].join(' ');
         } else if (isProPhotographer) {
@@ -5163,6 +5303,14 @@ If the model attempts to create a scene or environment, override it and force a 
           finalPrompt = [
             finalPrompt,
             'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
+          ].join(' ');
+        }
+
+        if (!isProductPlacement && hasModelReference) {
+          finalPrompt = [
+            finalPrompt,
+            'MODEL REFERENCE PRIORITY (HIGHEST): Use the uploaded model reference as immutable identity ground truth.',
+            'Match the same face, age, skin texture, proportions, and hair exactly. Do not substitute with another person.',
           ].join(' ');
         }
 
@@ -5199,8 +5347,43 @@ If the model attempts to create a scene or environment, override it and force a 
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
-        const shouldIncludeHumanImage = personIncluded && !(naturalMode || rawMode);
+        const isNaturalUgc = naturalMode || rawMode;
+        
+        // WINE SERVED MODE: Detect wine in served state for special handling
+        // For Product Studio mode: read from ProductStudioStore
+        // For Lifestyle mode: read from lifestyleStep3Values
+        const productStateForWine = isProductPlacement ? useProductStudioStore.getState() : null;
+        const wineVisualProfile = isProductPlacement 
+          ? (productStateForWine as any)?.visualProfile 
+          : (lifestyleStep3Values as any)?.visualProfile;
+        // In Product Studio: serveState is derived from wineGlassMode='filled'
+        // In Lifestyle: serveState is explicit
+        const wineServeState = isProductPlacement
+          ? ((productStateForWine as any)?.wineGlassMode === 'filled' ? 'served' : 'none')
+          : (lifestyleStep3Values as any)?.serveState;
+        const isWineServedMode = Boolean(
+          (typeof wineVisualProfile === 'string' && wineVisualProfile.startsWith('wine')) && 
+          wineServeState === 'served'
+        );
+        
+        // WINE LIQUID OVERRIDE removed: SERVED_STATE_LOCK_V4 in the physics block is the
+        // single source of truth for fill state. A prepended override before the structured
+        // prompt creates duplicate semantic content that degrades model determinism.
+        // The PHYSICS_FINAL_ANCHOR segment appended last in winePipeline handles recency bias.
+
+        console.log('[WINE SERVED MODE DEBUG]', {
+          isProductPlacement,
+          visualProfile: wineVisualProfile,
+          wineGlassMode: (productStateForWine as any)?.wineGlassMode,
+          serveState: wineServeState,
+          isWineServedMode,
+          generationProductsLength: generationProducts.length,
+          hideProductMode
+        });
+        
+        // Always send product image - we'll control reference strength via imageStrength parameter
         const shouldSendProductImage = generationProducts.length > 0 && !hideProductMode;
+        
         const identityInlinePart = personIdentityPackage.modelReferenceBase64
           ? {
             inlineData: {
@@ -5210,8 +5393,53 @@ If the model attempts to create a scene or environment, override it and force a 
             reference: true,
           }
           : null;
+        const hasHumanReference = Boolean(identityInlinePart || modelReferenceFile);
+        const shouldIncludeHumanImage = personIncluded && (hasHumanReference || !isNaturalUgc);
         const requestParts: any[] = [];
+        let humanReferenceAttached = false;
+        let productReferencesAttached = 0;
         requestParts.push({ text: finalPrompt });
+
+        // IMPORTANT: attach human/model reference BEFORE product references.
+        // Gemini is sensitive to reference ordering; placing the model first improves identity adherence.
+        if (shouldIncludeHumanImage) {
+          if (identityInlinePart) {
+            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+            humanReferenceAttached = true;
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${modelMimeType};base64,${modelBase64}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+            humanReferenceAttached = true;
+          }
+        }
+
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
@@ -5219,30 +5447,49 @@ If the model attempts to create a scene or environment, override it and force a 
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
-            // Higher-fidelity reference helps avoid warped labels/typography on the product.
-            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
-              maxLongEdge: isProductPlacement
-                ? (isMultiProductRequest ? 1440 : 3072)
-                : (isMultiProductRequest ? 1024 : 2048),
-              maxBase64Length: isProductPlacement
-                ? (isMultiProductRequest ? 900_000 : 7_500_000)
-                : (isMultiProductRequest ? 550_000 : 4_000_000),
-              quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
-            });
-            // Force reference images to match the selected Output Format aspect ratio.
-            // Even with an explicit `aspectRatio` request, some models bias toward the reference image dimensions.
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${resized.mimeType};base64,${resized.base64}`,
+            // Calculate relative height scale for this product
+            // Find the tallest product to use as reference (1.0)
+            const allHeights = generationProducts.map(p => {
+              const heightValue = (p as any).heightValue as number | null | undefined;
+              const heightUnit = ((p as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
+                return null;
+              }
+              const cm = heightUnit === 'in' ? heightValue * 2.54 : heightValue;
+              return cm;
+            }).filter((h): h is number => h !== null);
+            
+            const maxHeight = allHeights.length > 0 ? Math.max(...allHeights) : null;
+            const currentHeight = (() => {
+              const heightValue = (product as any).heightValue as number | null | undefined;
+              const heightUnit = ((product as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
+                return null;
+              }
+              return heightUnit === 'in' ? heightValue * 2.54 : heightValue;
+            })();
+            
+            const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
+            
+            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
+            
+            // GEMINI FIX: Normalize product with light neutral padding
+            // Creates a canvas at the target aspect ratio with the product centered
+            // Light gray background (#F8F8F8) shows the model the "intended space" to fill with environment
+            // Prevents distortion by pre-formatting the reference to the output aspect ratio
+            const normalized = await normalizeProductWithTransparentPadding(
+              `data:${product.mimeType};base64,${product.base64}`,
               aspectRatio,
+              relativeHeight,
               {
                 maxLongEdge: isProductPlacement
-                  ? (isMultiProductRequest ? 1440 : 3072)
-                  : (isMultiProductRequest ? 1024 : 2048),
-                background: '#FFFFFF',
-                mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
-                quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
+                  ? (isMultiProductRequest ? 1440 : 2048)
+                  : (isMultiProductRequest ? 1024 : 1536),
+                mimeType: 'image/jpeg', // JPEG with light background
+                quality: 0.96,
               }
             );
+            
             let finalReference = normalized;
 
             // Keep total payload under serverless limits when multiple products are attached.
@@ -5268,50 +5515,28 @@ If the model attempts to create a scene or environment, override it and force a 
               inlineData: { data: finalReference.base64, mimeType: finalReference.mimeType },
               reference: true,
             });
+            productReferencesAttached += 1;
             totalAttachedReferenceBase64 += finalReference.base64.length;
           }
         }
-        if (shouldIncludeHumanImage) {
-          if (identityInlinePart) {
-            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-          } else if (modelReferenceFile) {
-            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${modelMimeType};base64,${modelBase64}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-          }
-        }
         const payload = { parts: requestParts };
+        if (hasModelReference && !humanReferenceAttached) {
+          throw new Error('Model Reference is enabled but no human reference image was attached to the generation payload. Re-upload the model photo and try again.');
+        }
+        const partsOrder = requestParts.map((part: any, index: number) => {
+          if (part?.text) return `${index}:text`;
+          const mimeType = String(part?.inlineData?.mimeType || '');
+          if (!mimeType) return `${index}:unknown`;
+          if (index === 1 && humanReferenceAttached) return `${index}:human(${mimeType})`;
+          return `${index}:product(${mimeType})`;
+        });
         const payloadLog = {
-          isNaturalUgc: naturalMode || rawMode,
+          isNaturalUgc,
           productImageSent: shouldSendProductImage,
-          productImagesAttached: Math.max(0, requestParts.length - 1),
-          humanImageSent: shouldIncludeHumanImage && (Boolean(identityInlinePart) || Boolean(modelReferenceFile)),
+          productImagesAttached: productReferencesAttached,
+          humanImageSent: shouldIncludeHumanImage && hasHumanReference,
+          humanReferenceAttached,
+          partsOrder,
           partsCount: requestParts.length,
         };
         console.log('[UGC PAYLOAD]', payloadLog);
@@ -5331,10 +5556,10 @@ If the model attempts to create a scene or environment, override it and force a 
             productCount: generationProducts.length,
           },
         });
-        // IMPORTANT: Output Format must control the result aspect ratio.
-        // When `preserveReferenceImage` is true, Gemini may keep the reference image framing/ratio
-        // even if we request a different `aspectRatio`. We still pass reference images for grounding.
-        const preserveReferenceImage = false;
+        // IMPORTANT: preserveReferenceImage=true — bottle must be preserved exactly as reference.
+        // This applies to both closed and served mode (served adds a glass but never modifies the bottle).
+        const preserveReferenceImage = true;
+
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: {
@@ -5381,38 +5606,40 @@ If the model attempts to create a scene or environment, override it and force a 
           }
           return;
         }
-        const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
-        if (!encodedImage) {
-          throw new Error('Image generation failed or returned no images.');
+        // Prefer imageBase64 for immediate display (avoids cross-origin Firebase CORS issues).
+        // imageUrl is still used for gallery persistence and sharing.
+        const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
+        const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+        const displayUrl = imageBase64
+          ? `data:image/png;base64,${imageBase64}`
+          : imageUrl;
+        if (!displayUrl) {
+          throw new Error('Image generation failed or returned no image.');
         }
         if (typeof data?.remaining_credits === 'number') {
           setRemoteCredits(data.remaining_credits);
         }
 
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const cleanedFinalUrl = await trimBlackBarsDataUrl(finalUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          mimeType: 'image/png',
-        });
-        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        // Use base64 data URL for immediate display (no CORS dependency on Firebase).
+        // Use Firebase URL for gallery persistence and hi-res pipeline.
+        setGeneratedImageUrl(displayUrl);
+        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
             status: 'success',
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
-              outputMimeType: normalizedOutput.mimeType,
-              outputSizeBase64: normalizedOutput.base64?.length ?? 0,
+              imageUrl: imageUrl || displayUrl,
             },
           });
         }
-        setGeneratedImageUrl(outputUrl);
-        setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
+        
         try {
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: outputUrl,
+            imageUrl: imageUrl || displayUrl,
             createdAt: Date.now(),
             plan: resolvedPlanTier,
             aspectRatio,
@@ -5421,8 +5648,10 @@ If the model attempts to create a scene or environment, override it and force a 
         } catch (e) {
           console.warn('Local gallery save failed', e);
         }
-        void reportGalleryEntry(outputUrl);
-        runHiResPipeline(outputUrl);
+        
+        void reportGalleryEntry(imageUrl || displayUrl);
+        runHiResPipeline(imageUrl || displayUrl);
+        
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
             const newCount = creditUsage + creditCost;
@@ -5432,7 +5661,7 @@ If the model attempts to create a scene or environment, override it and force a 
             }
           }
         }
-        // Avoid localStorage gallery (data URLs exceed quota); dashboard uses Firestore gallery history.
+        // Firebase Storage URLs don't have localStorage quota issues
       } catch (err) {
         console.error(err);
         let errorMessage = '';
@@ -5469,6 +5698,8 @@ If the model attempts to create a scene or environment, override it and force a 
       }
     },
     [
+      isRandomCharacterEnabled,
+      randomizeCharacterParameters,
       activeProducts,
       planTier,
       planCreditLimit,
@@ -6731,51 +6962,24 @@ If the model attempts to create a scene or environment, override it and force a 
                     isAnonymousTrial={isAnonymousTrialMode}
                     downloadCreditConfig={DOWNLOAD_CREDIT_CONFIG}
                     onChargeDownloadCredits={handleDownloadCreditCharge}
+                    editPrompt={editPrompt}
+                    onEditPromptChange={(e) => setEditPrompt(e.target.value)}
+                    onEditImage={handleEditImage}
+                    videoPrompt={videoPrompt}
+                    onVideoPromptChange={(e) => setVideoPrompt(e.target.value)}
+                    onGenerateVideo={handleGenerateVideo}
+                    isVideoLoading={isVideoLoading}
+                    videoError={videoError}
+                    generatedVideoUrl={generatedVideoUrl}
+                    hasPlanVideoAccess={hasPlanVideoAccess}
+                    planVideoLimit={planVideoLimit}
+                    remainingVideos={remainingVideos}
+                    planLabel={currentPlan.label}
+                    videoAccessCode={videoAccessInput}
+                    onVideoAccessCodeChange={handleVideoAccessCodeChange}
+                    onVideoAccessSubmit={handleVideoAccessSubmit}
+                    videoAccessError={videoAccessError}
                   />
-
-                  {generatedImageUrl && (
-                    <details key={`edit-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
-                        Edit image
-                      </summary>
-                      <div className="mt-3">
-                        <ImageEditor
-                          editPrompt={editPrompt}
-                          onPromptChange={(e) => setEditPrompt(e.target.value)}
-                          onEditImage={handleEditImage}
-                          isEditing={isImageLoading}
-                        />
-                      </div>
-                    </details>
-                  )}
-
-                  {generatedImageUrl && (
-                    <details key={`video-${generatedImageUrl}`} className="w-full" open={false}>
-                      <summary className="cursor-pointer select-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-indigo-600 transition dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:border-white/30">
-                        Video
-                      </summary>
-                      <div className="mt-3">
-                        <VideoGenerator
-                          videoPrompt={videoPrompt}
-                          onPromptChange={(e) => setVideoPrompt(e.target.value)}
-                          onGenerateVideo={handleGenerateVideo}
-                          isVideoLoading={isVideoLoading}
-                          videoError={videoError}
-                          generatedVideoUrl={generatedVideoUrl}
-                          isGenerating={isVideoLoading || isImageLoading}
-                          hasAccess={hasPlanVideoAccess}
-                          lockMessage={planVideoLimit === 0 ? "Video generation is disabled." : undefined}
-                          showAccessCodeField={planVideoLimit === 0}
-                          remainingVideos={planVideoLimit > 0 ? remainingVideos : null}
-                          planLabel={currentPlan.label}
-                          accessCode={videoAccessInput}
-                          onAccessCodeChange={handleVideoAccessCodeChange}
-                          onAccessSubmit={handleVideoAccessSubmit}
-                          accessError={videoAccessError}
-                        />
-                      </div>
-                    </details>
-                  )}
                 </div>
               </div>
             </fieldset>

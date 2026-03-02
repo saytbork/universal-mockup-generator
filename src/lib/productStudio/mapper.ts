@@ -192,3 +192,14 @@ export function mapStep3ToProductStudio(
 
     return state;
 }
+
+/**
+ * Backward-compatible adapter used by legacy tests.
+ */
+export function mapFieldsToProductStudioState(
+    values: Step3ProductValues,
+    products: ProductAssetInput[] = []
+): ProductStudioState {
+    const activeProductId = products.length > 0 ? products[0].id : null;
+    return mapStep3ToProductStudio(values, products, activeProductId);
+}

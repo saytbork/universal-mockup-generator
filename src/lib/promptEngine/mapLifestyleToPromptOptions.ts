@@ -60,6 +60,11 @@ const OUTDOOR_ENVIRONMENT_LABELS = new Set([
     'Street Corner',
 ]);
 
+const isNoEnvironmentSelection = (value?: string | null): boolean => {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    return normalized === '' || normalized === 'none' || normalized === 'null';
+};
+
 function buildCustomClothesDescriptor(sceneState: Step3Values): CustomClothes | undefined {
     if (!sceneState.customClothesEnabled) {
         return undefined;
@@ -366,7 +371,7 @@ const EXPERT_ROLE_FOCUS_MAP: Record<ExpertRole, FormulationStoryOptions['profess
 };
 
 const buildFormulationStoryOptions = (sceneState: Step3Values): FormulationStoryOptions | undefined => {
-    if (!sceneState.formulationStoryEnabled) {
+    if ((sceneState.visualMode || 'default') !== 'formulation') {
         return undefined;
     }
     const focus = EXPERT_ROLE_FOCUS_MAP[sceneState.expertRole] ?? 'custom';
@@ -447,7 +452,7 @@ const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
     'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
     'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
     'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
-    'Full body': 'full-length framing from head to toe, including ground contact and environmental elements around the subject'
+    'Full body': 'extended framing from waist to top of head (3/4 body), showing full torso, arms, and upper environment; feet and floor may be excluded to keep product properly sized'
 };
 
 /**
@@ -701,6 +706,10 @@ const CREATION_MODE_STRUCTURAL_MAP: Record<string, string> = {
  * COMPOSITION MODE → Layout intent and spatial arrangement
  */
 const COMPOSITION_MODE_STRUCTURAL_MAP: Record<string, string> = {
+    'Product First': 'product-first composition: product is the hero with person supporting the story, product as primary focus',
+    'Balanced': 'balanced composition: equal attention to product and person, harmonious visual weight',
+    'Fifty / Fifty': 'fifty-fifty composition: equal visual weight given to product and model with tight framing',
+    'Model First': 'model-first composition: person is the hero with product naturally integrated into the lifestyle moment',
     'Lifestyle Showcase': 'lifestyle showcase layout: balanced subject and environment, natural contextual composition',
     'Editorial Spread': 'editorial spread layout: design-forward with intentional negative space, magazine-style arrangement',
     'Blank Space': 'blank space layout: heavy negative space on designated side, optimized for text and graphic overlays'
@@ -747,7 +756,26 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP INPUT]', JSON.stringify(sceneState, null, 2));
     }
 
-    if (sceneState.ugcRealMode && sceneState.sceneIntent === 'ecommerce') {
+    const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
+    const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
+    const visualMode = (sceneState.visualMode || 'default') as NonNullable<Step3Values['visualMode']>;
+    const isUGCMode = visualMode === 'ugc';
+    const isRitualMode = visualMode === 'ritual';
+    const isHeroMode = visualMode === 'hero';
+    const isFormulationMode = visualMode === 'formulation';
+    const resolvedSceneType: 'studio-branding' | 'lifestyle-real' =
+        sceneState.sceneType === 'studio-branding' || sceneState.sceneType === 'lifestyle-real'
+            ? sceneState.sceneType
+            : 'lifestyle-real';
+    const personIncludedSignal =
+        (sceneState as any).personIncluded === true ||
+        sceneState.noPerson === false;
+    const forceLifestyleEngine =
+        creationModeRaw === 'aesthetic' ||
+        contentStyleRaw === 'ugc' ||
+        personIncludedSignal === true;
+
+    if (!forceLifestyleEngine && isUGCMode && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] UGC Real Mode cannot run in ecommerce sceneIntent');
         throw new Error('Invalid state: ugcRealMode + ecommerce sceneIntent');
     }
@@ -759,11 +787,11 @@ export function mapLifestyleToPromptOptions(
         console.error('[INVALID STATE BLOCKED] Ecommerce Blank Space cannot run in environment sceneIntent (creationMode)');
         throw new Error('Invalid state: Ecommerce Blank Space + environment sceneIntent (creationMode)');
     }
-    if (sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
+    if (!forceLifestyleEngine && sceneState.noPerson === false && sceneState.sceneIntent === 'ecommerce') {
         console.error('[INVALID STATE BLOCKED] Person cannot be enabled in ecommerce sceneIntent');
         throw new Error('Invalid state: person enabled in ecommerce sceneIntent');
     }
-    if (sceneState.formulationStoryEnabled && sceneState.noPerson) {
+    if (isFormulationMode && sceneState.noPerson) {
         console.error('[INVALID STATE BLOCKED] Formulation Story requires person enabled');
         throw new Error('Invalid state: formulation story enabled with noPerson=true');
     }
@@ -793,9 +821,21 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    if (sceneState.sceneIntent === 'ecommerce') {
+    const activeEngine =
+        resolvedSceneType === 'studio-branding' ||
+        (!forceLifestyleEngine && sceneState.sceneIntent === 'ecommerce')
+            ? 'studio'
+            : 'lifestyle';
+    console.log('[ENGINE ACTIVE]', activeEngine);
+
+    if (activeEngine === 'studio') {
         console.log('[PRODUCT MODE ACTIVE]');
-        return mapProductModeToPromptOptions(sceneState, existingOptions);
+        const studioMapped = mapProductModeToPromptOptions(sceneState);
+        return {
+            ...studioMapped,
+            sceneType: 'studio-branding',
+            visualMode: sceneState.visualMode || 'default',
+        };
     }
 
     // ========================================================================
@@ -813,21 +853,22 @@ export function mapLifestyleToPromptOptions(
         ...existingOptions,
         hasModelReference,
         identitySeed,
+        visualMode,
+        sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
     };
 
     // Formulation Story can optionally hide the product entirely (scene-only).
-    if (sceneState.formulationStoryEnabled && sceneState.formulationProductVisible === false) {
+    if (isFormulationMode && sceneState.formulationProductVisible === false) {
         (mapped as any).forceHideProduct = true;
     }
     const forceHideProductRequested = (mapped as any).forceHideProduct === true;
     const hasUploadedProductAsset = (existingOptions.productAssets?.length ?? 0) > 0;
-    const ritualHideProductRequested =
-        (sceneState as any).ritualModeEnabled === true && Boolean((sceneState as any).ritualHideProduct);
+    const ritualHideProductRequested = isRitualMode && Boolean((sceneState as any).ritualHideProduct);
 
     // Ritual Mode (Lifestyle-only)
-    if ((sceneState as any).ritualModeEnabled === true) {
+    if (isRitualMode) {
         (mapped as any).ritualModeActive = true;
         (mapped as any).ritualHideProduct = Boolean((sceneState as any).ritualHideProduct);
         (mapped as any).ritualNoObjects = Boolean((sceneState as any).ritualNoObjects);
@@ -847,6 +888,27 @@ export function mapLifestyleToPromptOptions(
     }
     const ugcStyleKey = String(mapped.ugcStyle ?? 'optimized').toLowerCase();
     mapped.sameCreatorAcrossScenes = sceneState.sameCreatorAcrossScenes;
+    
+    // ========================================================================
+    // UGC FULL AUTOMATION MODE (Maximum entropy: ignores ALL manual controls)
+    // ========================================================================
+    // ONLY active when:
+    // 1. UGC Real Mode is ON
+    // 2. No Model Reference (Model Reference always wins)
+    // 3. User explicitly enabled Full Automation
+    mapped.randomFullAutomationActive =
+        Boolean(sceneState.isRandomFullAutomationEnabled) &&
+        isUGCMode &&
+        !hasModelReference;
+    
+    // Set alias for identity builder
+    mapped.fullAutomationMode = mapped.randomFullAutomationActive;
+    
+    // Pass gender preference for Full Automation mode
+    if (mapped.randomFullAutomationActive) {
+        mapped.fullAutomationGenderPreference = sceneState.fullAutomationGenderPreference || 'any';
+    }
+    
     if (!identityContinuityRequested) {
         delete (mapped as any).identityLock;
     }
@@ -988,7 +1050,7 @@ export function mapLifestyleToPromptOptions(
         rawCreationMode === 'ecommerce blank space' || rawCreationMode === 'ecom-blank';
     const isCompositionModeEcommerceBlank = sceneState.compositionMode === 'Ecommerce Blank Space';
     const isEcommerceBlankSpaceActive = isEcommerceSceneIntent;
-    const isUGCRealMode = !!sceneState.ugcRealMode;
+    const isUGCRealMode = !!isUGCMode;
     const personAge = sceneState.age || 0;
     const is80Plus = isUGCRealMode && personAge >= 80;
     const is85Plus = isUGCRealMode && personAge >= 85;
@@ -1077,6 +1139,15 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.wardrobeStyle = ward;
         }
 
+        const normalizedSceneProps = [sceneState.props, sceneState.customProps]
+            .map((entry) => String(entry || '').trim())
+            .filter(Boolean)
+            .join(', ');
+        if (normalizedSceneProps) {
+            mapped.personProps = normalizedSceneProps;
+            mapped.personDetails.personProps = normalizedSceneProps;
+        }
+
         // APPEARANCE (Manual input)
         const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
         if (appearanceDescriptor) {
@@ -1088,7 +1159,7 @@ export function mapLifestyleToPromptOptions(
         const editorialSkinRealism =
             // For older ages, avoid auto-upgrading to soft retouch (it collapses perceived age).
             ugcStyleKey === 'optimized' &&
-                !sceneState.ugcRealMode &&
+                !isUGCMode &&
                 personAge < 60 &&
                 (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
                 ? 'soft-retouch'
@@ -1177,7 +1248,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     const isUGCActive = isUGCRealMode;
-    const isFormulationActive = !!sceneState.formulationStoryEnabled;
+    const isFormulationActive = !!isFormulationMode;
 
     if (!isUGCActive) {
         const skinLabel = sceneState.skinRealism || 'Natural';
@@ -1204,7 +1275,7 @@ export function mapLifestyleToPromptOptions(
     }
 
     // FRAMING/PERSPECTIVE (Manual)
-    if (!sceneState.ugcRealMode && sceneState.framing) {
+    if (!isUGCMode && sceneState.framing) {
         mapped.perspective = FRAMING_SEMANTIC_MAP[sceneState.framing] || sceneState.framing;
     }
 
@@ -1216,21 +1287,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // CREATION MODE → Structural Rules (FIRST - affects everything downstream)
     // ========================================================================
-    let creationModeKey =
-        sceneState.creationMode ||
-        (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
-
-    // OVERRIDE: If Composition Mode is 'Ecommerce Blank Space', force creation mode
-    // This allows Ecommerce Builder to work without UI state sync complexity
-    if (sceneState.compositionMode === 'Ecommerce Blank Space' && !isEnvironmentSceneIntent) {
-        creationModeKey = 'Ecommerce Blank Space';
-    }
-
-    if (isEnvironmentSceneIntent) {
-        creationModeKey =
-            sceneState.creationMode ||
-            (sceneState.ugcRealMode || sceneState.creationIntent === 'ugc' ? 'Lifestyle UGC' : 'Aesthetic Builder');
-    }
+    const creationModeKey = sceneState.creationMode || 'Aesthetic Builder';
 
     const productProminenceKey =
         ((sceneState as any).productProminence as
@@ -1239,6 +1296,7 @@ export function mapLifestyleToPromptOptions(
             | 'model-first'
             | 'fifty-fifty'
             | undefined) ?? 'product-first';
+    mapped.productProminence = productProminenceKey;
 
     const creationModeStructural = isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
@@ -1249,7 +1307,7 @@ export function mapLifestyleToPromptOptions(
                 'fifty-fifty': 'Lifestyle composition in a real environment with equal emphasis on person and product.',
             } as const)[productProminenceKey] ??
             'Lifestyle composition in a real environment with the product clearly visible.'
-            : 'Environment-first lifestyle composition keeping the product grounded within the lived-in room.'
+            : 'Lifestyle composition in a real environment with contextual subject grounding.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space layout with pure white background, heavy negative space for UX overlays, and no environmental narrative.'
             : CREATION_MODE_STRUCTURAL_MAP[creationModeKey] || CREATION_MODE_STRUCTURAL_MAP['Lifestyle UGC'];
@@ -1262,7 +1320,7 @@ export function mapLifestyleToPromptOptions(
         'Background Replace': 'bg-replace',
         'Ecommerce Blank Space': 'ecom-blank'
     };
-    mapped.creationMode = creationModeInternalMap[creationModeKey] || 'lifestyle';
+    mapped.creationMode = creationModeInternalMap[creationModeKey] || 'aesthetic';
     mapped.creationModeStructural = creationModeStructural;
     console.log('[MAP] creationMode:', creationModeKey, '→', mapped.creationMode, '→', creationModeStructural);
 
@@ -1271,16 +1329,24 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     const rawCompositionModeKey = sceneState.compositionMode || 'Lifestyle Showcase';
     const compositionModeKey = isEnvironmentSceneIntent ? 'Lifestyle Showcase' : rawCompositionModeKey;
-    const compositionModeStructural = isEnvironmentSceneIntent
+    
+    // RITUAL MODE OVERRIDE: Action-first composition
+    const ritualModeActive = (mapped as any).ritualModeActive === true;
+    
+    const compositionModeStructural = ritualModeActive
+        ? ritualHideProductRequested
+            ? 'Ritual action-first composition: focus on the wellness activity and environment. No product visible.'
+            : 'Ritual action-first composition: focus on the wellness activity; if product appears, it must be naturally integrated and incidental to the ritual scene.'
+        : isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
             ? ({
-                balanced: 'Balanced framing: product and person share attention; environment supports the moment without stealing focus.',
-                'product-first': 'Product-first framing: product in the foreground hero position; person supports the story; environment stays contextual.',
+                balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
+                'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
                 'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
                 'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
             } as const)[productProminenceKey] ??
             'Product visible framing: keep product readable and present.'
-            : 'Environment-first layout with human-first framing and contextual surroundings.'
+            : 'Balanced lifestyle composition with contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
             : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
@@ -1289,10 +1355,14 @@ export function mapLifestyleToPromptOptions(
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
 
     if (isEnvironmentSceneIntent) {
-        if (forceHideProductRequested) {
+        if (forceHideProductRequested || ritualHideProductRequested) {
             mapped.placementStyle = 'Lifestyle placement with the person integrated in the environment.';
             mapped.productPlane =
                 'Person-first framing with realistic environment context. Keep the subject tack sharp with grounded contact shadows. No product packaging in frame.';
+        } else if (ritualModeActive) {
+            mapped.placementStyle = 'Ritual-focused placement with the action as the primary visual element.';
+            mapped.productPlane =
+                'Action-first composition. If product appears, it must be naturally placed in the background or mid-ground, secondary to the ritual activity. Keep the ritual action sharp and clearly visible.';
         } else {
             mapped.placementStyle = 'Lifestyle placement with the product integrated in the environment, not hero-focused.';
             mapped.productPlane =
@@ -1305,11 +1375,9 @@ export function mapLifestyleToPromptOptions(
     // UGC REAL MODE → HARD OVERRIDES (Highest Priority)
     // ========================================================================
     const lifestyleUgcMode = creationModeKey === 'Lifestyle UGC';
-    if ((sceneState.ugcRealMode || lifestyleUgcMode) && !forceHideProductRequested) {
+    if ((isUGCMode || lifestyleUgcMode) && !forceHideProductRequested) {
         console.log('[MAP] UGC Real Mode ACTIVE - applying hard overrides');
 
-        // FORCE lifestyle mode
-        mapped.creationMode = 'lifestyle';
         mapped.ugcRealModeActive = true;
         mapped.realModeActive = true;
         mapped.ugcCaptureSituation = sceneState.ugcCaptureSituation || null;
@@ -1326,14 +1394,14 @@ export function mapLifestyleToPromptOptions(
     const normalizedFraming = normalizeSingleSelectLayer(sceneState.ugcFramingImperfections, 'ugcFramingImperfections');
     const normalizedAwkward = normalizeSingleSelectLayer(sceneState.ugcAwkwardContext, 'ugcAwkwardContext');
     const awkwardEnvironmentOverride =
-        sceneState.ugcRealMode && normalizedAwkward.length > 0
+        isUGCMode && normalizedAwkward.length > 0
             ? AWKWARD_CONTEXT_ENVIRONMENT_MAP[normalizedAwkward[0]] || null
             : null;
 
     const productInteractionLabel = (sceneState.productInteraction || '').trim();
     const normalizedPoseKey = normalizeKey(sceneState.pose);
     const foregroundProductFocusRequested =
-        !sceneState.ugcRealMode &&
+        !isUGCMode &&
         hasUploadedProductAsset &&
         !ritualHideProductRequested &&
         !forceHideProductRequested &&
@@ -1377,7 +1445,7 @@ export function mapLifestyleToPromptOptions(
     // IMPORTANT:
     // Only attach `ugcRealModeLayers` (and related layer fields) when Raw Domestic UGC is actually active.
     // Otherwise other builders (e.g. camera) treat the presence of this object as UGC-real-active and degrade optics.
-    if (sceneState.ugcRealMode) {
+    if (isUGCMode) {
         mapped.ugcCaptureStyleBase = normalizedCaptureBase;
         mapped.ugcCameraOperator = normalizedCameraOperator;
         mapped.ugcBodyPhonePosition = normalizedBodyPhone;
@@ -1427,7 +1495,7 @@ export function mapLifestyleToPromptOptions(
         const cameraDevice = (sceneState as any).cameraType || defaultCameraLabel;
         const cameraDeviceSemantic = CAMERA_DEVICE_SEMANTIC_MAP[cameraDevice] || CAMERA_DEVICE_SEMANTIC_MAP[defaultCameraLabel];
         const shouldForceEnvironmentSmartphone =
-            isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
+            isUGCMode && isEnvironmentSceneIntent && (ugcStyleKey === 'natural' || ugcStyleKey === 'raw');
         let effectiveCameraSemantic = shouldForceEnvironmentSmartphone
             ? 'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.'
             : cameraDeviceSemantic;
@@ -1439,6 +1507,20 @@ export function mapLifestyleToPromptOptions(
             effectiveCameraSemantic = CAMERA_DEVICE_SEMANTIC_MAP[ugcCameraLabel] || effectiveCameraSemantic;
         } else {
             mapped.camera = cameraDevice;
+        }
+
+        // ANTI-DOLL FIX: Strip cinematic language when person is included
+        // Cinema/filmic aesthetic conflicts with raw/real person appearance
+        const personIncluded = !sceneState.noPerson && sceneState.personIncluded !== false;
+        if (isUGCMode && personIncluded && effectiveCameraSemantic) {
+            effectiveCameraSemantic = effectiveCameraSemantic
+                .replace(/cinema camera rig/gi, 'natural camera capture')
+                .replace(/cinematic/gi, 'natural')
+                .replace(/filmic dynamic range/gi, 'natural tonal range')
+                .replace(/filmic color science/gi, 'natural color rendition')
+                .replace(/controlled rigs/gi, 'steady capture')
+                .replace(/smooth motion/gi, 'natural movement');
+            console.log('[ANTI-DOLL] Stripped cinematic language for person-included scene');
         }
 
         if (foregroundProductFocusRequested) {
@@ -1467,9 +1549,9 @@ export function mapLifestyleToPromptOptions(
         mapped.productPlane = config.productPlane;
     }
 
-    if (!sceneState.ugcRealMode) {
+    if (!isUGCMode) {
         // Shot Type
-        const isEcommerceCanvasOverlayActive = sceneState.ecommerceSidePlacementFlag === true;
+        const isEcommerceCanvasOverlayActive = isHeroMode === true;
         const productProminenceKey =
             ((sceneState as any).productProminence as 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty' | undefined) ??
             ('product-first' as const);
@@ -1543,6 +1625,25 @@ export function mapLifestyleToPromptOptions(
         }
     };
 
+    const generateRandomUgcEnvironment = (): { macro: string; micro: string; descriptor: string } => {
+        const ugcEnvironments = [
+            { macro: 'Kitchen', micro: 'Countertop' },
+            { macro: 'Living Room', micro: 'Coffee table' },
+            { macro: 'Bedroom', micro: 'Dresser' },
+            { macro: 'Bathroom', micro: 'Vanity sink' },
+            { macro: 'Workspace', micro: 'Desk' },
+            { macro: 'Hallway', micro: 'Entryway' },
+            { macro: 'Home Gym', micro: 'Workout area' },
+            { macro: 'Balcony / Indoor Terrace', micro: 'Balcony seating area' },
+        ] as const;
+        const picked = ugcEnvironments[Math.floor(Math.random() * ugcEnvironments.length)] || ugcEnvironments[0];
+        return {
+            macro: picked.macro,
+            micro: picked.micro,
+            descriptor: buildUgcEnvironmentDescriptor(picked.macro, false),
+        };
+    };
+
     const DEFAULT_MICRO_BY_MACRO: Record<string, string> = {
         'Kitchen': 'Countertop',
         'Living Room': 'Coffee table',
@@ -1562,62 +1663,79 @@ export function mapLifestyleToPromptOptions(
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';
         mapped.environmentOrder = '';
+        delete (mapped as any).sceneEnvironmentDescriptor;
         console.log('[MAP] environmentContext === null (Studio mode) - environment fully suppressed');
     } else if (envContext && envContext.macro) {
         // Lifestyle/UGC: Use environmentContext as source of truth
-        const macro = envContext.macro;
+        const macro = String(envContext.macro || '').trim();
         const micro = envContext.micro || '';
+        const hasNoEnvironment = isNoEnvironmentSelection(macro);
 
-        const allowedMacroSet = new Set([
-            'Kitchen',
-            'Living Room',
-            'Bedroom',
-            'Bathroom',
-            'Workspace',
-            'Hallway',
-            'Home Gym',
-            'Balcony / Indoor Terrace',
-            'Urban Exterior',
-            'Natural Exterior',
-            'Parking Lot',
-            'Backyard / Patio',
-            'Street Corner',
-        ]);
-        const isCustomMacro = !allowedMacroSet.has(macro);
+        if (hasNoEnvironment) {
+            (mapped as any).selectedEnvironment = 'none';
+            (mapped as any).customEnvironment = '';
 
-        mapped.setting = macro;
+            if (isUGCRealMode) {
+                const ugcEnvironment = generateRandomUgcEnvironment();
+                mapped.setting = ugcEnvironment.macro;
+                mapped.microLocation = ugcEnvironment.micro;
+                (mapped as any).sceneEnvironment = ugcEnvironment.macro;
+                mapped.environmentOrder = ugcEnvironment.macro;
+                (mapped as any).sceneEnvironmentDescriptor = ugcEnvironment.descriptor;
+                console.log('[MAP] UGC system environment:', ugcEnvironment);
+            } else {
+                mapped.setting = '';
+                mapped.microLocation = '';
+                (mapped as any).sceneEnvironment = '';
+                mapped.environmentOrder = '';
+                delete (mapped as any).sceneEnvironmentDescriptor;
+                console.log('[MAP] environmentContext macro is none - environment suppressed');
+            }
+        } else {
 
-        const normalizedMicro = micro.trim();
-        const shouldReplaceCountertop =
-            normalizedMicro === 'Countertop' && macro !== 'Kitchen';
-        const resolvedMicro =
-            isCustomMacro
-                ? ''
-                : shouldReplaceCountertop || !normalizedMicro
-                    ? (DEFAULT_MICRO_BY_MACRO[macro] ?? '')
-                    : normalizedMicro;
-        mapped.microLocation = resolvedMicro;
-        (mapped as any).sceneEnvironment = macro;
-        mapped.environmentOrder = macro;
-        (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
-        (mapped as any).customEnvironment = isCustomMacro ? macro : '';
-
-        if (isUGCRealMode) {
-            const forbiddenUgcOutdoor = new Set([
+            const allowedMacroSet = new Set([
+                'Kitchen',
+                'Living Room',
+                'Bedroom',
+                'Bathroom',
+                'Workspace',
+                'Hallway',
+                'Home Gym',
+                'Balcony / Indoor Terrace',
                 'Urban Exterior',
                 'Natural Exterior',
                 'Parking Lot',
                 'Backyard / Patio',
                 'Street Corner',
             ]);
-            if (forbiddenUgcOutdoor.has(macro)) {
-                console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
-                throw new Error('Invalid state: outdoor environment selected in UGC');
-            }
-            (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
-        }
+            const isCustomMacro = !allowedMacroSet.has(macro);
 
-        console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
+            mapped.setting = macro;
+
+            const normalizedMicro = micro.trim();
+            const shouldReplaceCountertop =
+                normalizedMicro === 'Countertop' && macro !== 'Kitchen';
+            const resolvedMicro =
+                isCustomMacro
+                    ? ''
+                    : shouldReplaceCountertop || !normalizedMicro
+                        ? (DEFAULT_MICRO_BY_MACRO[macro] ?? '')
+                        : normalizedMicro;
+            mapped.microLocation = resolvedMicro;
+            (mapped as any).sceneEnvironment = macro;
+            mapped.environmentOrder = macro;
+            (mapped as any).selectedEnvironment = isCustomMacro ? 'Custom' : macro;
+            (mapped as any).customEnvironment = isCustomMacro ? macro : '';
+
+            if (isUGCRealMode) {
+                // UGC Mode: User-selected environment takes priority over randomization
+                // No restrictions - user can select any environment including outdoor
+                // This allows user to override the default indoor randomization if desired
+                (mapped as any).sceneEnvironmentDescriptor = buildUgcEnvironmentDescriptor(macro, isCustomMacro);
+            }
+
+            console.log('[MAP] environmentContext:', { macro, micro }, '→ setting:', mapped.setting);
+        }
     } else if (awkwardEnvironmentOverride && !isUGCRealMode) {
         mapped.setting = awkwardEnvironmentOverride;
         mapped.microLocation = awkwardEnvironmentOverride;
@@ -1668,17 +1786,12 @@ export function mapLifestyleToPromptOptions(
 
         const selectedEnvironment = sceneState.environment || '';
         const customEnvironmentValue = (sceneState.customEnvironment || '').trim();
+        const noEnvironmentSelected = isNoEnvironmentSelection(selectedEnvironment);
 
-        if (
-            isUGCRealMode &&
-            selectedEnvironment &&
-            selectedEnvironment !== 'Custom' &&
-            !ugcIndoorEnvironments.has(selectedEnvironment)
-        ) {
-            console.error('[INVALID STATE BLOCKED] Outdoor environments are disabled in UGC');
-            throw new Error('Invalid state: outdoor environment selected in UGC');
-        }
-
+        // UGC Mode: User-selected environment always takes priority
+        // No validation errors - user can override randomization with any environment
+        // If user selects outdoor environment in UGC, respect their choice
+        
         (mapped as any).selectedEnvironment = selectedEnvironment;
         (mapped as any).customEnvironment = customEnvironmentValue;
 
@@ -1711,7 +1824,23 @@ export function mapLifestyleToPromptOptions(
             };
         };
 
-        if (isUGCRealMode) {
+        if (noEnvironmentSelected) {
+            if (isUGCRealMode) {
+                const ugcEnvironment = generateRandomUgcEnvironment();
+                mapped.setting = ugcEnvironment.macro;
+                mapped.microLocation = ugcEnvironment.micro;
+                (mapped as any).sceneEnvironment = ugcEnvironment.macro;
+                mapped.environmentOrder = ugcEnvironment.macro;
+                (mapped as any).sceneEnvironmentDescriptor = ugcEnvironment.descriptor;
+                console.log('[MAP] UGC system environment (legacy path):', ugcEnvironment);
+            } else {
+                mapped.setting = '';
+                mapped.microLocation = '';
+                (mapped as any).sceneEnvironment = '';
+                mapped.environmentOrder = '';
+                delete (mapped as any).sceneEnvironmentDescriptor;
+            }
+        } else if (isUGCRealMode) {
             const { label, description } = resolveEnvironmentLabel();
             mapped.setting = label;
             mapped.microLocation = label;
@@ -1741,13 +1870,28 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // Ritual hero scenes should not inject a literal environment/location even if the user had one selected.
     // CanonicalScene will add the neutral hero canvas language; we must suppress setting/micro so other builders don't re-add rooms.
-    if ((mapped as any).ritualModeActive === true && sceneState.ecommerceSidePlacementFlag === true) {
+    if ((mapped as any).ritualModeActive === true && isHeroMode === true) {
         mapped.setting = '';
         mapped.microLocation = '';
         (mapped as any).sceneEnvironment = '';
         mapped.environmentOrder = '';
         (mapped as any).selectedEnvironment = '';
         (mapped as any).customEnvironment = '';
+    }
+
+    // ========================================================================
+    // RANDOM CHARACTER MODE → ENVIRONMENT OVERRIDE
+    // ========================================================================
+    // When Random Character is ON, clear all environment selections.
+    // Let DiversityRandomizer in identity.ts generate fully random domestic locations.
+    if (mapped.randomCharacterActive) {
+        mapped.setting = '';
+        mapped.microLocation = '';
+        (mapped as any).sceneEnvironment = '';
+        mapped.environmentOrder = '';
+        (mapped as any).selectedEnvironment = '';
+        (mapped as any).customEnvironment = '';
+        console.log('[MAP] Random Character ON → environment cleared for full randomization');
     }
 
     // ========================================================================
@@ -1778,7 +1922,7 @@ export function mapLifestyleToPromptOptions(
         mapped.lastBackgroundId = existingOptions.backgroundVariationId;
     }
 
-    const sceneOrderChaosValue = (!sceneState.ugcRealMode && ugcStyleKey === 'optimized'
+    const sceneOrderChaosValue = (!isUGCMode && ugcStyleKey === 'optimized'
         ? 'clean'
         : (sceneState.sceneOrderChaos || 'Normal').toLowerCase()) as SceneOrderChaosLevel;
     mapped.sceneOrderChaos = sceneOrderChaosValue;
@@ -1845,7 +1989,7 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
 
-    if (sceneState.ugcRealMode && !isEcommerceBlankSpaceActive) {
+    if (isUGCMode && !isEcommerceBlankSpaceActive) {
         mapped.lighting = ugcHouseholdLighting;
         (mapped as any).timeLightingContext = mapped.lighting;
     }
@@ -1895,13 +2039,13 @@ export function mapLifestyleToPromptOptions(
 
     const isEcommerceCanvasActive =
         isEnvironmentSceneIntent &&
-        sceneState.ecommerceSidePlacementFlag === true;
+        isHeroMode === true;
 
     if (isEcommerceSceneIntent) {
         mapped.sidePlacement = (sceneState.sidePlacement?.toLowerCase() || 'center') as any;
         mapped.ecommerceSidePlacementFlag = true;
     } else if (isEcommerceCanvasActive) {
-        if (sceneState.ugcRealMode) {
+        if (isUGCMode) {
             console.error('[INVALID STATE BLOCKED] Hero canvas cannot be used in UGC Real Mode');
             throw new Error('Invalid state: hero canvas + ugcRealMode');
         }
@@ -1937,7 +2081,6 @@ export function mapLifestyleToPromptOptions(
             delete mapped.bgGradient;
         }
 
-        mapped.creationMode = 'bg-replace';
         mapped.creationModeStructural =
             'Background replacement mode: preserve the subject and replace the original environment with a neutral hero canvas.';
         mapped.compositionModeStructural =
@@ -2026,7 +2169,7 @@ export function mapLifestyleToPromptOptions(
     const isLifestyleNonUgc9x16 =
         isEnvironmentSceneIntent &&
         mapped.aspectRatio === '9:16' &&
-        sceneState.ugcRealMode !== true &&
+        isUGCMode !== true &&
         mapped.ugcRealModeActive !== true;
 
     if (isLifestyleNonUgc9x16) {
@@ -2050,7 +2193,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // FORMULATION STORY (Restored)
     // ========================================================================
-    mapped.formulationExpertEnabled = sceneState.formulationStoryEnabled;
+    mapped.formulationExpertEnabled = isFormulationMode;
     mapped.formulationExpertName = sceneState.formulationName;
     const roleValue = sceneState.formulationRole === 'Custom'
         ? sceneState.formulationCustomRole
@@ -2068,9 +2211,10 @@ export function mapLifestyleToPromptOptions(
     // CONTENT STYLE & CREATION INTENT
     // ========================================================================
     mapped.creationIntent = sceneState.creationIntent;
-    // This mapper is used for Lifestyle/UGC flows. Even when "creationIntent" is "brand" or "product-first",
-    // we still allow people/identity language. Product-only isolation is handled by the Studio pipeline.
-    mapped.contentStyle = 'ugc';
+    const explicitContentStyle = String((sceneState as any).contentStyle || '').trim();
+    if (explicitContentStyle) {
+        mapped.contentStyle = explicitContentStyle as any;
+    }
 
     // ========================================================================
     // SELFIE MODE (Restored Logic)
@@ -2099,7 +2243,7 @@ export function mapLifestyleToPromptOptions(
         );
 
         // Inject camera tilt for UGC Real Mode selfies
-        if (sceneState.ugcRealMode) {
+        if (isUGCMode) {
             const tilts = [6, -6, 10, -10];
             // Use the seed for deterministic randomness if available
             const seedNum = parseInt(sceneState.seed || '0', 10) || Math.floor(Math.random() * 1000);
@@ -2138,7 +2282,7 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
 
     // Rule: UGC Real Mode overrides everything
-    if (sceneState.ugcRealMode) {
+    if (isUGCMode) {
         // Block cinema cameras if they slipped through
         const proCameras = [
             'DSLR / mirrorless camera',
@@ -2174,13 +2318,14 @@ export function mapLifestyleToPromptOptions(
             delete mapped.bgGradient;
         }
         delete (mapped as any).ageGroup;
-        mapped.creationMode = mapped.creationMode || 'lifestyle';
         mapped.creationModeStructural =
             mapped.creationModeStructural ||
-            'Environment-first lifestyle composition keeping the product grounded within the lived-in room.';
-        mapped.cameraDeviceSemantic =
-            mapped.cameraDeviceSemantic ||
-            'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
+            'Lifestyle composition in a real environment with contextual subject grounding.';
+        if (isUGCMode) {
+            mapped.cameraDeviceSemantic =
+                mapped.cameraDeviceSemantic ||
+                'Handheld smartphone perspective capturing natural perspective, emphasizing the surrounding environment.';
+        }
     }
 
     // ========================================================================
@@ -2243,6 +2388,9 @@ export function mapLifestyleToPromptOptions(
         });
         console.log('[MAP OUTPUT]', JSON.stringify(mapped, null, 2));
     }
+    console.log('[FINAL SCENETYPE]', (mapped as any).sceneType ?? (sceneState as any).sceneType ?? 'undefined');
+    console.log('[FINAL CREATIONMODE]', mapped.creationMode ?? sceneState.creationMode ?? 'undefined');
+    console.log('[FINAL CONTENTSTYLE]', mapped.contentStyle ?? (sceneState as any).contentStyle ?? 'undefined');
 
     return mapped;
 }

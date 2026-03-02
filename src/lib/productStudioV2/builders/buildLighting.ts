@@ -1,13 +1,70 @@
-import type { StudioAuthorityBundle } from '../types/studioTypes.ts';
+import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
-export function buildLighting(authority: StudioAuthorityBundle): string {
-  const lightingModel = (() => {
-    if (authority.world === 'underwater') return 'underwater refracted directional light with depth-coherent caustics';
-    if (authority.creativeIntent === 'clinical') return 'clinical sterile softbox precision with neutral reflectance';
-    if (authority.creativeIntent === 'campaign') return 'natural directional campaign lighting with environmental bounce';
-    if (authority.creativeIntent === 'luxury') return 'sculpted directional luxury key/fill/rim with micro-specular control';
-    return 'conversion softbox wrap with label-priority separation';
-  })();
+export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (state?.visualProfile === 'coffee') {
+    const mood = state.coffeeMoodProfile || 'ritual-editorial';
+    if (mood === 'coffee-cinematic-luxury') {
+      return [
+        'COFFEE_LIGHTING_PROFILE: cinematic-directional-warm.',
+        'COFFEE_LIGHTING_TEMPERATURE: warm-ritual.',
+        'COFFEE_SHADOW_PROFILE: deep-layered-soft.',
+        'COFFEE_CONTRAST_PROFILE: cinematic-depth.',
+        'COFFEE_LIGHTING_FINE: cinematic ritual shaping with deep layered gradients and warm directional falloff.',
+      ].join(' ');
+    }
+    return [
+      `STUDIO_LIGHTING_PROFILE: coffee-${mood}.`,
+      `COFFEE_LIGHTING_TEMPERATURE: ${state.lightingTemperatureProfile || 'neutral-daylight'}.`,
+      `COFFEE_SHADOW_PROFILE: ${state.shadowProfile || 'controlled-soft'}.`,
+      `COFFEE_CONTRAST_PROFILE: ${state.contrastProfile || 'medium'}.`,
+      'COFFEE_LIGHTING_FINE: lighting refinement follows coffee mood profile and steam visibility level.',
+    ].join(' ');
+  }
 
-  return `STUDIO_LIGHTING_MODEL: ${lightingModel}.`;
+  if (state?.winePrestigeMode) {
+    const mood = String(state.wineMoodProfile || 'prestige').trim();
+    return `STUDIO_LIGHTING_MODEL: wine-${mood}.`;
+  }
+
+  const override = String(state?.lightingModelOverride || '').trim();
+  const photoMode = String(state?.photoMode || '').trim().toLowerCase();
+  const isBeachFoamMode = photoMode === 'beach foam splash';
+  const splashAdMode = Boolean(state?.splashAdMode);
+  const parts: string[] = [];
+  
+  if (override) {
+    parts.push(`STUDIO_LIGHTING_PROFILE: ${override}.`);
+  } else {
+    const lightingModel = (() => {
+      if (photoMode === 'underwater split') {
+        return 'split-level sunlit underwater lighting with clean air-above-water brightness, refracted underwater directional light, visible caustics, and crisp hydration clarity';
+      }
+      if (authority.world === 'beach-daylight' || isBeachFoamMode) {
+        return 'bright tropical daylight with sun directionality, warm beach bounce from white sand, and crisp turquoise-water reflections';
+      }
+      if (authority.world === 'underwater') return 'underwater refracted directional light with depth-coherent caustics';
+      if (authority.creativeIntent === 'clinical') return 'clinical sterile softbox precision with neutral reflectance';
+      if (authority.creativeIntent === 'campaign') return 'natural directional campaign lighting with environmental bounce';
+      if (authority.creativeIntent === 'luxury') return 'sculpted directional luxury key/fill/rim with micro-specular control';
+      return 'conversion softbox wrap with label-priority separation';
+    })();
+
+    parts.push(`STUDIO_LIGHTING_PROFILE: ${lightingModel}.`);
+  }
+
+  // Accent/gel light color injection (from Pro Mode controls)
+  const customColor = String((state as any)?.customLightColor || '').trim().toUpperCase();
+  const intensity = Number((state as any)?.accentLightIntensity ?? 50);
+  if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
+    const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
+    parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow.`);
+  }
+
+  if (splashAdMode) {
+    parts.push(
+      'SPLASH_AD_LIGHTING: slightly elevated contrast ratio, crisp specular highlights, and micro edge highlights on droplets. Preserve product geometry lock and reference integrity.'
+    );
+  }
+
+  return parts.join(' ');
 }

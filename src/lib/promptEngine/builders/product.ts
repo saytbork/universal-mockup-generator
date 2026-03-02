@@ -70,6 +70,11 @@ export class ProductBuilder implements PromptBuilder {
         prompt +=
             ' LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen. Do not rewrite, invent, complete, or retype label text. Do not redraw label artwork; do not change typography, font weight, spacing, or alignment. Do not warp, curve, stretch, distort, or texture-map the label; keep it as a flat optically captured decal. If the bottle rotates, the label rotates rigidly with it; no perspective distortion and no curvature compensation. Keep the label facing the camera straight-on with no 3/4 turn to prevent label deformation.';
 
+        // TEXT PRESERVATION (AI-specific constraint): Google Imagen must treat text as preserved pixels
+        // PRIORITY: This constraint must override any "creative interpretation" tendencies
+        prompt +=
+            ' TEXT PRESERVATION (NON-NEGOTIABLE | HIGHEST PRIORITY): All text, letters, numbers, and logos on the product packaging MUST remain pixel-perfect copies of the reference image. The AI MUST NOT attempt to "redraw" or "re-imagine" any printed characters. Treat all text as photographic data that cannot be altered. If the reference image shows "VITAMIN C 1000mg", output MUST show "VITAMIN C 1000mg" character-for-character. NO text hallucination, NO invented spelling, NO stylized reinterpretation. The label is a photograph being composited, not a design being recreated. PHOTOGRAPHIC TREATMENT: The label must appear as if it was photographed directly from the reference—not generated, not illustrated, not recreated. Zero AI interpretation of text/logos.';
+
         if (isEcommerceBlankSpaceMode) {
             return prompt;
         }
@@ -85,7 +90,11 @@ export class ProductBuilder implements PromptBuilder {
             options.personIncluded === false;
 
         // Product-first optics lock: the product must never be the blurred element.
-        if (ugcDepthLockActive) {
+        // Exception: Ritual Mode allows natural depth with ritual action in focus
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture tack sharp. Product can be naturally integrated in the scene with contextual focus; label should remain readable but product is not the primary sharp element.';
+        } else if (ugcDepthLockActive) {
             // UGC guard blocks any positive depth-of-field language. Keep focus directives without DOF terms.
             prompt +=
                 isProductOnly
@@ -104,10 +113,17 @@ export class ProductBuilder implements PromptBuilder {
             prompt +=
                 ' SCALE RULE: Keep the product large enough that the label text is readable at a glance. Do not make the product small in the frame; avoid full-body-wide shots that shrink the product.';
         }
-        prompt +=
-            isProductOnly
-                ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
-                : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
+        
+        // Ritual Mode: product placement is secondary to the action
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' PLACEMENT RULE (RITUAL MODE): Product must be naturally integrated in the background or mid-ground, secondary to the ritual action. The ritual activity and body posture are the primary visual elements. Product should feel incidental and contextual, not hero-focused.';
+        } else {
+            prompt +=
+                isProductOnly
+                    ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
+                    : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
+        }
 
         const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial

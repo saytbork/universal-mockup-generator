@@ -51,8 +51,9 @@ import { FinalizeBuilder } from './builders/finalize';
 	import { ClothingBuilder } from './builders/clothing';
 	import { FormulationStoryInjectionBuilder } from './builders/formulationStoryInjection';
 	import { CompositionDetailsBuilder } from './builders/compositionDetails';
-	import { SceneStructureBuilder } from './builders/sceneStructure';
-	import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { SceneStructureBuilder } from './builders/sceneStructure';
+import { VisualGrammarBuilder } from './builders/visualGrammar';
+import { LifestyleProfessionalBiasBuilder } from './builders/lifestyleProfessionalBias';
 import { PromptSanitizer } from './sanitizer';
 import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
@@ -60,6 +61,97 @@ import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
 import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
 import { buildDeterministicFoundation } from './deterministicSystemPrompt';
+
+const STRICT_STATE_MODE = true;
+const ENABLE_PROTECTION_LIGHT = import.meta.env.VITE_PROMPT_PROTECTION_LIGHT === 'true';
+const ENABLE_STRICT_PACKAGING_LOCK = import.meta.env.VITE_PROMPT_STRICT_PACKAGING_LOCK === 'true';
+
+function normalizeParts(parts: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const raw of parts) {
+        const line = String(raw || '').trim();
+        if (!line) continue;
+        if (seen.has(line)) continue;
+        seen.add(line);
+        out.push(line);
+    }
+    return out;
+}
+
+function buildProtectionLight(options: PromptOptions): string[] {
+    if (!ENABLE_PROTECTION_LIGHT) return [];
+    const hasProductContext =
+        Boolean((options as any).studioPromptParts?.length) ||
+        options.creationMode === 'studio' ||
+        options.contentStyle === 'product';
+    if (!hasProductContext) return [];
+
+    return [
+        'Basic physical coherence: realistic gravity, coherent contacts, and plausible material response.',
+        'Packaging assembled and physically intact.',
+        'Label remains legible without extreme distortion.',
+    ];
+}
+
+function buildStrictPackagingLock(options: PromptOptions): string[] {
+    if (!ENABLE_STRICT_PACKAGING_LOCK) return [];
+    const hasProductContext =
+        Boolean((options as any).studioPromptParts?.length) ||
+        options.creationMode === 'studio' ||
+        options.contentStyle === 'product';
+    if (!hasProductContext) return [];
+    return ['Strict packaging lock: preserve exact product geometry and design fidelity.'];
+}
+
+function assembleStrictPrompt(coreParts: string[], options: PromptOptions): string {
+    const normalizedCore = normalizeParts(coreParts);
+    const protection = buildProtectionLight(options);
+    const strictLock = buildStrictPackagingLock(options);
+    const assembled = normalizeParts([...normalizedCore, ...protection, ...strictLock]);
+    return assembled.join(' ');
+}
+
+function buildLegacyPromptFromOptions(options: PromptOptions): string {
+    return buildStudioPrompt({
+        photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
+        suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
+        ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
+        paletteColor1: (options as any).paletteColor1,
+        paletteColor2: (options as any).paletteColor2,
+        paletteColor3: (options as any).paletteColor3,
+        backgroundColor: (options as any).heroBackground || options.bgColor,
+        gradientStart: options.bgGradient?.startColor,
+        gradientEnd: options.bgGradient?.endColor,
+        surface: (options as any).studioSurface,
+        surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
+        composition: (options as any).studioComposition,
+        scale: (options as any).studioScale,
+        spacing: (options as any).studioSpacing,
+        negativeSpace: (options as any).studioNegativeSpace,
+        lens: (options as any).studioLens,
+        angle: (options as any).studioAngle,
+        distance: (options as any).studioDistance,
+        framing: (options as any).studioFraming,
+        lighting: (options as any).studioLighting,
+        finish: (options as any).studioFinish,
+        shadow: (options as any).studioShadow || (options as any).heroShadow,
+        interaction: (options as any).studioInteraction,
+    });
+}
+
+function assembleLegacyPrompt(studioPromptParts: string[], options: PromptOptions): string {
+    const legacyPrompt = buildLegacyPromptFromOptions(options);
+    if (studioPromptParts.length === 0) return legacyPrompt;
+    return [legacyPrompt, ...studioPromptParts].join(' ');
+}
+
+function buildFinalPrompt(studioPromptParts: string[], options: PromptOptions): string {
+    if (STRICT_STATE_MODE) {
+        return assembleStrictPrompt(studioPromptParts, options);
+    }
+    return assembleLegacyPrompt(studioPromptParts, options);
+}
 
 // ============================================================================
 // NEGATIVE PROMPT - Quality anchors and artifact prevention
@@ -158,7 +250,7 @@ const generateRequestSeed = (): string => {
 const MODE_RESOLUTION_GUARDRAIL = `
 MODE RESOLUTION (MANDATORY)
 
-If UGC, Raw Domestic UGC, or Lifestyle Real is enabled:
+If UGC or Raw Domestic UGC is enabled:
 - Remove all camera terminology related to optics, lenses, focus, depth, bokeh, cinematic look, film look, or professional photography.
 - Enforce flat, natural smartphone capture with no intentional depth or focus effects.
 - Depth of field must be implicit, neutral, uncontrolled, and never described.
@@ -177,12 +269,7 @@ function stripModeResolutionGuardrail(prompt: string): string {
 }
 
 function isModeResolutionRestricted(options: PromptOptions): boolean {
-    return (
-        options.creationIntent === 'ugc' ||
-        options.contentStyle === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive)
-    );
+    return options.visualMode === 'ugc';
 }
 
 function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: PromptOptions): string {
@@ -225,11 +312,7 @@ function sanitizeCameraAestheticsForRestrictedModes(prompt: string, options: Pro
 
 function isUgcSelfieCaptureActive(options: PromptOptions): boolean {
     const selfieActive = isSelfieActive(options);
-    const ugcActive =
-        options.contentStyle === 'ugc' ||
-        options.creationIntent === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive);
+    const ugcActive = options.visualMode === 'ugc';
     return ugcActive && selfieActive;
 }
 
@@ -249,12 +332,13 @@ function enforcePreflightGuards(options: PromptOptions) {
             throw new Error(`[UGC IDENTITY LOCK] Mutated fields detected: ${mismatches.join(', ')}`);
         }
     }
-    if (options.creationIntent === 'ugc') {
+    const isUgcVisualMode = options.visualMode === 'ugc';
+    if (isUgcVisualMode) {
         const allowMissingEnvironment =
             options.creationMode === 'bg-replace' &&
-            options.ecommerceSidePlacementFlag === true &&
+            options.visualMode === 'hero' &&
             (Boolean(options.bgColor) || Boolean(options.bgGradient));
-        const allowMissingEnvironmentForRitual = Boolean(options.ritualModeActive);
+        const allowMissingEnvironmentForRitual = options.visualMode === 'ritual';
         if (!options.setting && !allowMissingEnvironment) {
             if (allowMissingEnvironmentForRitual) return;
             throw new Error('UGC environment missing or overridden. Please select or provide an environment.');
@@ -263,8 +347,18 @@ function enforcePreflightGuards(options: PromptOptions) {
 }
 
 function applyModeResolution(prompt: string, options: PromptOptions): string {
+    if (!isModeResolutionRestricted(options)) {
+        return stripModeResolutionGuardrail(prompt);
+    }
     const sanitized = sanitizeCameraAestheticsForRestrictedModes(prompt, options);
     return prependModeResolutionGuardrail(sanitized);
+}
+
+function assertSingleCameraBlock(prompt: string): string {
+    const cameraPattern = /\bCamera:\s*[^.]*\./g;
+    const matches = prompt.match(cameraPattern) || [];
+    if (matches.length <= 1) return prompt;
+    throw new Error(`Camera injection conflict: expected exactly one Camera block, found ${matches.length}`);
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -304,7 +398,7 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
     const warnings: ValidationWarning[] = [];
 
     // GUARD 1: UGC + Ecommerce Blank Space
-    if (options.ugcRealModeActive && options.creationMode === 'ecom-blank') {
+    if (options.visualMode === 'ugc' && options.creationMode === 'ecom-blank') {
         warnings.push({
             type: 'conflict',
             message: '⚠️ CONFLICT: UGC Real Mode active + Ecommerce Blank Space. UGC takes precedence.'
@@ -312,7 +406,7 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
     }
 
     // GUARD 2: UGC + Studio/Editorial vocabulary (check in final prompt)
-    if (options.ugcRealModeActive && options.creationMode === 'studio') {
+    if (options.visualMode === 'ugc' && options.creationMode === 'studio') {
         warnings.push({
             type: 'conflict',
             message: '⚠️ CONFLICT: UGC Real Mode active + Studio mode. UGC overrides studio semantics.'
@@ -340,14 +434,6 @@ function validateSemanticCombinations(options: PromptOptions): ValidationWarning
         warnings.push({
             type: 'semantic',
             message: '⚠️ SEMANTIC: Product mode with person included. Consider UGC mode instead.'
-        });
-    }
-
-    // GUARD 5: FormulationStory + UGC should respect expert credibility
-    if (options.formulationExpertEnabled && options.ugcRealModeActive) {
-        warnings.push({
-            type: 'semantic',
-            message: '⚠️ SEMANTIC: Formulation Expert + UGC active. Expert maintains credibility with UGC imperfections.'
         });
     }
 
@@ -380,6 +466,7 @@ export class PromptEngine {
     private compositionDetailsBuilder = new CompositionDetailsBuilder();
     private sceneStructureBuilder = new SceneStructureBuilder(); // NEW: Structure Layer
     private visualGrammarBuilder = new VisualGrammarBuilder();   // Priority 1.5: Grammar Layer
+    private lifestyleProfessionalBiasBuilder = new LifestyleProfessionalBiasBuilder();
     private ecommerceNarrativeBuilder = new EcommerceNarrativeBuilder();
 
     /**
@@ -396,6 +483,50 @@ export class PromptEngine {
 
     build(options: PromptOptions): string {
         console.log('[PROMPT ENGINE] Starting canonical build pipeline');
+
+        // ====================================================================
+        // UGC FULL AUTOMATION OVERRIDE (highest entropy mode)
+        // ====================================================================
+        // When UGC Full Automation is ON:
+        // 1. Force identityMode = 'auto' (new person each render)
+        // 2. Disable Keep Same Person
+        // 3. Generate fresh identityVariationToken
+        // 4. Set fullEntropyOverride flag (tells builders to skip manual controls)
+        // Model Reference ALWAYS wins (cannot be overridden)
+        if (options.randomFullAutomationActive && options.ugcRealModeActive && !options.hasModelReference) {
+            options.identityMode = 'auto';
+            options.sameCreatorAcrossScenes = false;
+            options.identityKey = undefined;
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            options.fullEntropyOverride = true; // Flag for builders
+            console.log('[UGC FULL AUTOMATION]', {
+                active: options.randomFullAutomationActive,
+                entropy: options.fullEntropyOverride,
+                identityMode: options.identityMode,
+                token: options.identityVariationToken
+            });
+        }
+
+        // ====================================================================
+        // RANDOM CHARACTER OVERRIDE (highest priority after Model Reference)
+        // ====================================================================
+        // When Random Character is ON:
+        // 1. Force identityMode = 'auto' (new person each render)
+        // 2. Disable Keep Same Person
+        // 3. Generate fresh identityVariationToken
+        // 4. Clear identityKey
+        // Model Reference ALWAYS wins (cannot be overridden)
+        if (options.randomCharacterActive && !options.hasModelReference) {
+            options.identityMode = 'auto';
+            options.sameCreatorAcrossScenes = false;
+            options.identityKey = undefined;
+            const timestamp = Date.now().toString(36).slice(-6);
+            const random = Math.random().toString(36).substring(2, 8);
+            options.identityVariationToken = `${timestamp}-${random}`.toUpperCase();
+            console.log('[PROMPT ENGINE] Random Character OVERRIDE → forced identityMode=auto, token:', options.identityVariationToken);
+        }
 
         // Identity variation must change on every render unless explicitly locked.
         // This prevents "same person" repeats when the user hits Generate multiple times without changing UI values.
@@ -462,10 +593,28 @@ export class PromptEngine {
         // ====================================================================
         // CLEANUP INSTRUMENTATION — TEMPORARY (remove after usage mapping)
         // ====================================================================
+        const sceneType = String((options as any).sceneType || '').trim();
+        if (!sceneType) {
+            throw new Error('sceneType missing in PromptEngine');
+        }
+        if (sceneType === 'studio-branding') {
+            const studioGuard = options as any;
+            studioGuard.placementStyle = undefined;
+            studioGuard.placementCamera = undefined;
+            studioGuard.setting = '';
+            studioGuard.microLocation = '';
+            studioGuard.sceneEnvironment = undefined;
+            studioGuard.sceneEnvironmentDescriptor = undefined;
+            studioGuard.editorialProps = undefined;
+            if (/natural window/i.test(String(studioGuard.lighting || ''))) {
+                studioGuard.lighting = '';
+            }
+        }
+
         console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL START =====');
         console.log('[CLEANUP-INSTRUMENT] creationMode:', options.creationMode);
         console.log('[CLEANUP-INSTRUMENT] contentStyle:', options.contentStyle);
-        console.log('[CLEANUP-INSTRUMENT] sceneType:', (options as any).sceneType);
+        console.log('[CLEANUP-INSTRUMENT] sceneType:', sceneType);
         console.log('[CLEANUP-INSTRUMENT] setting/environment:', options.setting);
         console.log('[CLEANUP-INSTRUMENT] microLocation:', options.microLocation);
         console.log('[CLEANUP-INSTRUMENT] ugcRealModeActive:', options.ugcRealModeActive);
@@ -478,86 +627,44 @@ export class PromptEngine {
         // ====================================================================
         console.log('[PROMPT ENGINE] Step 1: Modes -', options.creationMode, options.creationIntent);
 
+        const activeEngine =
+            sceneType === 'studio-branding'
+                ? 'studio'
+                : 'lifestyle';
+        console.log('[ENGINE ACTIVE]', activeEngine);
+
         // ====================================================================
         // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
         // ====================================================================
-        if (options.creationMode === 'studio') {
-            console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟢 STUDIO FAST-PATH');
+        if (activeEngine === 'studio') {
+            console.log('[CLEANUP-INSTRUMENT] BRANCH: STUDIO FAST-PATH');
             console.log('[PROMPT ENGINE] Studio Mode FAST-PATH activated');
 
-            // MUTUAL EXCLUSIVITY GUARD: Studio mode must not have environment data
-            if (options.setting && options.setting !== '' && options.setting !== 'studio') {
-                console.warn('[STUDIO GUARD] Environment detected in Studio mode - clearing:', options.setting);
-                (options as any).setting = '';
-                (options as any).environment = '';
-                (options as any).microLocation = '';
+            const studioPromptParts = Array.isArray((options as any).studioPromptParts)
+                ? (options as any).studioPromptParts
+                    .map((entry: unknown) => String(entry || '').trim())
+                    .filter(Boolean)
+                : [];
+            const layerPromptText = String((options as any).studioLayerPromptText || '').trim();
+            if (!STRICT_STATE_MODE && studioPromptParts.length === 0 && layerPromptText) {
+                studioPromptParts.push(
+                    ...layerPromptText
+                        .split('.')
+                        .map((entry) => entry.trim())
+                        .filter(Boolean)
+                );
             }
-
-            // Log which Studio options are being used
-            console.log('[CLEANUP-INSTRUMENT] Studio options:', {
-                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
-                surface: (options as any).studioSurface,
-                composition: (options as any).studioComposition,
-                lighting: (options as any).studioLighting,
-                hasPalette: !!((options as any).paletteColor1 || (options as any).paletteColor2),
-            });
-
-            const studioPrompt = buildStudioPrompt({
-                // Photo Mode
-                photoMode: (options as any).photoMode || (options as any).studioPhotoMode,
-
-                // Props / Ingredients (Ingredient Stack only)
-                suggestedProps: (options as any).suggestedProps || (options as any).studioProps,
-                ingredientLayout: (options as any).ingredientLayout || (options as any).studioIngredientLayout,
-
-                // Auto Palette Extraction
-                paletteColor1: (options as any).paletteColor1,
-                paletteColor2: (options as any).paletteColor2,
-                paletteColor3: (options as any).paletteColor3,
-
-                // Background (fallback if no palette)
-                backgroundColor: (options as any).heroBackground || options.bgColor,
-                gradientStart: options.bgGradient?.startColor,
-                gradientEnd: options.bgGradient?.endColor,
-
-                // Surface
-                surface: (options as any).studioSurface,
-                surfaceHarmonizeWithPalette: (options as any).surfaceHarmonizeWithPalette,
-
-                // Composition
-                composition: (options as any).studioComposition,
-                scale: (options as any).studioScale,
-                spacing: (options as any).studioSpacing,
-                negativeSpace: (options as any).studioNegativeSpace,
-
-                // Camera
-                lens: (options as any).studioLens,
-                angle: (options as any).studioAngle,
-                distance: (options as any).studioDistance,
-                framing: (options as any).studioFraming,
-
-                // Lighting & Finish
-                lighting: (options as any).studioLighting,
-                finish: (options as any).studioFinish,
-                shadow: (options as any).studioShadow || (options as any).heroShadow,
-
-                // Optional Interaction
-                interaction: (options as any).studioInteraction
-            });
-
-            // Studio Product uses Studio Presets as the single prompt authority (positive-only whitelist base).
-            // Do not prepend Product Studio deterministic foundation here.
-            const finalStudioPrompt = `GENERATION INSTRUCTIONS:\n${studioPrompt}`;
+            const finalStudioPrompt = buildFinalPrompt(studioPromptParts, options);
 
             console.log('[CLEANUP-INSTRUMENT] ===== BUILD CALL END (Studio) =====');
             console.log('[FINAL PROMPT STRING]', finalStudioPrompt);
             return finalStudioPrompt;
         }
 
-        // If we reach here, we're in LEGACY branch
-        console.log('[CLEANUP-INSTRUMENT] BRANCH: 🟡 LEGACY PIPELINE');
+        // If we reach here, we're in lifestyle pipeline (sceneType-driven, no fallback).
+        console.log('[CLEANUP-INSTRUMENT] BRANCH: LIFESTYLE PIPELINE');
 
-        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfie;
+        const ugcSelfieDominant = options.visualMode === 'ugc' && isSelfie;
         options.ugcSelfieDominant = ugcSelfieDominant;
 
         if (ugcSelfieDominant) {
@@ -665,6 +772,7 @@ export class PromptEngine {
                 .trim();
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
+            finalPrompt = assertSingleCameraBlock(finalPrompt);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -680,10 +788,12 @@ export class PromptEngine {
         // ====================================================================
         // STEP 4: Canonical Scene
         // ====================================================================
+        const lifestyleProfessionalBiasSection = this.lifestyleProfessionalBiasBuilder.build(options);
         const constraintsSection = this.constraintsBuilder.build(options);
         const narrativeSections = this.narrativeBuilder.build(options, {
             identity: identitySection,
-            constraints: constraintsSection
+            constraints: constraintsSection,
+            lifestyleProfessionalBias: lifestyleProfessionalBiasSection,
         });
         console.log('[PROMPT ENGINE] Step 4: Canonical Scene - built');
 
@@ -734,12 +844,8 @@ export class PromptEngine {
         let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
-        if (options.sceneIntent === 'environment' && options.creationIntent !== 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
-            console.warn('[PROMPT ENGINE] Environment guard triggered - overriding to environment-safe placement');
-            masterSections.creationMode = 'Environment-first lifestyle composition with natural surroundings and contextual product placement.';
-            masterSections.ecommerceBuilder = undefined;
-            masterSections.cameraFraming = 'Camera: handheld smartphone perspective capturing lived-in surroundings, avoiding cinematic hero angles.';
-            finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
+        if (options.sceneIntent === 'environment' && options.visualMode === 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
+            console.warn('[PROMPT ENGINE] Environment guard triggered in UGC mode');
         }
 
         if (/data:image/i.test(finalPrompt)) {
@@ -751,6 +857,7 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
+        finalPrompt = assertSingleCameraBlock(finalPrompt);
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
@@ -833,7 +940,7 @@ export class PromptEngine {
         // ====================================================================
         // MANDATORY DEBUG LOGGING
         // ====================================================================
-        console.log('🚀 PromptEngine v2 - Build Complete:', {
+        console.log('PromptEngine v2 - Build Complete:', {
             length: finalPrompt.length,
             creationIntent: options.creationIntent,
             creationMode: options.creationMode,
@@ -853,7 +960,7 @@ export class PromptEngine {
      * Get individual components for debugging
      */
     getComponents(options: PromptOptions): Record<string, string> {
-        const ugcSelfieDominant = options.contentStyle === 'ugc' && isSelfieActive(options);
+        const ugcSelfieDominant = options.visualMode === 'ugc' && isSelfieActive(options);
         options.ugcSelfieDominant = ugcSelfieDominant;
 
         const shouldIncludeIdentity =

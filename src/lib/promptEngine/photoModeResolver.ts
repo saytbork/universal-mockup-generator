@@ -49,7 +49,8 @@ const stripUgcToken = (text: string): string =>
 const findForbiddenPhotoModeTerm = (text: string): string | null => {
     const lower = text.toLowerCase();
     for (const term of PHOTO_MODE_FORBIDDEN_TERMS) {
-        const regex = new RegExp(`\\b${term}\\b`, 'i');
+        const escaped = term.replace(/\s+/g, '\\s+');
+        const regex = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
         if (regex.test(lower)) return term;
     }
     return null;
@@ -895,6 +896,108 @@ export function buildPhotoModePrompt(
                 if (stability === 'slight interaction') {
                     modifierParts.push(
                         'Product stability: slight liquid interaction is allowed, but label plane remains unobstructed and readable.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Underwater Split' && normalizedCategory === 'waterlineHeight') {
+                const level = normalizedValue.toLowerCase();
+                if (level === 'mid') {
+                    modifierParts.push(
+                        'Waterline height: mid-split across the product body. Keep a clear above/below separation with strong meniscus realism at center height.'
+                    );
+                    return;
+                }
+                if (level === 'upper-mid') {
+                    modifierParts.push(
+                        'Waterline height: upper-mid split so more of the product remains underwater while the cap/upper section stays in bright air; maintain coherent waterline curvature.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Underwater Split' && normalizedCategory === 'bubbleDensity') {
+                const density = normalizedValue.toLowerCase();
+                if (density === 'low') {
+                    modifierParts.push(
+                        'Bubble density: low and premium. Use sparse micro-bubbles near submerged edges only; no chaotic bubble clouds.'
+                    );
+                    return;
+                }
+                if (density === 'balanced') {
+                    modifierParts.push(
+                        'Bubble density: balanced. Add crisp medium-density bubbles around submerged contour zones with clean separation and readable silhouette.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Underwater Split' && normalizedCategory === 'aquaTone') {
+                const tone = normalizedValue.toLowerCase();
+                if (tone === 'light blue') {
+                    modifierParts.push(
+                        'Aqua tone: clear light-blue water with bright daylight transmission and soft cyan caustic accents.'
+                    );
+                    return;
+                }
+                if (tone === 'cyan blue') {
+                    modifierParts.push(
+                        'Aqua tone: vivid cyan-blue water with luminous clarity, bright caustics, and no dark green cast.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Gel Smear Editorial' && normalizedCategory === 'smearWidth') {
+                const width = normalizedValue.toLowerCase();
+                if (width === 'narrow') {
+                    modifierParts.push(
+                        'Smear width: narrow and disciplined. Use a thin editorial gel stroke as a supporting accent, never dominating frame hierarchy.'
+                    );
+                    return;
+                }
+                if (width === 'balanced') {
+                    modifierParts.push(
+                        'Smear width: balanced. Medium gel band with clear edge definition and controlled spread around the product base zone.'
+                    );
+                    return;
+                }
+                if (width === 'wide') {
+                    modifierParts.push(
+                        'Smear width: wide. Broad gel sweep with premium control, keeping clean negative space and fully readable label.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Gel Smear Editorial' && normalizedCategory === 'surfaceTone') {
+                const tone = normalizedValue.toLowerCase();
+                if (tone === 'cool gray') {
+                    modifierParts.push(
+                        'Surface tone: cool gray editorial base with neutral-cool reflectance and clean contrast separation.'
+                    );
+                    return;
+                }
+                if (tone === 'neutral stone') {
+                    modifierParts.push(
+                        'Surface tone: neutral stone material look with subtle tactile variation and grounded premium realism.'
+                    );
+                    return;
+                }
+            }
+
+            if (photoMode === 'Gel Smear Editorial' && normalizedCategory === 'textureGloss') {
+                const gloss = normalizedValue.toLowerCase();
+                if (gloss === 'soft') {
+                    modifierParts.push(
+                        'Texture gloss: soft satin finish with restrained highlights and smooth roll-off.'
+                    );
+                    return;
+                }
+                if (gloss === 'glossy') {
+                    modifierParts.push(
+                        'Texture gloss: glossy wet finish with crisp specular highlights and controlled reflections.'
                     );
                     return;
                 }

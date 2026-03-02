@@ -12,11 +12,11 @@ export default function SidePlacementPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+  <h3 className="text-sm text-gray-600 uppercase tracking-wide">
         Side Placement
       </h3>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-2">
         {sides.map((side) => {
           const isActive = sidePlacement === side.value;
 

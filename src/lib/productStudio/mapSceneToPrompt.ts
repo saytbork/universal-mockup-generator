@@ -32,6 +32,10 @@ import { buildSplashPhysicsModel, isSplashPhysicsContext } from './promptParts/b
 import { assemblePrompt } from './promptParts/promptAssembler';
 import { resolvePlacement } from './placementResolver';
 import { resolvePhysicsCoherence } from './physicsCoherenceResolver';
+import { resolveAtmosphere, type CanonicalScene, type CanonicalSceneIngredient } from '../prompt/atmosphereResolver';
+import { validateAtmosphere } from '../prompt/atmosphereValidator';
+import { buildAtmosphereDebugTree } from '../prompt/atmosphereDebugTree';
+import { getWineEnvironmentNarrative, isWinePrestigeMode, isWinePrestigeV2Mode } from './winePrestige';
 
 const titleCaseFromKebab = (value: string): string =>
   value
@@ -39,6 +43,20 @@ const titleCaseFromKebab = (value: string): string =>
     .map(part => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
     .join(' ')
     .trim();
+
+const parseCustomIngredientsText = (raw: string): CanonicalSceneIngredient[] => {
+  return String(raw || '')
+    .split(/[\n,|;]/g)
+    .map(token => token.trim())
+    .filter(Boolean)
+    .map(name => ({
+      name,
+      cutStyle: 'auto',
+      freshness: 'auto',
+      density: 'auto',
+      placement: 'auto',
+    }));
+};
 
 function buildEnvironmentScene(state: ProductStudioState, randomizer: ReturnType<typeof createRandomizer>): string {
   if (state.blankSpaceEnabled) return '';
@@ -248,12 +266,101 @@ function sanitizeCampaignConstraintText(text: string): string {
   return next.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
 }
 
+function stripPhotoModeBackgroundFeatures(text: string): string {
+  return String(text || '')
+    .replace(/(?:^|;\s*)backgroundType=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)gradientStyle=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)colorSource=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)paletteSource=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)negativeSpace=[^;]*/gi, '')
+    .replace(/(?:^|;\s*)contrastLevel=[^;]*/gi, '')
+    .replace(/^\s*;\s*/g, '')
+    .replace(/\s*;\s*;/g, ';')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function stripStudioLightingOverrides(text: string): string {
+  return String(text || '')
+    .replace(/Lighting rig:[^.]*\./gi, '')
+    .replace(/Use this rig as the authoritative lighting setup\.[^.]*\./gi, '')
+    .replace(/LIGHTING_RIG_OVERRIDE:[^.]*\./gi, '')
+    .replace(/STUDIO_LIGHTING_PROFILE:[^.]*\./gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 export type ScenePromptResult = {
   prompt: string;
   mode: PhotoModeKey;
   splashMode?: string;
   randomSeed: string;
 };
+
+function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptResult {
+  const environmentNarrative = getWineEnvironmentNarrative(
+    String(state.contextPreset || '').trim() || 'Dark Luxury Studio'
+  );
+  const moodModifier = String((state as any).wineMoodModifier || '').trim();
+  const lightingTone = String((state as any).wineLightingTone || '').trim() || 'Warm Lateral';
+  const winePrestigeV2Mode = isWinePrestigeV2Mode(state);
+  const wineAction = String((state as any).wineAction || 'static-presentation').trim();
+  const isDynamicWineAction = wineAction === 'controlled-pour' || wineAction === 'pour';
+  const pourStyle = String((state as any).winePourStyle || 'mid-flow-elegance').trim();
+  const whiteWineSignal = `${String(state.contextPreset || '')} ${String((state as any).wineMoodModifier || '')} ${String(state.photoMode || '')}`
+    .toLowerCase()
+    .includes('white');
+
+  const parts = [
+    'SCENE TYPE: wine-prestige.',
+    'CONTENT STYLE: premium.',
+    'CREATION INTENT: brand-prestige.',
+    'WINE PRESTIGE NARRATIVE BASE: Premium wine presentation. Atmosphere-driven composition. Emphasize depth, texture, silence, and material richness. The bottle is integrated naturally within a refined environment. Preserve exact label fidelity and geometry. Use cinematic lens compression and warm lateral lighting. Avoid commercial splash energy. Focus on elegance, mood, and premium brand perception.',
+    environmentNarrative,
+    winePrestigeV2Mode
+      ? 'WINE_PRESTIGE_VERSION: V2 Cinematic Pour Edition.'
+      : 'WINE_PRESTIGE_VERSION: V1 Static Presentation.',
+    winePrestigeV2Mode
+      ? 'WINE_PRESTIGE_V2_NARRATIVE: Premium wine presentation with controlled cinematic pouring action. Emphasize elegance, depth, and refined atmosphere. The wine flows smoothly from the bottle in a continuous ribbon with natural gravity-driven motion. No explosive splash behavior. Focus on material richness, glass refraction, liquid translucency, and warm lateral lighting. Preserve exact label fidelity and bottle geometry. The composition should feel sophisticated, intimate, and premium.'
+      : '',
+    `WINE_ACTION: ${wineAction}.`,
+    winePrestigeV2Mode ? `POUR_STYLE: ${pourStyle}.` : '',
+    `COMPOSITION: Product First composition. Rule of thirds default. Asymmetrical balance allowed. Elegant negative space and lateral breathing room are required. ${
+      isDynamicWineAction
+        ? 'Dynamic pour action allows bottle tilt between 5° and 12° max.'
+        : 'Static presentation requires vertical bottle orientation (0° tilt, perfectly upright).'
+    } Glass can be foreground or midground. Never force rigid center unless explicitly selected.`,
+    'CAMERA SYSTEM OVERRIDE (SAFE VERSION): LENS_PROFILE = "short telephoto premium prime (85–100mm equivalent)"; DISTORTION = 0; DEPTH_STYLE = "cinematic optical falloff"; BACKGROUND_BLUR = "natural optical depth, not artificial blur". Top-down camera forbidden. Ultra-wide lens forbidden.',
+    `LIGHTING MODEL: ${lightingTone}. Warm lateral key light, low-intensity rim highlight, soft fill shadow recovery, controlled specular highlights on the liquid stream, highlight tracking along the flowing wine, slight warmth bias, deep shadow preservation, and no overexposed label. Priority: liquid glow > bottle silhouette > label.`,
+    whiteWineSignal
+      ? 'LIQUID_RENDERING: pale golden translucency, increased internal glow, lower opacity density, slight meniscus at glass contact, and realistic refractive distortion.'
+      : 'LIQUID_RENDERING: deep burgundy translucency, light absorption at the core, edge luminosity near the surface, slight meniscus at glass contact, and realistic refractive distortion.',
+    winePrestigeV2Mode
+      ? [
+        'WINE_POUR_MODEL: Origin at bottle neck.',
+        'Flow type laminar fluid stream with continuous ribbon flow.',
+        'No fragmentation unless impact occurs.',
+        'Strict gravity vector, slightly elevated viscosity, and visible surface tension.',
+        'When stream hits glass: internal wave formation and micro splash inside glass only.',
+        'No external droplets, no chaotic splash, no outward explosion.',
+        pourStyle === 'peak-glass-impact'
+          ? 'Peak glass impact: internal glass turbulence only; never external splash.'
+          : '',
+      ].filter(Boolean).join(' ')
+      : '',
+    'MATERIAL ENGINE: glass-priority rendering with realistic refraction, micro-specular highlights, natural edge glow, subtle bottle-thickness distortion, and internal liquid density visibility. If cork is visible, preserve natural cork grain with subtle imperfections.',
+    moodModifier && moodModifier !== 'None' ? `PREMIUM MODIFIER: ${moodModifier}.` : '',
+    'HARD DISABLES: splash engine disabled, studio product motion disabled, splash physics engine disabled, radial splash spread disabled, droplet fragmentation logic disabled, ecommerce compression framing disabled, aggressive conversion square crop disabled, hyper-clinical lighting disabled, and splash-shot fallback disabled.',
+    'LOCKS: GEOMETRY_LOCK=true. LABEL_LOCK=true. TEXT_PRESERVATION=strict. Preserve exact product proportions and label fidelity.',
+  ].filter(Boolean);
+
+  return {
+    prompt: normalizePromptText(parts.join(' ')),
+    mode: 'HERO_NEUTRAL',
+    splashMode: undefined,
+    randomSeed: 'wine-prestige',
+  };
+}
 
 const PHOTO_MODE_MAP: Record<string, PhotoModeKey> = {
   'Hero Landing Page': 'HERO_NEUTRAL',
@@ -378,7 +485,7 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
       const classic = randomizer.pick([
         'classic ad splash with one clean directional sheet and crisp droplet scatter around the product',
         'diagonal splash sheet mostly behind the product with frozen droplets and clear label visibility',
-        'base-impact splash wrapping around the lower body of the product with coherent droplet separation',
+        'base-impact splash wrapping around the lower section of the product with coherent droplet separation',
       ]);
       return [
         `SPLASH (CLASSIC): ${classic}.`,
@@ -391,8 +498,9 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
 
     if (key === 'beach foam splash') {
       return [
-        'BEACH FOAM: controlled sea-foam interaction near the base on wet sand with thin retreating foam contours.',
-        'Keep it premium and minimal; do not bury the product in foam.',
+        'BEACH FOAM: tropical Caribbean daylight scene with turquoise seawater and clean white sand.',
+        'Product is grounded on wet white sand near shoreline with thin retreating foam contours and crisp micro-droplets.',
+        'Keep it premium and minimal; do not bury the product in foam and never block the label zone.',
         'No tall water plumes, no chaotic jet streams, no label-crossing splash arcs.',
       ].join(' ');
     }
@@ -408,6 +516,8 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
       return [
         'CHEERS: two hands clinking the product (hands only, no faces), flash-frozen droplets and natural grip/contact.',
         'No identity details; focus stays on product branding and label truth.',
+        'CHEERS_HAND_REALISM: hands must look real with natural skin texture, believable knuckles/fingernails, and physically plausible finger contact.',
+        'Reject doll-like, mannequin-like, waxy, or CGI-looking hands.',
       ].join(' ');
     }
 
@@ -435,8 +545,8 @@ function buildEffectsDirective(effects: string[], randomizer: ReturnType<typeof 
     if (key === 'textured bed / scatter base') {
       const detail = String(extras.bed || '').trim();
       return detail
-        ? `SCATTER BED: ${detail}. Keep it controlled, premium, and not overpowering the product.`
-        : 'SCATTER BED: a controlled textured bed/scatter around the base (e.g., ice + droplets, beans, sand/shells, stones), not overpowering the product.';
+        ? `SCATTER BED: ${detail}. Build a dense ingredient bed where the product sits partially embedded (not hovering), with realistic compression/contact zones. Keep it premium and controlled, and keep the label area unobstructed.`
+        : 'SCATTER BED: dense textured ingredient bed (e.g., beans, seeds, sand/shells, crystals, stones) with the product partially embedded into it; bed wraps around the lower base with realistic contact shadows/compression; no hovering, no messy clutter, label unobstructed.';
     }
 
     if (key === 'floating particles') {
@@ -477,6 +587,37 @@ function buildSecondaryProps(mode: PhotoModeKey, randomizer: ReturnType<typeof c
   if (!options || options.length === 0) return '';
   const picks = randomizer.pickMany(options, Math.min(2, options.length));
   return `Secondary props: ${picks.join(', ')}.`;
+}
+
+function resolveSplashShotConfig(state: ProductStudioState): ProductStudioState['photoModeConfig']['splashShot'] {
+  const splashShot = state.photoModeConfig?.splashShot;
+  if (!splashShot) {
+    return {
+      splashMedium: 'Liquid',
+      motionIntensity: 'Dynamic',
+      freezeMoment: 'Mid-splash',
+      productStability: 'Slight interaction',
+    };
+  }
+  const motionIntensity = String(splashShot.motionIntensity || '').trim();
+  const splashAdMode = motionIntensity === 'Explosive';
+  if (splashAdMode) {
+    if (splashShot.productStability !== 'Fully grounded') {
+      console.warn('[SPLASH_AD] ProductStability override: forcing Fully grounded for Explosive Splash Shot.');
+    }
+    return {
+      ...splashShot,
+      productStability: 'Fully grounded',
+    };
+  }
+  const dynamicSplashMode = motionIntensity === 'Dynamic';
+  if (!dynamicSplashMode || splashShot.productStability !== 'Fully grounded') {
+    return splashShot;
+  }
+  return {
+    ...splashShot,
+    productStability: 'Slight interaction',
+  };
 }
 
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
@@ -527,10 +668,18 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
       add('elevation', cfg.acrylicBlocks.elevation);
       break;
     case 'Splash Shot':
-      add('splashMedium', cfg.splashShot.splashMedium);
-      add('motionIntensity', cfg.splashShot.motionIntensity);
-      add('freezeMoment', cfg.splashShot.freezeMoment);
-      add('productStability', cfg.splashShot.productStability);
+      {
+        const splash = resolveSplashShotConfig(state);
+        const splashAdMode = splash.motionIntensity === 'Explosive';
+        const splashAdPeakMode = splashAdMode && splash.freezeMoment === 'Peak';
+        add('splashMedium', splash.splashMedium);
+        add('motionIntensity', splash.motionIntensity);
+        add('freezeMoment', splash.freezeMoment);
+        add('productStability', splash.productStability);
+        add('splashAdProfile', splashAdMode ? 'SPLASH_AD' : 'Standard Splash');
+        add('maxVerticalDisplacement', splashAdPeakMode ? '15% frame height' : '10% frame height');
+        add('splashFlow', 'Single dominant directional flow');
+      }
       break;
     case 'Foam & Texture':
       add('textureType', cfg.foamAndTexture.textureType);
@@ -570,7 +719,16 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 }
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
+  if (isWinePrestigeMode(state)) {
+    return buildWinePrestigeLegacyPrompt(state);
+  }
+
   const randomizer = createRandomizer();
+  const splashShotConfig = resolveSplashShotConfig(state);
+  const splashAdMode =
+    String(state.photoMode || '').trim() === 'Splash Shot' &&
+    splashShotConfig.motionIntensity === 'Explosive';
+  const splashAdPeakMode = splashAdMode && splashShotConfig.freezeMoment === 'Peak';
   const authorities = resolveAuthorities(state);
   const visualIntent = authorities.visualIntent === 'clinical' || authorities.visualIntent === 'luxury'
     ? 'conversion'
@@ -603,25 +761,25 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
 
   const uiSystemLabel =
     String((state as any).cameraUiSystemLabel || '').trim() ||
-    (state.cameraSystem === 'mirrorless' ? 'Mirrorless' : 'DSLR / mirrorless');
+    (state.cameraSystem === 'macro' ? 'Macro lens' : 'DSLR / mirrorless');
   const uiAngleLabel =
     String((state as any).cameraUiAngleLabel || '').trim() ||
-    (state.angle === 'top' ? 'Top-down flat lay' : state.angle === 'detail' ? 'Detail close-up' : state.angle === 'front' ? 'Eye level product' : '45° hero');
+    (state.angle === 'top_down' ? 'Top-down flat lay' : state.angle === 'detail_closeup' ? 'Detail close-up' : state.angle === 'eye_level' ? 'Eye level product' : '45° hero');
   const uiDistanceLabel =
     String((state as any).cameraUiDistanceLabel || '').trim() ||
-    (state.distance === 'macro' ? 'Macro' : state.distance === 'close' ? 'Tight' : 'Standard');
+    (state.distance === 'macro' ? 'Macro' : state.distance === 'tight' ? 'Tight' : 'Standard');
   const uiRotationLabel =
     String((state as any).cameraUiRotationLabel || '').trim() ||
-    (state.rotation === 'slight' ? '5°' : '0°');
+    (state.rotation > 0 ? `${state.rotation}°` : '0°');
   const uiFramingLabel =
     String((state as any).cameraUiFramingLabel || '').trim() ||
-    (state.framing === 'rule-of-thirds' ? 'Rule of thirds' : 'Centered hero');
+    (state.framing === 'rule_of_thirds' ? 'Rule of thirds' : 'Centered hero');
 
   const mapCameraSystemToPrompt = (system: ProductStudioState['cameraSystem'], systemLabel: string): string => {
     const normalized = systemLabel.toLowerCase();
     if (normalized.includes('macro lens')) return 'professional macro lens camera setup';
     if (normalized.includes('telephoto')) return 'professional telephoto compression camera setup';
-    if (system === 'mirrorless') return 'professional mirrorless camera';
+    if (system === 'macro') return 'professional macro lens camera';
     return 'professional DSLR / mirrorless camera';
   };
 
@@ -636,10 +794,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     };
     if (byLabel[angleLabel]) return byLabel[angleLabel];
     const byState: Record<ProductStudioState['angle'], string> = {
-      front: 'eye-level product view',
-      '45': '45-degree hero angle',
-      top: 'top-down flat lay',
-      detail: 'detail close-up',
+      eye_level: 'eye-level product view',
+      '45_hero': '45-degree hero angle',
+      top_down: 'top-down flat lay',
+      detail_closeup: 'detail close-up',
+      low_angle: 'low angle hero view',
+      high_angle: 'high angle overview',
     };
     return byState[angle] || '45-degree hero angle';
   };
@@ -654,8 +814,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (byLabel[distanceLabel]) return byLabel[distanceLabel];
     const byState: Record<ProductStudioState['distance'], string> = {
       macro: 'macro close-up',
-      close: 'tight hero crop',
-      medium: 'standard framing',
+      tight: 'tight hero crop',
+      standard: 'standard framing',
+      wide: 'wide framing',
     };
     return byState[distance] || 'standard framing';
   };
@@ -670,15 +831,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     };
     if (byLabel[framingLabel]) return byLabel[framingLabel];
     const byState: Record<ProductStudioState['framing'], string> = {
-      centered: 'centered hero composition',
-      'rule-of-thirds': 'rule-of-thirds composition',
+      centered_hero: 'centered hero composition',
+      rule_of_thirds: 'rule-of-thirds composition',
+      left_negative: 'left-aligned composition with negative space',
+      right_negative: 'right-aligned composition with negative space',
+      grid_ready: 'grid-ready composition',
     };
     return byState[framing] || 'centered hero composition';
   };
 
   const mapRotationToPrompt = (rotation: ProductStudioState['rotation'], rotationLabel: string): string => {
     if (rotationLabel) return rotationLabel.replace(/\s+/g, '').endsWith('°') ? rotationLabel : `${rotationLabel}°`;
-    if (rotation === 'slight') return '5°';
+    if (rotation > 0) return `${rotation}°`;
     return '0°';
   };
 
@@ -760,6 +924,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (beachFoamProfile === 'BeachFoam_Conversion') {
       merged.shoreline = merged.shoreline || 'Backwash';
       merged.spray = merged.spray || 'Low';
+      merged.sand = merged.sand || 'Clean';
+      merged.water_color = merged.water_color || 'turquoise';
+      merged.atmosphere = merged.atmosphere || 'sunny tropical Caribbean';
     }
     if (beachFoamProfile === 'BeachFoam_Campaign') {
       merged.shoreline = merged.shoreline || 'Wave break';
@@ -777,6 +944,10 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const customIngredientsText = sanitizeDynamicSettingText(
     String(state.photoModeConfig.dynamic?.[state.photoMode as PhotoMode]?.customIngredients || '')
   );
+  const customIngredientsStructured =
+    Array.isArray((state as any).customIngredients) && (state as any).customIngredients.length > 0
+      ? ((state as any).customIngredients as CanonicalSceneIngredient[])
+      : parseCustomIngredientsText(customIngredientsText);
   const supportsCustomIngredientsMode =
     state.photoMode === 'Ingredient Stack' ||
     state.photoMode === 'Ingredient Flat Lay' ||
@@ -917,9 +1088,20 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         scene = buildAcrylicBlocksScene(sceneInput);
         break;
       case 'SPLASH_SHOT': {
-        const splash = buildSplashShotScene(sceneInput);
-        scene = splash.scene;
-        splashMode = splash.splashMode;
+        if (state.photoMode === 'Underwater Split') {
+          splashMode = 'UNDERWATER_SPLIT';
+          scene = [
+            'Split-level underwater composition with a physically coherent waterline crossing the product body.',
+            'Upper section remains in bright clean daylight air; lower section is clearly submerged in luminous aqua water.',
+            'Realistic meniscus and refraction at the waterline, with clear optical transition between above-water and underwater zones.',
+            'Underwater caustics on the lower environment, subtle volumetric rays, and crisp bubbles clustered near submerged product edges.',
+            'Keep water clean and premium (no murk, no green cast, no cloudy haze) and preserve label readability as perspective allows.',
+          ].join(' ');
+        } else {
+          const splash = buildSplashShotScene(sceneInput);
+          scene = splash.scene;
+          splashMode = splash.splashMode;
+        }
         break;
       }
       case 'FOAM_AND_TEXTURE':
@@ -955,6 +1137,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   }
 
   const lightingStyleOverrideText = (() => {
+    if (state.photoMode === 'Underwater Split') {
+      return [
+        'Bright split-level daylight is mandatory: clean sunlit air above water and luminous aqua underwater light below.',
+        'Underwater zone must show natural caustics and soft volumetric rays; avoid dark/deep-sea mood and avoid clinical studio softbox look.',
+      ].join(' ');
+    }
+    if (state.photoMode === 'Beach Foam Splash') {
+      return [
+        'Bright tropical sun daylight is mandatory: directional sun, vivid turquoise-water bounce, and warm white-sand fill.',
+        'No clinical softbox look, no flat studio-neutral light, preserve lively coastal atmosphere.',
+      ].join(' ');
+    }
     if (isCampaignIntent) {
       return [
         'Natural directional sunlight with environmental bounce and specular rim highlights.',
@@ -968,6 +1162,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const userLightingStyleText = (() => {
     const lighting = String((state as any).lighting || '').trim();
     if (!lighting) return '';
+    if (state.photoMode === 'Beach Foam Splash' && lighting === 'clinical-softbox') return '';
+    if (state.photoMode === 'Underwater Split' && lighting === 'clinical-softbox') return '';
     const map: Record<string, string> = {
       'natural-light': 'Natural light with soft diffusion and realistic shadow falloff.',
       'sunny-day': 'Bright natural daylight with defined but not harsh shadows.',
@@ -989,22 +1185,37 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (!rig) return '';
     const rigCues: Record<string, string> = {
       'Prism Spotlight Duo':
-        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional).',
+        'Two controlled prism spot sources with crisp directional falloff, visible split highlights on glass edges, and subtle refraction caustics near transparent boundaries. Prism effect must be visibly present in the final frame (not optional). CRITICAL: The light sources themselves (spotlights, rings, stands) must remain OFF-CAMERA and invisible. Only their lighting effects should be visible.',
       '3-Point Beauty Dish':
-        'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections.',
+        'Classic three-point beauty setup with clean key/fill/back separation and polished commercial skin-safe reflections. CRITICAL: Lighting equipment must remain OFF-CAMERA and invisible.',
       'Softbox Wrap':
-        'Large softbox wrap with broad diffuse highlights and smooth edge transitions.',
+        'Large softbox wrap with broad diffuse highlights and smooth edge transitions. CRITICAL: Softbox hardware must remain OFF-CAMERA and invisible.',
       'Hard Edge Gels':
-        'Directional hard-light edges with controlled gel accents and high-contrast shadow geometry.',
+        'Directional hard-light edges with controlled gel accents and high-contrast shadow geometry. CRITICAL: Light sources must remain OFF-CAMERA and invisible.',
       'Backlit Acrylic':
-        'Backlit translucent planes with clean edge glow and controlled specular response.',
+        'Backlit translucent planes with clean edge glow and controlled specular response. CRITICAL: Lighting hardware must remain OFF-CAMERA and invisible.',
       'High-Speed Splash Rig':
-        'High-speed strobe freeze behavior with crisp droplets and minimal motion blur.',
+        'High-speed strobe freeze behavior with crisp droplets and minimal motion blur. CRITICAL: Strobe lights must remain OFF-CAMERA and invisible.',
       'Gradient Cyclorama':
-        'Seamless cyclorama gradient wash with clean tonal rolloff and no banding.',
+        'Seamless cyclorama gradient wash with clean tonal rolloff and no banding. CRITICAL: Lighting equipment must remain OFF-CAMERA and invisible.',
     };
     const cue = rigCues[rig] || '';
-    return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup.`, cue].filter(Boolean).join(' ');
+    return [`Lighting rig: ${rig}. Use this rig as the authoritative lighting setup. NEVER render the physical lighting equipment (spotlights, softboxes, ring lights, light stands) in the frame - only their lighting effects on the product and scene.`, cue].filter(Boolean).join(' ');
+  })();
+
+  const lightColorTempText = (() => {
+    if (isCampaignIntent || !isProModeActive) return '';
+    
+    // Check for custom accent/gel light color first
+    const customColor = String((state as any).customLightColor || '').trim().toUpperCase();
+    const intensity = Number((state as any).accentLightIntensity ?? 50);
+    if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
+      const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
+      return `Accent light gel: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow. Main key light remains neutral. CRITICAL: The gel light sources must remain OFF-CAMERA and invisible - only their colored lighting effects should appear on the product.`;
+    }
+    
+    // Temperature presets removed - only gel colors supported
+    return '';
   })();
 
   const strictLightingRigLock =
@@ -1019,11 +1230,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       ].filter(Boolean).join(' ');
     }
     return strictLightingRigLock
-      ? lightingRigOverrideText
+      ? [lightingRigOverrideText, lightColorTempText].filter(Boolean).join(' ')
       : [
         lightingStyleOverrideText,
         isCampaignIntent ? '' : userLightingStyleText,
         lightingRigOverrideText,
+        lightColorTempText,
       ].filter(Boolean).join(' ');
   })();
 
@@ -1078,6 +1290,15 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const adaptedPhotoModeModifiers = isCampaignIntent
     ? sanitizeCampaignConstraintText(adaptedPhotoModeModifiersRaw)
     : adaptedPhotoModeModifiersRaw;
+  const wineWorldAuthorityAbsolute =
+    String((state as any).wineWorldAuthority || '').trim().toLowerCase() === 'absolute';
+  const adaptedPhotoModeModifiersForAssembly = wineWorldAuthorityAbsolute
+    ? stripPhotoModeBackgroundFeatures(adaptedPhotoModeModifiers)
+    : adaptedPhotoModeModifiers;
+  const lightingOverrideTextForAssembly = wineWorldAuthorityAbsolute
+    ? stripStudioLightingOverrides('')
+    : lightingOverrideText;
+  const strictLightingRigLockForAssembly = wineWorldAuthorityAbsolute ? false : strictLightingRigLock;
   const photoModeEnvironmentAdaptationText = environmentModeActive
     ? [
       `PHOTO MODE (${getSafePhotoModeLabel(state.photoMode)}) ADAPTED TO ENVIRONMENT: preserve the selected mode's visual style while keeping a real-world location.`,
@@ -1085,7 +1306,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'Keep hero-level product prominence, clean negative space, and conversion-first readability while preserving environment realism.'
         : 'Do not switch to abstract studio or blank set logic; environment remains physically present and coherent.',
       adaptedPhotoModeBasePrompt ? `Mode style cues: ${adaptedPhotoModeBasePrompt}.` : '',
-      adaptedPhotoModeModifiers ? `Mode settings: ${adaptedPhotoModeModifiers}.` : '',
+      adaptedPhotoModeModifiersForAssembly ? `Mode settings: ${adaptedPhotoModeModifiersForAssembly}.` : '',
     ].filter(Boolean).join(' ')
     : '';
 
@@ -1113,10 +1334,12 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const correctedUiAngleLabel = (() => {
     if (!correctedAngleState) return uiAngleLabel;
     const byState: Record<typeof correctedAngleState, string> = {
-      front: 'Eye level product',
-      '45': '45° hero',
-      top: 'Top-down flat lay',
-      detail: 'Detail close-up',
+      eye_level: 'Eye level product',
+      '45_hero': '45° hero',
+      top_down: 'Top-down flat lay',
+      detail_closeup: 'Detail close-up',
+      low_angle: 'Low angle power',
+      high_angle: 'High angle overview',
     };
     return byState[correctedAngleState];
   })();
@@ -1204,6 +1427,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'detail close-up'
       : campaignAngle;
   const forcedCameraFraming =
+    splashAdMode
+      ? 'product-first asymmetric splash composition with one dominant directional flow; disable centered symmetry; preserve hero readability with breathing room for lateral energy'
+      :
     !isCampaignIntent
       ? (disableSquareLateralSpreadForSplitWater
         ? 'centered dominance with vertical subject emphasis and natural edge-to-edge water continuation; no neutral side fill, no white lateral bands, no artificial padding'
@@ -1216,6 +1442,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         ? 'full-bleed macro crop with natural edge detail, no side-fill extension'
       : campaignFraming;
   const forcedCameraDistance =
+    splashAdMode
+      ? 'standard framing with additional breathing room for splash propagation'
+      :
     !isCampaignIntent
       ? (isConversionSquareOptimized ? 'slightly closer framing' : 'standard framing')
       : mode === 'INGREDIENT_FLAT_LAY'
@@ -1267,6 +1496,18 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   })();
 
   const visualIntentDirectiveText = (() => {
+    const effectDrivenConversionMode =
+      mode === 'SPLASH_SHOT' ||
+      mode === 'FOAM_AND_TEXTURE' ||
+      state.photoMode === 'Gel Smear Editorial' ||
+      state.photoMode === 'Beach Foam Splash' ||
+      state.photoMode === 'Underwater Split' ||
+      state.photoMode === 'Pool Water' ||
+      state.photoMode === 'Citrus Fresh Flat Lay' ||
+      state.photoMode === 'Stones & Crystals Flat Lay' ||
+      state.photoMode === 'Dried Citrus Earth' ||
+      state.photoMode === 'Cheers (Hands Clink)';
+
     if (authorities.visualIntent === 'campaign') {
       return [
         'VISUAL INTENT: Campaign Energy Mode.',
@@ -1292,10 +1533,28 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
         'Preserve hero dominance and label readability while allowing refined variation.',
       ].join(' ');
     }
+    if (state.photoMode === 'Beach Foam Splash') {
+      return [
+        'VISUAL INTENT: Conversion Strict Mode.',
+        'Use bright tropical sun daylight as authoritative lighting behavior (not softbox), with white-sand bounce and turquoise-water reflections.',
+        'Maintain centered hero dominance while preserving natural beach atmosphere and premium realism.',
+        'Enforce strict readability, bounded foam behavior, and physically coherent shoreline interaction.',
+      ].join(' ');
+    }
+    if (state.photoMode === 'Underwater Split') {
+      return [
+        'VISUAL INTENT: Conversion Strict Mode.',
+        'Use split-level daylight water optics as authoritative behavior: bright air above surface, luminous aqua underwater below, coherent waterline refraction.',
+        'Maintain centered hero dominance while preserving energetic hydration atmosphere and premium realism.',
+        'Enforce strict readability, bounded bubble density, and physically coherent caustic behavior.',
+      ].join(' ');
+    }
     {
       return [
         'VISUAL INTENT: Conversion Strict Mode.',
-        'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
+        effectDrivenConversionMode
+          ? 'Use premium ad-grade lighting behavior with vibrant but controlled contrast, tactile highlights, and energetic depth.'
+          : 'Use Softbox Wrap as authoritative lighting behavior with controlled reflections.',
         isConversionSquareOptimized
           ? (disableSquareLateralSpreadForSplitWater
             ? 'Square composition rule: allow vertical subject dominance. Do not artificially expand horizontal environment. Water and atmosphere must extend naturally to all edges. No neutral side fill, no white lateral bands, no artificial padding.'
@@ -1305,7 +1564,9 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
           : (isBasicTier
             ? 'Keep centered product dominance with stable hero perspective and controlled reflections.'
             : 'Keep centered hero composition, 45-degree hero camera, and 0-degree rotation. Respect user-selected pro lens when provided.'),
-        'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
+        effectDrivenConversionMode
+          ? 'Allow controlled expressive atmosphere, richer micro-contrast, and premium tactile realism while preserving clean label readability and physical coherence.'
+          : 'Enforce strict splash minimalism, clinical reflection control, and conservative variation density.',
       ].join(' ');
     }
   })();
@@ -1315,7 +1576,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     if (beachFoamProfile === 'BeachFoam_Conversion') {
       return [
         'BeachFoam_Conversion profile:',
-        'minimal foam, softbox-driven polish, centered hero bias, controlled backwash, strict readability.',
+        'sunny Caribbean daytime is mandatory: turquoise water, clean white sand, lively coastal atmosphere, controlled backwash, strict readability.',
       ].join(' ');
     }
     return [
@@ -1358,8 +1619,173 @@ No studio-style suspension shadows underwater.
     : '';
   const splashPhysicsBlock =
     isSplashPhysicsContext(String(state.photoMode || ''), authorities)
-      ? buildSplashPhysicsModel(authorities)
+      ? buildSplashPhysicsModel(authorities, {
+        splashAdMode,
+        freezeMoment: splashShotConfig.freezeMoment,
+      })
       : '';
+  const resolvedSpecialEffects = (() => {
+    const provided = Array.isArray((state as any).specialEffects)
+      ? ((state as any).specialEffects as string[]).filter(effect => String(effect || '').trim().length > 0)
+      : [];
+    if (provided.length > 0) return provided;
+    const modeKey = String(state.photoMode || '').trim().toLowerCase();
+    if (modeKey === 'splash shot') return ['Splash Shot'];
+    if (modeKey === 'condensation droplets') return ['Condensation Droplets'];
+    if (modeKey === 'underwater split') return ['Underwater Split'];
+    if (modeKey === 'pool water') return ['Pool Water'];
+    if (modeKey.includes('foam')) return ['Foam'];
+    return [];
+  })();
+
+  const effectHyperProDirectiveText = (() => {
+    const effectDrivenMode =
+      mode === 'SPLASH_SHOT' ||
+      mode === 'FOAM_AND_TEXTURE' ||
+      state.photoMode === 'Gel Smear Editorial' ||
+      state.photoMode === 'Beach Foam Splash' ||
+      state.photoMode === 'Underwater Split' ||
+      state.photoMode === 'Pool Water' ||
+      state.photoMode === 'Textured Bed / Scatter Base';
+    const hasEffects = resolvedSpecialEffects.length > 0;
+    if (!effectDrivenMode && !hasEffects) return '';
+
+    return [
+      'EFFECT ART DIRECTION (HYPER-PRO AD): premium commercial impact is mandatory.',
+      'Build a high-end advertising look with deliberate visual energy, clean depth layering, and strong but controlled highlight/contrast shaping.',
+      'Effects must feel art-directed (not random): one dominant motion/vector language, coherent secondary accents, and clear hero product dominance.',
+      'Preserve tactile micro-detail in liquid/foam/texture edges, keep scene lively and cinematic, and avoid flat lifeless lighting.',
+      'No chaotic clutter, no generic stock look, no CGI/plastic artifacts, and never sacrifice label readability.',
+    ].join(' ');
+  })();
+
+  const referenceLookDirectiveText = (() => {
+    const photoMode = String(state.photoMode || '').trim();
+    if (!photoMode) return '';
+
+    if (photoMode === 'Beach Foam Splash') {
+      return [
+        'REFERENCE LOOK LOCK: tropical ad-campaign beach still.',
+        'Clean white sand, bright turquoise water horizon, sculpted sea-foam mounds near product base, and crisp high-noon sunlight.',
+        'Keep product planted and hero-centered with energetic but controlled summer vibe.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Underwater Split') {
+      return [
+        'REFERENCE LOOK LOCK: premium split-waterline skincare ad.',
+        'Upper air zone bright and minimal; underwater zone luminous cyan-blue with clear caustics and elegant bubbles.',
+        'Waterline crossing the product must be the visual anchor, with photoreal refraction and clean label legibility.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Splash Shot') {
+      return [
+        'REFERENCE LOOK LOCK: high-speed beverage splash campaign still.',
+        'Single dominant liquid burst, frozen droplets with crystal edge acuity, premium neutral/pastel backdrop, and aggressive product hero focus.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Citrus Fresh Flat Lay') {
+      return [
+        'REFERENCE LOOK LOCK: citrus-led commercial flat lay.',
+        'Saturated fresh orange/lemon slices, controlled droplet accents, clean top-down rhythm, and bright premium color contrast.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Cheers (Hands Clink)') {
+      return [
+        'REFERENCE LOOK LOCK: summer lifestyle cheers moment.',
+        'Cropped hands only, shallow pool/beach context, flash-frozen clink droplets, and brand-first framing with vibrant vacation energy.',
+        'Hands must be real-photo quality: natural asymmetry, natural skin micro-texture, correct finger count, and realistic grip pressure on the container.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Sand Palm Shadows' || photoMode === 'Sunlit Stone Editorial') {
+      return [
+        'REFERENCE LOOK LOCK: sunlit editorial still-life with architectural shadows.',
+        'Hard directional sunlight, sculptural palm/shape shadows, tactile mineral/sand textures, and clean premium composition.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Warm Window Wood') {
+      return [
+        'REFERENCE LOOK LOCK: warm golden-hour window scene.',
+        'Natural sunlight through glass, soft dust sparkle, warm wood texture, and intimate premium lifestyle realism.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Gel Smear Editorial') {
+      return [
+        'REFERENCE LOOK LOCK: minimalist editorial serum smear shot.',
+        'One intentional smear with tactile depth and premium specular control, on a clean textured surface with strong product contrast.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Stones & Crystals Flat Lay') {
+      return [
+        'REFERENCE LOOK LOCK: calm wellness flat lay with natural stones/crystals.',
+        'Neutral linen/stone base, curated spacing, soft premium light, and tactile grounded material realism.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Dried Citrus Earth') {
+      return [
+        'REFERENCE LOOK LOCK: earthy citrus botanical ad still.',
+        'Sun-baked warm base, dried citrus and leaves as curated accents, hard sunlight shadows, and clean commercial styling.',
+      ].join(' ');
+    }
+
+    if (photoMode === 'Pool Water') {
+      return [
+        'REFERENCE LOOK LOCK: luxury poolside refresh visual.',
+        'Clear aqua water, crisp reflections/caustics, bright summer light, and controlled droplets for a clean energetic hydration feel.',
+      ].join(' ');
+    }
+
+    return '';
+  })();
+
+  const canonicalScene: CanonicalScene = {
+    outputProfile: state.qualityProfile,
+    photoType: environmentModeActive ? 'Environment' : 'Photo Studio',
+    composition: forcedCameraFraming,
+    photoMode: String(state.photoMode || ''),
+    productStateMotion: String(authorities.motion || 'static'),
+    productStructure: String(state.definition?.physical?.kind || 'standard'),
+    environmentSettings: environmentModeActive
+      ? `${String(state.environmentContext?.macro || '').trim()} ${String(state.environmentContext?.micro || '').trim()}`.trim()
+      : 'studio',
+    physicalPlacement: placementResolution.resolvedPlacement,
+    physicalProperties: `${state.physicalScaleLabel || 'medium-tabletop'} / packaging ${state.packagingMode || 'without-box'}`,
+    defaultIngredients: String(effectiveSuggestedProps || '')
+      .split('|')
+      .map(part => part.trim())
+      .filter(Boolean),
+    customIngredients: customIngredientsStructured,
+    visualWorld: mode,
+    lighting: lightingOverrideText || lightingStyleOverrideText,
+    specialEffects: resolvedSpecialEffects,
+    productInteraction: String(state.interaction || 'none'),
+    viewpointVantage: viewpointDirectiveText || mapAngleToPrompt(effectiveAngleState, effectiveAngleLabelResolved),
+    cameraFraming: `${forcedCameraAngle}; ${forcedCameraDistance}; ${forcedCameraFraming}`,
+    constraintSuffix: 'Preserve existing constraint engine, locked compositions, label lock, product lock, square integrity, and physical properties.',
+  };
+  const atmosphere = resolveAtmosphere(canonicalScene);
+  const validation = validateAtmosphere(canonicalScene, atmosphere);
+  const criticalValidationErrors = validation.errors.filter(error => error.severity === 'critical');
+  const warningValidationErrors = validation.errors.filter(error => error.severity === 'warning');
+  if (criticalValidationErrors.length > 0) {
+    console.error('Atmosphere validation failed (critical)', criticalValidationErrors);
+    throw new Error(criticalValidationErrors.map(error => error.code).join(','));
+  }
+  if (warningValidationErrors.length > 0) {
+    console.warn('Atmosphere validation warnings', warningValidationErrors);
+  }
+  if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_STUDIO_DEBUG === 'true') {
+    const debugTree = buildAtmosphereDebugTree(canonicalScene, atmosphere);
+    console.log('STUDIO_DEBUG_TREE', JSON.stringify(debugTree, null, 2));
+  }
 
   const parts = [
     buildBaseContext({
@@ -1370,6 +1796,8 @@ No studio-style suspension shadows underwater.
     visualIntentDirectiveText,
     energyDirectiveText,
     beachFoamProfileText,
+    effectHyperProDirectiveText,
+    referenceLookDirectiveText,
     photoModeEnvironmentAdaptationText,
     scene,
     placementResolution.promptFragment,
@@ -1377,10 +1805,13 @@ No studio-style suspension shadows underwater.
     buildCompositionAuthorityBlock(authorities.composition),
     buildMotionAuthorityBlock(authorities.motion),
     splashPhysicsBlock,
+    splashAdMode
+      ? 'SPLASH_AD_VISUAL_PRIORITY: Kinetic authority, directional dominance, volumetric contrast, and energy hierarchy take precedence. Keep label readable without compressing splash energy.'
+      : '',
     buildProductStateBlock(authorities.motion),
     gravitationalBlock,
     viewpointDirectiveText,
-    environmentModeActive ? '' : adaptedPhotoModeModifiers,
+    environmentModeActive ? '' : adaptedPhotoModeModifiersForAssembly,
     mode === 'INGREDIENT_STACK' ||
       mode === 'INGREDIENT_FLAT_LAY' ||
       state.photoMode === 'Macro Dew Label' ||
@@ -1407,8 +1838,9 @@ No studio-style suspension shadows underwater.
     buildLighting(mode, randomizer, {
       qualityProfile: state.qualityProfile,
       authority: authorities,
-      ...(lightingOverrideText ? { override: { text: lightingOverrideText } } : {}),
-      strictRigLock: strictLightingRigLock,
+      ...(lightingOverrideTextForAssembly ? { override: { text: lightingOverrideTextForAssembly } } : {}),
+      ...(splashAdMode ? { splashAdMode: true, splashAdPeakMode } : {}),
+      strictRigLock: strictLightingRigLockForAssembly,
     }),
     lightCoherenceBlock,
     underwaterRefractionBlock,
@@ -1419,6 +1851,7 @@ No studio-style suspension shadows underwater.
     strictStudioBranding ? '' : buildMaterialsWithProfile(mode, randomizer, state.qualityProfile, authorities),
     prismRefractionText,
     isCampaignIntent ? '' : buildUltraRealStrictBlock(Boolean(state.ultraRealStrict), state.qualityProfile, authorities),
+    atmosphere,
     macroFullBleedLockText,
     strictStudioBranding
       ? ''

@@ -98,14 +98,14 @@ export function buildMasterPrompt(
       deterministicFoundation,
       sceneStructure,     // 0. PHYSICAL STRUCTURE
       visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
-      creationIntent,     // 1. Structural context
-      creationMode,       // 2. Mode rules
-      formulationStory,   // 3. Expert credibility
-      ecommerceBuilder,   // 4. Blank space layout
-      ecommerceSequence,  // 4.5 Ecommerce Narrative Sequence
-      identity,           // 5. Person traits (before selfie capture)
-      selfieCapture,      // 6. UGC selfie hard constraints
-      cameraFraming,      // 7. Camera composition
+      cameraFraming,      // 1. LOCKED camera/framing block
+      creationIntent,     // 2. Structural context
+      creationMode,       // 3. Mode rules
+      formulationStory,   // 4. Expert credibility
+      ecommerceBuilder,   // 5. Blank space layout
+      ecommerceSequence,  // 5.5 Ecommerce Narrative Sequence
+      identity,           // 6. Person traits (before selfie capture)
+      selfieCapture,      // 7. UGC selfie hard constraints
       environmentLightingMood, // 8. Scene + lighting
       compositionDetails, // 9. Composition instructions
       finalize            // 10. Constraints + output
@@ -114,12 +114,12 @@ export function buildMasterPrompt(
       deterministicFoundation,
       sceneStructure,     // 0. PHYSICAL STRUCTURE
       visualGrammar,      // 0.5 VISUAL GRAMMAR (Semantics)
-      creationIntent,     // 1. Structural context
-      creationMode,       // 2. Mode rules
-      formulationStory,   // 3. Expert credibility
-      ecommerceBuilder,   // 4. Blank space layout
-      ecommerceSequence,  // 4.5 Ecommerce Narrative Sequence
-      cameraFraming,      // 5. Camera composition
+      cameraFraming,      // 1. LOCKED camera/framing block
+      creationIntent,     // 2. Structural context
+      creationMode,       // 3. Mode rules
+      formulationStory,   // 4. Expert credibility
+      ecommerceBuilder,   // 5. Blank space layout
+      ecommerceSequence,  // 5.5 Ecommerce Narrative Sequence
       environmentLightingMood, // 6. Scene + lighting
       compositionDetails, // 7. Composition instructions
       identity,           // 8. Person traits

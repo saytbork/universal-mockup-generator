@@ -8,9 +8,9 @@ interface CompositionSelectorProps {
 }
 
 const COMPOSITION_ICONS: Record<CommercialComposition, string> = {
-    hero_product: '🎯',
-    duo_offer: '🤝',
-    routine_system: '📋'
+    hero_product: 'HP',
+    duo_offer: 'DO',
+    routine_system: 'RS'
 };
 
 export function CompositionSelector({ value, onChange }: CompositionSelectorProps) {

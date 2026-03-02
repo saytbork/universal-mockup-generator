@@ -3,6 +3,7 @@
  */
 
 import type { PromptBuilder, PromptOptions } from '../types';
+import { isUgcModeActive } from '../types';
 
 const UGC_SELFIE_CAPTURE_BLOCK = `
 UGC SELFIE CAPTURE (FRONT CAMERA — HARD CONSTRAINT):
@@ -245,13 +246,9 @@ const isSelfieActive = (options: PromptOptions): boolean => {
     return normalized !== '' && normalized !== 'none';
 };
 
+// Use centralized UGC mode checker (automatically excludes Ritual Mode and Formulation Story)
 const isUgcMode = (options: PromptOptions): boolean => {
-    return (
-        options.contentStyle === 'ugc' ||
-        options.creationIntent === 'ugc' ||
-        Boolean(options.ugcRealModeActive) ||
-        Boolean(options.rawDomesticUgcActive)
-    );
+    return isUgcModeActive(options);
 };
 
 export class SelfieCaptureBuilder implements PromptBuilder {

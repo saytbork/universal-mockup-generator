@@ -22,11 +22,20 @@ const FORBIDDEN_TERMS = [
 // Exception: "cropped hand" is allowed when handsHolding is true
 const ALLOWED_EXCEPTIONS = ['cropped hand', 'cropped wrist'];
 
+/**
+ * Whole-word match that also excludes hyphenated compounds.
+ * \b treats '-' as a boundary, so this adds explicit hyphen guards.
+ */
+function buildWholeWordRegex(term: string): RegExp {
+    const escaped = term.replace(/\s+/g, '\\s+');
+    return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
+}
+
 export function validateNoHumanLanguage(prompt: string, allowCroppedHand: boolean): void {
     const lower = prompt.toLowerCase();
 
     for (const term of FORBIDDEN_TERMS) {
-        if (lower.includes(term)) {
+        if (buildWholeWordRegex(term).test(lower)) {
             // Check if it's an allowed exception
             const isException = allowCroppedHand && ALLOWED_EXCEPTIONS.some(ex => lower.includes(ex));
             if (!isException) {
@@ -204,10 +213,10 @@ export function buildProductPrompt(state: ProductStudioState, product: ProductAs
     // Aspect ratio enforcement
     const aspectMap: Record<string, string> = {
         '1:1': 'square 1:1 aspect ratio composition',
-        '4:5': 'portrait 4:5 aspect ratio composition',
+        '4:5': 'vertical 4:5 aspect ratio composition',
         '9:16': 'vertical 9:16 aspect ratio composition',
         '16:9': 'landscape 16:9 aspect ratio composition',
-        '3:4': 'portrait 3:4 aspect ratio composition',
+        '3:4': 'vertical 3:4 aspect ratio composition',
     };
     segments.push(aspectMap[state.aspectRatio] || 'square composition');
 

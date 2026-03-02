@@ -190,6 +190,17 @@ function validateMotionInteractionCompatibility(state: ProductStudioState): stri
 const FORBIDDEN_TERMS = ['person', 'people', 'model', 'face', 'selfie', 'phone', 'lifestyle'];
 const ALLOWED_EXCEPTION = 'cropped fingers at frame edge holding product';
 
+/**
+ * Builds a whole-word regex that also excludes hyphenated compounds.
+ * Standard \b treats '-' as a word boundary, so "model-based" would match \bmodel\b.
+ * This pattern uses a negative lookahead and lookbehind for hyphens to prevent that.
+ */
+function buildWholeWordRegex(term: string): RegExp {
+    const escaped = term.replace(/\s+/g, '\\s+');
+    // Not preceded by a word char or hyphen, not followed by a word char or hyphen
+    return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'i');
+}
+
 function validateForbiddenLanguage(state: ProductStudioState): string[] {
     const errors: string[] = [];
 
@@ -211,10 +222,7 @@ function validateForbiddenLanguage(state: ProductStudioState): string[] {
         if (lower.includes(lowerException)) return;
 
         FORBIDDEN_TERMS.forEach(term => {
-            if (lower.includes(term)) {
-                // If the term is part of the exception (e.g. "fingers" not in list but "hand" is?)
-                // "hand" is in forbidden. Exception has "fingers". "hand" not in exception.
-                // "holding" is in exception.
+            if (buildWholeWordRegex(term).test(lower)) {
                 errors.push(`Forbidden term detected: "${term}". Human elements are strictly blocked in Product Studio.`);
             }
         });

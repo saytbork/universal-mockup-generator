@@ -45,6 +45,58 @@ export interface EnvironmentContext {
 
 export type ProductType = 'dummy' | 'capsules' | 'gummies' | 'drops' | 'powder' | 'skincare' | 'device' | 'custom';
 
+// ============================================================================
+// UNIFIED PRODUCT BEHAVIOR — Physical Form Factor + Presence + State + Interaction
+// ============================================================================
+
+/**
+ * PhysicalFormFactor: the container/packaging archetype of the product.
+ * Separate from ProductType (which encodes content/ingredient type).
+ * Keys the PRODUCT_CAPABILITIES map in productCapabilities.ts.
+ */
+export type PhysicalFormFactor =
+    | 'bottle'
+    | 'jar'
+    | 'pouch'
+    | 'box'
+    | 'dropper'
+    | 'can'
+    | 'tube'
+    | 'pump'
+    | 'spray'
+    | 'stick';
+
+/**
+ * PhysicalPresence: how/where the product exists in the scene geometry.
+ * Complements ProductPlacement with action-oriented states.
+ */
+export type PhysicalPresence =
+    | 'surface'
+    | 'held'
+    | 'poured'
+    | 'drop-action';
+
+/**
+ * ProductState: simplified product state for the unified behavior system.
+ * Subset of ProductStateMotion focused on cap/opening/dispensing logic.
+ */
+export type ProductState =
+    | 'static'
+    | 'opened'
+    | 'dispensed';
+
+/**
+ * ProductInteraction: simplified interaction type for the unified behavior system.
+ * Subset of the full `interaction` union, used by the capability validation layer.
+ */
+export type ProductInteraction =
+    | 'none'
+    | 'holding'
+    | 'two-hand-hold'
+    | 'presenting'
+    | 'capsule-display'
+    | 'applying';
+
 export type ProductColor = {
     hex: string;
     semanticName: string;
@@ -294,7 +346,12 @@ export type PhotoMode =
     | 'Condensation Droplets'
     | 'Fruit Garnish / Citrus Accents'
     | 'Textured Bed / Scatter Base'
-    | 'Floating Particles';
+    | 'Floating Particles'
+    // ── Wine-exclusive Photo Modes (wine engine only) ──────────────────────
+    | 'Wine Macro Label'
+    | 'Bottle + Glass'
+    | 'Editorial Table'
+    | 'Winery Scene';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;
@@ -310,7 +367,21 @@ export interface EnvironmentPhotoModeSchema {
     constraints: string[];
     /** Required placement for this Photo Mode. Hard-fail if mismatched. */
     requiredPlacement?: 'surface' | 'held' | 'supported' | 'air' | 'any';
-    /** Allowed interactions for this Photo Mode. Hard-fail if not in list. */
+    /** Interaction capability for this Photo Mode (capability layer; does not define industry authority). */
+    interactionCapability?: 'none' | 'optional' | 'required';
+    /** Motion capability for this Photo Mode (capability layer; does not define industry authority). */
+    stateMotionCapability?: 'static-only' | 'limited' | 'extended';
+    /** Camera control capability for this Photo Mode (resolver layer). */
+    cameraCapability?: 'restricted' | 'guided' | 'free';
+    /** Optional safe default camera for capability resolver. */
+    defaultCamera?: {
+        cameraSystem: string;
+        cameraAngle: string;
+        cameraDistance: string;
+        cameraRotation: string;
+        framingGuide: string;
+    };
+    /** @deprecated Use interactionCapability + resolver hierarchy. */
     allowedInteractions?: ('none' | 'passive-presence' | 'cropped-hand' | 'supported-hold' | 'holding' | 'two-hand-hold' | 'presenting' | 'framed-presentation' | 'applying-opening' | 'capsule-display' | 'resting-interaction')[];
     /** 
      * Studio worlds: false (no persons, no hands, no presence)
@@ -334,7 +405,7 @@ export type ColorPopHeroContrastStrategy = 'Soft' | 'High';
 export type ColorPopHeroNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
 
 export type IngredientStackIngredientFocus = 'Key active only' | 'Full formula';
-export type IngredientStackStackStyle = 'Vertical stack' | 'Surround' | 'Split composition';
+export type IngredientStackStackStyle = 'Surround' | 'Split composition';
 export type IngredientStackIngredientPresence = 'Subtle' | 'Balanced' | 'Hero';
 export type IngredientStackLabelPriority = 'Always readable' | 'Secondary to ingredients';
 export type IngredientStackBackgroundType = 'Solid' | 'Gradient';
@@ -526,14 +597,14 @@ export type Lighting =
     | 'night-mode' | 'flash-photo' | 'clinical-softbox';
 
 // ============================================================================
-// CAMERA
+// CAMERA & FRAMING (COMPREHENSIVE CONTROLS)
 // ============================================================================
 
-export type CameraSystem = 'dslr' | 'mirrorless';
-export type CameraAngle = 'front' | '45' | 'top' | 'detail';
-export type CameraDistance = 'macro' | 'close' | 'medium';
-export type CameraRotation = 'none' | 'slight';
-export type CameraFraming = 'centered' | 'rule-of-thirds';
+export type CameraSystem = 'dslr_mirrorless' | 'macro' | 'telephoto';
+export type CameraAngle = 'eye_level' | '45_hero' | 'top_down' | 'low_angle' | 'high_angle' | 'detail_closeup';
+export type CameraDistance = 'wide' | 'standard' | 'tight' | 'macro';
+export type CameraRotation = 0 | 5 | 10 | 15;
+export type CameraFraming = 'centered_hero' | 'rule_of_thirds' | 'left_negative' | 'right_negative' | 'grid_ready';
 
 // ============================================================================
 // CREATIVITY
@@ -545,6 +616,101 @@ export type PropDensity = 'none' | 'low' | 'medium' | 'dense';
 export type VisualIntent = 'conversion' | 'campaign';
 export type EnergyLevel = 'low' | 'medium' | 'high';
 export type ControlTier = 'basic' | 'pro';
+export type IndustryProfile =
+    | 'supplements'
+    | 'wine'
+    | 'beauty'
+    | 'coffee'
+    | 'luxury'
+    | 'tech'
+    | 'general';
+export type VisualProfile = 'default' | 'wine-prestige' | IndustryProfile;
+export type WineEnvironmentPreset =
+    | 'Vineyard Golden Hour'
+    | 'Oak Barrel Cellar'
+    | 'Fine Dining Table'
+    | 'Dark Luxury Studio'
+    | 'Winery / Vineyard';
+export type WineLightingTone = 'Warm Lateral' | 'Golden Ambient' | 'Cellar Dramatic' | 'Candle Intimate';
+export type WineMoodModifier =
+    | 'None'
+    | 'Vintage Film Grain'
+    | 'Terroir Mood Tone'
+    | 'Deep Burgundy Contrast Boost'
+    | 'Soft Barrel Ambient Haze'
+    | 'Elegant Reflection Layer';
+export type WineAction = 'static-presentation' | 'controlled-pour';
+export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type WineStyleArchetype =
+    | 'Minimal Editorial Studio'
+    | 'Ultra Minimal Black Luxury'
+    | 'Backlit Premium Studio'
+    | 'Moody Wood Editorial'
+    | 'Macro Label Branding'
+    | 'Action Pour Photography'
+    | 'Cinematic Vineyard';
+
+// ============================================================================
+// WINE ARCHETYPE SYSTEM v4 — ENTERPRISE TYPES
+// ============================================================================
+
+/** 15 production winery environments for v4 engine */
+export type WineEnvironmentV4 =
+    | 'Vineyard Golden Hour'
+    | 'Vineyard Blue Hour'
+    | 'Vineyard Misty Dawn'
+    | 'Oak Barrel Cellar'
+    | 'Stone Cave Cellar'
+    | 'Cathedral Wine Cellar'
+    | 'Fine Dining Table'
+    | 'Outdoor Terrace Dining'
+    | 'Private Wine Library'
+    | 'Dark Luxury Studio'
+    | 'Concrete Architectural Studio'
+    | 'White Marble Studio'
+    | 'Rustic Estate Kitchen'
+    | 'Glass Winery Modern'
+    | 'Hillside Terroir Landscape';
+
+/** Luxury intensity tiers — control contrast, DOF, prop density, grading */
+export type WineLuxuryIntensity =
+    | 'Editorial'
+    | 'Premium'
+    | 'Ultra Premium'
+    | 'Heritage Luxury'
+    | 'Modern Architectural Luxury';
+
+/** Multi-SKU and single-bottle composition modes */
+export type WineCompositionMode =
+    | 'single-hero'
+    | 'bottle-and-glass'
+    | 'horizontal-editorial'
+    | 'premium-lineup'
+    | 'gift-celebration'
+    | 'macro-label';
+
+/** Micro variation parameters — non-physics scene enrichment */
+export type WineMicroVariation = {
+    season?: 'spring' | 'summer' | 'autumn' | 'winter' | 'none';
+    dewOnGlass?: boolean;
+    atmosphericHaze?: 'none' | 'subtle' | 'moderate';
+    floralProps?: boolean;
+    microProps?: 'none' | 'cork-and-corkscrew' | 'vine-leaves' | 'cheese-board' | 'linen-napkin';
+    backgroundDepthBoost?: boolean;
+};
+export type CoffeeAction = 'static' | 'controlled-pour';
+export type CoffeeMode = 'studio' | 'ritual';
+export type CoffeeLightingTone = 'auto' | 'studio-balanced' | 'warm-ambient' | 'high-contrast';
+export type CoffeeMoodModifier =
+    | 'auto'
+    | 'coffee-cinematic-luxury'
+    | 'ritual-editorial'
+    | 'premium-minimal'
+    | 'color-pop-luxury'
+    | 'dark-architectural'
+    | 'morning-natural'
+    | 'modern-commercial';
+export type CoffeeSteamLevel = 'auto' | 'none' | 'subtle' | 'visible';
 
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
@@ -614,6 +780,18 @@ export type BrandPreset = {
 
 
 export type ProductPlacement = 'surface' | 'held' | 'supported' | 'air' | 'floating';
+export type CustomIngredientCutStyle = 'whole' | 'sliced' | 'halved' | 'crushed' | 'powdered' | 'extract' | 'auto';
+export type CustomIngredientFreshness = 'dry' | 'fresh' | 'wet' | 'condensed' | 'auto';
+export type CustomIngredientDensity = 'minimal' | 'balanced' | 'abundant' | 'auto';
+export type CustomIngredientPlacement = 'base' | 'surround' | 'background' | 'foreground' | 'auto';
+
+export type CustomIngredient = {
+    name: string;
+    cutStyle?: CustomIngredientCutStyle;
+    freshness?: CustomIngredientFreshness;
+    density?: CustomIngredientDensity;
+    placement?: CustomIngredientPlacement;
+};
 
 export type ProductStudioState = {
     products: ProductAsset[];
@@ -671,6 +849,28 @@ export type ProductStudioState = {
     // ========================================================================
     // 5️⃣ CREATIVE DIRECTION (AESTHETICS ONLY)
     // ========================================================================
+    category: string;
+    contextPreset: string;
+    visualProfile: VisualProfile;
+    wineLightingTone: WineLightingTone;
+    wineMoodModifier: WineMoodModifier;
+    wineAction: WineAction;
+    winePourStyle: WinePourStyle;
+    wineType?: string;
+    carbonationLevel?: string;
+    wineBottleState?: string;
+    wineGlassMode?: string;
+    wineClosureType?: string;
+    wineServeAmount?: string;
+    serveVolumeMode?: string;
+    wineEngineVersion?: number;
+    wineStyleArchetype?: WineStyleArchetype | null;
+    coffeeMode: CoffeeMode;
+    coffeeAction: CoffeeAction;
+    coffeeLightingTone: CoffeeLightingTone;
+    coffeeMoodModifier: CoffeeMoodModifier;
+    coffeeSteamLevel: CoffeeSteamLevel;
+    coffeeLiquidPhysics: boolean;
     visualIntent: VisualIntent;
     energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;
@@ -746,6 +946,8 @@ export type ProductStudioState = {
     gradientMid: string;
     gradientAngle: number;
     props: string;
+    customIngredients?: CustomIngredient[];
+    specialEffects?: string[];
     /** Ingredient Stack only: controls whether ingredients float or rest on the base. */
     ingredientLayout: IngredientStackLayout;
     interaction:
@@ -765,9 +967,26 @@ export type ProductStudioState = {
     viewpoint: string;
     lens: string;
     lightingRig: string;
+    lightColorTemp: string;
+    customLightColor: string;
+    accentLightIntensity: number; // 0-100, intensity of accent/gel lights
     finish: string;
     ecommerceSequenceActive?: boolean;
     ecommerceSequenceIndex?: number;
+
+    // ========================================================================
+    // UNIFIED PRODUCT BEHAVIOR (physical form factor + presence + state + interaction)
+    // Optional: coexists with existing stateMotion / interaction / placement fields.
+    // Used by the capability validation layer in productCapabilities.ts.
+    // ========================================================================
+    /** Container/packaging archetype — keys the PRODUCT_CAPABILITIES map. */
+    physicalFormFactor?: PhysicalFormFactor;
+    /** How/where the product exists in the scene geometry (action-oriented). */
+    physicalPresence?: PhysicalPresence;
+    /** Simplified product state for cap/opening/dispensing coherence. */
+    productState?: ProductState;
+    /** Simplified interaction type validated against PhysicalFormFactor capabilities. */
+    productInteraction?: ProductInteraction;
 
     // ========================================================================
     // LEGACY (To be removed)

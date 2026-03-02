@@ -188,7 +188,7 @@ export default function EcommerceStep3({
               <div className="flex items-start gap-2">
                 <AlertTriangle size={16} className="mt-0.5 text-amber-500" />
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-gray-900">Overlays blocked</p>
+                  <p className="text-sm text-gray-900">Overlays blocked</p>
                   <p className="text-xs text-gray-600">{overlayBlockReason}</p>
                 </div>
               </div>
@@ -630,7 +630,7 @@ function StepCard({
   return (
     <div className="rounded-xl border border-gray-200 bg-whiteTint p-4 space-y-3">
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
+  <p className="text-sm text-gray-900">{title}</p>
         {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
       </div>
       {children}
@@ -656,7 +656,7 @@ function PresetCard({
       className={`rounded-xl border px-3 py-2 text-left transition ${selected ? 'border-indigo-600 bg-indigo-50/60' : 'border-gray-200 bg-whiteTint hover:border-indigo-300'
         }`}
     >
-      <p className="text-sm font-semibold text-gray-900">{label}</p>
+  <p className="text-sm text-gray-900">{label}</p>
       <p className="text-xs text-gray-600">{description}</p>
     </button>
   );
@@ -841,7 +841,7 @@ function HeadlineEditor({ block, onChange }: { block: HeadlineBlock; onChange: (
         onChange={value => onChange({ ...block, subheadline: value || undefined })}
         placeholder="Optional"
       />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-wrap gap-2">
         <LabeledNumber
           label="Headline size"
           value={block.fontSize}

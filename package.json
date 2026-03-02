@@ -19,7 +19,8 @@
     "preview": "vite preview --config vite.config.ts",
     "deploy:staging:studio-v2": "VITE_USE_STUDIO_V2=true npm run build",
     "deploy:production:legacy": "VITE_USE_STUDIO_V2=false npm run build",
-    "deploy:vercel:nocache": "bash scripts/vercel-redeploy-no-cache.sh"
+    "deploy:vercel:nocache": "bash scripts/vercel-redeploy-no-cache.sh",
+    "test": "vitest --coverage"
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
@@ -27,7 +28,7 @@
     "@vercel/kv": "^3.0.0",
     "axios": "^1.7.7",
     "firebase": "^12.6.0",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.6.1",
     "framer-motion": "^11.11.10",
     "lucide-react": "^0.471.0",
     "nodemailer": "^7.0.11",
@@ -45,12 +46,14 @@
     "@types/stripe": "^8.0.0",
     "@vercel/node": "^3.2.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.20",
     "playwright": "^1.57.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.5.4",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vitest": "^4.0.18"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.24.0"

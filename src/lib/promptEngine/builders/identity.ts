@@ -1,9 +1,12 @@
 /**
  * Identity Builder - Person identity and appearance (OPTIMIZED)
  * Uses token-based identity control instead of semantic variations
+ * V2: Enhanced with diversity randomization to prevent "AI Clone Syndrome"
  */
 
 import type { PromptOptions, PromptBuilder, PersonDetails } from '../types';
+import { DiversityRandomizer, createDiversitySeed } from './diversityRandomizer';
+import { isUgcModeActive } from '../types';
 
 // ============================================================================
 // CORE CONSTANTS (KEPT)
@@ -17,8 +20,12 @@ const IDENTITY_CONTRACT_TEXT = `
 This subject must be a unique individual. Do not reuse or approximate any previous face or physique. Each render represents a different real individual. Avoid generic or stock-photo proportions.
 `.trim().replace(/\s+/g, ' ');
 
-const ANTI_DOLL_CONSTRAINT = `
-The person must look like a real unedited smartphone photo of a real subject. Avoid CGI, 3D render, synthetic appearance, mannequin, or doll-like appearance.
+const UGC_REAL_GUARD = `
+CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited photo of a real human being, NOT a 3D render, CGI model, digital avatar, or AI-generated perfect face. REJECT: porcelain skin, flawless complexion, symmetrical features, doll-like appearance, mannequin face, synthetic smoothness, video game character, animated look, plastic appearance, wax figure, beauty filter, Instagram filter, FaceTune, professional retouching, airbrushing. MANDATORY: visible skin pores, natural skin texture, minor blemishes, subtle asymmetry, real human imperfections, natural skin tone variation, authentic facial structure. This is a REAL PERSON captured with a smartphone camera, not a computer-generated image.
+`.trim().replace(/\s+/g, ' ');
+
+const BRAND_EDITORIAL_GUARD = `
+BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Subtle commercial-grade skin retouching. Clean complexion (no exaggerated texture). Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -160,8 +167,13 @@ export class IdentityBuilder implements PromptBuilder {
             return '';
         }
 
-        const isUgcMode =
-            contentStyle === 'ugc' || creationIntent === 'ugc' || Boolean(ugcRealModeActive);
+        // CRITICAL: Use centralized helper to check UGC mode
+        // Automatically excludes UGC if Ritual Mode or Formulation Story are active
+        const isUgcMode = isUgcModeActive(options);
+        const brandEditorialStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
+        const identityMode = ugcRealModeActive === true ? 'ugc-real' : 'brand-editorial';
+        console.log('[IDENTITY MODE]', identityMode);
+        
         const parts: string[] = [];
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
@@ -169,6 +181,18 @@ export class IdentityBuilder implements PromptBuilder {
         const isCouple = personCount === 'couple';
         const primarySubjectNoun = personCount && personCount !== 'single' ? 'PRIMARY SUBJECT' : 'Subject';
         const primaryHairColorSpecified = Boolean(personDetails?.hairColor);
+
+        // ====================================================================
+        // IDENTITY GUARD MODE (MUTUALLY EXCLUSIVE)
+        // ====================================================================
+        if (ugcRealModeActive === true) {
+            parts.push(UGC_REAL_GUARD);
+            parts.push(`
+SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights, subtle facial asymmetry, natural expression lines. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness, NO plastic appearance, NO wax figure look, NO video game character. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection. The face must have natural human texture and imperfections visible at all times.
+            `.trim().replace(/\s+/g, ' '));
+        } else if (brandEditorialStyle) {
+            parts.push(BRAND_EDITORIAL_GUARD);
+        }
 
         // ====================================================================
         // MODEL REFERENCE OVERRIDE (highest priority)
@@ -179,6 +203,7 @@ MODEL REFERENCE OVERRIDE:
 Use the uploaded model reference as the single source of truth for appearance.
 Do not alter age, gender, ethnicity, facial structure, skin, hair, or expression.
 Match the person exactly as shown.
+CRITICAL: Preserve the REAL SKIN TEXTURE from the reference. Do not smooth, beautify, or render as CGI/doll-like.
             `.trim().replace(/\s+/g, ' '));
 
             if (modelReferenceLockAccessories !== false) {
@@ -193,42 +218,274 @@ If the reference includes any of the following, they MUST remain identical in th
 Do NOT remove glasses. Do NOT change frames. Do NOT remove or change head coverings. Do NOT hallucinate new accessories.
                 `.trim().replace(/\s+/g, ' '));
             }
-        } else {
+        } else if (options.fullEntropyOverride) {
             // ================================================================
-            // AGE ANCHOR (for 45+; stronger for 50+)
+            // UGC FULL AUTOMATION MODE OVERRIDE (Maximum Entropy)
             // ================================================================
-            if (age >= 60 && age < 70) {
+            // Skip ALL manual controls. Rely ENTIRELY on DiversityRandomizer.
+            // No age anchors, no ethnicity mapping, no body type, no hair controls.
+            // EXCEPT: Respect gender preference if specified
+            const genderPref = options.fullAutomationGenderPreference || 'any';
+            const genderInstruction = genderPref === 'any' 
+                ? 'randomized age (18-80), gender, ethnicity'
+                : genderPref === 'male'
+                ? 'randomized age (18-80), MALE gender, ethnicity'
+                : 'randomized age (18-80), FEMALE gender, ethnicity';
+            
+            parts.push(`
+UGC_FULL_AUTOMATION_ACTIVE.
+Maximum natural entropy mode enabled.
+Ignore all manually selected creator attributes (age, gender, ethnicity, body type, hair, eye color, facial expression, skin tone, wardrobe, props).
+Generate a completely unique human subject with ${genderInstruction}, facial structure, body type, wardrobe, and environment.
+Subject must be a distinct real individual with authentic imperfections and natural variation.
+            `.trim().replace(/\s+/g, ' '));
+            
+            console.log('[IDENTITY BUILDER] UGC FULL AUTOMATION: Maximum entropy mode, skipping ALL manual controls');
+            if (genderPref !== 'any') {
+                console.log(`[IDENTITY BUILDER] Gender preference: ${genderPref}`);
+            }
+            
+            // Create unique seed for each generation
+            const diversitySeed = createDiversitySeed(
+                options.userId || 'user',
+                options.timestamp || Date.now()
+            );
+            const randomizer = new DiversityRandomizer(diversitySeed);
+
+            // ================================================================
+            // STEP 1: Determine random gender (CRITICAL for biological coherence)
+            // ================================================================
+            let randomGender: string;
+            
+            if (genderPref === 'male') {
+                randomGender = 'male';
+            } else if (genderPref === 'female') {
+                randomGender = 'female';
+            } else {
+                // 'any' - 50/50 random
+                randomGender = randomizer.getRandomGender();
+            }
+            
+            const isMasculinePresentation = randomGender === 'male';
+            
+            // ================================================================
+            // STEP 2: Determine random age (CRITICAL to prevent youthful bias)
+            // ================================================================
+            const randomAge = randomizer.getRandomAge();
+            const ageGroupLabel = randomizer.getAgeGroupLabel(randomAge);
+            
+            console.log(`[FULL AUTOMATION] Generated: ${randomAge}-year-old ${randomGender}`);
+            
+            // ================================================================
+            // STEP 3: Add AGE ANCHORS (prevent model drift to young ages)
+            // ================================================================
+            if (randomAge >= 70) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old (late 60s realism).
-Facial features must match a real ${age}-year-old adult: visible forehead lines, crow's feet, smile lines, mild under-eye hollows, and slight skin laxity around jaw/neck.
-Hands and neck MUST show age-appropriate texture (fine lines, subtle age spots, visible tendons/veins).
-Do NOT make the subject appear youthful, botoxed, facelifted, or heavily beautified. Avoid "anti-aging" smoothing.
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger.
+Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${randomAge}-year-old ${ageGroupLabel}.
+MANDATORY visible age markers: deep forehead lines, pronounced crow's feet, marionette lines, jowls, loose neck skin, age spots on hands/face, thinning eyebrows.
+ABSOLUTELY NO youthful features, smooth skin, tight jawline, or any appearance under 65 years old.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 60) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 40s or 50s.
+MANDATORY visible age markers for someone in their 60s: visible forehead lines, crow's feet, smile lines (nasolabial folds), mild under-eye hollows, slight skin laxity around jaw/neck, age spots beginning to appear on hands.
+Hands and neck MUST show age-appropriate texture: fine lines, subtle age spots, visible tendons/veins, looser skin texture.
+REJECT: youthful skin, tight jawline, smooth forehead, or any appearance that reads as 40s-50s. This person is in their 60s and must look it.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 50) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 30s or 40s.
+MANDATORY visible age markers for someone in their 50s: moderate forehead lines, crow's feet, smile lines (nasolabial folds), beginning of under-eye bags, slight softening of jawline, mature facial structure with visible aging.
+Skin texture must show age: NO smooth 20s/30s skin, NO tight youthful appearance, NO "anti-aging filter" look.
+REJECT: youthful teen/20s/30s appearance, smooth skin, tight features. This person is in their 50s and must show visible aging.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 45) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their 20s or 30s.
+MANDATORY visible age markers for someone in their mid-to-late 40s: subtle forehead lines, beginning crow's feet, early smile lines, mature facial structure, age-appropriate skin texture with minor imperfections.
+REJECT: youthful teen/20s/30s appearance, perfectly smooth skin, overly tight features. This person is approaching 50 and must show early signs of aging.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 35) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): Subject MUST visually read as EXACTLY ${randomAge} years old - NOT younger, NOT like someone in their early 20s.
+MANDATORY visible age markers for someone in their late 30s to early 40s: early fine lines around eyes when smiling, subtle forehead creases, mature facial structure (not teen/early-20s roundness), natural skin texture without youthful smoothness.
+REJECT: teen appearance, early-20s baby face, perfectly smooth unlined skin. This person is in their late 30s/early 40s and must show mature features.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (randomAge >= 25) {
+                parts.push(`
+AGE ANCHOR: Subject MUST visually read as ${randomAge} years old - a fully mature adult, NOT a teenager or early-20s person.
+Face should show mature adult features: defined facial structure, no teen roundness, natural skin texture (not perfectly smooth), mature expression and presence.
+REJECT: teen appearance, baby face, high school look. This person is ${randomAge} years old and must look like a mature adult.
+                `.trim().replace(/\s+/g, ' '));
+            }
+            
+            // NEGATIVE AGE CONSTRAINTS (block model drift to younger ages)
+            if (randomAge >= 70) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 65. REJECT: 20s/30s/40s/50s/60s appearance, middle-aged look, youthful skin, smooth face, tight jawline. Age visibility must be DOMINANT and UNMISTAKABLE.`);
+            } else if (randomAge >= 60) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 55. REJECT: 20s/30s/40s appearance, youthful skin, smooth forehead, tight features. This person is in their 60s - age must be clearly visible.`);
+            } else if (randomAge >= 50) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 45. REJECT: 20s/30s appearance, baby face, youthful smooth skin, teen proportions. This person is in their 50s - visible aging is REQUIRED.`);
+            } else if (randomAge >= 40) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render younger than 35. REJECT: teen appearance, early-20s look, baby face, perfectly smooth skin. This person is in their 40s - mature features are REQUIRED.`);
+            } else if (randomAge >= 30) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): Subject must ABSOLUTELY NOT render as a teenager or early-20s person. REJECT: teen look, baby face, high school appearance. This person is ${randomAge} years old - fully mature adult features are REQUIRED.`);
+            }
+            
+            if (randomAge >= 75) {
+                parts.push(`
+ELDER REALISM: Deep crow's feet, softened jawline, gentle jowls, age spots on face and hands.
+Hands show visible veins and knuckle definition.
+Skin carries micro wrinkles around mouth, eyes, and neck with authentic sag.
+Hair may skew gray/silver/white with thinning and irregular texture.
+                `.trim().replace(/\s+/g, ' '));
+            }
+            
+            // ================================================================
+            // STEP 4: Add gender and core identity
+            // ================================================================
+            parts.push(`${randomAge}-year-old ${ageGroupLabel}, ${randomGender}`);
+
+            // ALWAYS randomize facial structure
+            const facialStructure = randomizer.getFacialStructure();
+            parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
+
+            // ALWAYS randomize camera angle in UGC mode
+            if (isUgcMode) {
+                const cameraAngle = randomizer.getCameraAngle();
+                parts.push(`CAMERA ANGLE: ${cameraAngle}`);
+            }
+
+            // ALWAYS randomize skin texture
+            const skinTexture = randomizer.getSkinTexture();
+            if (skinTexture) {
+                parts.push(`SKIN TEXTURE: ${skinTexture}`);
+            }
+
+            // ALWAYS randomize hair styling
+            const hairStyling = randomizer.getHairStyling();
+            parts.push(`HAIR STYLING: ${hairStyling}`);
+
+            // ALWAYS randomize overall appearance
+            if (isUgcMode) {
+                const overallAppearance = randomizer.getOverallAppearance();
+                parts.push(`OVERALL VIBE: ${overallAppearance}`);
+            }
+
+            // Randomize accessories
+            const accessories = randomizer.getAccessories();
+            if (accessories && accessories !== 'no visible accessories or jewelry') {
+                parts.push(`ACCESSORIES: ${accessories}`);
+            }
+
+            // ALWAYS randomize clothing in UGC mode
+            if (isUgcMode) {
+                const clothing = randomizer.getClothing();
+                parts.push(`CLOTHING: ${clothing}`);
+            }
+
+            // ================================================================
+            // STEP 5: Facial hair - ONLY for male presentations, age 18-74
+            // ================================================================
+            if (isMasculinePresentation && randomAge >= 18 && randomAge < 75) {
+                const facialHair = randomizer.getFacialHair();
+                parts.push(`FACIAL HAIR: ${facialHair}`);
+            }
+
+            // ALWAYS randomize ethnicity (no user control)
+            const randomEthnicity = randomizer.getRandomEthnicity();
+            parts.push(`ETHNICITY: ${randomEthnicity} (fully randomized)`);
+
+            // UGC Lighting and Environment Randomization
+            if (isUgcMode) {
+                const lighting = randomizer.getLightingEnvironment();
+                parts.push(`LIGHTING: ${lighting}`);
+                
+                const backgroundElements = randomizer.getBackgroundElements();
+                parts.push(`ENVIRONMENT: ${backgroundElements} (fully randomized domestic location)`);
+            }
+
+            // CRITICAL: Add identity variation token for face uniqueness
+            if (options.identityVariationToken) {
+                parts.push(`[IDENTITY_VARIATION_TOKEN: ${options.identityVariationToken}]`);
+                parts.push(`FACE SIGNATURE: ${this.buildFaceSignature(options.identityVariationToken)}`);
+                parts.push('This must be a different individual than any previously generated subject. Do not repeat facial identity.');
+            }
+
+            parts.push(PERSONAL_ADDON_BASE_RULE);
+
+            // Early return - skip all manual control logic below
+            return parts.filter(Boolean).join('. ').trim();
+        }
+
+        // ================================================================
+        // SKIP ALL MANUAL CONTROLS FOR RANDOM CHARACTER & FULL AUTOMATION
+        // ================================================================
+        const shouldSkipManualControls = options.randomCharacterActive || options.fullAutomationMode;
+
+        if (!shouldSkipManualControls) {
+            // ================================================================
+            // AGE ANCHOR (CRITICAL - PREVENTS YOUTHFUL RENDERING)
+            // ================================================================
+            // PROBLEM: Model defaults to ages 20-35 unless explicitly constrained
+            // SOLUTION: Strong age anchors for ALL age ranges with visible markers
+            
+            if (age >= 70) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger.
+Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
+MANDATORY visible age markers: deep forehead lines, pronounced crow's feet, marionette lines, jowls, loose neck skin, age spots on hands/face, thinning eyebrows.
+ABSOLUTELY NO youthful features, smooth skin, tight jawline, or any appearance under 65 years old.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 60 && age < 70) {
+                parts.push(`
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 40s or 50s.
+MANDATORY visible age markers for someone in their 60s: visible forehead lines, crow's feet, smile lines (nasolabial folds), mild under-eye hollows, slight skin laxity around jaw/neck, age spots beginning to appear on hands.
+Hands and neck MUST show age-appropriate texture: fine lines, subtle age spots, visible tendons/veins, looser skin texture.
+REJECT: youthful skin, tight jawline, smooth forehead, or any appearance that reads as 40s-50s. This person is in their 60s and must look it.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 50 && age < 60) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial features must match a real ${age}-year-old adult: age-appropriate skin texture, subtle to moderate facial lines (forehead, crow's feet, smile lines), and mature facial structure.
-Do NOT make the subject appear youthful (no teen/20s look).
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 30s or 40s.
+MANDATORY visible age markers for someone in their 50s: moderate forehead lines, crow's feet, smile lines (nasolabial folds), beginning of under-eye bags, slight softening of jawline, mature facial structure with visible aging.
+Skin texture must show age: NO smooth 20s/30s skin, NO tight youthful appearance, NO "anti-aging filter" look.
+REJECT: youthful teen/20s/30s appearance, smooth skin, tight features. This person is in their 50s and must show visible aging.
                 `.trim().replace(/\s+/g, ' '));
             } else if (age >= 45 && age < 50) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Avoid a youthful teen/20s appearance; include age-appropriate skin texture and subtle facial lines.
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their 20s or 30s.
+MANDATORY visible age markers for someone in their mid-to-late 40s: subtle forehead lines, beginning crow's feet, early smile lines, mature facial structure, age-appropriate skin texture with minor imperfections.
+REJECT: youthful teen/20s/30s appearance, perfectly smooth skin, overly tight features. This person is approaching 50 and must show early signs of aging.
                 `.trim().replace(/\s+/g, ' '));
-            } else if (age >= 70) {
+            } else if (age >= 35 && age < 45) {
                 parts.push(`
-AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old.
-Facial structure, skin laxity, eye area, neck, hands, and posture must match a real ${age}-year-old ${ageGroupLabel}.
-Do NOT make the person appear younger.
+AGE ANCHOR (CRITICAL): ${primarySubjectNoun} MUST visually read as EXACTLY ${age} years old - NOT younger, NOT like someone in their early 20s.
+MANDATORY visible age markers for someone in their late 30s to early 40s: early fine lines around eyes when smiling, subtle forehead creases, mature facial structure (not teen/early-20s roundness), natural skin texture without youthful smoothness.
+REJECT: teen appearance, early-20s baby face, perfectly smooth unlined skin. This person is in their late 30s/early 40s and must show mature features.
+                `.trim().replace(/\s+/g, ' '));
+            } else if (age >= 25 && age < 35) {
+                parts.push(`
+AGE ANCHOR: ${primarySubjectNoun} MUST visually read as ${age} years old - a fully mature adult, NOT a teenager or early-20s person.
+Face should show mature adult features: defined facial structure, no teen roundness, natural skin texture (not perfectly smooth), mature expression and presence.
+REJECT: teen appearance, baby face, high school look. This person is ${age} years old and must look like a mature adult.
                 `.trim().replace(/\s+/g, ' '));
             }
 
-            if (age >= 55) {
-                const negativeAgeBand =
-                    age >= 70
-                        ? 'no 20s/30s/40s/50s/60s appearance, no middle-aged look, no youthful skin'
-                        : 'no 20s/30s/40s face, no youthful skin, no teen proportions';
-                parts.push(`NEGATIVE AGE CONSTRAINT: ${primarySubjectNoun} must NOT render younger (${negativeAgeBand}). Age visibility must remain dominant.`);
+            // ================================================================
+            // NEGATIVE AGE CONSTRAINTS (CRITICAL - PREVENTS MODEL DRIFT TO YOUNGER AGES)
+            // ================================================================
+            // Model has strong bias toward ages 20-35; must explicitly block younger rendering
+            if (age >= 70) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 65. REJECT: 20s/30s/40s/50s/60s appearance, middle-aged look, youthful skin, smooth face, tight jawline. Age visibility must be DOMINANT and UNMISTAKABLE.`);
+            } else if (age >= 60) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 55. REJECT: 20s/30s/40s appearance, youthful skin, smooth forehead, tight features. This person is in their 60s - age must be clearly visible.`);
+            } else if (age >= 50) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 45. REJECT: 20s/30s appearance, baby face, youthful smooth skin, teen proportions. This person is in their 50s - visible aging is REQUIRED.`);
+            } else if (age >= 40) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render younger than 35. REJECT: teen appearance, early-20s look, baby face, perfectly smooth skin. This person is in their 40s - mature features are REQUIRED.`);
+            } else if (age >= 30) {
+                parts.push(`NEGATIVE AGE CONSTRAINT (NON-NEGOTIABLE): ${primarySubjectNoun} must ABSOLUTELY NOT render as a teenager or early-20s person. REJECT: teen look, baby face, high school appearance. This person is ${age} years old - fully mature adult features are REQUIRED.`);
             }
 
             if (age >= 70) {
@@ -252,115 +509,241 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
             // ================================================================
             // CORE IDENTITY ATTRIBUTES
             // ================================================================
+            // CRITICAL: When Random Character is active, SKIP all manual controls
+            // DiversityRandomizer will handle ALL attributes automatically
             const identityParts: string[] = [];
 
-            // Ethnicity anchor (only when explicitly selected)
-            if (
-                personDetails?.ethnicity &&
-                personDetails.ethnicity !== 'Prefer not to specify' &&
-                personDetails.ethnicity !== 'Non-specific'
-            ) {
-                parts.push(
-                    `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
-                );
-            }
-
-            // Gender anchor
-            if (personDetails?.gender) {
-                parts.push(
-                    `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
-                );
-            }
-
-            // Skin tone anchor
-            if (personDetails?.skinTone) {
-                parts.push(
-                    `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
-                );
-            }
-
-            // Eye color anchor
-            if (personDetails?.eyeColor) {
-                parts.push(
-                    `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
-                );
-            }
-
-            // Age
-            identityParts.push(`${age}-year-old ${ageGroupLabel}`);
-
-            // Gender
-            if (personDetails?.gender) {
-                identityParts.push(sanitizePart(personDetails.gender, isUgcMode));
-            }
-
-            // Ethnicity
-            if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
-                identityParts.push(personDetails.ethnicity);
-            }
-
-            // Body Type
-            if (personDetails?.bodyType) {
-                const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
-                identityParts.push(build);
-                parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
-
-                const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
-                const physiqueAnchor =
-                    bodyTypeKey === 'slim'
-                        ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
-                        : bodyTypeKey === 'curvy'
-                            ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
-                            : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
-                                ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
-                                : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
-                parts.push(physiqueAnchor);
-            }
-
-            // Skin Tone
-            if (personDetails?.skinTone) {
-                identityParts.push(sanitizePart(personDetails.skinTone, isUgcMode));
-            }
-
-            // Skin Realism (UGC override)
-            if (isUgcMode) {
-                identityParts.push('real subject appearance, everyday skin texture, natural asymmetry, no retouching');
-            } else {
-                identityParts.push('realistic skin texture appropriate for age');
-            }
-
-            // Eye Color
-            if (personDetails?.eyeColor) {
-                identityParts.push(sanitizePart(personDetails.eyeColor, isUgcMode));
-            }
-
-            // Hair (skip for 80+ in UGC)
-            const isAge80Plus = age >= 80;
-            if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
-                const hairParts = [
-                    personDetails?.hairLength,
-                    personDetails?.hairTexture,
-                    personDetails?.hairColor
-                ].filter(Boolean);
-                if (hairParts.length > 0) {
-                    const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
-                    identityParts.push(hairText);
-                    parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
+            // SKIP manual controls if randomCharacterActive
+            if (!options.randomCharacterActive) {
+                // Ethnicity anchor (only when explicitly selected)
+                if (
+                    personDetails?.ethnicity &&
+                    personDetails.ethnicity !== 'Prefer not to specify' &&
+                    personDetails.ethnicity !== 'Non-specific'
+                ) {
+                    parts.push(
+                        `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
+                    );
                 }
-            }
 
-            // Hair realism for 80+
-            if (isAge80Plus) {
-                parts.push(`
+                // Gender anchor
+                if (personDetails?.gender) {
+                    parts.push(
+                        `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
+                    );
+                }
+
+                // Skin tone anchor
+                if (personDetails?.skinTone) {
+                    parts.push(
+                        `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
+                    );
+                }
+
+                // Eye color anchor
+                if (personDetails?.eyeColor) {
+                    parts.push(
+                        `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
+                    );
+                }
+
+                // Age
+                identityParts.push(`${age}-year-old ${ageGroupLabel}`);
+
+                // Gender
+                if (personDetails?.gender) {
+                    identityParts.push(sanitizePart(personDetails.gender, isUgcMode));
+                }
+
+                // Ethnicity
+                if (personDetails?.ethnicity && personDetails.ethnicity !== 'Prefer not to specify') {
+                    identityParts.push(personDetails.ethnicity);
+                }
+
+                // Body Type
+                if (personDetails?.bodyType) {
+                    const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
+                    identityParts.push(build);
+                    parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
+
+                    const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
+                    const physiqueAnchor =
+                        bodyTypeKey === 'slim'
+                            ? 'PHYSIQUE DETAILS: Slim figure. Narrow waist and shoulders, lean arms and neck. Face is not round or full.'
+                            : bodyTypeKey === 'curvy'
+                                ? 'PHYSIQUE DETAILS: Curvy figure. Noticeable hip/waist curve, fuller thighs/arms. Face has gentle softness.'
+                                : bodyTypeKey === 'plus size' || bodyTypeKey === 'plus-size' || bodyTypeKey === 'plus'
+                                    ? 'PHYSIQUE DETAILS: Plus-size figure. Fuller midsection and arms, thicker neck, softer jawline, fuller cheeks. Do NOT render a thin frame.'
+                                    : 'PHYSIQUE DETAILS: Average figure. Balanced proportions, neither extremely thin nor plus-size.';
+                    parts.push(physiqueAnchor);
+                }
+
+                // Skin Tone
+                if (personDetails?.skinTone) {
+                    identityParts.push(sanitizePart(personDetails.skinTone, isUgcMode));
+                }
+
+                // Skin Realism (UGC override)
+                if (isUgcMode) {
+                    identityParts.push('real subject appearance, everyday skin texture, natural asymmetry, no retouching');
+                } else {
+                    identityParts.push('realistic skin texture appropriate for age');
+                }
+
+                // Eye Color
+                if (personDetails?.eyeColor) {
+                    identityParts.push(sanitizePart(personDetails.eyeColor, isUgcMode));
+                }
+
+                // Hair (skip for 80+ in UGC)
+                const isAge80Plus = age >= 80;
+                if (!isAge80Plus && (personDetails?.hairLength || personDetails?.hairTexture || personDetails?.hairColor)) {
+                    const hairParts = [
+                        personDetails?.hairLength,
+                        personDetails?.hairTexture,
+                        personDetails?.hairColor
+                    ].filter(Boolean);
+                    if (hairParts.length > 0) {
+                        const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
+                        identityParts.push(hairText);
+                        parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
+                    }
+                }
+
+                // Hair realism for 80+
+                if (isAge80Plus) {
+                    parts.push(`
 HAIR (80+): Physically aged, thinning, irregular density, collapsed volume.
 Strands weak and fragile, scalp visibility normal, hairline uneven.
 Captured by smartphone so fine edges may appear soft or broken.
-                `.trim().replace(/\s+/g, ' '));
+                    `.trim().replace(/\s+/g, ' '));
+                }
+
+                // Push core identity
+                if (identityParts.length > 0) {
+                    parts.push(identityParts.join(', '));
+                }
+        } // END: Skip manual controls if shouldSkipManualControls (Random Character OR Full Automation)
+
+        // ================================================================
+        // DIVERSITY RANDOMIZATION (V2: Prevent AI Clone Syndrome)
+        // ================================================================
+        // Create unique seed for each generation to prevent repetitive faces
+        const diversitySeed = createDiversitySeed(
+            options.userId || 'user',
+            options.timestamp || Date.now()
+        );
+        const randomizer = new DiversityRandomizer(diversitySeed);
+
+        // ALWAYS randomize facial structure (user has no control over this)
+        const facialStructure = randomizer.getFacialStructure();
+        parts.push(`FACIAL STRUCTURE: ${facialStructure}`);
+
+            // CAMERA ANGLE RANDOMIZATION: ONLY in UGC mode AND only if NOT already specified
+            // Lifestyle mode uses professional camera setup from canonicalScene.ts
+            // SKIP if Raw Domestic UGC is active (it has its own camera control)
+            // SKIP if user explicitly selected a camera angle (respect user choice)
+            const hasRawUgcCameraControl = Boolean(options.rawDomesticUgcActive);
+            const userSpecifiedCameraAngle = Boolean(options.cameraAngle && options.cameraAngle.trim());
+            if (isUgcMode && !hasRawUgcCameraControl && !userSpecifiedCameraAngle) {
+                const cameraAngle = randomizer.getCameraAngle();
+                parts.push(`CAMERA ANGLE: ${cameraAngle}`);
             }
 
-            // Push core identity
-            if (identityParts.length > 0) {
-                parts.push(identityParts.join(', '));
+            // ALWAYS randomize skin texture (prevents "porcelain doll" look)
+            const skinTexture = randomizer.getSkinTexture();
+            if (skinTexture) {
+                parts.push(`SKIN TEXTURE: ${skinTexture}`);
+            }
+
+            // ALWAYS randomize hair styling (prevents "salon perfect" hair)
+            const hairStyling = randomizer.getHairStyling();
+            parts.push(`HAIR STYLING: ${hairStyling}`);
+
+            // ALWAYS randomize overall appearance (authentically messy UGC vibe)
+            if (isUgcMode) {
+                const overallAppearance = randomizer.getOverallAppearance();
+                parts.push(`OVERALL VIBE: ${overallAppearance}`);
+            }
+
+            // Randomize accessories only if not locked by model reference
+            if (!hasModelReference) {
+                const accessories = randomizer.getAccessories();
+                if (accessories && accessories !== 'no visible accessories or jewelry') {
+                    parts.push(`ACCESSORIES: ${accessories}`);
+                }
+            }
+
+            // ALWAYS randomize clothing in UGC mode (even if user specified wardrobe)
+            // User wardrobe becomes a "style direction" but we still add random variation
+            // ONLY if user did NOT specify custom clothes (respect custom clothes completely)
+            const customClothesEnabled = Boolean((options as any).customClothesEnabled);
+            const customClothesGarmentType = String((options as any).customClothesGarmentType || '').trim();
+            const customClothesPrimaryColor = String((options as any).customClothesPrimaryColor || '').trim();
+            
+            if (isUgcMode && customClothesEnabled && customClothesGarmentType) {
+                // User specified custom clothes: use them exactly
+                let clothingDesc = customClothesGarmentType;
+                if (customClothesPrimaryColor) {
+                    clothingDesc = `${customClothesPrimaryColor} ${clothingDesc}`;
+                }
+                parts.push(`CLOTHING: ${clothingDesc}, worn naturally and casually`);
+            } else if (isUgcMode) {
+                const clothing = randomizer.getClothing();
+                if (options.wardrobeStyle && options.wardrobeStyle.trim()) {
+                    // User specified wardrobe: blend it with random casual clothing
+                    parts.push(`CLOTHING BASE: ${sanitizePart(options.wardrobeStyle, isUgcMode)}, but ${clothing.toLowerCase()}`);
+                } else {
+                    // No user wardrobe: fully random
+                    parts.push(`CLOTHING: ${clothing}`);
+                }
+            }
+
+            // Randomize facial hair (for male/masculine presentations)
+            const gender = (personDetails?.gender || '').toLowerCase();
+            const isMasculinePresentation = 
+                gender.includes('male') && !gender.includes('female');
+            
+            if (isMasculinePresentation && age >= 18 && age < 75) {
+                const facialHair = randomizer.getFacialHair();
+                parts.push(`FACIAL HAIR: ${facialHair}`);
+            }
+
+            // Randomize ethnicity ONLY when "Non-specific" was selected
+            if (personDetails?.ethnicity === 'Non-specific') {
+                const randomEthnicity = randomizer.getRandomEthnicity();
+                parts.push(`ETHNICITY VARIATION: ${randomEthnicity} (unique per generation)`);
+            }
+
+            // UGC MODE: Lighting and Environment Randomization
+            // UGC disables environment by default (authentic casual anywhere)
+            // But user can optionally select a specific environment if needed
+            if (isUgcMode) {
+                const lighting = randomizer.getLightingEnvironment();
+                parts.push(`LIGHTING: ${lighting}`);
+                
+                // Check if user explicitly selected an environment
+                // Empty string ('') means "Random / Auto" was selected → no user environment
+                const customEnv = (options as any).customEnvironment;
+                const settingValue = options.setting && String(options.setting).trim();
+                const sceneEnvValue = options.sceneEnvironment && String(options.sceneEnvironment).trim();
+                const customEnvValue = customEnv && String(customEnv).trim();
+                
+                const hasUserEnvironment = Boolean(
+                    (settingValue && settingValue !== '') ||
+                    (sceneEnvValue && sceneEnvValue !== '') ||
+                    (customEnvValue && customEnvValue !== '')
+                );
+                
+                if (hasUserEnvironment) {
+                    // User selected environment → use it but add random micro-location details
+                    const backgroundElements = randomizer.getBackgroundElements();
+                    parts.push(`ENVIRONMENT DETAILS: ${backgroundElements}`);
+                } else {
+                    // No user environment → fully randomize location (bedroom, bathroom, kitchen, etc.)
+                    const backgroundElements = randomizer.getBackgroundElements();
+                    parts.push(`ENVIRONMENT: ${backgroundElements}`);
+                }
             }
 
             // ================================================================
@@ -542,77 +925,80 @@ Captured by smartphone so fine edges may appear soft or broken.
         // ====================================================================
         // EXPRESSION & POSE
         // ====================================================================
-        if (personDetails?.facialExpression) {
-            parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
-        }
-
-        if (personDetails?.eyeDirection) {
-            const eyeDirection = String(personDetails.eyeDirection);
-            const isCouple = options.personCount === 'couple';
-            const isGroup = options.personCount === 'group';
-
-            if (isCouple) {
-                if (eyeDirection === 'Looking at camera') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Only ONE subject may look at the camera. The other must look at the product or look away naturally. Never both looking at camera.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking at product') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Both subjects look at the product OR one looks at the product while the other looks at the first subject. Shared moment, not posed.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking away naturally') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
-                            isUgcMode
-                        )
-                    );
-                } else {
-                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
-                }
-            } else if (isGroup) {
-                if (eyeDirection === 'Looking at camera') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking at product') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
-                            isUgcMode
-                        )
-                    );
-                } else if (eyeDirection === 'Looking away naturally') {
-                    parts.push(
-                        sanitizePart(
-                            'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
-                            isUgcMode
-                        )
-                    );
-                } else {
-                    parts.push(sanitizePart(String(eyeDirection), isUgcMode));
-                }
-            } else {
-                const eyeMap: Record<string, string> = {
-                    'Looking at camera': 'eyes directed at camera with focused gaze',
-                    'Looking at product': 'eyes directed toward product with attentive focus',
-                    'Looking away naturally': 'eyes off-camera at natural angle, candid gaze',
-                };
-                parts.push(sanitizePart(eyeMap[eyeDirection] || eyeDirection, isUgcMode));
+        // SKIP if shouldSkipManualControls (expression will be randomized by DiversityRandomizer)
+        if (!shouldSkipManualControls) {
+            if (personDetails?.facialExpression) {
+                parts.push(`EXPRESSION: ${sanitizePart(personDetails.facialExpression, isUgcMode)}`);
             }
-        }
 
-        if (personDetails?.personPose) {
-            parts.push(sanitizePart(personDetails.personPose, isUgcMode));
+            if (personDetails?.eyeDirection) {
+                const eyeDirection = String(personDetails.eyeDirection);
+                const isCouple = options.personCount === 'couple';
+                const isGroup = options.personCount === 'group';
+
+                if (isCouple) {
+                    if (eyeDirection === 'Looking at camera') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Only ONE subject may look at the camera. The other must look at the product or look away naturally. Never both looking at camera.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking at product') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Both subjects look at the product OR one looks at the product while the other looks at the first subject. Shared moment, not posed.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking away naturally') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (COUPLE): Both subjects look away casually OR one looks away while the other looks at the product. Avoid direct eye contact between both subjects unless explicitly requested.',
+                                isUgcMode
+                            )
+                        );
+                    } else {
+                        parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                    }
+                } else if (isGroup) {
+                    if (eyeDirection === 'Looking at camera') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking at product') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
+                                isUgcMode
+                            )
+                        );
+                    } else if (eyeDirection === 'Looking away naturally') {
+                        parts.push(
+                            sanitizePart(
+                                'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
+                                isUgcMode
+                            )
+                        );
+                    } else {
+                        parts.push(sanitizePart(String(eyeDirection), isUgcMode));
+                    }
+                } else {
+                    const eyeMap: Record<string, string> = {
+                        'Looking at camera': 'eyes directed at camera with focused gaze',
+                        'Looking at product': 'eyes directed toward product with attentive focus',
+                        'Looking away naturally': 'eyes off-camera at natural angle, candid gaze',
+                    };
+                    parts.push(sanitizePart(eyeMap[eyeDirection] || eyeDirection, isUgcMode));
+                }
+            }
+
+            if (personDetails?.personPose) {
+                parts.push(sanitizePart(personDetails.personPose, isUgcMode));
+            }
         }
 
         if (personDetails?.personMood) {
@@ -645,11 +1031,6 @@ Captured by smartphone so fine edges may appear soft or broken.
 
         if (personDetails?.personProps) {
             parts.push(sanitizePart(personDetails.personProps, isUgcMode));
-        }
-
-        // Anti-doll constraint for UGC
-        if (isUgcMode) {
-            parts.push(ANTI_DOLL_CONSTRAINT);
         }
 
         const result = parts.filter(Boolean).join('. ').trim();
