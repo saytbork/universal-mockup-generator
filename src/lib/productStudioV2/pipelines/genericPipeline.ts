@@ -16,7 +16,9 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildLighting(authority, state),
     buildMaterials(authority, state),
     buildProductPhysical(state),
-    buildPhotoModeDynamic(state),    buildGeometry(authority, state),
+    buildPhotoModeDynamic(state),
+    buildGeometry(authority, state),
+    buildIngredients(state),
     ...protectionLayer,
     ...buildAdvancedOverrideParts(state),
   ];
@@ -30,6 +32,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   return segments;
 }
 import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildIngredients } from '../builders/buildIngredients';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -52,6 +55,7 @@ export const genericPipeline = {
       buildProductPhysical(state),
       buildPhotoModeDynamic(state),
       buildGeometry(authority, state),
+      buildIngredients(state),
       ...protectionLayer,
       ...buildAdvancedOverrideParts(state),
     ];
