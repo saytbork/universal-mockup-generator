@@ -14,27 +14,27 @@ function resolveFinalComposition(
 
   const a = raw.toLowerCase();
 
-  // flat-lay: "top-down", "top down", "flat lay", "flat-lay", "overhead"
+  // flat-lay — checked first: "top-down", "top down", "flat lay", "flat-lay", "overhead"
   if (a.includes('flat') || (a.includes('top') && a.includes('down')) || a.includes('overhead')) {
     return 'flat-lay';
   }
 
-  // hero-45: "45", "hero"
+  // hero-45 — "45", "hero"
   if (a.includes('45') || a.includes('hero')) {
     return 'hero-45';
   }
 
-  // low-angle: "low"
-  if (a.includes('low')) {
+  // low-angle — requires 'low' + 'angle' to avoid firing on "slow", "glow", "below"
+  if (a.includes('low') && a.includes('angle')) {
     return 'low-angle';
   }
 
-  // high-angle: "high"
-  if (a.includes('high')) {
+  // high-angle — requires 'high' + 'angle' to avoid firing on "highlight", "high key"
+  if (a.includes('high') && a.includes('angle')) {
     return 'high-angle';
   }
 
-  // eye-level: "eye"
+  // eye-level — "eye"
   if (a.includes('eye')) {
     return 'eye-level';
   }
