@@ -41,32 +41,14 @@ const VIEWPOINT_MAP: Record<string, string> = {
 };
 
 export function buildCameraOverrides(state?: StudioUIState): string {
-  const cameraSystem = String(
-    state?.cameraSystem ||
-    state?.cameraSystemOverride ||
-    'DSLR / mirrorless'
-  ).trim();
-  const angle = String(
-    state?.cameraAngle ||
-    state?.angleOverride ||
-    '45° hero'
-  ).trim();
-  const distance = String(
-    state?.cameraDistance ||
-    state?.distanceOverride ||
-    'Standard'
-  ).trim();
-  const rotation = String(
-    state?.cameraRotation ||
-    state?.rotationOverride ||
-    '0°'
-  ).trim();
-  const framingGuide = String(
-    state?.framingGuide ||
-    state?.framingGuideOverride ||
-    'Centered hero'
-  ).trim();
+  const cameraSystem = String(state?.cameraSystem || state?.cameraSystemOverride || '').trim();
+  const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
+  const distance = String(state?.cameraDistance || state?.distanceOverride || '').trim();
+  const rotation = String(state?.cameraRotation || state?.rotationOverride || '').trim();
+  const framingGuide = String(state?.framingGuide || state?.framingGuideOverride || '').trim();
   const viewpoint = String(state?.viewpoint || '').trim().toLowerCase();
+
+  if (!cameraSystem || !angle || !distance || !rotation || !framingGuide) return '';
 
   const lensProfile = resolveLensProfile(distance);
   const distortion = resolveDistortion(distance);

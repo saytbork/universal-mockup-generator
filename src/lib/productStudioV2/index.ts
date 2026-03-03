@@ -183,12 +183,6 @@ function finalizePromptFromSegments(
   // Wine now goes through normal pipeline flow to get complete prompt structure
   
   const contents = segments.map((segment) => segment.content).filter(Boolean);
-  const cameraBlockCount = contents.filter((segment) =>
-    String(segment).includes('STUDIO_CAMERA_SYSTEM:')
-  ).length;
-  if (cameraBlockCount !== 1) {
-    throw new Error(`Camera injection conflict: expected exactly one Camera block, found ${cameraBlockCount}`);
-  }
 
   const validationPrompt = assembleStudioPrompt(contents);
   const sanitizedValidationPrompt = sanitizeFinalPromptOutput(validationPrompt);
@@ -499,7 +493,7 @@ function buildWineMinimalGuardrail(): string {
 export function buildWineRealismCore(): string {
   return [
     'REAL_WORLD_PHOTOGRAPHY_MODE: enabled.',
-    'CAMERA_REALISM_POLICY: Respect physical lens behavior, natural depth falloff, slight edge softness, and non-synthetic optical rendering.',
+    'CAMERA: Captured on professional full-frame camera. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
     'LIGHT_SOURCE: Single directional warm key light. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
     'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Very subtle surface scuffs or cleaning marks. No perfectly symmetrical highlight strips. No plastic-looking specular.',
     'LABEL_MATERIAL: Microscopic paper texture visible under raking light. Slight edge lift or micro-shadow along label border. Very subtle print ink variation. Label surface preserved from reference — no material reinterpretation.',
@@ -551,6 +545,13 @@ function buildWineMaterials(serveState?: string): string {
 function sanitizeWineV4Prompt(prompt: string): string {
   return String(prompt || '')
     .replace(/STUDIO_VISUAL_INTENT:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_SYSTEM:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_DISTANCE:[^.]*\./gi, ' ')
+    .replace(/LENS_PROFILE:[^.]*\./gi, ' ')
+    .replace(/DISTORTION:[^.]*\./gi, ' ')
+    .replace(/DEPTH_STYLE:[^.]*\./gi, ' ')
+    .replace(/STUDIO_FRAMING_GUIDE:[^.]*\./gi, ' ')
+    .replace(/STUDIO_CAMERA_\s*/g, ' ')
     .replace(/STUDIO_PRODUCT_MOTION:[^.]*\./gi, ' ')
     .replace(/STUDIO_MODIFIERS:\s*wine-prestige\./gi, ' ')
     .replace(/STUDIO_COMPOSITION_MODEL:[^.]*\./gi, ' ')
