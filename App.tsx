@@ -5127,13 +5127,25 @@ If the model attempts to create a scene or environment, override it and force a 
             ? options.creationMode
             : 'studio';
 
+        // ENGINE ISOLATION: sceneType and sceneIntent must be locked to the active engine.
+        // When isStudioEngine=false, never allow stale 'studio-branding' or 'ecommerce' to leak
+        // from a prior studio session into the lifestyle/UGC pipeline.
+        const resolvedBaseSceneType: string = isStudioEngine
+          ? 'studio-branding'
+          : (lifestyleStep3Values?.sceneType && lifestyleStep3Values.sceneType !== 'studio-branding'
+              ? lifestyleStep3Values.sceneType
+              : 'lifestyle-real');
+        const resolvedBaseSceneIntent: string | undefined = isStudioEngine
+          ? 'ecommerce'
+          : (options.sceneIntent === 'ecommerce' ? undefined : options.sceneIntent);
+
         const basePromptOptions: any = {
           ...options,
-          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isStudioEngine ? 'studio-branding' : 'lifestyle-real'),
+          sceneType: resolvedBaseSceneType,
           modelReferenceLockAccessories,
           contentStyle: isStudioEngine ? 'product' : 'ugc',
           creationIntent: isStudioEngine ? 'product' : options.creationIntent,
-          sceneIntent: isStudioEngine ? 'ecommerce' : options.sceneIntent,
+          sceneIntent: resolvedBaseSceneIntent,
           creationMode: isStudioEngine
             ? safeProductCreationMode
             : (options.creationMode || 'lifestyle'),

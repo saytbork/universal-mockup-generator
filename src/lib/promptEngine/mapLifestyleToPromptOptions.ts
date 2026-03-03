@@ -2375,7 +2375,23 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.studioAccentColor) {
         (mapped as any).paletteColor3 = sceneState.studioAccentColor;
     }
-    } // end resolvedSceneType !== 'lifestyle-real'
+    } // end sceneState.sceneType !== 'lifestyle-real'
+
+    // ========================================================================
+    // HARD ENGINE ISOLATION — final output guard
+    // The lifestyle path MUST NOT emit sceneType 'studio-branding'.
+    // If existingOptions injected a stale value, override it now.
+    // ========================================================================
+    if ((mapped as any).sceneType === 'studio-branding') {
+        console.warn('[ISOLATION] sceneType was studio-branding in lifestyle path — overriding to lifestyle-real');
+        (mapped as any).sceneType = 'lifestyle-real';
+    }
+    // The lifestyle path MUST NOT emit sceneIntent 'ecommerce'.
+    if ((mapped as any).sceneIntent === 'ecommerce') {
+        console.warn('[ISOLATION] sceneIntent was ecommerce in lifestyle path — clearing');
+        (mapped as any).sceneIntent = undefined;
+    }
+
     if (process.env.NODE_ENV === 'development') {
         console.log('[MAP] Product Studio fields injected:', {
             photoMode: sceneState.studioPhotoMode,
