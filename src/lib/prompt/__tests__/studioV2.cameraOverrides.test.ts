@@ -36,14 +36,15 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).not.toContain('FRAMING_GUIDE_OVERRIDE:');
   });
 
-  test('does not inject fallback camera block without resolved camera state', () => {
+  test('injects default camera block when resolved camera state is absent', () => {
     const prompt = generateStudioPromptV2(baseState);
 
     expect(prompt).toContain('Preserve proportions independent of selected lens profile.');
-    expect(prompt).not.toContain('STUDIO_CAMERA_SYSTEM:');
-    expect(prompt).not.toContain('STUDIO_CAMERA_ANGLE:');
-    expect(prompt).not.toContain('STUDIO_CAMERA_DISTANCE:');
-    expect(prompt).not.toContain('STUDIO_CAMERA_ROTATION:');
-    expect(prompt).not.toContain('STUDIO_FRAMING_GUIDE:');
+    expect(prompt).toContain('STUDIO_CAMERA_SYSTEM: DSLR / mirrorless.');
+    expect(prompt).toContain('STUDIO_CAMERA_ANGLE: 45° hero.');
+    expect(prompt).toContain('STUDIO_CAMERA_DISTANCE: Standard.');
+    expect(prompt).toContain('STUDIO_CAMERA_ROTATION: 0°.');
+    expect(prompt).toContain('STUDIO_FRAMING_GUIDE: Centered hero.');
+    expect((prompt.match(/STUDIO_CAMERA_SYSTEM:/g) || []).length).toBe(1);
   });
 });
