@@ -2157,12 +2157,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
-    const sceneType: 'studio-branding' | 'lifestyle-real' =
+    const creationModeSceneType: 'studio-branding' | 'lifestyle-real' =
       normalizedCreationMode === 'aesthetic' ||
         normalizedCreationMode === 'lifestyle' ||
         normalizedCreationMode === 'ugc'
         ? 'lifestyle-real'
         : 'studio-branding';
+    // When the V2 studio engine is active (productStore.sceneType === 'studio-branding'),
+    // Physical Presence and other studio controls must NOT mutate sceneType to 'lifestyle-real'.
+    // productStore.sceneType is the authoritative signal — it never changes on Physical Presence toggles.
+    const sceneType: 'studio-branding' | 'lifestyle-real' =
+      productStore.sceneType === 'studio-branding' ? 'studio-branding' : creationModeSceneType;
     const contentStyle: 'ugc' | 'product' | 'brand' =
       values.visualMode === 'ugc'
         ? 'ugc'
@@ -2201,7 +2206,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (onValuesChange) {
       onValuesChange(payload);
     }
-  }, [values, onValuesChange]);
+  }, [values, onValuesChange, productStore.sceneType]);
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
