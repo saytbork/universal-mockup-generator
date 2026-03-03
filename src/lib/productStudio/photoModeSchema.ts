@@ -61,8 +61,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid studio surfaces only: acrylic and coated metal.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'supported-hold', 'holding', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Ingredient Flat Lay': {
         id: 'ingredient-flat-lay',
@@ -83,8 +83,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Acrylic Blocks': {
         id: 'acrylic-blocks',

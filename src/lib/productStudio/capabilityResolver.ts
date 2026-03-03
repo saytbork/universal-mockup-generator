@@ -27,8 +27,8 @@ type CapabilityConfig = {
 const PHOTO_MODE_CAPABILITIES: Partial<Record<PhotoMode, CapabilityConfig>> = {
   'Hero Landing Page': { interactionCapability: 'optional', stateMotionCapability: 'limited' },
   'Color Pop Hero': { interactionCapability: 'optional', stateMotionCapability: 'limited' },
-  'Ingredient Stack': { interactionCapability: 'none', stateMotionCapability: 'static-only' },
-  'Ingredient Flat Lay': { interactionCapability: 'none', stateMotionCapability: 'static-only' },
+  'Ingredient Stack': { interactionCapability: 'optional', stateMotionCapability: 'static-only' },
+  'Ingredient Flat Lay': { interactionCapability: 'optional', stateMotionCapability: 'static-only' },
   'Routine Carousel': { interactionCapability: 'optional', stateMotionCapability: 'limited' },
   'Hands Application Clean': { interactionCapability: 'required', stateMotionCapability: 'limited' },
   'Macro Dew Label': { interactionCapability: 'none', stateMotionCapability: 'static-only' },
