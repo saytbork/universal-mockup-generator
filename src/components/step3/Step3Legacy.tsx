@@ -2163,15 +2163,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         normalizedCreationMode === 'ugc'
         ? 'lifestyle-real'
         : 'studio-branding';
-    // ROOT CAUSE FIX: When V2 studio engine is active (!isProductMode + productCount > 0 + productStore.sceneType === 'studio-branding'),
+    // ROOT CAUSE FIX: When V2 studio engine is active (!isProductMode + productStore.sceneType === 'studio-branding'),
     // Physical Presence and all other store-only mutations must NOT mutate the emitted sceneType.
     // productStore.sceneType is the authoritative signal for the V2 engine.
-    // productCount > 0 guards against fresh lifestyle users whose store default is also 'studio-branding'.
-    const isV2StudioActive = !isProductMode && productCount > 0 && productStore.sceneType === 'studio-branding';
+    // productStore.products.length > 0 guards against fresh lifestyle users whose store default is also 'studio-branding'
+    // (productStore.products is only populated when the V2 product uploader is used, not the lifestyle image uploader).
+    const isV2StudioActive = !isProductMode && productStore.sceneType === 'studio-branding' && productStore.products.length > 0;
     const sceneType: 'studio-branding' | 'lifestyle-real' = isV2StudioActive ? 'studio-branding' : creationModeSceneType;
     console.log('[PHASE3 sceneType RESOLUTION]', {
       isProductMode,
-      productCount,
+      'productStore.products.length': productStore.products.length,
       'productStore.sceneType': productStore.sceneType,
       isV2StudioActive,
       normalizedCreationMode,
@@ -2216,7 +2217,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (onValuesChange) {
       onValuesChange(payload);
     }
-  }, [values, onValuesChange, isProductMode, productCount, productStore.sceneType]);
+  }, [values, onValuesChange, isProductMode, productStore.sceneType, productStore.products.length]);
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
