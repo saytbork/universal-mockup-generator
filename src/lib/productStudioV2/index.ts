@@ -34,7 +34,8 @@ export {
   resolveStudioAuthority,
   getAllowedStudioModifiers,
   buildPhotoModeDynamic,
-  buildProductPhysical
+  buildProductPhysical,
+  buildIngredients
 };
 // import removed: isWineStrictSimulation no longer exported from winePromptHelpers
 import { generateWineImage } from './generateWineImage';
@@ -57,6 +58,7 @@ import { buildPhotoModeDynamic } from './builders/buildPhotoModeDynamic.ts';
 import { buildProductPhysical } from './builders/buildProductPhysical.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
+import { buildIngredients } from './builders/buildIngredients.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
 import {
