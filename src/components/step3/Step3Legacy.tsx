@@ -2256,7 +2256,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (sceneType === 'lifestyle-real') {
       const leakedStudioKeys = Object.keys(rawPayload).filter((key) => {
         if (!key.startsWith('studio')) return false;
-        const value = (rawPayload as Record<string, unknown>)[key];
+        const value = (rawPayload as unknown as Record<string, unknown>)[key];
         if (value === undefined || value === null) return false;
         return String(value).trim().length > 0;
       });
