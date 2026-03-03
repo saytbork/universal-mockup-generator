@@ -963,6 +963,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
             if (cfg.backgroundType)   cleaned['backgroundType']     = String(cfg.backgroundType);
             if (cfg.gradientStyle)    cleaned['gradientStyle']      = String(cfg.gradientStyle);
             if (cfg.colorSource)      cleaned['colorSource']        = String(cfg.colorSource);
+            const solidColor = String((state as any).backgroundColor || '').trim();
+            const gradientStart = String((state as any).gradientStart || '').trim();
+            const gradientEnd = String((state as any).gradientEnd || '').trim();
+            if (solidColor) cleaned['backgroundColor'] = solidColor;
+            if (gradientStart) cleaned['gradientStart'] = gradientStart;
+            if (gradientEnd) cleaned['gradientEnd'] = gradientEnd;
           }
         }
       }
