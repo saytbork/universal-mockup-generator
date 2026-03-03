@@ -2323,7 +2323,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
   const cameraSectionLockedByUgc = isUGCMode;
   const accentTextClass = 'text-[var(--lifestyle-accent)]';
-  const mode: 'studio' | 'lifestyle' = isEcommerceMode ? 'studio' : 'lifestyle';
+  // uiActiveEngine === 'studio' covers the isProductMode=false + studio-branding scene case,
+  // ensuring the studio UI block (and its photo mode chips) always renders when the V2 engine is active.
+  const mode: 'studio' | 'lifestyle' = (isEcommerceMode || uiActiveEngine === 'studio') ? 'studio' : 'lifestyle';
 
   useEffect(() => {
     if (hasUploadedProductAsset) return;
