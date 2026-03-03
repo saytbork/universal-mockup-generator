@@ -927,6 +927,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       if (productColor) extras.productColor = productColor;
       const productFormScale = String((state as any).productFormScale || (state as any).productScale || '').trim();
       if (productFormScale) extras.productFormScale = productFormScale;
+      // Ingredient objects (Ingredient Stack / Ingredient Flat Lay)
+      const ingredientObjects = String((state as any).props || '').trim();
+      if (ingredientObjects) extras.ingredientObjects = ingredientObjects;
+      const ingredientLayout = String((state as any).ingredientLayout || '').trim();
+      if (ingredientLayout) extras.ingredientLayout = ingredientLayout;
       return extras;
     })(),
     // ── Photo Mode dynamic sub-settings (last-selection-wins) ──

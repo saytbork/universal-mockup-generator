@@ -196,4 +196,8 @@ export interface StudioUIState {
   };
   /** contextPreset value — used by buildWorld for studio environment context */
   contextPresetValue?: string;
+  /** Ingredient objects text for Ingredient Stack / Ingredient Flat Lay modes (from state.props) */
+  ingredientObjects?: string;
+  /** Ingredient layout mode: grounded | top-view | auto */
+  ingredientLayout?: string;
 }
