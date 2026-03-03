@@ -354,11 +354,18 @@ function applyModeResolution(prompt: string, options: PromptOptions): string {
     return prependModeResolutionGuardrail(sanitized);
 }
 
-function assertSingleCameraBlock(prompt: string): string {
+function assertSingleCameraBlock(prompt: string, _options?: PromptOptions): string {
     const cameraPattern = /\bCamera:\s*[^.]*\./g;
     const matches = prompt.match(cameraPattern) || [];
     if (matches.length <= 1) return prompt;
-    throw new Error(`Camera injection conflict: expected exactly one Camera block, found ${matches.length}`);
+    // Multiple Camera: blocks can arise when lifestyle.ts and canonicalScene.ts
+    // both inject one. Keep the first occurrence and remove the rest.
+    console.warn(`[CAMERA DEDUP] found ${matches.length} Camera: blocks — keeping first`);
+    let seen = 0;
+    return prompt.replace(cameraPattern, (block) => {
+        seen += 1;
+        return seen === 1 ? block : '';
+    }).replace(/\s{2,}/g, ' ').trim();
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -778,7 +785,7 @@ export class PromptEngine {
                 .trim();
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
-            finalPrompt = assertSingleCameraBlock(finalPrompt);
+            finalPrompt = assertSingleCameraBlock(finalPrompt, options);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -863,7 +870,7 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
-        finalPrompt = assertSingleCameraBlock(finalPrompt);
+        finalPrompt = assertSingleCameraBlock(finalPrompt, options);
 
         // ====================================================================
         // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
