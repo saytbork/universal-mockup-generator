@@ -2018,7 +2018,9 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // etc.) that directly contradict the V2 structured output and cause gray stripe backgrounds.
     if (isStudioV2Enabled()) {
         let finalPrompt = sceneResult.prompt;
+        const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
         const terminalParts = normalizePromptSegments([
+            ingredientStackBackgroundLock,
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
@@ -2120,8 +2122,10 @@ function assembleBundlePrompt(state: ProductStudioState): string {
                 : '';
             return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
         })() : '';
+        const ingredientStackBackgroundLock = buildIngredientStackBackgroundLock(state);
         const terminalParts = normalizePromptSegments([
             bundleInfo,
+            ingredientStackBackgroundLock,
             ...buildProtectionLightLayer(),
             ...buildStrictPackagingLayer(),
         ]);
