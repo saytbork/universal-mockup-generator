@@ -2899,11 +2899,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             key={opt.id}
                             onClick={() => {
                               if (!opt.enabled) return;
-                              productStore.setPlacement(opt.id as any);
+                              // Toggle: clicking the already-selected chip deselects back to default surface
+                              if (placementResolution.resolvedPlacement === opt.id && opt.id !== 'surface') {
+                                productStore.setPlacement('surface');
+                              } else {
+                                productStore.setPlacement(opt.id as any);
+                              }
                               setPlacementCorrectionMessage(null);
                               markSectionTouched('product-setup');
                             }}
-                            selected={placementResolution.resolvedPlacement === opt.id}
+                            selected={placementResolution.resolvedPlacement === opt.id && opt.id !== 'surface'}
                             disabled={!opt.enabled}
                             description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
                           >
@@ -2912,7 +2917,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         ))}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
-                        Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
+                        Combinable with Photo Mode. Click to activate, click again to reset.
                       </p>
                       {placementCorrectionMessage && (
                         <InterpretationNote message={placementCorrectionMessage} />
