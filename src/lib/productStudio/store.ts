@@ -2096,8 +2096,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const isCapsules = state.definition.type === 'capsules';
             let effectiveInteraction: ProductStudioState['interaction'] =
                 interaction === 'capsule-display' && !isCapsules ? 'none' : interaction;
-            const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
-            const allowedInteractions = getPhotoModeAllowedInteractions(state.photoMode);
 
             // Rule 1: Macro framing cannot support active/gestural holds.
             if (isMacroFraming(state) && isInteractionIncompatibleWithMacro(effectiveInteraction)) {
@@ -2118,14 +2116,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
                     ...withInterpretationNote(state, 'interaction', INTERPRETATION_MESSAGES.interactionSimplified),
                 };
-            }
-
-            if (schema?.allowsPersonPresence === false && effectiveInteraction !== 'none') {
-                effectiveInteraction = 'none';
-            }
-
-            if (allowedInteractions && !allowedInteractions.includes(effectiveInteraction)) {
-                effectiveInteraction = getFallbackInteraction(allowedInteractions);
             }
 
             const updates: Partial<ProductStudioState> = {

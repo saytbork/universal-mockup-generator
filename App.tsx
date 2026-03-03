@@ -3691,6 +3691,12 @@ const App: React.FC = () => {
 
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);
+    console.log('[SCENETYPE UPDATE]', {
+      sceneType: values.sceneType,
+      isStudioEngine: values.sceneType === 'studio-branding',
+      sceneIntent: values.sceneIntent,
+      sourceFunction: 'App.handleLifestyleStep3Change',
+    });
   }, []);
 
 
@@ -5085,8 +5091,16 @@ If the model attempts to create a scene or environment, override it and force a 
       // isProductPlacement = options.contentStyle === 'product' (set via the V1 toggle)
       // isStudioBrandingScene = sceneType emitted by Step3 is 'studio-branding' (V2 panel, isProductMode=false)
       // Both cases must use V2 generateProductJobs + ProductStudioStore as source of truth.
+      console.log('[ENGINE TRACE]', {
+        sceneType: lifestyleStep3Values?.sceneType,
+        isStudioEngine: null,
+        sceneIntent: lifestyleStep3Values?.sceneIntent ?? options.sceneIntent,
+        sourceFunction: 'App.handleGenerateClick.beforeIsStudioEngine',
+      });
       const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
-      const isStudioEngine = isProductPlacement || isStudioBrandingScene;
+      const isStudioEngine =
+        isStudioBrandingScene ||
+        (isProductPlacement && lifestyleStep3Values?.sceneType !== 'lifestyle-real');
       console.log('[APP isStudioEngine]', {
         'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
         isStudioBrandingScene,
@@ -5245,6 +5259,12 @@ If the model attempts to create a scene or environment, override it and force a 
           console.log('[ROUTE] studio-branding → V2 engine. isStudioEngine=', isStudioEngine, '(isProductPlacement=', isProductPlacement, ', isStudioBrandingScene=', isStudioBrandingScene, ')');
 
           // Generate jobs using Product-only builders
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((lifestyleStep3Values as any)?.sceneType || (options as any).sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((lifestyleStep3Values as any)?.sceneIntent || (options as any).sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforeGenerateProductJobs',
+          });
           const jobs = generateProductJobs(productState);
 
           if (jobs.length === 0) {
@@ -5286,8 +5306,20 @@ If the model attempts to create a scene or environment, override it and force a 
         } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((promptOptions as any)?.sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforePromptEngineBuild.mapped',
+          });
           finalPrompt = promptEngine.build(promptOptions);
         } else {
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((promptOptions as any)?.sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforePromptEngineBuild.base',
+          });
           finalPrompt = promptEngine.build(promptOptions);
         }
 
@@ -5864,6 +5896,12 @@ If the model attempts to create a scene or environment, override it and force a 
           },
         };
 
+        console.log('[ENGINE TRACE]', {
+          sceneType: String((slotProductState as any)?.sceneType || ''),
+          isStudioEngine: true,
+          sceneIntent: 'ecommerce',
+          sourceFunction: 'App.handleGenerateEcommerceClick.beforeGenerateProductJobs',
+        });
         const jobs = generateProductJobs(slotProductState);
         if (!jobs.length) {
           throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
@@ -6114,6 +6152,12 @@ If the model attempts to create a scene or environment, override it and force a 
         });
 
         const state = useProductStudioStore.getState();
+        console.log('[ENGINE TRACE]', {
+          sceneType: String((state as any)?.sceneType || ''),
+          isStudioEngine: true,
+          sceneIntent: 'ecommerce',
+          sourceFunction: 'App.handleGenerateNarrativeSequenceClick.beforeGenerateProductJobs',
+        });
         const jobs = generateProductJobs(state as any);
         const finalPrompt = jobs[0].prompt;
 

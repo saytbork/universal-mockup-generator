@@ -719,7 +719,11 @@ function buildStateMotion(state: ProductStudioState): string {
                 : placement === 'supported'
                     ? 'Container is open and resting on a visible stand or tray support.'
                     : 'Container is open and resting on a surface.',
-            'Cap removed and NOT visible anywhere in frame.',
+            'OPENED_CAP_RULE: forceRemoveAttachedCap = true.',
+            'OPENED_CAP_RULE: forceSingleDetachedCap = true.',
+            'Exactly one cap is visible, detached from the bottle, resting nearby on the surface.',
+            'Cap must NOT appear attached to bottle.',
+            'No duplicate cap/closure elements.',
             'Contents remain contained (no mid-air, no spilling).',
             'No motion.',
         ].join(' ');

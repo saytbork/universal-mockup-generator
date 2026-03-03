@@ -32,7 +32,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIndustryIntent } from '@/lib/productStudio/resolveCoffeeIntent';
-import { getPhotoModeCameraCapability, getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
+import { getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { industryModuleRegistry } from '@/components/industry-modules/industryModuleRegistry';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -1962,6 +1962,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     setValues(prev => {
       const newValues = { ...prev, [key]: value };
+      if (key === 'sceneType') {
+        console.log('[SCENETYPE UPDATE]', {
+          sceneType: newValues.sceneType,
+          isStudioEngine: newValues.sceneType === 'studio-branding',
+          sceneIntent: newValues.sceneIntent,
+          sourceFunction: 'Step3Legacy.updateValue',
+        });
+      }
 
       const resolveDefaultMicroForEnvironment = (macro: string): string => {
         switch (macro) {
@@ -2195,7 +2203,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // productStore.sceneType is the authoritative signal for the V2 engine.
     // productStore.products.length > 0 guards against fresh lifestyle users whose store default is also 'studio-branding'
     // (productStore.products is only populated when the V2 product uploader is used, not the lifestyle image uploader).
-    const isV2StudioActive = !isProductMode && productStore.sceneType === 'studio-branding' && productStore.products.length > 0;
+    const userForcedLifestyle = values.sceneType === 'lifestyle-real';
+    const isV2StudioActive =
+      !isProductMode &&
+      !userForcedLifestyle &&
+      productStore.sceneType === 'studio-branding' &&
+      productStore.products.length > 0;
     const sceneType: 'studio-branding' | 'lifestyle-real' = isV2StudioActive ? 'studio-branding' : creationModeSceneType;
     console.log('[PHASE3 sceneType RESOLUTION]', {
       isProductMode,
@@ -2204,6 +2217,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       isV2StudioActive,
       normalizedCreationMode,
       creationModeSceneType,
+      userForcedLifestyle,
       resolvedSceneType: sceneType,
     });
     const contentStyle: 'ugc' | 'product' | 'brand' =
@@ -3011,6 +3025,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               key={type}
                               onClick={() => {
                                 productStore.setSceneType(type);
+                                if (type === 'studio-branding' || type === 'lifestyle-real') {
+                                  updateValue('sceneType', type);
+                                  console.log('[SCENETYPE UPDATE]', {
+                                    sceneType: type,
+                                    isStudioEngine: type === 'studio-branding',
+                                    sceneIntent: values.sceneIntent,
+                                    sourceFunction: 'Step3Legacy.sceneTypeChip.onClick',
+                                  });
+                                }
                                 markSectionTouched('product-setup');
                               }}
                               selected={productStore.sceneType === type}
@@ -5912,11 +5935,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     };
                     const photoModeAllowlist = getPhotoModeInteractionAllowlist(productStore.photoMode);
                     const visibleInteractionOptions = photoModeAllowlist !== null
-                      // Per-mode gating: show ALL entries from interactionOptionMap, mark disallowed as disabled
                       ? (Object.entries(interactionOptionMap).map(([value, option]) => ({
                           value,
                           ...option,
-                          gatedDisabled: !photoModeAllowlist.includes(value),
+                          gatedDisabled: false,
                         })))
                       : resolvedInteractionOptions.flatMap((value) => {
                           const option = interactionOptionMap[value];
@@ -5930,7 +5952,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {visibleInteractionOptions.map((option) => (
                             <Chip
                               key={option.value}
-                              disabled={option.gatedDisabled}
+                              disabled={false}
                               onClick={() => {
                                 productStore.setInteraction(option.stateValue);
                                 productStore.setHandsHolding(option.stateValue !== 'none');
@@ -6863,8 +6885,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-6">
           {(() => {
-            const cameraCapability = getPhotoModeCameraCapability(productStore.photoMode);
-            const isRestrictedCamera = cameraCapability === 'restricted';
 	            return (
 	              <>
 	          <p className="text-xs text-gray-500 dark:text-white/50">Professional photography controls.</p>
@@ -6879,7 +6899,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         productStore.setViewpoint(vp);
                         markSectionTouched('product-camera');
                       }}
-                      disabled={!productStore.placement}
+                      disabled={false}
                     >
                       {vp.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                     </Chip>
@@ -6932,9 +6952,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ).map(option => (
                   <Chip
                     key={option}
-                    disabled={isRestrictedCamera}
+                    disabled={false}
                     onClick={() => {
-                      if (isRestrictedCamera) return;
                       // Auto-switch to surface for flat lays
                       if (option === 'Top-down flat lay') {
                         productStore.setPlacement('surface');
@@ -6971,9 +6990,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
                   <Chip
                     key={option}
-                    disabled={isRestrictedCamera}
+                    disabled={false}
                     onClick={() => {
-                      if (isRestrictedCamera) return;
                       updateValue('productCameraDistance', option);
                       const distanceMap: Record<string, ProductStudioState['distance']> = {
                         Wide: 'wide',

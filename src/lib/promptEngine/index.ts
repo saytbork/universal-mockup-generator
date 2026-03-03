@@ -632,6 +632,12 @@ export class PromptEngine {
                 ? 'studio'
                 : 'lifestyle';
         console.log('[ENGINE ACTIVE]', activeEngine);
+        console.log('[ENGINE TRACE]', {
+            sceneType,
+            isStudioEngine: activeEngine === 'studio',
+            sceneIntent: (options as any).sceneIntent,
+            sourceFunction: 'PromptEngine.build.beforeStudioFastPath',
+        });
 
         // ====================================================================
         // STUDIO MODE FAST-PATH (MEGA PROMPT V2)

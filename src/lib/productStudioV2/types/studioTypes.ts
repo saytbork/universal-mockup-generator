@@ -13,6 +13,7 @@ export type StudioWorld =
 export type StudioMotion =
   | 'static'
   | 'opened'
+  | 'spilled'
   | 'dispensed'
   | 'pouring'
   | 'falling';
