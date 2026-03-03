@@ -1,5 +1,36 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
+// ---------------------------------------------------------------------------
+// Final composition authority resolver.
+// Cinematography angle (when set) overrides the photo-mode base composition.
+// Pure function — no mutations, no side effects.
+// ---------------------------------------------------------------------------
+function resolveFinalComposition(
+  state: StudioUIState | undefined,
+  baseComposition: string
+): string {
+  const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
+  if (!angle) return baseComposition;
+
+  switch (angle) {
+    case 'Top-down flat lay':
+      return 'flat-lay';
+    case '45° hero':
+      return 'hero-45';
+    case 'Eye level':
+    case 'Eye level product':
+      return 'eye-level';
+    case 'Low angle':
+    case 'Low angle power':
+      return 'low-angle';
+    case 'High angle':
+    case 'High angle overview':
+      return 'high-angle';
+    default:
+      return baseComposition;
+  }
+}
+
 function buildInteractionCompositionBias(interaction?: string): string[] {
   const value = String(interaction || '').trim();
   if (!value) return [];
@@ -93,18 +124,22 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
   const heroMode = authority.composition === 'hero';
   const macroMode = authority.composition === 'macro';
-  const ingredientStackMode = authority.composition === 'ingredient-stack';
-  const flatLayMode = authority.composition === 'flat-lay';
+  // finalComposition is resolved here so structural mode flags reflect the
+  // cinematography-overridden profile — prevents PERSPECTIVE_LOCK / COMPOSITION_DIRECTIVE
+  // conflicts when cinematography overrides the photo-mode base.
+  const finalComposition = resolveFinalComposition(state, authority.composition);
+  const ingredientStackMode = finalComposition === 'ingredient-stack';
+  const flatLayMode = finalComposition === 'flat-lay';
   const splashMode =
     authority.world === 'splash-tank' ||
     authority.world === 'beach-daylight' ||
     authority.world === 'underwater';
   const splashAdMode = Boolean(state?.splashAdMode);
-  
+
   // BUNDLE MODE DETECTION: Check if bundle is enabled with product references
   // When bundle mode is active, use relaxed framing (not tight 85-92%)
   const hasBundleReference = Boolean(state?.bundle?.enabled && state.bundle.primaryProductId);
-  
+
   const spreadRule = splashMode
     ? 'SPLASH_SPATIAL_POLICY: Allow natural side propagation from the impact vector with coherent splash spread.'
     : authority.permissions.allowHorizontalSpread
@@ -123,7 +158,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : 'VERTICAL_BALANCE: neutral.';
 
   return [
-    `STUDIO_COMPOSITION_PROFILE: ${authority.composition}.`,
+    `STUDIO_COMPOSITION_PROFILE: ${finalComposition}.`,
     splashAdMode ? 'SPLASH_AD_COMPOSITION_OVERRIDE: Product First composition is mandatory.' : '',
     splashAdMode ? 'SYMMETRY_LOCK: Disabled. Do not force centered symmetry.' : '',
     splashAdMode && !heroMode
