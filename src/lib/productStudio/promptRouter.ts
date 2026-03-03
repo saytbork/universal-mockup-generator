@@ -939,14 +939,32 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const currentPhotoMode = state.photoMode as string | undefined;
       if (!currentPhotoMode) return {};
       const dynamicRaw = (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode];
-      if (!dynamicRaw || typeof dynamicRaw !== 'object') return {};
-      // Sanitize: strip empty values and customIngredients (handled separately)
       const cleaned: Record<string, string> = {};
-      for (const [k, v] of Object.entries(dynamicRaw)) {
-        if (k === 'customIngredients') continue;
-        const key = String(k).trim().replace(/[^a-zA-Z0-9_\- ]/g, '');
-        const val = String(v ?? '').trim();
-        if (key && val) cleaned[key] = val;
+      if (dynamicRaw && typeof dynamicRaw === 'object') {
+        // Sanitize: strip empty values and customIngredients (handled separately)
+        for (const [k, v] of Object.entries(dynamicRaw)) {
+          if (k === 'customIngredients') continue;
+          const key = String(k).trim().replace(/[^a-zA-Z0-9_\- ]/g, '');
+          const val = String(v ?? '').trim();
+          if (key && val) cleaned[key] = val;
+        }
+      }
+      // ── ingredientStack sub-properties forwarding ──
+      // These live outside dynamic[mode] so must be explicitly forwarded here.
+      if (currentPhotoMode === 'Ingredient Stack') {
+        const cfg = state.photoModeConfig?.ingredientStack;
+        if (cfg) {
+          if (cfg.ingredientFocus)    cleaned['ingredientFocus']    = String(cfg.ingredientFocus);
+          if (cfg.stackStyle)         cleaned['stackStyle']         = String(cfg.stackStyle);
+          if (cfg.ingredientPresence) cleaned['ingredientPresence'] = String(cfg.ingredientPresence);
+          if (cfg.labelPriority)      cleaned['labelPriority']      = String(cfg.labelPriority);
+          cleaned['backgroundEnabled'] = String(cfg.backgroundEnabled ?? false);
+          if (cfg.backgroundEnabled) {
+            if (cfg.backgroundType)   cleaned['backgroundType']     = String(cfg.backgroundType);
+            if (cfg.gradientStyle)    cleaned['gradientStyle']      = String(cfg.gradientStyle);
+            if (cfg.colorSource)      cleaned['colorSource']        = String(cfg.colorSource);
+          }
+        }
       }
       return Object.keys(cleaned).length > 0 ? { photoModeDynamicSettings: cleaned } : {};
     })(),
