@@ -9,26 +9,37 @@ function resolveFinalComposition(
   state: StudioUIState | undefined,
   baseComposition: string
 ): string {
-  const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
-  if (!angle) return baseComposition;
+  const raw = String(state?.cameraAngle || state?.angleOverride || '').trim();
+  if (!raw) return baseComposition;
 
-  switch (angle) {
-    case 'Top-down flat lay':
-      return 'flat-lay';
-    case '45° hero':
-      return 'hero-45';
-    case 'Eye level':
-    case 'Eye level product':
-      return 'eye-level';
-    case 'Low angle':
-    case 'Low angle power':
-      return 'low-angle';
-    case 'High angle':
-    case 'High angle overview':
-      return 'high-angle';
-    default:
-      return baseComposition;
+  const a = raw.toLowerCase();
+
+  // flat-lay: "top-down", "top down", "flat lay", "flat-lay", "overhead"
+  if (a.includes('flat') || (a.includes('top') && a.includes('down')) || a.includes('overhead')) {
+    return 'flat-lay';
   }
+
+  // hero-45: "45", "hero"
+  if (a.includes('45') || a.includes('hero')) {
+    return 'hero-45';
+  }
+
+  // low-angle: "low"
+  if (a.includes('low')) {
+    return 'low-angle';
+  }
+
+  // high-angle: "high"
+  if (a.includes('high')) {
+    return 'high-angle';
+  }
+
+  // eye-level: "eye"
+  if (a.includes('eye')) {
+    return 'eye-level';
+  }
+
+  return baseComposition;
 }
 
 function buildInteractionCompositionBias(interaction?: string): string[] {
