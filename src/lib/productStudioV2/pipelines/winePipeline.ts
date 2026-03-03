@@ -51,17 +51,19 @@ export const winePipeline = {
       const physicsBlock = wineEngineVersion >= 4
         ? buildWineTruthLayerV4(wineEffectiveState, resolvedWineConfig)
         : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
+      const cameraOverride = buildCameraOverrides(wineEffectiveState);
       const macroSegments: any[] = [
         { type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) },
         { type: 'guardrail', content: buildArtworkImmutability() },
         { type: 'physics', content: physicsBlock },
+        { type: 'camera', content: cameraOverride },
         {
           type: 'guardrail',
           content: [
             'PHOTO_MODE: Wine Macro Label.',
             'FRAME_CONSTRAINT: Label region only. Bottle neck excluded. Bottle base excluded. No full bottle framing allowed.',
             'COMPOSITION: Label panel centered and dominant. Fills minimum 70% of frame. No environmental expansion. No negative-space copy zone.',
-            'CAMERA: 100mm macro lens simulation. f/4 aperture. Ultra-high micro contrast. No wide framing. No environment in background.',
+            'CAMERA_POLICY: Macro label treatment requires tight optical crop and high micro-contrast while preserving label fidelity.',
             'NEGATIVE_SPACE_POLICY: Minimal. Label is the complete subject.',
             'LABEL_MACRO_DETAIL: Maximum label typography fidelity. Paper/foil surface texture rendered at full micro resolution. No label blur on any text element.',
             'BAN: No glass addition. No full bottle render. No gradient background injection. No clinical-softbox bloom. No environment expansion. No hero mode fallback.',
