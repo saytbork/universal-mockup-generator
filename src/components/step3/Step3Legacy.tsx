@@ -694,6 +694,33 @@ const APPEARANCE_LEVEL_OPTIONS = [
   'Running Late'
 ];
 
+// Per-PhotoMode interaction allowlist for selective UI gating.
+// Returns the set of interaction values that are ENABLED for the given photo mode.
+// Returns null when no per-mode restriction applies (all options enabled).
+function getPhotoModeInteractionAllowlist(photoMode: string): string[] | null {
+  switch (photoMode) {
+    case 'Ingredient Stack':
+      // All interactions EXCEPT two-hand-hold
+      return [
+        'none',
+        'passive-presence',
+        'cropped-hand',
+        'supported-hold',
+        'holding',
+        'presenting',
+        'framed-presentation',
+        'applying-opening',
+        'capsule-display',
+        'resting-interaction',
+      ];
+    case 'Ingredient Flat Lay':
+      // Minimal set only
+      return ['none', 'passive-presence', 'cropped-hand', 'resting-interaction'];
+    default:
+      return null; // no restriction
+  }
+}
+
 // Product Interaction - universal-safe deterministic modes
 const INTERACTION_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'holding', label: 'Holding product' },
@@ -5883,10 +5910,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         stateValue: 'resting-interaction',
                       },
                     };
-                    const visibleInteractionOptions = resolvedInteractionOptions.flatMap((value) => {
-                      const option = interactionOptionMap[value];
-                      return option ? [{ value, ...option }] : [];
-                    });
+                    const photoModeAllowlist = getPhotoModeInteractionAllowlist(productStore.photoMode);
+                    const visibleInteractionOptions = photoModeAllowlist !== null
+                      // Per-mode gating: show ALL entries from interactionOptionMap, mark disallowed as disabled
+                      ? (Object.entries(interactionOptionMap).map(([value, option]) => ({
+                          value,
+                          ...option,
+                          gatedDisabled: !photoModeAllowlist.includes(value),
+                        })))
+                      : resolvedInteractionOptions.flatMap((value) => {
+                          const option = interactionOptionMap[value];
+                          return option ? [{ value, ...option, gatedDisabled: false }] : [];
+                        });
                     const selectedInteractionValue = (productStore.interaction || 'none') as string;
 
                     return (
@@ -5895,6 +5930,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {visibleInteractionOptions.map((option) => (
                             <Chip
                               key={option.value}
+                              disabled={option.gatedDisabled}
                               onClick={() => {
                                 productStore.setInteraction(option.stateValue);
                                 productStore.setHandsHolding(option.stateValue !== 'none');
@@ -5910,7 +5946,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ))}
                         </div>
                         <SelectedOptionFooter
-                          options={visibleInteractionOptions.map((option) => ({
+                          options={visibleInteractionOptions.filter(o => !o.gatedDisabled).map((option) => ({
                             value: option.value,
                             label: option.label,
                             description: option.detail,
@@ -6689,21 +6725,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 stateValue: 'two-hand-hold',
               },
             };
-            const visibleInteractionOptions = resolvedAllowedInteractions
-              .map((interactionId) => {
-                const option = interactionOptionMap[interactionId];
-                if (!option) return null;
-                return {
-                  value: interactionId,
+            const photoModeAllowlist2 = getPhotoModeInteractionAllowlist(productStore.photoMode);
+            const visibleInteractionOptions = photoModeAllowlist2 !== null
+              // Per-mode gating: show ALL entries from interactionOptionMap, mark disallowed as disabled
+              ? (Object.entries(interactionOptionMap).map(([value, option]) => ({
+                  value,
                   ...option,
-                };
-              })
-              .filter(Boolean) as Array<{
-                value: string;
-                label: string;
-                detail: string;
-                stateValue: ProductStudioState['interaction'];
-              }>;
+                  gatedDisabled: !(photoModeAllowlist2 as string[]).includes(value),
+                })))
+              : resolvedAllowedInteractions
+                  .map((interactionId) => {
+                    const option = interactionOptionMap[interactionId];
+                    if (!option) return null;
+                    return {
+                      value: interactionId,
+                      ...option,
+                      gatedDisabled: false,
+                    };
+                  })
+                  .filter(Boolean) as Array<{
+                    value: string;
+                    label: string;
+                    detail: string;
+                    stateValue: ProductStudioState['interaction'];
+                    gatedDisabled: boolean;
+                  }>;
             const selectedInteractionValue =
               visibleInteractionOptions.find((option) => option.stateValue === productStore.interaction)?.value || 'none';
 
@@ -6716,6 +6762,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 return (
                   <Chip
                     key={option.value}
+                    disabled={option.gatedDisabled}
                     onClick={() => {
                       // Auto-switch to 'held' if selecting a holding interaction
                       if (option.stateValue !== 'none') {
@@ -6737,7 +6784,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               })}
             </div>
             <SelectedOptionFooter
-              options={visibleInteractionOptions.map((option) => ({
+              options={visibleInteractionOptions.filter(o => !o.gatedDisabled).map((option) => ({
                 value: option.value,
                 label: option.label,
                 description: option.detail,
