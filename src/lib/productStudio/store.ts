@@ -1764,6 +1764,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setUltraRealStrict: (enabled) => set({ ultraRealStrict: Boolean(enabled) }),
     setPhotoMode: (mode) =>
         set((state) => {
+            console.log('[SET PHOTO MODE]', mode);
             const rawMode = String(mode ?? '').trim();
             const nextMode = (rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode) as PhotoMode;
 
