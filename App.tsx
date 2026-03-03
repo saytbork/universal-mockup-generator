@@ -5080,8 +5080,16 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError("Please upload a product image first.");
         return;
       }
-      const personIncluded = !isProductPlacement && (options.ageGroup !== 'no person' || !!modelReferenceFile);
-      const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
+
+      // ENGINE ROUTING: canonical flag — true for any studio-branding generation.
+      // isProductPlacement = options.contentStyle === 'product' (set via the V1 toggle)
+      // isStudioBrandingScene = sceneType emitted by Step3 is 'studio-branding' (V2 panel, isProductMode=false)
+      // Both cases must use V2 generateProductJobs + ProductStudioStore as source of truth.
+      const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
+      const isStudioEngine = isProductPlacement || isStudioBrandingScene;
+
+      const personIncluded = !isStudioEngine && (options.ageGroup !== 'no person' || !!modelReferenceFile);
+      const realModeActive = ugcRealSettings.isEnabled && !isStudioEngine && personIncluded;
 
       const creditCost = getImageCreditCost(options);
       if (!isTrialBypassActive && creditCost > remainingCredits) {
@@ -5101,7 +5109,7 @@ If the model attempts to create a scene or environment, override it and force a 
       try {
         // Build PromptOptions from current state
         const shouldReuseIdentityKey =
-          !isProductPlacement &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true &&
@@ -5115,15 +5123,15 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const basePromptOptions: any = {
           ...options,
-          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isProductPlacement ? 'studio-branding' : 'lifestyle-real'),
+          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isStudioEngine ? 'studio-branding' : 'lifestyle-real'),
           modelReferenceLockAccessories,
-          contentStyle: isProductPlacement ? 'product' : 'ugc',
-          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
-          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
-          creationMode: isProductPlacement
+          contentStyle: isStudioEngine ? 'product' : 'ugc',
+          creationIntent: isStudioEngine ? 'product' : options.creationIntent,
+          sceneIntent: isStudioEngine ? 'ecommerce' : options.sceneIntent,
+          creationMode: isStudioEngine
             ? safeProductCreationMode
             : (options.creationMode || 'lifestyle'),
-          ...(isProductPlacement
+          ...(isStudioEngine
             ? {
               cameraType:
                 options.cameraType &&
@@ -5160,7 +5168,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // Ensure every render produces a different person by default (while keeping age/gender/etc),
         // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
         const shouldForceRandomIdentity =
-          !isProductPlacement &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
           personIncluded === true;
@@ -5207,12 +5215,8 @@ If the model attempts to create a scene or environment, override it and force a 
         let finalPrompt: string;
 
         // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
-        // Route to V2 when: (a) isProductPlacement (options.contentStyle === 'product'), OR
-        // (b) Step3 emitted sceneType === 'studio-branding' with uiActiveEngine === 'studio'
-        //     (isProductMode=false but user is in the studio panel — e.g. supplements with
-        //      uiActiveEngine='studio' but options.contentStyle still 'brand').
-        const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
-        if (isProductPlacement || isStudioBrandingScene) {
+        // Route to V2 via the canonical isStudioEngine flag (hoisted at top of callback).
+        if (isStudioEngine) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
           const productStateRaw = useProductStudioStore.getState();
           const productState = {
@@ -5220,7 +5224,7 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio: (resolveOutputAspectRatio() || productStateRaw.aspectRatio || PRODUCT_DEFAULT_ASPECT_RATIO) as any
           };
           console.log('[PRODUCT STUDIO STATE]', productState);
-          console.log('[ROUTE] studio-branding → V2 engine. isProductPlacement=', isProductPlacement, 'isStudioBrandingScene=', isStudioBrandingScene);
+          console.log('[ROUTE] studio-branding → V2 engine. isStudioEngine=', isStudioEngine, '(isProductPlacement=', isProductPlacement, ', isStudioBrandingScene=', isStudioBrandingScene, ')');
 
           // Generate jobs using Product-only builders
           const jobs = generateProductJobs(productState);
@@ -5270,8 +5274,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         const keepSamePersonAcrossRenders =
-          !isProductPlacement &&
-          !isStudioBrandingScene &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true;
@@ -5289,7 +5292,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         // Product mode safety: force the model to keep the referenced product visible.
-        if (isProductPlacement || isStudioBrandingScene) {
+        if (isStudioEngine) {
           finalPrompt = [
             finalPrompt,
             'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
@@ -5312,14 +5315,14 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
 
-        if (!isProductPlacement && personIncluded) {
+        if (!isStudioEngine && personIncluded) {
           finalPrompt = [
             finalPrompt,
             'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
           ].join(' ');
         }
 
-        if (!isProductPlacement && hasModelReference) {
+        if (!isStudioEngine && hasModelReference) {
           finalPrompt = [
             finalPrompt,
             'MODEL REFERENCE PRIORITY (HIGHEST): Use the uploaded model reference as immutable identity ground truth.',
@@ -5348,7 +5351,7 @@ If the model attempts to create a scene or environment, override it and force a 
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
         const aspectRatio =
-          isProductPlacement
+          isStudioEngine
             ? resolveOutputAspectRatio()
             : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
         lastAspectRatioRef.current = aspectRatio;
@@ -5365,13 +5368,13 @@ If the model attempts to create a scene or environment, override it and force a 
         // WINE SERVED MODE: Detect wine in served state for special handling
         // For Product Studio mode: read from ProductStudioStore
         // For Lifestyle mode: read from lifestyleStep3Values
-        const productStateForWine = isProductPlacement ? useProductStudioStore.getState() : null;
-        const wineVisualProfile = isProductPlacement 
+        const productStateForWine = isStudioEngine ? useProductStudioStore.getState() : null;
+        const wineVisualProfile = isStudioEngine 
           ? (productStateForWine as any)?.visualProfile 
           : (lifestyleStep3Values as any)?.visualProfile;
         // In Product Studio: serveState is derived from wineGlassMode='filled'
         // In Lifestyle: serveState is explicit
-        const wineServeState = isProductPlacement
+        const wineServeState = isStudioEngine
           ? ((productStateForWine as any)?.wineGlassMode === 'filled' ? 'served' : 'none')
           : (lifestyleStep3Values as any)?.serveState;
         const isWineServedMode = Boolean(
@@ -5456,7 +5459,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
-          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
+          const totalReferenceBudget = isStudioEngine ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
@@ -5495,7 +5498,7 @@ If the model attempts to create a scene or environment, override it and force a 
               aspectRatio,
               relativeHeight,
               {
-                maxLongEdge: isProductPlacement
+                maxLongEdge: isStudioEngine
                   ? (isMultiProductRequest ? 1440 : 2048)
                   : (isMultiProductRequest ? 1024 : 1536),
                 mimeType: 'image/jpeg', // JPEG with light background
@@ -5508,8 +5511,8 @@ If the model attempts to create a scene or environment, override it and force a 
             // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {
               finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-                maxLongEdge: isProductPlacement ? 1200 : 960,
-                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
+                maxLongEdge: isStudioEngine ? 1200 : 960,
+                maxBase64Length: isStudioEngine ? 450_000 : 320_000,
                 quality: 0.86,
               });
             }
