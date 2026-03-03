@@ -2209,7 +2209,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       !userForcedLifestyle &&
       productStore.sceneType === 'studio-branding' &&
       productStore.products.length > 0;
-    const sceneType: 'studio-branding' | 'lifestyle-real' = isV2StudioActive ? 'studio-branding' : creationModeSceneType;
+    const sceneType: 'studio-branding' | 'lifestyle-real' =
+      values.sceneType === 'lifestyle-real'
+        ? 'lifestyle-real'
+        : isV2StudioActive
+          ? 'studio-branding'
+          : creationModeSceneType;
     console.log('[PHASE3 sceneType RESOLUTION]', {
       isProductMode,
       'productStore.products.length': productStore.products.length,
@@ -2236,7 +2241,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       sceneType === 'lifestyle-real' &&
       values.productInteraction === 'holding' &&
       values.ugcRealMode !== true;
-    const payload: Step3Values = {
+    const rawPayload: Step3Values = {
       ...values,
       creationMode: normalizedCreationMode,
       sceneType,
@@ -2246,6 +2251,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       handsHolding: forceHandsHolding ? true : values.handsHolding,
       personIncluded,
     };
+    let payload: Step3Values = rawPayload;
+
+    if (sceneType === 'lifestyle-real') {
+      const leakedStudioKeys = Object.keys(rawPayload).filter((key) => {
+        if (!key.startsWith('studio')) return false;
+        const value = (rawPayload as Record<string, unknown>)[key];
+        if (value === undefined || value === null) return false;
+        return String(value).trim().length > 0;
+      });
+      if (leakedStudioKeys.length > 0) {
+        console.warn('Studio state leak detected', {
+          sceneType,
+          leakedStudioKeys,
+          sourceFunction: 'Step3Legacy.emitPayload',
+        });
+      }
+      payload = {
+        ...Object.fromEntries(Object.entries(rawPayload).filter(([key]) => !key.startsWith('studio'))),
+        sceneType: 'lifestyle-real',
+      } as Step3Values;
+    }
 
     console.log('[STEP3 FINAL EMIT PAYLOAD]', JSON.stringify(payload, null, 2));
     console.log('[STEP3 FINAL EMIT FIELDS]', {
