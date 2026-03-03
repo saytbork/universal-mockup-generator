@@ -2192,38 +2192,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
-    const creationModeSceneType: 'studio-branding' | 'lifestyle-real' =
-      normalizedCreationMode === 'aesthetic' ||
-        normalizedCreationMode === 'lifestyle' ||
-        normalizedCreationMode === 'ugc'
-        ? 'lifestyle-real'
-        : 'studio-branding';
-    // ROOT CAUSE FIX: When V2 studio engine is active (!isProductMode + productStore.sceneType === 'studio-branding'),
-    // Physical Presence and all other store-only mutations must NOT mutate the emitted sceneType.
-    // productStore.sceneType is the authoritative signal for the V2 engine.
-    // productStore.products.length > 0 guards against fresh lifestyle users whose store default is also 'studio-branding'
-    // (productStore.products is only populated when the V2 product uploader is used, not the lifestyle image uploader).
-    const userForcedLifestyle = values.sceneType === 'lifestyle-real';
-    const isV2StudioActive =
-      !isProductMode &&
-      !userForcedLifestyle &&
-      productStore.sceneType === 'studio-branding' &&
-      productStore.products.length > 0;
+    // ENGINE ISOLATION: sceneType is derived EXCLUSIVELY from values.sceneType.
+    // productStore.sceneType is NEVER consulted here — it belongs to the V2 studio engine only.
+    // Default: 'lifestyle-real' (never 'studio-branding') when values.sceneType is absent.
+    console.log('[STEP3 EMIT SOURCE]', {
+      fromValues: values.sceneType,
+      fromStore: productStore.sceneType,
+    });
     const sceneType: 'studio-branding' | 'lifestyle-real' =
-      values.sceneType === 'lifestyle-real'
-        ? 'lifestyle-real'
-        : isV2StudioActive
-          ? 'studio-branding'
-          : creationModeSceneType;
+      values.sceneType === 'studio-branding' ? 'studio-branding' : 'lifestyle-real';
     console.log('[PHASE3 sceneType RESOLUTION]', {
-      isProductMode,
-      'productStore.products.length': productStore.products.length,
-      'productStore.sceneType': productStore.sceneType,
-      isV2StudioActive,
-      normalizedCreationMode,
-      creationModeSceneType,
-      userForcedLifestyle,
       resolvedSceneType: sceneType,
+      source: 'values.sceneType only',
     });
     const contentStyle: 'ugc' | 'product' | 'brand' =
       values.visualMode === 'ugc'
@@ -2284,7 +2264,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (onValuesChange) {
       onValuesChange(payload);
     }
-  }, [values, onValuesChange, isProductMode, productStore.sceneType, productStore.products.length]);
+  }, [values, onValuesChange, isProductMode]);
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
