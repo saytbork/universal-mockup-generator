@@ -2332,7 +2332,7 @@ export function mapLifestyleToPromptOptions(
     // PRODUCT STUDIO FIELDS → Pass to PromptEngine
     // Guard: studio fields must NEVER contaminate lifestyle-real scenes.
     // ========================================================================
-    if (resolvedSceneType !== 'lifestyle-real') {
+    if (sceneState.sceneType !== 'lifestyle-real') {
     if (sceneState.studioPhotoMode) {
         (mapped as any).photoMode = sceneState.studioPhotoMode;
         (mapped as any).studioPhotoMode = sceneState.studioPhotoMode;
