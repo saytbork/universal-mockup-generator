@@ -5087,6 +5087,12 @@ If the model attempts to create a scene or environment, override it and force a 
       // Both cases must use V2 generateProductJobs + ProductStudioStore as source of truth.
       const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
       const isStudioEngine = isProductPlacement || isStudioBrandingScene;
+      console.log('[APP isStudioEngine]', {
+        'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
+        isStudioBrandingScene,
+        isProductPlacement,
+        isStudioEngine,
+      });
 
       const personIncluded = !isStudioEngine && (options.ageGroup !== 'no person' || !!modelReferenceFile);
       const realModeActive = ugcRealSettings.isEnabled && !isStudioEngine && personIncluded;
