@@ -1769,12 +1769,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             // Phase 1 (locked): Photo Mode is the primary creative selector.
             // It maps to existing internal sceneType values and fully replaces Brand Look System.
+            // NOTE: Keep this list in sync with PhotoMode union in types.ts and industryRules allowedPhotoModes.
+            // Missing modes here cause setPhotoMode to silently coerce to 'Hero Landing Page'.
             const allowed: PhotoMode[] = [
                 'Hero Landing Page',
                 'Color Pop Hero',
                 'Ingredient Stack',
                 'Ingredient Flat Lay',
                 'Acrylic Blocks',
+                'Glass Pedestal Studio',
                 'Splash Shot',
                 'Foam & Texture',
                 'Routine Carousel',
@@ -1785,11 +1788,16 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Brand Campaign',
                 'Creator Premium Simulation',
                 'Tech Clean Studio',
+                'Luxury Editorial Tabletop',
                 'Soft Wellness Morning',
                 'Outdoor Energy Boost',
+                'Candy Gradient Lab',
+                'Golden Mist Aura',
                 'Sunlit Stone Editorial',
                 'Golden Sunset Backlit',
+                'Golden Hour Lifestyle',
                 'Bathroom Daylight Clean',
+                'Pastel Picnic',
                 'Sky Float Minimal',
                 'Wet Rock Ripples',
                 'Hands Application Clean',

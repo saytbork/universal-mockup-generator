@@ -5207,7 +5207,12 @@ If the model attempts to create a scene or environment, override it and force a 
         let finalPrompt: string;
 
         // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
-        if (isProductPlacement) {
+        // Route to V2 when: (a) isProductPlacement (options.contentStyle === 'product'), OR
+        // (b) Step3 emitted sceneType === 'studio-branding' with uiActiveEngine === 'studio'
+        //     (isProductMode=false but user is in the studio panel — e.g. supplements with
+        //      uiActiveEngine='studio' but options.contentStyle still 'brand').
+        const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
+        if (isProductPlacement || isStudioBrandingScene) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
           const productStateRaw = useProductStudioStore.getState();
           const productState = {
@@ -5215,6 +5220,7 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio: (resolveOutputAspectRatio() || productStateRaw.aspectRatio || PRODUCT_DEFAULT_ASPECT_RATIO) as any
           };
           console.log('[PRODUCT STUDIO STATE]', productState);
+          console.log('[ROUTE] studio-branding → V2 engine. isProductPlacement=', isProductPlacement, 'isStudioBrandingScene=', isStudioBrandingScene);
 
           // Generate jobs using Product-only builders
           const jobs = generateProductJobs(productState);
@@ -5265,6 +5271,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const keepSamePersonAcrossRenders =
           !isProductPlacement &&
+          !isStudioBrandingScene &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true;
@@ -5282,7 +5289,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         // Product mode safety: force the model to keep the referenced product visible.
-        if (isProductPlacement) {
+        if (isProductPlacement || isStudioBrandingScene) {
           finalPrompt = [
             finalPrompt,
             'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
