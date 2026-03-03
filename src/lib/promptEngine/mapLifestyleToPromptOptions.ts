@@ -2330,7 +2330,9 @@ export function mapLifestyleToPromptOptions(
 
     // ========================================================================
     // PRODUCT STUDIO FIELDS → Pass to PromptEngine
+    // Guard: studio fields must NEVER contaminate lifestyle-real scenes.
     // ========================================================================
+    if (resolvedSceneType !== 'lifestyle-real') {
     if (sceneState.studioPhotoMode) {
         (mapped as any).photoMode = sceneState.studioPhotoMode;
         (mapped as any).studioPhotoMode = sceneState.studioPhotoMode;
@@ -2373,6 +2375,7 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.studioAccentColor) {
         (mapped as any).paletteColor3 = sceneState.studioAccentColor;
     }
+    } // end resolvedSceneType !== 'lifestyle-real'
     if (process.env.NODE_ENV === 'development') {
         console.log('[MAP] Product Studio fields injected:', {
             photoMode: sceneState.studioPhotoMode,
