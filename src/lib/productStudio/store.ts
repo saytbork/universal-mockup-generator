@@ -1007,6 +1007,8 @@ function resolveHeroLandingBrandColors(state: ProductStudioState): { colors: str
     return { colors: [], source: 'none' };
 }
 
+// Background color resolution moved to resolveStudioBackgroundColor (mapSceneToPrompt.ts)
+// Do not reintroduce automatic background mutation here.
 function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<ProductStudioState> {
     if (state.photoMode !== 'Hero Landing Page') return {};
 
@@ -1016,60 +1018,10 @@ function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<
         return {};
     }
 
-    const heroCfg = state.photoModeConfig.heroLandingPage;
-    if (heroCfg.paletteSource === 'Custom') {
-        // User is explicitly driving background colors; keep Hero mode constraints but do not override colors or background type.
-        return {
-            gradientEnabled: heroCfg.backgroundType === 'Gradient',
-        };
-    }
-
-    const { colors } = resolveHeroLandingBrandColors(state);
-    const distinct = uniqHexes(colors);
-
-    const primary = distinct[0] ?? '#FFFFFF';
-    const secondary = distinct[1] ?? primary;
-    const tertiary = distinct[2] ?? '';
-
-    const next: Partial<ProductStudioState> = {};
-
-    // Auto background type selection (unless user explicitly chose it).
-    if (state.heroLandingAuto?.backgroundType !== false) {
-        const autoType = distinct.length >= 2 ? 'Gradient' : 'Solid';
-        next.photoModeConfig = {
-            ...state.photoModeConfig,
-            heroLandingPage: {
-                ...state.photoModeConfig.heroLandingPage,
-                backgroundType: autoType,
-            },
-        };
-        next.gradientEnabled = autoType === 'Gradient';
-    } else {
-        // Keep user selection, but ensure internal gradientEnabled matches it.
-        next.gradientEnabled = state.photoModeConfig.heroLandingPage.backgroundType === 'Gradient';
-    }
-
-    // Auto colors (do not override user-locked fields).
-    const wantsGradient = (next.gradientEnabled ?? state.gradientEnabled) === true;
-    if (wantsGradient) {
-        if (!state.colorLocks.gradientStart) next.gradientStart = primary;
-        if (!state.colorLocks.gradientEnd) next.gradientEnd = secondary;
-        if (!state.colorLocks.gradientMid) next.gradientMid = tertiary;
-    } else {
-        if (!state.colorLocks.background) next.backgroundColor = primary;
-        if (!state.colorLocks.gradientMid) next.gradientMid = '';
-    }
-
-    // Gradient style influences internal angle defaults (prompt builder also uses style text).
-    if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Vertical') {
-        next.gradientAngle = 180;
-    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Soft') {
-        next.gradientAngle = 180;
-    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Radial') {
-        next.gradientAngle = 180;
-    }
-
-    return next;
+    // Only preserve structural config — no background field mutations.
+    // backgroundColor, gradientEnabled, gradientStart, gradientEnd, gradientMid, gradientAngle
+    // are resolved exclusively by resolveStudioBackgroundColor in mapSceneToPrompt.ts.
+    return {};
 }
 
 // ============================================================================
@@ -2026,11 +1978,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             // Apply derived hero background defaults when hero settings change (palette source, background type, etc).
             const heroDerived = applyHeroLandingBackgroundDefaults(withAuto);
-
-            // Ensure internal gradientEnabled matches Background Type when user changed it.
-            if (withAuto.photoMode === 'Hero Landing Page' && patch.heroLandingPage?.backgroundType) {
-                heroDerived.gradientEnabled = patch.heroLandingPage.backgroundType === 'Gradient';
-            }
 
             return {
                 ...withAuto,

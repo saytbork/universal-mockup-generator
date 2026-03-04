@@ -59,7 +59,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
       if (authority.creativeIntent === 'clinical') return 'clinical sterile softbox precision with neutral reflectance';
       if (authority.creativeIntent === 'campaign') return 'natural directional campaign lighting with environmental bounce';
       if (authority.creativeIntent === 'luxury') return 'sculpted directional luxury key/fill/rim with micro-specular control';
-      return 'conversion softbox wrap with label-priority separation';
+      return 'flat frontal softbox lighting with no background separation';
     })();
 
     parts.push(`STUDIO_LIGHTING_PROFILE: ${lightingModel}.`);

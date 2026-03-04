@@ -9,6 +9,8 @@ import type { StudioUIState } from '../types/studioTypes.ts';
  */
 export function buildPhotoModeDynamic(state?: StudioUIState): string {
   const settings = state?.photoModeDynamicSettings;
+  // eslint-disable-next-line no-console
+  console.log('[DEBUG][buildPhotoModeDynamic] EXECUTED. photoMode=', state?.photoMode, '| photoModeDynamicSettings=', JSON.stringify(settings));
   if (!settings || typeof settings !== 'object') return '';
 
   const entries = Object.entries(settings).filter(([, v]) => String(v).trim());
@@ -20,5 +22,8 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
     return `PHOTO_MODE_SETTING_${safeKey}: ${safeValue}.`;
   });
 
-  return `PHOTO_MODE_DYNAMIC_CONTROLS: ${parts.join(' ')}`;
+  const result = `PHOTO_MODE_DYNAMIC_CONTROLS: ${parts.join(' ')}`;
+  // eslint-disable-next-line no-console
+  console.log('[DEBUG][buildPhotoModeDynamic] emitted:', JSON.stringify(result));
+  return result;
 }
