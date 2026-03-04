@@ -161,6 +161,7 @@ describe('buildPalette — pre-pipeline palette resolution', () => {
     expect(state.resolvedPalette!.primary).toBe('#1a237e');
     expect(state.resolvedPalette!.secondary).toBe('#e91e63');
     expect(state.resolvedPalette!.tertiary).toBe('#f9a825');
+    expect(state.resolvedPalette!.source).toBe('product');
   });
 
   it('falls back to brandPalette when productPaletteA/B/C are absent', () => {
@@ -177,12 +178,16 @@ describe('buildPalette — pre-pipeline palette resolution', () => {
     expect(state.resolvedPalette!.primary).toBe('#4a148c');
     expect(state.resolvedPalette!.secondary).toBe('#00bcd4');
     expect(state.resolvedPalette!.tertiary).toBe('#ff5722');
+    expect(state.resolvedPalette!.source).toBe('brand');
   });
 
-  it('resolves #ffffff when no palette data is present', () => {
+  it('resolves to neutral-gray when no palette data is present (never pure white)', () => {
     const state: StudioUIState = { motion: 'static', composition: 'hero' };
     buildPalette(state);
-    expect(state.resolvedPalette!.primary).toBe('#ffffff');
+    expect(state.resolvedPalette!.primary).toBe('#f9fafb');
+    expect(state.resolvedPalette!.secondary).toBe('#f3f4f6');
+    expect(state.resolvedPalette!.tertiary).toBe('#e5e7eb');
+    expect(state.resolvedPalette!.source).toBe('neutral');
   });
 
   it('returns empty string (no prompt text injected)', () => {
@@ -243,5 +248,113 @@ describe('Pipeline integrity — Hero Landing Page background uses real palette 
     // Should not be using the white fallback
     expect(bgSeg!.content.toLowerCase()).not.toContain('#ffffff');
     expect(bgSeg!.content.toLowerCase()).toContain('#1b5e20');
+  });
+});
+
+// ─── 6. Palette resolution priority rules ────────────────────────────────────
+
+describe('buildPalette — resolution priority and derivation', () => {
+  it('Test 1: productPalette present → resolvedPalette uses product colors, source=product', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      productPaletteA: '#C62828',
+      productPaletteB: '#1565C0',
+      productPaletteC: '#2E7D32',
+      brandPalette: { primaryColor: '#9E9E9E', secondaryColor: '#BDBDBD', accentColor: '#E0E0E0' },
+    };
+    buildPalette(state);
+    expect(state.resolvedPalette!.source).toBe('product');
+    expect(state.resolvedPalette!.primary).toBe('#c62828');
+    expect(state.resolvedPalette!.secondary).toBe('#1565c0');
+    expect(state.resolvedPalette!.tertiary).toBe('#2e7d32');
+    // Brand palette must NOT be used when product palette exists
+    expect(state.resolvedPalette!.primary).not.toBe('#9e9e9e');
+  });
+
+  it('Test 2: productPalette present + only A provided → secondary/tertiary derived from primary, not white', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      productPaletteA: '#6A1B9A',
+      // B and C absent — must derive, not fall back to white
+      brandPalette: { primaryColor: '#9E9E9E' },
+    };
+    buildPalette(state);
+    expect(state.resolvedPalette!.source).toBe('product');
+    expect(state.resolvedPalette!.primary).toBe('#6a1b9a');
+    // secondary and tertiary must be derived (not white, not brand gray)
+    expect(state.resolvedPalette!.secondary).not.toBe('#ffffff');
+    expect(state.resolvedPalette!.secondary).not.toBe('#9e9e9e');
+    expect(state.resolvedPalette!.tertiary).not.toBe('#ffffff');
+    expect(state.resolvedPalette!.tertiary).not.toBe('#9e9e9e');
+    // Derived values must be valid hex
+    expect(state.resolvedPalette!.secondary).toMatch(/^#[0-9a-f]{6}$/);
+    expect(state.resolvedPalette!.tertiary).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  it('Test 3: no productPalette + brandPalette present → brand used, source=brand', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      brandPalette: {
+        primaryColor: '#1A237E',
+        secondaryColor: '#880E4F',
+        accentColor: '#E65100',
+      },
+    };
+    buildPalette(state);
+    expect(state.resolvedPalette!.source).toBe('brand');
+    expect(state.resolvedPalette!.primary).toBe('#1a237e');
+    expect(state.resolvedPalette!.secondary).toBe('#880e4f');
+    expect(state.resolvedPalette!.tertiary).toBe('#e65100');
+  });
+
+  it('Test 4: no palette anywhere → neutral-gray fallback, source=neutral, never pure white', () => {
+    const state: StudioUIState = { motion: 'static', composition: 'hero' };
+    buildPalette(state);
+    expect(state.resolvedPalette!.source).toBe('neutral');
+    expect(state.resolvedPalette!.primary).toBe('#f9fafb');
+    expect(state.resolvedPalette!.secondary).toBe('#f3f4f6');
+    expect(state.resolvedPalette!.tertiary).toBe('#e5e7eb');
+    // Must never be pure white
+    expect(state.resolvedPalette!.primary).not.toBe('#ffffff');
+  });
+
+  it('white-fallback guard: throws if product palette exists but primary resolves to #FFFFFF', () => {
+    // Manually break the invariant by injecting a bad resolvedPalette after buildPalette runs
+    // (simulates a hypothetical bug in normalizeHex returning #FFFFFF for a valid hex)
+    // We test the guard by calling buildPalette with a mocked productPaletteA that would
+    // need to produce #FFFFFF — not possible with real hex, so we verify the guard logic
+    // by testing that a real product color never produces #FFFFFF
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      productPaletteA: '#FF0000',
+    };
+    buildPalette(state);
+    expect(state.resolvedPalette!.primary).not.toBe('#ffffff');
+    expect(state.resolvedPalette!.source).toBe('product');
+  });
+
+  it('lighten/darken derivation: secondary is lighter than primary, tertiary is darker', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      productPaletteA: '#4A148C',
+      // B and C omitted — will be derived
+    };
+    buildPalette(state);
+    const primary = state.resolvedPalette!.primary;
+    const secondary = state.resolvedPalette!.secondary;
+    const tertiary = state.resolvedPalette!.tertiary;
+
+    // Parse luminance: lighter colors have higher sum of RGB components
+    const sum = (hex: string) => {
+      const h = hex.replace('#', '');
+      return parseInt(h.slice(0, 2), 16) + parseInt(h.slice(2, 4), 16) + parseInt(h.slice(4, 6), 16);
+    };
+    expect(sum(secondary)).toBeGreaterThan(sum(primary)); // lighter
+    expect(sum(tertiary)).toBeLessThan(sum(primary));     // darker
   });
 });

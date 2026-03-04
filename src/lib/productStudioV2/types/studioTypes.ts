@@ -243,10 +243,16 @@ export interface StudioUIState {
    * Resolved palette computed by buildPalette (runs first in the pipeline).
    * All downstream builders (buildStudioBackground, buildWorld) should read from here
    * instead of re-deriving from productPaletteA/B/C or brandPalette directly.
+   *
+   * source:
+   *   "product" — derived from productPaletteA/B/C (product label extraction)
+   *   "brand"   — derived from brandPalette.primaryColor/secondaryColor/accentColor
+   *   "neutral" — no palette data available; neutral light-gray fallback
    */
   resolvedPalette?: {
     primary: string;
     secondary: string;
     tertiary: string;
+    source: 'product' | 'brand' | 'neutral';
   };
 }
