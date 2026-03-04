@@ -168,7 +168,7 @@ export default function Dashboard() {
           setDebugLogs([]);
           setAdminStatus(null);
         }
-        const act = await fetch("/api/activity/list");
+        const act = await fetch("/api/activity");
         if (act.ok) {
           const actData = await act.json();
           if (mounted) setActivity(actData.activity || []);
@@ -197,7 +197,7 @@ export default function Dashboard() {
       try {
         const params = new URLSearchParams({ action: "debug", limit: "120" });
         if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
-        const debugRes = await fetch(`/api/activity/list?${params.toString()}`);
+        const debugRes = await fetch(`/api/activity?${params.toString()}`);
         if (!mounted) return;
         if (debugRes.ok) {
           const debugData = await debugRes.json();
@@ -307,7 +307,7 @@ export default function Dashboard() {
     try {
       const params = new URLSearchParams({ action: "debug", limit: "120" });
       if (debugKindFilter !== "all") params.set("kind", debugKindFilter);
-      const debugRes = await fetch(`/api/activity/list?${params.toString()}`);
+      const debugRes = await fetch(`/api/activity?${params.toString()}`);
       if (debugRes.ok) {
         const debugData = await debugRes.json();
         setDebugLogs(Array.isArray(debugData.logs) ? debugData.logs : []);
