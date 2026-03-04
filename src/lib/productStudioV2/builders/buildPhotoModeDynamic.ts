@@ -6,10 +6,13 @@ import type { StudioUIState } from '../types/studioTypes.ts';
  * Keyed by exact photoMode string (case-sensitive, must match PHOTO_MODE_SCENE_MAP keys).
  */
 const PHOTO_MODE_ATMOSPHERE_FALLBACKS: Record<string, string> = {
+  // Hero Landing Page and Color Pop Hero backgrounds are fully owned by buildStudioBackground
+  // via buildWorld. Atmosphere entries here cover depth/lighting/separation only — no hex
+  // colors, no gradient descriptions (those live exclusively in buildStudioBackground).
   'Hero Landing Page':
-    'Subtle gradient background derived from brand palette. Soft atmospheric falloff behind the product. Controlled vignette separation to emphasize product silhouette. Clean premium studio atmosphere suitable for ecommerce hero banners.',
+    'Soft atmospheric depth separation behind the product. Subtle falloff from center to edges emphasizing silhouette. Copy-safe negative space preserved for overlay text.',
   'Color Pop Hero':
-    'Bold color field derived from primary palette color. Radial gradient energy field behind the product. Strong silhouette contrast between product and background. High-impact advertising style studio lighting.',
+    'Strong silhouette separation with radial atmospheric depth field. High-contrast studio lighting that isolates the product from the background. No environmental props or textures.',
   'Pool Water':
     'Product positioned near clear swimming pool water surface. Sunlight refracting through water creating natural caustic patterns on pool floor and product base. Subtle ripples and reflective highlights around the product. Clean turquoise water environment with realistic refraction, wet reflections, and natural light dispersion.',
 };

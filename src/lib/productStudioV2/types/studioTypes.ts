@@ -238,4 +238,15 @@ export interface StudioUIState {
    * "free"              — orientation is unrestricted (used with rotationEnabled = true).
    */
   productOrientation?: 'upright' | 'free';
+
+  /**
+   * Resolved palette computed by buildPalette (runs first in the pipeline).
+   * All downstream builders (buildStudioBackground, buildWorld) should read from here
+   * instead of re-deriving from productPaletteA/B/C or brandPalette directly.
+   */
+  resolvedPalette?: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
 }

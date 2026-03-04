@@ -44,11 +44,13 @@ function heroState(overrides: Partial<StudioUIState> = {}): StudioUIState {
 
 describe('Test 1 — Hero Landing Page: V1 realism guardrails', () => {
   it('emits PRODUCT_ORIENTATION_LOCK (vertical product, no tilt)', () => {
+    // As of Phase 12, PRODUCT_ORIENTATION_LOCK is owned exclusively by buildProductOrientation.
+    // buildGeometry emits VERTICAL_AXIS_ALIGNMENT + CAMERA_ORIENTATION_LOCK (geometry domain).
     const state = heroState();
     const auth = resolveStudioAuthority(state);
     const out = buildGeometry(auth, state);
-    expect(out).toMatch(/PRODUCT_ORIENTATION_LOCK/);
-    expect(out).toMatch(/perfectly upright/i);
+    expect(out).toMatch(/VERTICAL_AXIS_ALIGNMENT/);
+    expect(out).toMatch(/CAMERA_ORIENTATION_LOCK/);
   });
 
   it('enforces camera roll = 0 via CAMERA_STABILITY_LOCK in camera block', () => {
@@ -128,10 +130,13 @@ function poolWaterState(overrides: Partial<StudioUIState> = {}): StudioUIState {
 
 describe('Test 2 — Pool Water: V1 realism guardrails', () => {
   it('emits PRODUCT_ORIENTATION_LOCK (vertical product, no tilt)', () => {
+    // As of Phase 12, PRODUCT_ORIENTATION_LOCK is owned exclusively by buildProductOrientation.
+    // buildGeometry emits VERTICAL_AXIS_ALIGNMENT + CAMERA_ORIENTATION_LOCK (geometry domain).
     const state = poolWaterState();
     const auth = resolveStudioAuthority(state);
     const out = buildGeometry(auth, state);
-    expect(out).toMatch(/PRODUCT_ORIENTATION_LOCK/);
+    expect(out).toMatch(/VERTICAL_AXIS_ALIGNMENT/);
+    expect(out).toMatch(/CAMERA_ORIENTATION_LOCK/);
   });
 
   it('emits POOL_WATER_REALISM_LOCK in world block', () => {

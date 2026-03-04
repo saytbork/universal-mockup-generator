@@ -37,7 +37,8 @@ export {
   buildProductPhysical,
   buildIngredients,
   buildStudioBackground,
-  buildProductOrientation
+  buildProductOrientation,
+  buildPalette
 };
 // import removed: isWineStrictSimulation no longer exported from winePromptHelpers
 import { generateWineImage } from './generateWineImage';
@@ -63,6 +64,7 @@ import { buildGeometry } from './builders/buildGeometry.ts';
 import { buildIngredients } from './builders/buildIngredients.ts';
 import { buildStudioBackground } from './builders/buildStudioBackground.ts';
 import { buildProductOrientation } from './builders/buildProductOrientation.ts';
+import { buildPalette } from './builders/buildPalette.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
 import {
@@ -185,8 +187,23 @@ function finalizePromptFromSegments(
   // DISABLED: Minimal physical prompt early-return for wine served mode
   // This was preventing wine environment and proper world/composition blocks from injecting
   // Wine now goes through normal pipeline flow to get complete prompt structure
-  
-  const contents = segments.map((segment) => segment.content).filter(Boolean);
+
+  // Deduplicate guardrail segments: if the exact same content string appears more than once
+  // in the segment list, keep only the first occurrence and log a warning for the rest.
+  const seen = new Set<string>();
+  const deduped = segments.filter((seg) => {
+    const content = seg.content.trim();
+    if (!content) return true; // keep empty/whitespace segments as-is
+    if (seen.has(content)) {
+      // eslint-disable-next-line no-console
+      console.warn('[DUPLICATE_GUARDRAIL_REMOVED]', content.slice(0, 80));
+      return false;
+    }
+    seen.add(content);
+    return true;
+  });
+
+  const contents = deduped.map((segment) => segment.content).filter(Boolean);
 
   const validationPrompt = assembleStudioPrompt(contents);
   const sanitizedValidationPrompt = sanitizeFinalPromptOutput(validationPrompt);

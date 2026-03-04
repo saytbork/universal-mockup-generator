@@ -4,6 +4,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority, state);
   const studioBlocks = [
+    buildPalette(state),                        // ← first: resolves state.resolvedPalette
     buildIntent(authority, state),
     buildArtworkImmutability(),
     buildWorld(authority, state.world, state),
@@ -32,7 +33,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildStudioBackground, buildProductOrientation } from '../index';
+import { buildPalette, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildProductOrientation } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -40,42 +41,21 @@ export const genericPipeline = {
     const authority = resolveStudioAuthority(state);
     const modifiers = getAllowedStudioModifiers(authority, state);
     const protectionLayer = buildProtectionLayer(authority, state);
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG][genericPipeline] PRE-buildWorld state snapshot:', JSON.stringify({
-      photoMode: state.photoMode,
-      photoModeConfig: (state as any).photoModeConfig,
-      heroLandingPage: (state as any).photoModeConfig?.heroLandingPage,
-      backgroundColor: (state as any).backgroundColor,
-      gradientEnabled: (state as any).gradientEnabled,
-      gradientStart: (state as any).gradientStart,
-      gradientEnd: (state as any).gradientEnd,
-      gradientMid: (state as any).gradientMid,
-      gradientAngle: (state as any).gradientAngle,
-      brandPalette: (state as any).brandPalette,
-      extractedProductColors: (state as any).extractedProductColors,
-    }));
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG][genericPipeline] CALL ORDER: buildWorld → buildPhotoModeDynamic → buildLighting');
-    // V2 background resolution: buildStudioBackground runs before buildWorld for Hero/ColorPop modes
-    const v2BgResolution = buildStudioBackground(authority, state);
-    if (v2BgResolution) {
-      // eslint-disable-next-line no-console
-      console.log('[V2_BG_RESOLVER] pre-pipeline resolved for photoMode=', state.photoMode, '| result=', JSON.stringify(v2BgResolution));
-    }
     const studioBlocks = [
+      buildPalette(state),                      // ← first: resolves state.resolvedPalette
       buildIntent(authority, state),
       buildArtworkImmutability(),
-      ((): string => { /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] EXECUTING: buildWorld'); return buildWorld(authority, state.world, state); })(),
+      buildWorld(authority, state.world, state),
       buildCameraOverrides(state),
       buildComposition(authority, state),
       buildMotion(authority, state),
       buildInteraction(authority, state),
       buildPhysics(authority, state),
       buildModifiers(modifiers, state),
-      ((): string => { /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] EXECUTING: buildLighting'); return buildLighting(authority, state); })(),
+      buildLighting(authority, state),
       buildMaterials(authority, state),
       buildProductPhysical(state),
-      ((): string => { /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] EXECUTING: buildPhotoModeDynamic'); const r = buildPhotoModeDynamic(state); /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] buildPhotoModeDynamic emitted:', JSON.stringify(r)); return r; })(),
+      buildPhotoModeDynamic(state),
       buildGeometry(authority, state),
       buildProductOrientation(state),
       buildIngredients(state),
@@ -89,15 +69,7 @@ export const genericPipeline = {
     for (const part of sanitizedParts) {
       segments.push({ type: 'guardrail', content: part });
     }
-  // eslint-disable-next-line no-console
-  console.log('GENERIC SEGMENTS LENGTH BEFORE FINALIZE:', segments.length);
-  // eslint-disable-next-line no-console
-  console.log('MODULAR AUTHORITY:', JSON.stringify(authority));
-  // eslint-disable-next-line no-console
-  console.log('MODULAR SEGMENTS STRUCTURE:', JSON.stringify(segments, null, 2));
-  const finalPrompt = finalizePromptFromSegments(segments, authority);
-  // eslint-disable-next-line no-console
-  console.log('MODULAR FINALIZE RESULT LENGTH:', finalPrompt.length);
-  return finalPrompt;
+    const finalPrompt = finalizePromptFromSegments(segments, authority);
+    return finalPrompt;
   }
 };

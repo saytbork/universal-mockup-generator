@@ -65,9 +65,16 @@ export function buildStudioBackground(
 
   const rawSource = state.productPaletteSource;
   const normalizedSource = normalizeSource(rawSource);
-  const pA = sanitizeHex(state.productPaletteA);
-  const pB = sanitizeHex(state.productPaletteB);
-  const pC = sanitizeHex(state.productPaletteC);
+
+  // Prefer the pre-resolved palette from buildPalette (first pipeline stage) if available.
+  // This guarantees a single authoritative resolution point regardless of call order.
+  const resolvedA = state.resolvedPalette?.primary;
+  const resolvedB = state.resolvedPalette?.secondary;
+  const resolvedC = state.resolvedPalette?.tertiary;
+
+  const pA = sanitizeHex(resolvedA || state.productPaletteA);
+  const pB = sanitizeHex(resolvedB || state.productPaletteB);
+  const pC = sanitizeHex(resolvedC || state.productPaletteC);
 
   const brandPrimary = sanitizeHex(state.brandPalette?.primaryColor);
   const brandSecondary = sanitizeHex(state.brandPalette?.secondaryColor);
