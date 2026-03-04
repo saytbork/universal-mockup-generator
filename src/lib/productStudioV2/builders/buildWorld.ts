@@ -90,7 +90,23 @@ export function buildWorld(
 ): string {
   // Non-studio worlds always emit their world block
   if (authority.world !== 'studio') {
-    return `STUDIO_WORLD: ${WORLD_LABELS[authority.world]}.`;
+    const worldLine = `STUDIO_WORLD: ${WORLD_LABELS[authority.world]}.`;
+
+    // Pool Water realism lock — appended immediately after the world declaration.
+    // Prevents CGI-style splash artifacts, stylized wave crowns, and synthetic water.
+    if (authority.world === 'water-surface') {
+      const poolWaterGuardrails = [
+        'POOL_WATER_REALISM_LOCK: Water must behave like a real swimming pool photographed with a camera. No stylized splash arcs. No symmetric wave explosions. No water crowns. No liquid impact shapes. Surface disturbance must be minimal and physically plausible. Allow only small ripples caused by object displacement. Waterline must intersect the product naturally.',
+        'WATER_OPTICS_REALISM: Use photographic refraction and reflection. Avoid CGI-style glassy water. Allow slight surface noise and natural light caustics.',
+        'SPLASH_PATTERN_PROHIBITION: Do not generate splash arcs, droplets flying outward, crown splashes, or symmetric liquid bursts.',
+      ];
+      const result = [worldLine, ...poolWaterGuardrails].join(' ');
+      // eslint-disable-next-line no-console
+      console.log('[DEBUG][buildWorld] FINAL background string emitted (water-surface + realism lock):', JSON.stringify(result));
+      return result;
+    }
+
+    return worldLine;
   }
 
   // Photo Mode takes scene authority — if a photo mode has a scene, emit it and skip generic studio
