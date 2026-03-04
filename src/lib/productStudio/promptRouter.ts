@@ -1008,7 +1008,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const hasBrandColors = !!brandPrimary;
 
       // Normalize paletteSource from heroLandingPage config into V2 field names.
-      // heroLandingPage.paletteSource values: 'Product label colors' | 'Brand Colors' | 'Custom' | ...
+      // heroLandingPage.paletteSource actual values (HeroLandingPagePaletteSource):
+      //   'Product label colors' | 'Neutral brand tones' | 'Custom'
+      // NOTE: 'Brand Colors' is NOT a valid V1 type value — it was a stale comment.
       const heroPaletteSource = String(
         state.photoModeConfig?.heroLandingPage?.paletteSource || ''
       ).trim();
@@ -1020,7 +1022,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           : hasBrandColors
           ? 'Brand Colors'
           : undefined;
+      } else if (heroPaletteSource === 'Neutral brand tones') {
+        // 'Neutral brand tones' = clean neutral whites — treat as Custom with fixed neutral palette.
+        // Matches resolveHeroLandingBrandColors() in store.ts which returns ['#FFFFFF','#F3F4F6','#E5E7EB'].
+        productPaletteSource = 'Custom';
       } else if (heroPaletteSource === 'Brand Colors' || heroPaletteSource === 'brand') {
+        // Legacy alias — not a real V1 type value but kept for safety.
         productPaletteSource = 'Brand Colors';
       } else if (heroPaletteSource === 'Custom') {
         productPaletteSource = 'Custom';
@@ -1044,6 +1051,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         paletteBlock.productPaletteA = brandPrimary;
         if (brandSecondary) paletteBlock.productPaletteB = brandSecondary;
         if (brandAccent) paletteBlock.productPaletteC = brandAccent;
+      } else if (productPaletteSource === 'Custom' && heroPaletteSource === 'Neutral brand tones') {
+        // Neutral brand tones: fixed neutral white palette matching store.ts resolveHeroLandingBrandColors()
+        paletteBlock.productPaletteA = '#FFFFFF';
+        paletteBlock.productPaletteB = '#F3F4F6';
+        paletteBlock.productPaletteC = '#E5E7EB';
       } else if (productPaletteSource === 'Custom') {
         // Custom: read from backgroundColor / gradientStart / gradientEnd
         const customPrimary = sanitizeHex(state.backgroundColor);

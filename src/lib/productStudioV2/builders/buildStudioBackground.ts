@@ -16,6 +16,37 @@ function sanitizeHex(raw: string | undefined): string {
 }
 
 /**
+ * Normalises any raw paletteSource string to the canonical V2 token.
+ * Accepts both V1 HeroLandingPagePaletteSource values and V2 StudioUIState values.
+ *
+ * V1 type: 'Product label colors' | 'Neutral brand tones' | 'Custom'
+ * V2 type: 'Use product label colors' | 'Brand Colors' | 'Custom'
+ *
+ * 'Neutral brand tones' resolves to 'Custom' (neutral whites provided as productPaletteA/B/C
+ * by promptRouter — matches resolveHeroLandingBrandColors() in store.ts).
+ */
+function normalizeSource(
+  raw: string | undefined
+): 'label' | 'brand' | 'custom' | null {
+  const s = String(raw || '').trim();
+  if (
+    s === 'Use product label colors' ||
+    s === 'Product label colors' ||
+    s === 'label'
+  ) return 'label';
+  if (
+    s === 'Brand Colors' ||
+    s === 'brand'
+  ) return 'brand';
+  if (
+    s === 'Custom' ||
+    s === 'custom' ||
+    s === 'Neutral brand tones'   // mapped to Custom+neutral-whites by promptRouter
+  ) return 'custom';
+  return null;
+}
+
+/**
  * Deterministic brand background resolver for V2 engine.
  * Handles Hero Landing Page and Color Pop Hero ONLY.
  * Priority: product label colors → brand system colors → custom → #FFFFFF
@@ -32,7 +63,8 @@ export function buildStudioBackground(
     return null;
   }
 
-  const source = state.productPaletteSource;
+  const rawSource = state.productPaletteSource;
+  const normalizedSource = normalizeSource(rawSource);
   const pA = sanitizeHex(state.productPaletteA);
   const pB = sanitizeHex(state.productPaletteB);
   const pC = sanitizeHex(state.productPaletteC);
@@ -46,25 +78,58 @@ export function buildStudioBackground(
   let secondary = '';
   let tertiary = '';
 
-  if (source === 'Use product label colors' && pA) {
-    colorSource = 'label';
-    primary = pA;
-    secondary = pB || '';
-    tertiary = pC || '';
-  } else if (source === 'Brand Colors' && brandPrimary) {
-    colorSource = 'brand';
-    primary = brandPrimary;
-    secondary = brandSecondary || '';
-    tertiary = brandAccent || '';
-  } else if (source === 'Custom' && pA) {
-    colorSource = 'custom';
-    primary = pA;
-    secondary = pB || '';
-    tertiary = pC || '';
+  if (normalizedSource === 'label') {
+    if (pA) {
+      // Label colors available — use them directly.
+      colorSource = 'label';
+      primary = pA;
+      secondary = pB || '';
+      tertiary = pC || '';
+    } else if (brandPrimary) {
+      // Label requested but not extracted yet — cascade to brand palette so we never show white.
+      colorSource = 'brand';
+      primary = brandPrimary;
+      secondary = brandSecondary || '';
+      tertiary = brandAccent || '';
+    } else {
+      colorSource = 'fallback';
+      primary = '#FFFFFF';
+    }
+  } else if (normalizedSource === 'brand') {
+    if (brandPrimary) {
+      colorSource = 'brand';
+      primary = brandPrimary;
+      secondary = brandSecondary || '';
+      tertiary = brandAccent || '';
+    } else {
+      colorSource = 'fallback';
+      primary = '#FFFFFF';
+    }
+  } else if (normalizedSource === 'custom') {
+    if (pA) {
+      colorSource = 'custom';
+      primary = pA;
+      secondary = pB || '';
+      tertiary = pC || '';
+    } else {
+      colorSource = 'fallback';
+      primary = '#FFFFFF';
+    }
   } else {
     colorSource = 'fallback';
     primary = '#FFFFFF';
   }
+
+  // eslint-disable-next-line no-console
+  console.log(
+    '[V2_BG_RESOLVER] photoMode=', photoMode,
+    '| rawSource=', rawSource,
+    '| normalizedSource=', normalizedSource,
+    '| colorSource=', colorSource,
+    '| pA=', pA || '(empty)', '| pB=', pB || '(empty)', '| pC=', pC || '(empty)',
+    '| brandPrimary=', brandPrimary || '(empty)',
+    '| resolved=', JSON.stringify({ primary, secondary, tertiary })
+  );
 
   let backgroundString: string;
   let gradientEnabled = false;
@@ -93,9 +158,6 @@ export function buildStudioBackground(
       backgroundString = `Clean studio hero composition. Seamless solid background in color ${primary} with cinematic studio depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Controlled vignette toward edges emphasizing product presence. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
     }
   }
-
-  // eslint-disable-next-line no-console
-  console.log('[V2_BG_RESOLVER] photoMode=', photoMode, '| colorSource=', colorSource, '| resolved=', JSON.stringify({ primary, secondary, tertiary, gradientEnabled, backgroundString }));
 
   return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };
 }
