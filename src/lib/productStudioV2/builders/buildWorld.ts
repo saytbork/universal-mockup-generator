@@ -26,7 +26,7 @@ const CONTEXT_PRESET_STUDIO_BACKGROUND: Record<string, string> = {
  */
 const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   // ── Studio modes ──
-  'Hero Landing Page': 'clean seamless advertising studio background, product fully centered, zero distractions, label fully readable, professional commercial framing',
+  'Hero Landing Page': 'pure flat studio background with perfectly uniform tone edge-to-edge, product fully centered, zero distractions, label fully readable, professional commercial framing',
   'Color Pop Hero': 'vivid color-field studio background with high-contrast product silhouette, bold palette, product fully centered',
   'Ingredient Stack': 'clean studio surface with curated ingredient elements arranged naturally around the product, editorial commercial framing',
   'Ingredient Flat Lay': 'top-down flat lay on clean studio surface with ingredients arranged in controlled layout around the product',
@@ -97,7 +97,7 @@ export function buildWorld(
   // eslint-disable-next-line no-console
   console.log('[buildWorld] photoMode=', JSON.stringify(photoMode), '| found=', !!photoModeScene);
   if (photoModeScene) {
-    return `PHOTO_MODE_SCENE: ${photoModeScene}. SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+    return `PHOTO_MODE_SCENE: ${photoModeScene}. BACKGROUND_UNIFORMITY_LOCK: Pure solid tone. Perfectly uniform edge-to-edge. No gradient. No vignette. No lateral tonal shift. No vertical tonal shift. No cyclorama curvature simulation. No light falloff on background. SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
   }
 
   // Studio world: emit contextPreset background if available
@@ -116,4 +116,3 @@ export function buildWorld(
   // No context preset and no photo mode: emit a generic clean studio background
   return `STUDIO_WORLD: clean studio environment. BACKGROUND_FILL: seamless neutral studio background with soft gradient depth. No gray borders, no empty canvas corners — fill the entire frame edge-to-edge with the studio environment.`;
 }
-

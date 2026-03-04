@@ -28,7 +28,7 @@ function resolveDepthStyle(distance: string, cameraSystem: string): string {
   if (normalizedDistance.includes('wide')) {
     return 'deep perspective depth with broad scene context';
   }
-  return 'balanced optical depth falloff';
+  return 'uniform flat depth rendering. No background tonal gradient. No atmospheric falloff. No depth-induced background variation';
 }
 
 /** Maps viewpoint selector values to natural-language directives. */
