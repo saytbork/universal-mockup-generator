@@ -985,17 +985,26 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     // Maps V1 store palette fields → V2 StudioUIState palette fields.
     // Without this block, buildStudioBackground always falls through to #FFFFFF fallback.
     ...(() => {
+      // Minimal hex sanitizer: accepts #RGB and #RRGGBB only. Returns '' for invalid values.
+      const sanitizeHex = (raw: unknown): string => {
+        const s = String(raw || '').trim();
+        if (/^#[0-9A-Fa-f]{3}$/.test(s) || /^#[0-9A-Fa-f]{6}$/.test(s)) return s;
+        // Try to repair missing '#'
+        if (/^[0-9A-Fa-f]{3}$/.test(s) || /^[0-9A-Fa-f]{6}$/.test(s)) return `#${s}`;
+        return '';
+      };
+
       const activeProduct = Array.isArray(state.products)
         ? state.products.find((p) => p.id === state.activeProductId) ?? state.products[0]
         : undefined;
-      const labelDominant = String(activeProduct?.palette?.dominant || '').trim();
-      const labelSecondary = String(activeProduct?.palette?.secondary || '').trim();
-      const labelAccent = String(activeProduct?.palette?.accent || '').trim();
+      const labelDominant = sanitizeHex(activeProduct?.palette?.dominant);
+      const labelSecondary = sanitizeHex(activeProduct?.palette?.secondary);
+      const labelAccent = sanitizeHex(activeProduct?.palette?.accent);
       const hasLabelColors = !!labelDominant;
 
-      const brandPrimary = String(state.palette?.primaryColor || '').trim();
-      const brandSecondary = String(state.palette?.secondaryColor || '').trim();
-      const brandAccent = String(state.palette?.accentColor || '').trim();
+      const brandPrimary = sanitizeHex(state.palette?.primaryColor);
+      const brandSecondary = sanitizeHex(state.palette?.secondaryColor);
+      const brandAccent = sanitizeHex(state.palette?.accentColor);
       const hasBrandColors = !!brandPrimary;
 
       // Normalize paletteSource from heroLandingPage config into V2 field names.
@@ -1005,7 +1014,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       ).trim();
       let productPaletteSource: 'Use product label colors' | 'Brand Colors' | 'Custom' | undefined;
       if (heroPaletteSource === 'Product label colors' || heroPaletteSource === 'Use product label colors') {
-        productPaletteSource = 'Use product label colors';
+        // Only declare label source if label colors actually exist; otherwise downgrade.
+        productPaletteSource = hasLabelColors
+          ? 'Use product label colors'
+          : hasBrandColors
+          ? 'Brand Colors'
+          : undefined;
       } else if (heroPaletteSource === 'Brand Colors' || heroPaletteSource === 'brand') {
         productPaletteSource = 'Brand Colors';
       } else if (heroPaletteSource === 'Custom') {
@@ -1032,9 +1046,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         if (brandAccent) paletteBlock.productPaletteC = brandAccent;
       } else if (productPaletteSource === 'Custom') {
         // Custom: read from backgroundColor / gradientStart / gradientEnd
-        const customPrimary = String(state.backgroundColor || '').trim();
-        const customSecondary = String(state.gradientStart || '').trim();
-        const customTertiary = String(state.gradientEnd || '').trim();
+        const customPrimary = sanitizeHex(state.backgroundColor);
+        const customSecondary = sanitizeHex(state.gradientStart);
+        const customTertiary = sanitizeHex(state.gradientEnd);
         if (customPrimary) paletteBlock.productPaletteA = customPrimary;
         if (customSecondary) paletteBlock.productPaletteB = customSecondary;
         if (customTertiary) paletteBlock.productPaletteC = customTertiary;

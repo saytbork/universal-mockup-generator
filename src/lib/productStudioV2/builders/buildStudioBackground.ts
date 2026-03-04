@@ -7,6 +7,14 @@ export interface StudioBackgroundResolution {
   gradientEnabled: boolean;
 }
 
+/** Accepts #RGB and #RRGGBB only. Repairs missing '#'. Returns '' for malformed values. */
+function sanitizeHex(raw: string | undefined): string {
+  const s = String(raw || '').trim();
+  if (/^#[0-9A-Fa-f]{3}$/.test(s) || /^#[0-9A-Fa-f]{6}$/.test(s)) return s;
+  if (/^[0-9A-Fa-f]{3}$/.test(s) || /^[0-9A-Fa-f]{6}$/.test(s)) return `#${s}`;
+  return '';
+}
+
 /**
  * Deterministic brand background resolver for V2 engine.
  * Handles Hero Landing Page and Color Pop Hero ONLY.
@@ -25,13 +33,13 @@ export function buildStudioBackground(
   }
 
   const source = state.productPaletteSource;
-  const pA = state.productPaletteA?.trim() || '';
-  const pB = state.productPaletteB?.trim() || '';
-  const pC = state.productPaletteC?.trim() || '';
+  const pA = sanitizeHex(state.productPaletteA);
+  const pB = sanitizeHex(state.productPaletteB);
+  const pC = sanitizeHex(state.productPaletteC);
 
-  const brandPrimary = state.brandPalette?.primaryColor?.trim() || '';
-  const brandSecondary = state.brandPalette?.secondaryColor?.trim() || '';
-  const brandAccent = state.brandPalette?.accentColor?.trim() || '';
+  const brandPrimary = sanitizeHex(state.brandPalette?.primaryColor);
+  const brandSecondary = sanitizeHex(state.brandPalette?.secondaryColor);
+  const brandAccent = sanitizeHex(state.brandPalette?.accentColor);
 
   let colorSource: StudioBackgroundResolution['colorSource'] = 'fallback';
   let primary = '#FFFFFF';
