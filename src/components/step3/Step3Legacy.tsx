@@ -3456,6 +3456,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   const midColor = normalizeHex(productStore.gradientMid) ?? '';
                                   const hasMid = Boolean(midColor);
 
+                                  // ── Brand palette colors (store.palette.* system colors) ──
+                                  const brandSystemSwatches = uniqHexes([
+                                    (productStore as any)?.palette?.primaryColor,
+                                    (productStore as any)?.palette?.secondaryColor,
+                                    (productStore as any)?.palette?.accentColor,
+                                  ]);
+
                                   // ── Auto-fill from palette source ─────────────────────────
                                   const applyColorSourceDefaults = (src: typeof paletteSource) => {
                                     if (src === 'Product label colors') {
@@ -3466,8 +3473,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         if (isGradient && swatches[1]) productStore.setGradientEnd(swatches[1]);
                                       }
                                     } else if (src === 'Neutral brand tones') {
-                                      productStore.setBackgroundColor('#FFFFFF');
-                                      if (isGradient) { productStore.setGradientStart('#FFFFFF'); productStore.setGradientEnd('#F3F4F6'); }
+                                      // Fill from brand system palette; fall back to neutral whites if none configured.
+                                      const swatches = brandSystemSwatches.length > 0
+                                        ? brandSystemSwatches
+                                        : ['#FFFFFF', '#F3F4F6', '#E5E7EB'];
+                                      productStore.setBackgroundColor(swatches[0]);
+                                      if (isGradient) {
+                                        productStore.setGradientStart(swatches[0]);
+                                        productStore.setGradientEnd(swatches[1] ?? swatches[0]);
+                                      }
                                     }
                                     // Custom: user controls colors directly — no auto-fill
                                   };
@@ -3596,12 +3610,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             No label colors detected yet. Upload a product image to auto-fill.
                                           </p>
                                         )}
+                                        {paletteSource === 'Neutral brand tones' && brandSystemSwatches.length === 0 && (
+                                          <p className="text-[11px] text-amber-600">
+                                            No brand palette configured yet. Set brand colors in your account settings.
+                                          </p>
+                                        )}
                                       </div>
 
-                                      {/* ── 3. COLORS ─────────────────────────────────────── */}
+                                      {/* ── 3. COLOR CONTROLS ─────────────────────────────── */}
                                       <div className="space-y-3">
                                         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                          {isGradient ? 'Gradient Colors' : 'Color'}
+                                          Color Controls
                                         </p>
 
                                         {!isGradient ? (
@@ -3619,7 +3638,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           // Gradient: two (or three) color rows
                                           <div className="space-y-2">
                                             <ColorRow
-                                              label="Start"
+                                              label="Start color"
                                               value={startColor}
                                               readOnly={!isCustom}
                                               onChange={(hex) => {
@@ -3628,7 +3647,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                               }}
                                             />
                                             <ColorRow
-                                              label="End"
+                                              label="End color"
                                               value={endColor}
                                               readOnly={!isCustom}
                                               onChange={(hex) => {
@@ -3642,7 +3661,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                 <div className="w-16 shrink-0" />
                                                 <div className="flex flex-1 items-center gap-2">
                                                   <ColorRow
-                                                    label="Mid"
+                                                    label="Mid color"
                                                     value={midColor}
                                                     readOnly={!isCustom}
                                                     onChange={(hex) => {
@@ -3650,22 +3669,24 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                                       markSectionTouched('product-setup');
                                                     }}
                                                   />
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      productStore.setGradientMid('');
-                                                      markSectionTouched('product-setup');
-                                                    }}
-                                                    className="ml-auto shrink-0 text-[10px] text-gray-400 hover:text-gray-600 underline"
-                                                    aria-label="Remove third color"
-                                                  >
-                                                    Remove
-                                                  </button>
+                                                  {isCustom && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        productStore.setGradientMid('');
+                                                        markSectionTouched('product-setup');
+                                                      }}
+                                                      className="ml-auto shrink-0 text-[10px] text-gray-400 hover:text-gray-600 underline"
+                                                      aria-label="Remove third color"
+                                                    >
+                                                      Remove
+                                                    </button>
+                                                  )}
                                                 </div>
                                               </div>
                                             )}
 
-                                            {!hasMid && (
+                                            {!hasMid && isCustom && (
                                               <button
                                                 type="button"
                                                 onClick={() => {
@@ -3684,11 +3705,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           </div>
                                         )}
 
-                                        {/* Read-only hint when palette source drives colors */}
-                                        {!isCustom && (
-                                          <p className="text-[10px] text-gray-400">
-                                            Colors are driven by{' '}
-                                            {paletteSource === 'Product label colors' ? 'product label palette' : 'brand palette'}.
+                                        {/* Inline hint when palette source drives colors */}
+                                        {paletteSource === 'Product label colors' && (
+                                          <p className="text-[10px] text-gray-400 italic">
+                                            Colors derived from product label palette.{' '}
+                                            Switch to <strong>Custom</strong> to edit manually.
+                                          </p>
+                                        )}
+                                        {paletteSource === 'Neutral brand tones' && (
+                                          <p className="text-[10px] text-gray-400 italic">
+                                            Using brand palette colors.{' '}
                                             Switch to <strong>Custom</strong> to edit manually.
                                           </p>
                                         )}
