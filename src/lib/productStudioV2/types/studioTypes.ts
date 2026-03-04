@@ -232,4 +232,10 @@ export interface StudioUIState {
   rotationEnabled?: boolean;
   /** Explicit tilt angle in degrees. Only applied when rotationEnabled = true. */
   rotationAngle?: number;
+  /**
+   * Product orientation mode.
+   * "upright" (default) — vertical axis locked to gravity; no tilt permitted.
+   * "free"              — orientation is unrestricted (used with rotationEnabled = true).
+   */
+  productOrientation?: 'upright' | 'free';
 }

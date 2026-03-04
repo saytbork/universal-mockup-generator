@@ -18,6 +18,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildProductPhysical(state),
     buildPhotoModeDynamic(state),
     buildGeometry(authority, state),
+    buildProductOrientation(state),
     buildIngredients(state),
     ...protectionLayer,
     ...buildAdvancedOverrideParts(state),
@@ -31,7 +32,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildStudioBackground } from '../index';
+import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildStudioBackground, buildProductOrientation } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -76,6 +77,7 @@ export const genericPipeline = {
       buildProductPhysical(state),
       ((): string => { /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] EXECUTING: buildPhotoModeDynamic'); const r = buildPhotoModeDynamic(state); /* eslint-disable-next-line no-console */ console.log('[DEBUG][genericPipeline] buildPhotoModeDynamic emitted:', JSON.stringify(r)); return r; })(),
       buildGeometry(authority, state),
+      buildProductOrientation(state),
       buildIngredients(state),
       ...protectionLayer,
       ...buildAdvancedOverrideParts(state),
