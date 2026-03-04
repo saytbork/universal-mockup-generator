@@ -16,21 +16,6 @@ function resolveDistortion(distance: string): string {
   return 'zero distortion baseline';
 }
 
-function resolveDepthStyle(distance: string, cameraSystem: string): string {
-  const normalizedDistance = distance.toLowerCase();
-  const normalizedSystem = cameraSystem.toLowerCase();
-  if (normalizedDistance.includes('macro') || normalizedSystem.includes('macro')) {
-    return 'micro depth isolation with controlled falloff';
-  }
-  if (normalizedDistance.includes('tight') || normalizedSystem.includes('telephoto')) {
-    return 'compressed depth with cinematic optical falloff';
-  }
-  if (normalizedDistance.includes('wide')) {
-    return 'deep perspective depth with broad scene context';
-  }
-  return 'uniform flat depth rendering. No background tonal gradient. No atmospheric falloff. No depth-induced background variation';
-}
-
 /** Maps viewpoint selector values to natural-language directives. */
 const VIEWPOINT_MAP: Record<string, string> = {
   'eye-level': 'eye-level straight-on — camera at product mid-height, parallel to ground',
@@ -52,15 +37,17 @@ export function buildCameraOverrides(state?: StudioUIState): string {
 
   const lensProfile = resolveLensProfile(distance);
   const distortion = resolveDistortion(distance);
-  const depthStyle = resolveDepthStyle(distance, cameraSystem);
 
   const parts = [
     `STUDIO_CAMERA_SYSTEM: ${cameraSystem}.`,
+    // V1 camera stability guardrail — camera must remain level at all times
+    'CAMERA_STABILITY_LOCK: Camera roll must remain exactly 0 degrees. The horizon must remain level. Do not apply Dutch angle. Do not simulate camera tilt. The camera optical axis must remain perpendicular to the ground plane.',
     `STUDIO_CAMERA_ANGLE: ${angle}.`,
     `STUDIO_CAMERA_DISTANCE: ${distance}.`,
     `LENS_PROFILE: ${lensProfile}.`,
     `DISTORTION: ${distortion}.`,
-    `DEPTH_STYLE: ${depthStyle}.`,
+    // V1 depth realism — natural photographic depth, no flat CGI rendering
+    'DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.',
     `STUDIO_CAMERA_ROTATION: ${rotation}.`,
     `ROTATION: ${rotation}.`,
     `STUDIO_FRAMING_GUIDE: ${framingGuide}.`,

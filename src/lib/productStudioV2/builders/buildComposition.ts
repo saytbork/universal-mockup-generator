@@ -197,6 +197,12 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     heroMode
       ? 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
       : '',
+    // V1 hero composition discipline — single-object centered hero framing
+    heroMode && !splashMode
+      ? 'HERO_COMPOSITION_DISCIPLINE: Product must remain the dominant focal element. Single object only. Centered hero composition. Balanced negative space reserved for copy. No props. No secondary objects. No environmental clutter.'
+      : '',
+    // V1 gravity grounding — universal rule, all worlds
+    'GRAVITY_LOCK: Objects must obey gravity. Products must appear grounded on a surface. No levitation. No floating objects.',
     spreadRule,
     verticalRule,
     splashMode

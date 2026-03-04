@@ -24,7 +24,7 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).toContain('STUDIO_CAMERA_DISTANCE: Tight.');
     expect(prompt).toContain('LENS_PROFILE: 85mm equivalent.');
     expect(prompt).toContain('DISTORTION: minimal distortion with telephoto compression.');
-    expect(prompt).toContain('DEPTH_STYLE: compressed depth with cinematic optical falloff.');
+    expect(prompt).toContain('DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.');
     expect(prompt).toContain('STUDIO_CAMERA_ROTATION: 10°.');
     expect(prompt).toContain('ROTATION: 10°.');
     expect(prompt).toContain('STUDIO_FRAMING_GUIDE: Rule of thirds.');

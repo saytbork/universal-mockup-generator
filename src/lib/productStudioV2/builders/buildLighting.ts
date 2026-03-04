@@ -59,10 +59,23 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
       if (authority.creativeIntent === 'clinical') return 'clinical sterile softbox precision with neutral reflectance';
       if (authority.creativeIntent === 'campaign') return 'natural directional campaign lighting with environmental bounce';
       if (authority.creativeIntent === 'luxury') return 'sculpted directional luxury key/fill/rim with micro-specular control';
-      return 'flat frontal softbox lighting with no background separation';
+      return 'conversion softbox wrap with label-priority separation';
     })();
 
     parts.push(`STUDIO_LIGHTING_PROFILE: ${lightingModel}.`);
+
+    // V1 hero studio lighting guardrail — inject for default studio hero mode
+    const isHeroPhotoMode = !photoMode || photoMode === 'hero landing page';
+    const isDefaultStudio =
+      authority.world === 'studio' &&
+      !splashAdMode &&
+      !isBeachFoamMode &&
+      authority.creativeIntent !== 'clinical';
+    if (isHeroPhotoMode && isDefaultStudio) {
+      parts.push(
+        'HERO_STUDIO_LIGHTING: Use controlled studio lighting with softbox wrap and subtle rim separation. Highlight label readability. Maintain clean shadow under the product. Avoid dramatic directional lighting.'
+      );
+    }
   }
 
   // Accent/gel light color injection (from Pro Mode controls)
