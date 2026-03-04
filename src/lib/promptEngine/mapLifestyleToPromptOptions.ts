@@ -1998,6 +1998,10 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting = enforceElderLightingProfile(mapped.lighting, personAge);
         (mapped as any).timeLightingContext = mapped.lighting;
     }
+    if (!isUGCMode && sceneState.contentStyle === 'brand' && mapped.lighting) {
+        mapped.lighting = `${mapped.lighting} SKIN LIGHT RESPONSE: Skin must react to light with subtle uneven reflectance. Micro-shadow variation must be visible across cheek, nose, and jaw. Do not flatten skin gradients.`;
+        (mapped as any).timeLightingContext = mapped.lighting;
+    }
 
     mapped.ecommerceBlankSpaceMode = isEcommerceBlankSpaceActive;
 
