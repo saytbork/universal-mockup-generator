@@ -873,7 +873,9 @@ export class PromptEngine {
         finalPrompt = assertSingleCameraBlock(finalPrompt, options);
 
         // ====================================================================
-        // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
+        // PRODUCT MODE HUMAN EXCLUSION — sanitize, never throw
+        // Strip any sentence fragment containing a forbidden human-context term.
+        // Studio Product prompt must be purely object-focused.
         // ====================================================================
         const isProductOnly = options.contentStyle === 'product';
         if (isProductOnly) {
@@ -881,19 +883,18 @@ export class PromptEngine {
             const negativeMarker = ' Negative prompt: ';
             const negativeIndex = finalPrompt.indexOf(negativeMarker);
             const rawPositivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const negativePart = negativeIndex >= 0 ? finalPrompt.substring(negativeIndex) : '';
             const positivePrompt = stripModeResolutionGuardrail(rawPositivePrompt);
-            const match = forbidden.exec(positivePrompt);
-            if (match) {
-                const matchIndex = match.index ?? 0;
-                const excerptStart = Math.max(0, matchIndex - 140);
-                const excerptEnd = Math.min(positivePrompt.length, matchIndex + 140);
-                console.error('[PRODUCT MODE BLOCK] Forbidden language detected in positive prompt', {
-                    match: match[0],
-                    excerpt: positivePrompt.slice(excerptStart, excerptEnd)
-                });
-                throw new InvalidSceneCombinationError(
-                    `Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language. Found: "${match[0]}".`
-                );
+            if (forbidden.test(positivePrompt)) {
+                // Strip every sentence/clause that contains a forbidden token.
+                const sanitized = positivePrompt
+                    .split(/(?<=[.!?])\s+/)
+                    .filter(sentence => !forbidden.test(sentence))
+                    .join(' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+                console.warn('[PRODUCT MODE SANITIZE] Stripped human-context sentences from product prompt');
+                finalPrompt = (sanitized + negativePart).trim();
             }
         }
 
