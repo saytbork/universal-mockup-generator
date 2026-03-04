@@ -8,7 +8,8 @@ export type StudioWorld =
   | 'studio'
   | 'underwater'
   | 'splash-tank'
-  | 'beach-daylight';
+  | 'beach-daylight'
+  | 'water-surface';
 
 export type StudioMotion =
   | 'static'

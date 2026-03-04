@@ -19,7 +19,10 @@ const resolveWorld = (state: StudioUIState): StudioWorld => {
   const mode = normalize(state.photoMode);
   if (isBeachFoamMode(mode)) return 'beach-daylight';
   if (mode.includes('underwater')) return 'underwater';
-  if (mode.includes('splash') || mode.includes('foam') || mode.includes('pool water')) return 'splash-tank';
+  // Pool Water is a static water-surface scene — NOT a splash tank.
+  // Splash Shot, Beach Foam Splash, and other dynamic-liquid modes → splash-tank.
+  if (mode === 'pool water') return 'water-surface';
+  if (mode.includes('splash') || mode.includes('foam')) return 'splash-tank';
   return 'studio';
 };
 
@@ -42,13 +45,12 @@ export function resolveStudioAuthority(state: StudioUIState): StudioAuthorityBun
     String(state.aspectRatio || '').trim() === '1:1' &&
     state.subjectOrientation === 'vertical';
 
-  const isPoolWaterPhotoMode = normalize(state.photoMode) === 'pool water';
-
+  // Pool Water maps to 'water-surface' — it never reaches splash-tank, so it never
+  // satisfies this condition. Splash is strictly for dynamic-motion splash-tank modes.
   const allowSplash =
     creativeIntent !== 'clinical' &&
-    (isPoolWaterPhotoMode ||
-      (motion !== 'static' &&
-        (world === 'splash-tank' || world === 'underwater' || world === 'beach-daylight')));
+    motion !== 'static' &&
+    (world === 'splash-tank' || world === 'underwater' || world === 'beach-daylight');
 
   const permissions = {
     allowSplash,
@@ -59,12 +61,7 @@ export function resolveStudioAuthority(state: StudioUIState): StudioAuthorityBun
   };
 
   if (world === 'splash-tank' && !isDynamicMotion(motion)) {
-    // Pool Water is a static water-scene mode — it does not require dynamic motion
-    // to render water surface, caustics, and reflections. Only suppress splash for
-    // modes that are genuinely non-water (should not reach here, but guard anyway).
-    if (!isPoolWaterPhotoMode) {
-      permissions.allowSplash = false;
-    }
+    permissions.allowSplash = false;
   }
   if (splitLevelUnderwaterSquareVertical) {
     permissions.allowHorizontalSpread = false;

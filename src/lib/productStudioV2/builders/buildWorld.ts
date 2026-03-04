@@ -6,6 +6,7 @@ const WORLD_LABELS: Record<StudioAuthorityBundle['world'], string> = {
   underwater: 'underwater environment with refraction-consistent optical depth',
   'splash-tank': 'splash tank environment with bounded liquid containment',
   'beach-daylight': 'sunlit tropical shoreline environment with turquoise water and clean white sand',
+  'water-surface': 'pool water surface environment with clear turquoise water, sunlit caustics, and natural refraction',
 };
 
 /** Maps contextPreset to a studio background description for supplement products */
