@@ -1,4 +1,5 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
+import { buildStudioBackground } from './buildStudioBackground.ts';
 
 const WORLD_LABELS: Record<StudioAuthorityBundle['world'], string> = {
   studio: 'controlled studio environment with bounded physical set interactions',
@@ -26,8 +27,8 @@ const CONTEXT_PRESET_STUDIO_BACKGROUND: Record<string, string> = {
  */
 const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   // ── Studio modes ──
-  'Hero Landing Page': 'clean seamless advertising studio background, product fully centered, zero distractions, label fully readable, professional commercial framing',
-  'Color Pop Hero': 'vivid color-field studio background with high-contrast product silhouette, bold palette, product fully centered',
+  // 'Hero Landing Page' → delegated to buildStudioBackground (deterministic brand color)
+  // 'Color Pop Hero'    → delegated to buildStudioBackground (deterministic brand color)
   'Ingredient Stack': 'clean studio surface with curated ingredient elements arranged naturally around the product, editorial commercial framing',
   'Ingredient Flat Lay': 'top-down flat lay on clean studio surface with ingredients arranged in controlled layout around the product',
   'Acrylic Blocks': 'clean studio with geometric acrylic block props as compositional accents, premium minimal editorial look',
@@ -93,6 +94,18 @@ export function buildWorld(
 
   // Photo Mode takes scene authority — if a photo mode has a scene, emit it and skip generic studio
   const photoMode = String(state?.photoMode || '').trim();
+
+  // Hero Landing Page and Color Pop Hero: delegate to deterministic brand color resolver
+  if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero') {
+    const bgResolution = buildStudioBackground(authority, state!);
+    if (bgResolution) {
+      const result = `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+      // eslint-disable-next-line no-console
+      console.log('[DEBUG][buildWorld] FINAL background string emitted (V2_BG_RESOLVER):', JSON.stringify(result));
+      return result;
+    }
+  }
+
   const photoModeScene = photoMode ? PHOTO_MODE_SCENE_MAP[photoMode] : undefined;
   // eslint-disable-next-line no-console
   console.log('[buildWorld] photoMode=', JSON.stringify(photoMode), '| found=', !!photoModeScene);

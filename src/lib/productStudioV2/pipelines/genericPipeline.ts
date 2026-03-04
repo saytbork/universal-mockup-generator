@@ -31,7 +31,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildStudioBackground } from '../index';
 import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
@@ -55,6 +55,12 @@ export const genericPipeline = {
     }));
     // eslint-disable-next-line no-console
     console.log('[DEBUG][genericPipeline] CALL ORDER: buildWorld → buildPhotoModeDynamic → buildLighting');
+    // V2 background resolution: buildStudioBackground runs before buildWorld for Hero/ColorPop modes
+    const v2BgResolution = buildStudioBackground(authority, state);
+    if (v2BgResolution) {
+      // eslint-disable-next-line no-console
+      console.log('[V2_BG_RESOLVER] pre-pipeline resolved for photoMode=', state.photoMode, '| result=', JSON.stringify(v2BgResolution));
+    }
     const studioBlocks = [
       buildIntent(authority, state),
       buildArtworkImmutability(),

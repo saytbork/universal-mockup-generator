@@ -201,4 +201,26 @@ export interface StudioUIState {
   ingredientObjects?: string;
   /** Ingredient layout mode: grounded | top-view | auto */
   ingredientLayout?: string;
+
+  // ── Brand palette / background color injection ──────────────────────────────
+  /** Source of palette for background resolution: 'Use product label colors' | 'Brand Colors' | 'Custom' */
+  productPaletteSource?: 'Use product label colors' | 'Brand Colors' | 'Custom';
+  /** Primary extracted/brand color (hex) */
+  productPaletteA?: string;
+  /** Secondary extracted/brand color (hex) */
+  productPaletteB?: string;
+  /** Tertiary extracted/brand color (hex) */
+  productPaletteC?: string;
+  /** Brand system palette — used when productPaletteSource === 'Brand Colors' */
+  brandPalette?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+  };
+  /** Hero Landing Page config subset needed by V2 background resolver */
+  photoModeConfig?: {
+    heroLandingPage?: {
+      backgroundType?: 'Solid' | 'Gradient';
+    };
+  };
 }
