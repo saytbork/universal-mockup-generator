@@ -224,4 +224,12 @@ export interface StudioUIState {
       backgroundType?: 'Solid' | 'Gradient';
     };
   };
+  /**
+   * Product orientation control.
+   * When rotationEnabled is false (default), the product axis is locked upright.
+   * When rotationEnabled is true, rotationAngle (degrees) is applied as a tilt.
+   */
+  rotationEnabled?: boolean;
+  /** Explicit tilt angle in degrees. Only applied when rotationEnabled = true. */
+  rotationAngle?: number;
 }
