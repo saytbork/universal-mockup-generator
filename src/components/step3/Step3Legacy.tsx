@@ -3445,255 +3445,266 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
                                   const heroCfg = productStore.photoModeConfig.heroLandingPage;
-                                  const bgType = heroCfg.backgroundType;
-                                  const isGradient = bgType === 'Gradient';
+                                  const isGradient = heroCfg.backgroundType === 'Gradient';
+                                  const paletteSource = heroCfg.paletteSource;
+                                  const isCustom = paletteSource === 'Custom';
 
-                                  const dotBase = COLOR_PICKER_BUTTON_CLASS;
-                                  const dotBorder = (isSelected: boolean) =>
-                                    isSelected ? 'border-[var(--lifestyle-accent)]' : 'border-gray-200 hover:border-gray-300';
+                                  // ── Resolve active colors from store ──────────────────────
+                                  const solidColor = normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
+                                  const startColor = normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
+                                  const endColor = normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
+                                  const midColor = normalizeHex(productStore.gradientMid) ?? '';
+                                  const hasMid = Boolean(midColor);
 
-                                  const getActiveTargetColor = (): string => {
-                                    if (!isGradient) return normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
-                                    if (heroGradientAssignTarget === 'start') return normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
-                                    if (heroGradientAssignTarget === 'end') return normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
-                                    return normalizeHex(productStore.gradientMid) ?? '#FFFFFF';
-                                  };
-
-                                  const applyHeroColor = (hex: string) => {
-                                    if (!isGradient) {
-                                      productStore.setBackgroundColor(hex);
-                                      markSectionTouched('product-setup');
-                                      return;
+                                  // ── Auto-fill from palette source ─────────────────────────
+                                  const applyColorSourceDefaults = (src: typeof paletteSource) => {
+                                    if (src === 'Product label colors') {
+                                      const swatches = heroLandingBrandSwatches;
+                                      if (swatches.length > 0) {
+                                        productStore.setBackgroundColor(swatches[0]);
+                                        if (isGradient && swatches[1]) productStore.setGradientStart(swatches[0]);
+                                        if (isGradient && swatches[1]) productStore.setGradientEnd(swatches[1]);
+                                      }
+                                    } else if (src === 'Neutral brand tones') {
+                                      productStore.setBackgroundColor('#FFFFFF');
+                                      if (isGradient) { productStore.setGradientStart('#FFFFFF'); productStore.setGradientEnd('#F3F4F6'); }
                                     }
-                                    if (heroGradientAssignTarget === 'start') productStore.setGradientStart(hex);
-                                    if (heroGradientAssignTarget === 'end') productStore.setGradientEnd(hex);
-                                    if (heroGradientAssignTarget === 'mid') productStore.setGradientMid(hex);
-                                    markSectionTouched('product-setup');
+                                    // Custom: user controls colors directly — no auto-fill
                                   };
 
-                                  const brandDots = heroLandingBrandSwatches.slice(0, 3);
-                                  const hasThird = Boolean(normalizeHex(productStore.gradientMid));
-                                  const thirdSmallBase = COLOR_PICKER_BUTTON_CLASS;
+                                  // ── Inline color row component ────────────────────────────
+                                  const ColorRow = ({
+                                    label,
+                                    value,
+                                    onChange,
+                                    readOnly,
+                                  }: {
+                                    label: string;
+                                    value: string;
+                                    onChange: (hex: string) => void;
+                                    readOnly?: boolean;
+                                  }) => {
+                                    const [draft, setDraft] = React.useState<string | null>(null);
+                                    const safeValue = normalizeHex(value) ?? '#FFFFFF';
+                                    const displayDraft = draft ?? safeValue;
+
+                                    const commitDraft = (raw: string) => {
+                                      const hex = normalizeHex(raw);
+                                      if (hex) { onChange(hex); }
+                                      setDraft(null);
+                                    };
+
+                                    return (
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-[11px] font-medium text-gray-500 w-16 shrink-0">{label}</span>
+                                        <div className="flex items-center gap-2 flex-1">
+                                          {/* Color swatch — rectangular, clickable */}
+                                          <label
+                                            className={[
+                                              'relative flex h-8 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors',
+                                              readOnly
+                                                ? 'cursor-default border-gray-200'
+                                                : 'border-gray-300 hover:border-gray-400',
+                                            ].join(' ')}
+                                            style={{ backgroundColor: safeValue }}
+                                            aria-label={`${label} color picker`}
+                                          >
+                                            {!readOnly && (
+                                              <input
+                                                type="color"
+                                                value={safeValue}
+                                                onChange={(e) => {
+                                                  const hex = normalizeHex(e.target.value);
+                                                  if (hex) { onChange(hex); setDraft(hex); }
+                                                }}
+                                                onBlur={() => setDraft(null)}
+                                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                              />
+                                            )}
+                                          </label>
+                                          {/* Hex input */}
+                                          <input
+                                            type="text"
+                                            value={displayDraft}
+                                            readOnly={readOnly}
+                                            onChange={(e) => setDraft(e.target.value)}
+                                            onBlur={(e) => commitDraft(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') commitDraft((e.target as HTMLInputElement).value);
+                                              if (e.key === 'Escape') setDraft(null);
+                                            }}
+                                            maxLength={7}
+                                            placeholder="#FFFFFF"
+                                            className={[
+                                              'h-8 flex-1 rounded-md border px-2 font-mono text-[11px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1',
+                                              readOnly
+                                                ? 'cursor-default select-none border-gray-100 bg-gray-50 text-gray-400'
+                                                : 'border-gray-200 bg-white focus:border-indigo-400 focus:ring-indigo-200',
+                                            ].join(' ')}
+                                            aria-label={`${label} hex value`}
+                                          />
+                                        </div>
+                                      </div>
+                                    );
+                                  };
 
                                   return (
                                     <>
-                                      <div className="space-y-5">
-                                        <div className="space-y-5">
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Background</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Solid', 'Gradient'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  selected={heroCfg.backgroundType === v}
-                                                  onClick={() => {
-                                                    productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
-
-                                          {isGradient && (
-                                            <div>
-                                              <p className="text-xs text-gray-500 font-semibold mb-2">Colors</p>
-                                              <div className="flex items-center gap-4">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setHeroGradientAssignTarget('start')}
-                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'start')}`}
-                                                  style={{ background: normalizeHex(productStore.gradientStart) ?? '#FFFFFF' }}
-                                                  aria-label="Select Start gradient color"
-                                                />
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setHeroGradientAssignTarget('end')}
-                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'end')}`}
-                                                  style={{ background: normalizeHex(productStore.gradientEnd) ?? '#FFFFFF' }}
-                                                  aria-label="Select End gradient color"
-                                                />
-
-                                                {hasThird ? (
-                                                  <div className="relative">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => setHeroGradientAssignTarget('mid')}
-                                                      className={`${thirdSmallBase} ${dotBorder(heroGradientAssignTarget === 'mid')}`}
-                                                      style={{ background: normalizeHex(productStore.gradientMid) ?? '#FFFFFF' }}
-                                                      aria-label="Select Third gradient color"
-                                                    />
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => {
-                                                        productStore.setGradientMid('');
-                                                        markSectionTouched('product-setup');
-                                                        if (heroGradientAssignTarget === 'mid') setHeroGradientAssignTarget('end');
-                                                      }}
-                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-xs leading-none text-gray-600 hover:border-gray-300"
-                                                      aria-label="Remove third gradient color"
-                                                    >
-                                                      ×
-                                                    </button>
-                                                  </div>
-                                                ) : (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
-                                                      const suggested =
-                                                        heroLandingBrandSwatches[2] ||
-                                                        heroLandingBrandSwatches[1] ||
-                                                        heroLandingBrandSwatches[0] ||
-                                                        '#FFFFFF';
-                                                      productStore.setGradientMid(suggested);
-                                                      setHeroGradientAssignTarget('mid');
-                                                      markSectionTouched('product-setup');
-                                                    }}
-                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[12px] font-semibold leading-none text-gray-600 hover:border-gray-300"
-                                                    aria-label="Add third gradient color"
-                                                  >
-                                                    +
-                                                  </button>
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Brand Colors</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {brandDots.length > 0 ? (
-                                                brandDots.map(hex => {
-                                                  const isSelected = isGradient
-                                                    ? getActiveTargetColor() === hex
-                                                    : normalizeHex(productStore.backgroundColor) === hex;
-                                                  return (
-                                                    <button
-                                                      key={hex}
-                                                      type="button"
-                                                      onClick={() => {
-                                                        productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
-                                                        applyHeroColor(hex);
-                                                      }}
-                                                      className={`${dotBase} ${dotBorder(isSelected)}`}
-                                                      style={{ background: hex }}
-                                                      aria-label={`Use brand color ${hex}`}
-                                                    />
-                                                  );
-                                                })
-                                              ) : (
-                                                <p className="text-[11px] text-gray-500">No brand colors available.</p>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Custom Color</p>
-                                            <div className="flex flex-wrap items-center gap-3">
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
-                                                  applyHeroColor('#FFFFFF');
-                                                }}
-                                                className={`${dotBase} ${dotBorder(getActiveTargetColor() === '#FFFFFF')}`}
-                                                style={{ background: '#FFFFFF' }}
-                                                aria-label="Set to white"
-                                              />
-                                              <label
-                                                className={`relative inline-block ${dotBase} ${dotBorder(false)}`}
-                                                style={{ background: getActiveTargetColor() }}
-                                                aria-label="Pick a custom color"
-                                              >
-                                                <input
-                                                  type="color"
-                                                  value={getActiveTargetColor()}
-                                                  onClick={() => {
-                                                    const target = isGradient ? heroGradientAssignTarget : 'solid';
-                                                    setHeroHexEditingTarget(target);
-                                                    setHeroHexDraft(getActiveTargetColor());
-                                                  }}
-                                                  onChange={(e) => {
-                                                    productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
-                                                    applyHeroColor(e.target.value);
-                                                    setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
-                                                  }}
-                                                  className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
-                                                  aria-label="Custom color picker"
-                                                />
-                                              </label>
-                                              {isGradient && (
-                                                <p className="text-[11px] text-gray-500">
-                                                  Applies to: {heroGradientAssignTarget === 'start' ? 'Start' : heroGradientAssignTarget === 'end' ? 'End' : 'Third'}
-                                                </p>
-                                              )}
-                                            </div>
-
-                                            {heroHexEditingTarget && (
-                                              <div className="mt-4 flex items-center gap-2">
-                                                <input
-                                                  type="text"
-                                                  value={heroHexDraft}
-                                                  onChange={(e) => setHeroHexDraft(e.target.value)}
-                                                  onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                      applyHeroHexToTarget();
-                                                      setHeroHexEditingTarget(null);
-                                                    }
-                                                    if (e.key === 'Escape') {
-                                                      setHeroHexEditingTarget(null);
-                                                    }
-                                                  }}
-                                                  onBlur={() => {
-                                                    applyHeroHexToTarget();
-                                                    setHeroHexEditingTarget(null);
-                                                  }}
-                                                  placeholder="#FFFFFF"
-                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
-                                                  aria-label="Hex color"
-                                                  autoFocus
-                                                />
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {isGradient && (
-                                            <div>
-                                              <p className="text-xs text-gray-500 font-semibold mb-2">Gradient Style</p>
-                                              <div className="flex flex-wrap gap-2">
-                                                {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
-                                                  <Chip
-                                                    key={v}
-                                                    selected={heroCfg.gradientStyle === v}
-                                                    onClick={() => {
-                                                      productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
-                                                      markSectionTouched('product-setup');
-                                                    }}
-                                                  >
-                                                    {v}
-                                                  </Chip>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )}
+                                      {/* ── 1. BACKGROUND TYPE ───────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Background Type</p>
+                                        <div className="flex gap-2">
+                                          {(['Solid', 'Gradient'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.backgroundType === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
                                         </div>
                                       </div>
 
-                                      <div className="h-px bg-gray-200 my-6" />
+                                      {/* ── 2. COLOR SOURCE ───────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Color Source</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {([
+                                            { value: 'Product label colors', label: 'Product palette' },
+                                            { value: 'Neutral brand tones', label: 'Brand palette' },
+                                            { value: 'Custom', label: 'Custom' },
+                                          ] as const).map(({ value, label }) => (
+                                            <Chip
+                                              key={value}
+                                              selected={paletteSource === value}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: value } });
+                                                applyColorSourceDefaults(value);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {label}
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                        {paletteSource === 'Product label colors' && heroLandingBrandSwatches.length === 0 && (
+                                          <p className="text-[11px] text-amber-600">
+                                            No label colors detected yet. Upload a product image to auto-fill.
+                                          </p>
+                                        )}
+                                      </div>
 
-                                      <div className="space-y-5">
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Palette Source</p>
+                                      {/* ── 3. COLORS ─────────────────────────────────────── */}
+                                      <div className="space-y-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                          {isGradient ? 'Gradient Colors' : 'Color'}
+                                        </p>
+
+                                        {!isGradient ? (
+                                          // Solid: single color row
+                                          <ColorRow
+                                            label="Color"
+                                            value={solidColor}
+                                            readOnly={!isCustom}
+                                            onChange={(hex) => {
+                                              productStore.setBackgroundColor(hex);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          />
+                                        ) : (
+                                          // Gradient: two (or three) color rows
+                                          <div className="space-y-2">
+                                            <ColorRow
+                                              label="Start"
+                                              value={startColor}
+                                              readOnly={!isCustom}
+                                              onChange={(hex) => {
+                                                productStore.setGradientStart(hex);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            />
+                                            <ColorRow
+                                              label="End"
+                                              value={endColor}
+                                              readOnly={!isCustom}
+                                              onChange={(hex) => {
+                                                productStore.setGradientEnd(hex);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            />
+
+                                            {hasMid && (
+                                              <div className="flex items-center gap-3">
+                                                <div className="w-16 shrink-0" />
+                                                <div className="flex flex-1 items-center gap-2">
+                                                  <ColorRow
+                                                    label="Mid"
+                                                    value={midColor}
+                                                    readOnly={!isCustom}
+                                                    onChange={(hex) => {
+                                                      productStore.setGradientMid(hex);
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                  />
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      productStore.setGradientMid('');
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                    className="ml-auto shrink-0 text-[10px] text-gray-400 hover:text-gray-600 underline"
+                                                    aria-label="Remove third color"
+                                                  >
+                                                    Remove
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {!hasMid && (
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const suggested =
+                                                    heroLandingBrandSwatches[2] ||
+                                                    heroLandingBrandSwatches[1] ||
+                                                    '#E5E7EB';
+                                                  productStore.setGradientMid(suggested);
+                                                  markSectionTouched('product-setup');
+                                                }}
+                                                className="ml-[4.5rem] text-[11px] font-medium text-indigo-500 hover:text-indigo-700"
+                                              >
+                                                + Add third color
+                                              </button>
+                                            )}
+                                          </div>
+                                        )}
+
+                                        {/* Read-only hint when palette source drives colors */}
+                                        {!isCustom && (
+                                          <p className="text-[10px] text-gray-400">
+                                            Colors are driven by{' '}
+                                            {paletteSource === 'Product label colors' ? 'product label palette' : 'brand palette'}.
+                                            Switch to <strong>Custom</strong> to edit manually.
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      {/* ── 4. GRADIENT STYLE (gradient only) ─────────────── */}
+                                      {isGradient && (
+                                        <div className="space-y-2">
+                                          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Gradient Style</p>
                                           <div className="flex flex-wrap gap-2">
-                                            {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
+                                            {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
                                               <Chip
                                                 key={v}
-                                                selected={heroCfg.paletteSource === v}
+                                                selected={heroCfg.gradientStyle === v}
                                                 onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
                                                   markSectionTouched('product-setup');
                                                 }}
                                               >
@@ -3702,41 +3713,43 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                             ))}
                                           </div>
                                         </div>
+                                      )}
 
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Negative Space</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-                                              <Chip
-                                                key={v}
-                                                selected={heroCfg.negativeSpace === v}
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                              >
-                                                {v}
-                                              </Chip>
-                                            ))}
-                                          </div>
+                                      {/* ── 5. NEGATIVE SPACE ─────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Negative Space</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.negativeSpace === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
                                         </div>
+                                      </div>
 
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Contrast Level</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {(['Soft', 'High'] as const).map(v => (
-                                              <Chip
-                                                key={v}
-                                                selected={heroCfg.contrastLevel === v}
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: v } });
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                              >
-                                                {v}
-                                              </Chip>
-                                            ))}
-                                          </div>
+                                      {/* ── 6. CONTRAST ───────────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Contrast</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {(['Soft', 'High'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.contrastLevel === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
                                         </div>
                                       </div>
                                     </>
