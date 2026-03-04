@@ -42,10 +42,13 @@ export function resolveStudioAuthority(state: StudioUIState): StudioAuthorityBun
     String(state.aspectRatio || '').trim() === '1:1' &&
     state.subjectOrientation === 'vertical';
 
+  const isPoolWaterPhotoMode = normalize(state.photoMode) === 'pool water';
+
   const allowSplash =
     creativeIntent !== 'clinical' &&
-    motion !== 'static' &&
-    (world === 'splash-tank' || world === 'underwater' || world === 'beach-daylight');
+    (isPoolWaterPhotoMode ||
+      (motion !== 'static' &&
+        (world === 'splash-tank' || world === 'underwater' || world === 'beach-daylight')));
 
   const permissions = {
     allowSplash,
@@ -56,7 +59,12 @@ export function resolveStudioAuthority(state: StudioUIState): StudioAuthorityBun
   };
 
   if (world === 'splash-tank' && !isDynamicMotion(motion)) {
-    permissions.allowSplash = false;
+    // Pool Water is a static water-scene mode — it does not require dynamic motion
+    // to render water surface, caustics, and reflections. Only suppress splash for
+    // modes that are genuinely non-water (should not reach here, but guard anyway).
+    if (!isPoolWaterPhotoMode) {
+      permissions.allowSplash = false;
+    }
   }
   if (splitLevelUnderwaterSquareVertical) {
     permissions.allowHorizontalSpread = false;
