@@ -5098,11 +5098,18 @@ If the model attempts to create a scene or environment, override it and force a 
         sourceFunction: 'App.handleGenerateClick.beforeIsStudioEngine',
       });
       const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
+      const forceStudioByProductContent =
+        options.contentStyle === 'product' ||
+        lifestyleStep3Values?.contentStyle === 'product';
       const isStudioEngine =
+        forceStudioByProductContent ||
         isStudioBrandingScene ||
         (isProductPlacement && lifestyleStep3Values?.sceneType !== 'lifestyle-real');
       console.log('[APP isStudioEngine]', {
         'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
+        'lifestyleStep3Values.contentStyle': lifestyleStep3Values?.contentStyle,
+        'options.contentStyle': options.contentStyle,
+        forceStudioByProductContent,
         isStudioBrandingScene,
         isProductPlacement,
         isStudioEngine,
@@ -5196,6 +5203,10 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
         };
+        if (basePromptOptions.contentStyle === 'product') {
+          basePromptOptions.sceneType = 'studio-branding';
+          basePromptOptions.sceneIntent = 'ecommerce';
+        }
 
         // Ensure every render produces a different person by default (while keeping age/gender/etc),
         // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
