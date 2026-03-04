@@ -981,6 +981,83 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     })(),
     // ── Context preset (studio environment / world context) ──
     ...(state.contextPreset ? { contextPresetValue: String(state.contextPreset) } : {}),
+    // ── V2 brand palette injection (buildStudioBackground reads these) ──
+    // Maps V1 store palette fields → V2 StudioUIState palette fields.
+    // Without this block, buildStudioBackground always falls through to #FFFFFF fallback.
+    ...(() => {
+      const activeProduct = Array.isArray(state.products)
+        ? state.products.find((p) => p.id === state.activeProductId) ?? state.products[0]
+        : undefined;
+      const labelDominant = String(activeProduct?.palette?.dominant || '').trim();
+      const labelSecondary = String(activeProduct?.palette?.secondary || '').trim();
+      const labelAccent = String(activeProduct?.palette?.accent || '').trim();
+      const hasLabelColors = !!labelDominant;
+
+      const brandPrimary = String(state.palette?.primaryColor || '').trim();
+      const brandSecondary = String(state.palette?.secondaryColor || '').trim();
+      const brandAccent = String(state.palette?.accentColor || '').trim();
+      const hasBrandColors = !!brandPrimary;
+
+      // Normalize paletteSource from heroLandingPage config into V2 field names.
+      // heroLandingPage.paletteSource values: 'Product label colors' | 'Brand Colors' | 'Custom' | ...
+      const heroPaletteSource = String(
+        state.photoModeConfig?.heroLandingPage?.paletteSource || ''
+      ).trim();
+      let productPaletteSource: 'Use product label colors' | 'Brand Colors' | 'Custom' | undefined;
+      if (heroPaletteSource === 'Product label colors' || heroPaletteSource === 'Use product label colors') {
+        productPaletteSource = 'Use product label colors';
+      } else if (heroPaletteSource === 'Brand Colors' || heroPaletteSource === 'brand') {
+        productPaletteSource = 'Brand Colors';
+      } else if (heroPaletteSource === 'Custom') {
+        productPaletteSource = 'Custom';
+      } else {
+        // Fallback: auto-detect best source
+        productPaletteSource = hasLabelColors
+          ? 'Use product label colors'
+          : hasBrandColors
+          ? 'Brand Colors'
+          : undefined;
+      }
+
+      const paletteBlock: Record<string, unknown> = {};
+      if (productPaletteSource) paletteBlock.productPaletteSource = productPaletteSource;
+
+      if (productPaletteSource === 'Use product label colors' && hasLabelColors) {
+        paletteBlock.productPaletteA = labelDominant;
+        if (labelSecondary) paletteBlock.productPaletteB = labelSecondary;
+        if (labelAccent) paletteBlock.productPaletteC = labelAccent;
+      } else if (productPaletteSource === 'Brand Colors' && hasBrandColors) {
+        paletteBlock.productPaletteA = brandPrimary;
+        if (brandSecondary) paletteBlock.productPaletteB = brandSecondary;
+        if (brandAccent) paletteBlock.productPaletteC = brandAccent;
+      } else if (productPaletteSource === 'Custom') {
+        // Custom: read from backgroundColor / gradientStart / gradientEnd
+        const customPrimary = String(state.backgroundColor || '').trim();
+        const customSecondary = String(state.gradientStart || '').trim();
+        const customTertiary = String(state.gradientEnd || '').trim();
+        if (customPrimary) paletteBlock.productPaletteA = customPrimary;
+        if (customSecondary) paletteBlock.productPaletteB = customSecondary;
+        if (customTertiary) paletteBlock.productPaletteC = customTertiary;
+      }
+
+      if (hasBrandColors) {
+        paletteBlock.brandPalette = {
+          primaryColor: brandPrimary || undefined,
+          secondaryColor: brandSecondary || undefined,
+          accentColor: brandAccent || undefined,
+        };
+      }
+
+      // Forward heroLandingPage.backgroundType to V2 photoModeConfig
+      const heroBackgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
+      if (heroBackgroundType) {
+        paletteBlock.photoModeConfig = {
+          heroLandingPage: { backgroundType: heroBackgroundType },
+        };
+      }
+
+      return paletteBlock;
+    })(),
   } as StudioUIState;
 
   const rules = industryRules[industryProfile];
