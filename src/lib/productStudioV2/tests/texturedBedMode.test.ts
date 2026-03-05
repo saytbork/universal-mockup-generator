@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildPhotoModeDynamic } from '../builders/buildPhotoModeDynamic';
 import { buildIngredients } from '../builders/buildIngredients';
+import { buildWorld } from '../builders/buildWorld';
 import type { StudioUIState } from '../types/studioTypes';
 
 describe('Textured Bed / Scatter Base contracts', () => {
@@ -51,3 +52,53 @@ describe('Textured Bed / Scatter Base contracts', () => {
   });
 });
 
+describe('Gel Smear Editorial contracts', () => {
+  it('injects strict gel smear editorial scene rules', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      photoMode: 'Gel Smear Editorial',
+      photoModeDynamicSettings: {
+        smearWidth: 'Balanced',
+      },
+    };
+
+    const block = buildPhotoModeDynamic(state);
+    expect(block).toContain('GEL_SMEAR_EDITORIAL_SCENE:');
+    expect(block).toContain('GEL_SMEAR_MATERIAL_TRUTH:');
+    expect(block).toContain('PRODUCT_PROTECTION_RULE: Smear must not cover product label.');
+    expect(block).toContain('SURFACE_RULE: Neutral premium stone/concrete/cosmetic slab');
+    expect(block).toContain('No background gradients.');
+    expect(block).toContain('No props. No clutter.');
+  });
+
+  it('world scene mapping for Gel Smear keeps slab/no-gradient constraints', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
+      photoMode: 'Gel Smear Editorial',
+    };
+
+    const world = buildWorld(
+      {
+        creativeIntent: 'conversion',
+        world: 'studio',
+        motion: 'static',
+        composition: 'hero',
+        permissions: {
+          allowSplash: false,
+          allowAtmosphere: false,
+          allowParticles: false,
+          allowHorizontalSpread: true,
+          allowVerticalDominance: true,
+        },
+      },
+      undefined,
+      state
+    );
+
+    expect(world).toContain('premium editorial gel-smear composition on neutral stone/concrete cosmetic slab');
+    expect(world).toContain('no background gradients');
+    expect(world).toContain('no props, no clutter');
+  });
+});

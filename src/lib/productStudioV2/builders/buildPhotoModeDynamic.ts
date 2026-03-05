@@ -93,6 +93,19 @@ function buildTexturedBedContract(state?: StudioUIState, settings?: Record<strin
   return parts.join(' ');
 }
 
+function buildGelSmearEditorialContract(): string {
+  return [
+    'GEL_SMEAR_EDITORIAL_SCENE: Premium editorial composition featuring a tactile cosmetic gel smear on a clean stone surface.',
+    'GEL_SMEAR_MATERIAL_TRUTH: Smear is a real material application, not a background texture. Must show physical thickness, visible edges, micro-air bubbles, glossy highlights, and subtle translucency.',
+    'GEL_SMEAR_SHAPE_DISCIPLINE: Intentional aesthetic smear shape with smooth curved swipe, visible brush/spatula marks, and thicker edge ridges at the smear end.',
+    'PRODUCT_PLACEMENT_RULE: Product placed adjacent to smear with controlled interaction only. Allowed placements: leaning near smear, resting beside smear, touching smear edge, or casting shadow over smear.',
+    'PRODUCT_PROTECTION_RULE: Smear must not cover product label. No residue on container. No dripping from product.',
+    'SURFACE_RULE: Neutral premium stone/concrete/cosmetic slab with subtle texture visibility. No background gradients.',
+    'LIGHTING_RULE: Editorial cosmetic lighting with controlled specular highlights on gel surface and soft directional shaping for gloss/depth.',
+    'COMPOSITION_RULE: Editorial beauty composition. Smear occupies one zone. Product occupies hero zone. Balanced negative space. No props. No clutter.',
+  ].join(' ');
+}
+
 /**
  * Injects Photo Mode dynamic sub-settings (macroTightness, dropletMode, etc.)
  * into the V2 prompt. These come from the user's per-Photo-Mode controls in the UI.
@@ -108,6 +121,7 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   const photoMode = String(state?.photoMode || '').trim();
   const isPoolWater = photoMode === 'Pool Water';
   const isTexturedBed = photoMode === 'Textured Bed / Scatter Base';
+  const isGelSmearEditorial = photoMode === 'Gel Smear Editorial';
   // eslint-disable-next-line no-console
   console.log('[DEBUG][buildPhotoModeDynamic] EXECUTED. photoMode=', photoMode, '| photoModeDynamicSettings=', JSON.stringify(settings));
 
@@ -134,10 +148,16 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
       if (isTexturedBed) {
         return [result, buildTexturedBedContract(state, {})].join(' ');
       }
+      if (isGelSmearEditorial) {
+        return [result, buildGelSmearEditorialContract()].join(' ');
+      }
       return result;
     }
     if (isTexturedBed) {
       return buildTexturedBedContract(state, {});
+    }
+    if (isGelSmearEditorial) {
+      return buildGelSmearEditorialContract();
     }
     return '';
   }
@@ -166,10 +186,16 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
       if (isTexturedBed) {
         return [result, buildTexturedBedContract(state, {})].join(' ');
       }
+      if (isGelSmearEditorial) {
+        return [result, buildGelSmearEditorialContract()].join(' ');
+      }
       return result;
     }
     if (isTexturedBed) {
       return buildTexturedBedContract(state, {});
+    }
+    if (isGelSmearEditorial) {
+      return buildGelSmearEditorialContract();
     }
     return '';
   }
@@ -189,6 +215,9 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   console.log('[DEBUG][buildPhotoModeDynamic] emitted:', JSON.stringify(result));
   if (isTexturedBed) {
     return [result, buildTexturedBedContract(state, finalSettings)].join(' ');
+  }
+  if (isGelSmearEditorial) {
+    return [result, buildGelSmearEditorialContract()].join(' ');
   }
   return result;
 }

@@ -59,7 +59,7 @@ const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   'Creator Premium Simulation': 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
   'UGC Premium Simulation': 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
   'Macro Dew Label': 'true macro close-up of the product label and bottle material texture, label occupying most of frame, realistic dew droplets with optical magnification behavior, ultra-sharp commercial detail and controlled highlights',
-  'Gel Smear Editorial': 'editorial gel-smear texture composition on clean premium surface, product placed with tactile material contrast and controlled highlights',
+  'Gel Smear Editorial': 'premium editorial gel-smear composition on neutral stone/concrete cosmetic slab, real tactile smear material with visible thickness and controlled gloss, product adjacent in hero zone, balanced negative space, no props, no clutter, no background gradients',
   'Citrus Fresh Flat Lay': 'fresh ingredient-led flat lay composition with clean circular rhythm around the product, bright premium commercial styling, top-down discipline',
   'Stones & Crystals Flat Lay': 'neutral tactile flat lay with curated stones and crystal accents, balanced spacing and premium wellness editorial tone',
   'Dried Citrus Earth': 'earthy warm flat lay on textured natural surface with curated dried botanical accents, premium grounded composition and clear product hierarchy',
@@ -155,4 +155,3 @@ export function buildWorld(
   console.log('[DEBUG][buildWorld] FINAL background string emitted (fallback):', JSON.stringify(fallback));
   return fallback;
 }
-
