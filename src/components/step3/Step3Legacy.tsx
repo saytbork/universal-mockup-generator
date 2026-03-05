@@ -1664,7 +1664,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const heroLandingBrandSwatches = (() => {
     const paletteSource = productStore.photoModeConfig?.heroLandingPage?.paletteSource;
     if (paletteSource === 'Neutral brand tones') {
-      return ['#FFFFFF', '#F3F4F6', '#E5E7EB'];
+      return ['#F9FAFB', '#F3F4F6', '#E5E7EB'];
     }
     if (paletteSource === 'Custom') {
       return [];
@@ -3476,7 +3476,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       // Fill from brand system palette; fall back to neutral whites if none configured.
                                       const swatches = brandSystemSwatches.length > 0
                                         ? brandSystemSwatches
-                                        : ['#FFFFFF', '#F3F4F6', '#E5E7EB'];
+                                        : ['#F9FAFB', '#F3F4F6', '#E5E7EB'];
                                       productStore.setBackgroundColor(swatches[0]);
                                       if (isGradient) {
                                         productStore.setGradientStart(swatches[0]);
@@ -3611,8 +3611,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           </p>
                                         )}
                                         {paletteSource === 'Neutral brand tones' && brandSystemSwatches.length === 0 && (
-                                          <p className="text-[11px] text-amber-600">
-                                            No brand palette configured yet. Set brand colors in your account settings.
+                                          <p className="text-[11px] text-gray-500">
+                                            Brand palette not found. Using neutral fallback tones.
                                           </p>
                                         )}
                                       </div>
