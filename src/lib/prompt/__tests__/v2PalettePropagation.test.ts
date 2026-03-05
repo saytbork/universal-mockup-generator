@@ -79,7 +79,7 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Color Pop Hero: always solid, primary only, no #FFFFFF', () => {
+  it('Color Pop Hero: solid (no gradient), primary as background, secondary for radial energy', () => {
     const state = baseState({
       photoMode: 'Color Pop Hero',
       photoModeConfig: {
@@ -92,8 +92,11 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     const result = buildStudioBackground(authority, v2State);
     expect(result!.colorSource).toBe('product');
     expect(result!.gradientEnabled).toBe(false);
+    expect(result!.primaryColor).toBe('#c0392b');
+    // Primary must appear in background string
     expect(result!.backgroundString).toContain('#c0392b');
-    expect(result!.backgroundString).not.toContain('#2980b9');
+    // Secondary appears for radial energy (new behavior per Part 4 spec)
+    expect(result!.backgroundString).toContain('#2980b9');
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 

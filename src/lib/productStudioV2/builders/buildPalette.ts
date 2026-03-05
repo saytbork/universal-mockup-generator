@@ -1,5 +1,12 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
+// ── studioTypes extension (local): custom palette slot ───────────────────────
+// productPaletteSource === 'Custom' means the user manually entered colors.
+// In that case productPaletteA/B/C carry the custom values, same as product-label
+// colors, but source becomes 'custom' for downstream tracking.
+// The resolvedPalette.source type is extended here; studioTypes.ts can be updated
+// separately to include 'custom' in the union.
+
 const HEX_RE = /^#[0-9a-f]{3,8}$/i;
 
 function isValidHex(v: unknown): v is string {
@@ -66,9 +73,10 @@ function darken(hex: string, amount: number): string {
  * buildPalette — resolves the canonical 3-color palette used by V2.
  *
  * Priority rule:
- *   1. productPalette (product is always the visual source of truth)
- *   2. brandPalette (derived from product when available; used only when no product palette)
- *   3. neutral-gray (#f9fafb / #f3f4f6 / #e5e7eb) — never pure white
+ *   1. productPalette  — product label extraction (always preferred)
+ *   2. brandPalette    — brand system colors (when no product palette)
+ *   3. customPalette   — user-entered custom colors (productPaletteSource === 'Custom')
+ *   4. neutral-gray    (#f9fafb / #f3f4f6 / #e5e7eb) — never pure white
  *
  * Missing secondary/tertiary slots are derived via lighten()/darken() from primary.
  *
@@ -83,37 +91,58 @@ export function buildPalette(state: StudioUIState): string {
   const bpB = normalizeHex(state.brandPalette?.secondaryColor);
   const bpC = normalizeHex(state.brandPalette?.accentColor);
 
-  let source: 'product' | 'brand' | 'neutral';
+  // 'Custom' source: user manually entered colors that sit in productPaletteA/B/C
+  // but must be tracked separately from product-label extraction.
+  const isCustomSource = state.productPaletteSource === 'Custom';
+
+  let source: 'product' | 'brand' | 'neutral' | 'custom';
   let primary: string;
   let secondary: string;
   let tertiary: string;
 
-  if (pA) {
+  if (pA && !isCustomSource) {
+    // Priority 1: product label colors (extraction result)
     source = 'product';
     primary = pA;
     secondary = pB || lighten(pA, 15);
     tertiary = pC || darken(pA, 15);
   } else if (bpA) {
+    // Priority 2: brand palette system colors
     source = 'brand';
     primary = bpA;
     secondary = bpB || lighten(bpA, 15);
     tertiary = bpC || darken(bpA, 15);
+  } else if (isCustomSource && pA) {
+    // Priority 3: user-entered custom colors
+    source = 'custom';
+    primary = pA;
+    secondary = pB || lighten(pA, 15);
+    tertiary = pC || darken(pA, 15);
   } else {
+    // Priority 4: neutral fallback — never pure white
     source = 'neutral';
     primary = '#f9fafb';
     secondary = '#f3f4f6';
     tertiary = '#e5e7eb';
   }
 
+  // Invariant: product source must resolve to a real color
+  if (source === 'product' && !primary) {
+    throw new Error(
+      '[buildPalette] Invariant violation: product source without primary color. ' +
+      'productPaletteA exists but resolved to empty.'
+    );
+  }
+
   // Guard: product palette must never resolve to pure white
-  if (pA && primary === '#ffffff') {
+  if (pA && !isCustomSource && primary === '#ffffff') {
     throw new Error(
       `[buildPalette] Invariant violation: product dominant color resolved to white (${primary}). ` +
       'Background must use extracted product dominant color.'
     );
   }
 
-  state.resolvedPalette = { primary, secondary, tertiary, source };
+  state.resolvedPalette = { primary, secondary, tertiary, source: source as 'product' | 'brand' | 'neutral' };
 
   // eslint-disable-next-line no-console
   console.log(
@@ -123,6 +152,9 @@ export function buildPalette(state: StudioUIState): string {
     `secondary=${secondary}\n` +
     `tertiary=${tertiary}`
   );
+
+  // eslint-disable-next-line no-console
+  console.log(`[BG_COLOR_USED] ${primary}`);
 
   return '';
 }

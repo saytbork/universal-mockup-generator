@@ -43,14 +43,16 @@ export function buildStudioBackground(
 
   // eslint-disable-next-line no-console
   console.log('[V2_BG_RESOLVER]', { primary, secondary, tertiary });
+  // eslint-disable-next-line no-console
+  console.log(`[BG_COLOR_USED] ${primary}`);
 
   let backgroundString: string;
   let gradientEnabled = false;
 
   if (photoMode === 'Color Pop Hero') {
-    // Always solid, primary only — bold color field with radial energy and silhouette contrast
+    // Bold color field: primary as background, secondary as radial energy source
     gradientEnabled = false;
-    backgroundString = `Bold color-field studio background in ${primary}. Radial gradient energy field behind the product with subtle luminosity falloff toward the edges. Strong silhouette contrast between product and background. High-impact advertising style studio lighting. Product fully centered and dominant.`;
+    backgroundString = `Bold color-field studio background in ${primary}. Radial energy gradient expanding from behind the product using ${secondary}. Strong silhouette contrast between product and background. High-impact advertising style studio lighting. Product fully centered and dominant.`;
   } else {
     // Hero Landing Page — respect backgroundType from config
     const backgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
@@ -60,10 +62,10 @@ export function buildStudioBackground(
 
     if (wantsGradient && secondary) {
       gradientEnabled = true;
-      backgroundString = `Clean studio hero composition. Soft three-color gradient background blending ${primary}, ${secondary}, and ${tertiary}. Background gradient derived from palette colors with cinematic studio depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
+      backgroundString = `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
     } else {
       gradientEnabled = false;
-      backgroundString = `Clean studio hero composition. Seamless solid background in color ${primary} with cinematic studio depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Controlled vignette toward edges emphasizing product presence. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
+      backgroundString = `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
     }
   }
 

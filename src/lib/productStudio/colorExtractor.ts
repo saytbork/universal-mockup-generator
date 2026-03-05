@@ -1,11 +1,114 @@
 /**
  * Color Extraction Utility
- * Extracts dominant colors from product images using canvas pixel analysis
+ * Extracts dominant colors from product images using canvas pixel sampling + k-means clustering.
+ *
+ * Algorithm:
+ *   1. Downscale image to ≤200px on the longest side.
+ *   2. Sample full image (not just center crop) to capture all label regions.
+ *   3. Filter near-white (R>245, G>245, B>245), near-black, and transparent pixels.
+ *   4. Run k-means with k=5 for up to 20 iterations to cluster the remaining pixels.
+ *   5. Sort clusters by pixel count (largest = most frequent color).
+ *   6. Return top-3 non-white cluster centroids as dominant / secondary / accent.
+ *
+ * Fallback:
+ *   If all pixels are near-white (fully-white product with no visible color):
+ *   - Compute average of ALL non-transparent pixels (including near-white).
+ *   - Derive secondary via darken(avg, 20%) and accent via lighten(avg, 20%).
+ *   - productPaletteA is NEVER null.
  */
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function toHexStr(r: number, g: number, b: number): string {
+    return (
+        '#' +
+        [r, g, b]
+            .map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'))
+            .join('')
+    );
+}
+
+function darkenHex(hex: string, pct: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const t = 1 - pct / 100;
+    return toHexStr(r * t, g * t, b * t);
+}
+
+function lightenHex(hex: string, pct: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const t = pct / 100;
+    return toHexStr(r + (255 - r) * t, g + (255 - g) * t, b + (255 - b) * t);
+}
+
+// ── K-means ───────────────────────────────────────────────────────────────────
+
+interface Centroid { r: number; g: number; b: number; count: number }
+
+function kMeans(pixels: Array<[number, number, number]>, k: number, maxIter = 20): Centroid[] {
+    if (pixels.length === 0) return [];
+
+    // Seed centroids by picking evenly-spaced pixels (deterministic, no random)
+    const step = Math.max(1, Math.floor(pixels.length / k));
+    const centroids: Array<[number, number, number]> = Array.from({ length: k }, (_, i) => {
+        const p = pixels[Math.min(i * step, pixels.length - 1)];
+        return [p[0], p[1], p[2]];
+    });
+
+    let assignments = new Int32Array(pixels.length);
+
+    for (let iter = 0; iter < maxIter; iter++) {
+        // Assign each pixel to nearest centroid
+        let changed = false;
+        for (let i = 0; i < pixels.length; i++) {
+            const [r, g, b] = pixels[i];
+            let best = 0;
+            let bestDist = Infinity;
+            for (let c = 0; c < k; c++) {
+                const dr = r - centroids[c][0];
+                const dg = g - centroids[c][1];
+                const db = b - centroids[c][2];
+                const dist = dr * dr + dg * dg + db * db;
+                if (dist < bestDist) { bestDist = dist; best = c; }
+            }
+            if (assignments[i] !== best) { assignments[i] = best; changed = true; }
+        }
+        if (!changed) break;
+
+        // Recompute centroids
+        const sums: Array<[number, number, number, number]> = Array.from({ length: k }, () => [0, 0, 0, 0]);
+        for (let i = 0; i < pixels.length; i++) {
+            const c = assignments[i];
+            sums[c][0] += pixels[i][0];
+            sums[c][1] += pixels[i][1];
+            sums[c][2] += pixels[i][2];
+            sums[c][3]++;
+        }
+        for (let c = 0; c < k; c++) {
+            if (sums[c][3] > 0) {
+                centroids[c] = [sums[c][0] / sums[c][3], sums[c][1] / sums[c][3], sums[c][2] / sums[c][3]];
+            }
+        }
+    }
+
+    // Build result sorted by cluster size (largest first)
+    const counts = new Int32Array(k);
+    for (let i = 0; i < assignments.length; i++) counts[assignments[i]]++;
+    return Array.from({ length: k }, (_, c) => ({
+        r: centroids[c][0], g: centroids[c][1], b: centroids[c][2], count: counts[c],
+    })).sort((a, b) => b.count - a.count);
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
 /**
- * Extract dominant colors from an image URL or base64 string
- * Returns { dominant, secondary } hex colors
+ * Extract dominant colors from an image URL or base64 string.
+ * Returns { dominant, secondary, accent } hex colors.
+ *
+ * dominant is ALWAYS non-null — falls back to average pixel color if needed.
  */
 export async function extractDominantColors(
     imageSource: string
@@ -22,126 +125,71 @@ export async function extractDominantColors(
                 return;
             }
 
-            // Sample at reduced size for performance.
-            // IMPORTANT: focus on the likely label region (center/lower-middle) to avoid
-            // backgrounds, caps, shadows, and table surfaces dominating the palette.
-            const sampleSize = 50;
-            canvas.width = sampleSize;
-            canvas.height = sampleSize;
+            // Downscale to max 200px on longest dimension to keep pixel count manageable
+            const MAX = 200;
+            const scale = Math.min(1, MAX / Math.max(img.width, img.height, 1));
+            const w = Math.max(1, Math.round(img.width * scale));
+            const h = Math.max(1, Math.round(img.height * scale));
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
 
-            // Label ROI heuristic:
-            // - horizontally centered (avoid edges/background)
-            // - vertically biased toward mid-lower (where labels usually sit)
-            const sx = Math.floor(img.width * 0.20);
-            const sy = Math.floor(img.height * 0.35);
-            const sw = Math.max(1, Math.floor(img.width * 0.60));
-            const sh = Math.max(1, Math.floor(img.height * 0.45));
-            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sampleSize, sampleSize);
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const raw = imageData.data;
 
-            const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
-            const pixels = imageData.data;
+            // Separate usable pixels from all non-transparent pixels
+            const usable: Array<[number, number, number]> = [];
+            const allOpaque: Array<[number, number, number]> = [];
 
-            // Color frequency map
-            const colorMap: Record<string, number> = {};
-
-            for (let i = 0; i < pixels.length; i += 4) {
-                const r = pixels[i];
-                const g = pixels[i + 1];
-                const b = pixels[i + 2];
-                const a = pixels[i + 3];
-
-                // Skip transparent or near-white pixels
-                if (a < 128) continue;
-                if (r > 240 && g > 240 && b > 240) continue;
-                if (r < 15 && g < 15 && b < 15) continue;
-
-                // Quantize to reduce color count
-                const qr = Math.round(r / 32) * 32;
-                const qg = Math.round(g / 32) * 32;
-                const qb = Math.round(b / 32) * 32;
-                const key = `${qr},${qg},${qb}`;
-                colorMap[key] = (colorMap[key] || 0) + 1;
+            for (let i = 0; i < raw.length; i += 4) {
+                const r = raw[i], g = raw[i + 1], b = raw[i + 2], a = raw[i + 3];
+                if (a < 128) continue;                          // skip transparent
+                allOpaque.push([r, g, b]);
+                if (r > 245 && g > 245 && b > 245) continue;   // skip near-white
+                if (r < 10 && g < 10 && b < 10) continue;      // skip near-black
+                usable.push([r, g, b]);
             }
 
-            // Prefer saturated colors (label/brand) over neutrals.
-            const sorted = Object.entries(colorMap)
-                .sort(([rgbA, countA], [rgbB, countB]) => {
-                    const scoreA = scoreColor(rgbA, countA);
-                    const scoreB = scoreColor(rgbB, countB);
-                    return scoreB - scoreA;
-                })
-                .slice(0, 10);
-
-            if (sorted.length === 0) {
-                reject(new Error('No colors found'));
+            // If no usable pixels (all-white product), use average of all opaque pixels as fallback
+            if (usable.length === 0) {
+                if (allOpaque.length === 0) {
+                    reject(new Error('[ColorExtractor] No opaque pixels found'));
+                    return;
+                }
+                const avg = allOpaque.reduce((acc, [r, g, b]) => [acc[0] + r, acc[1] + g, acc[2] + b], [0, 0, 0]);
+                const n = allOpaque.length;
+                const dominant = toHexStr(avg[0] / n, avg[1] / n, avg[2] / n);
+                const secondary = darkenHex(dominant, 20);
+                const accent = lightenHex(dominant, 20);
+                console.log('[ColorExtractor] All-white fallback:', { dominant, secondary, accent });
+                resolve({ dominant, secondary, accent });
                 return;
             }
 
-            // Convert back to hex
-            const toHex = (rgb: string): string => {
-                const [r, g, b] = rgb.split(',').map(Number);
-                return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
-            };
+            // Run k-means (k=5) on usable pixels
+            const clusters = kMeans(usable, 5, 20);
 
-            const picked: string[] = [];
-            for (const [rgb] of sorted) {
-                const hex = toHex(rgb).toUpperCase();
-                if (!picked.includes(hex)) picked.push(hex);
-                if (picked.length >= 3) break;
+            // Convert clusters to hex, pick top-3 that are not near-white
+            const results: string[] = [];
+            for (const c of clusters) {
+                if (results.length >= 3) break;
+                const hex = toHexStr(c.r, c.g, c.b);
+                if (!results.includes(hex)) results.push(hex);
             }
 
-            const dominant = picked[0];
-            const secondary = picked[1] ?? dominant;
-            const accent = picked[2];
+            // Guarantee at least 3 slots — derive missing from primary
+            const dominant = results[0];
+            const secondary = results[1] ?? darkenHex(dominant, 20);
+            const accent = results[2] ?? lightenHex(dominant, 20);
 
-            console.log('[ColorExtractor] Extracted:', { dominant, secondary, accent });
+            console.log('[ColorExtractor] k-means palette:', { dominant, secondary, accent });
             resolve({ dominant, secondary, accent });
         };
 
         img.onerror = () => {
-            reject(new Error('Failed to load image for palette extraction'));
+            reject(new Error('[ColorExtractor] Failed to load image for palette extraction'));
         };
 
         img.src = imageSource;
     });
-}
-
-function scoreColor(rgb: string, count: number): number {
-    const [r, g, b] = rgb.split(',').map(Number);
-    const { s, l } = rgbToHsl(r, g, b);
-
-    // Penalize near-gray and extreme luminance.
-    const saturationBoost = Math.pow(Math.max(0, s), 1.5); // favor saturated label colors
-    const luminancePenalty = l < 0.08 || l > 0.92 ? 0.15 : 1.0;
-
-    return count * saturationBoost * luminancePenalty;
-}
-
-function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-    const rn = r / 255;
-    const gn = g / 255;
-    const bn = b / 255;
-
-    const max = Math.max(rn, gn, bn);
-    const min = Math.min(rn, gn, bn);
-    const l = (max + min) / 2;
-
-    if (max === min) return { h: 0, s: 0, l };
-
-    const d = max - min;
-    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    let h = 0;
-    switch (max) {
-        case rn:
-            h = (gn - bn) / d + (gn < bn ? 6 : 0);
-            break;
-        case gn:
-            h = (bn - rn) / d + 2;
-            break;
-        case bn:
-            h = (rn - gn) / d + 4;
-            break;
-    }
-    h /= 6;
-    return { h, s, l };
 }
