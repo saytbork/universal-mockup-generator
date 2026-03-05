@@ -62,10 +62,10 @@ function buildTexturedBedContract(state?: StudioUIState, settings?: Record<strin
 
   const depthDirective =
     depthRaw === 'subtle'
-      ? 'DEPTH_LEVEL_CONTROL: Subtle -> light immersion, shallow embedding, minimal wrap around base.'
+      ? 'DEPTH_LEVEL_CONTROL: Subtle -> light immersion, shallow embedding, minimal wrap around base, with product fully visible and label unobstructed.'
       : depthRaw === 'immersive'
-        ? 'DEPTH_LEVEL_CONTROL: Immersive -> deep immersion with dense wrap partially surrounding the lower body of the product.'
-        : 'DEPTH_LEVEL_CONTROL: Balanced -> moderate immersion with visible ingredient wrap around base.';
+        ? 'DEPTH_LEVEL_CONTROL: Immersive -> deep immersion into the user ingredient with dense wrap around the lower body. Product must still remain clearly visible and readable; ingredient wrap is concentrated at the base/lower perimeter only.'
+        : 'DEPTH_LEVEL_CONTROL: Balanced -> moderate immersion with visible ingredient wrap around base while preserving full product readability.';
 
   const ingredientAuthority = ingredients || '<MISSING_USER_DEFINED_INGREDIENTS>';
 

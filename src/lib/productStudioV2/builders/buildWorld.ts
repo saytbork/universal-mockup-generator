@@ -85,6 +85,7 @@ const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
 
 function buildTexturedBedScene(state?: StudioUIState): string {
   const ingredient = String(state?.ingredientObjects || '').trim();
+  const depthRaw = String(state?.photoModeDynamicSettings?.depthLevel || '').trim().toLowerCase();
   if (!ingredient) {
     throw new Error(
       '[buildWorld] Textured Bed invariant violation: ingredient is mandatory. ' +
@@ -92,11 +93,20 @@ function buildTexturedBedScene(state?: StudioUIState): string {
     );
   }
 
+  const depthInteractionRule =
+    depthRaw === 'subtle'
+      ? 'TEXTURED_BED_DEPTH_LEVEL: Subtle. Product lightly embedded with shallow ingredient contact at base only; product remains fully visible.'
+      : depthRaw === 'immersive'
+        ? `TEXTURED_BED_DEPTH_LEVEL: Immersive. Product is deeply seated into ${ingredient} with dense wrap around the lower perimeter and clear compression marks, but the full product silhouette and primary label remain visible.`
+        : 'TEXTURED_BED_DEPTH_LEVEL: Balanced. Product moderately embedded with visible ingredient wrap and clear readability.';
+
   return [
     `TEXTURED_BED_SCENE: The user ingredient "${ingredient}" defines the full physical ground plane.`,
     `TEXTURED_BED_SURFACE_AUTHORITY: Ground surface must be made from ${ingredient} only. No studio floor, no marble, no neutral stone, no abstract generic texture, and no substitutions unless explicitly requested by user.`,
     'TEXTURED_BED_VISUAL_DOMINANCE: The ingredient provided by the user defines the physical surface. It must be visually dominant and clearly identifiable across the entire base plane.',
     'TEXTURED_BED_PRODUCT_CONTACT: Product must obey gravity and physically interact with ingredient surface. Allowed interaction includes partial sinking, loose-particle support, compression indentation, and light displacement around the base.',
+    depthInteractionRule,
+    'TEXTURED_BED_VISIBILITY_RULE: Product must be clearly visible as hero subject. Ingredient bed can wrap the lower body/perimeter but must not hide the product or obstruct the primary label zone.',
     'TEXTURED_BED_FLOATING_BAN: No floating. No hovering. No detached product placement above the ingredient bed.',
     'TEXTURED_BED_RECOGNIZABILITY: Ingredient texture must remain recognizable and material-accurate in color/particle form.',
     'TEXTURED_BED_OVERRIDE: This mode fully overrides default studio material profile and clean-surface defaults.',

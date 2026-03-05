@@ -23,6 +23,7 @@ describe('Textured Bed / Scatter Base contracts', () => {
     expect(block).toContain('TEXTURED_BED_INGREDIENT_AUTHORITY: The ingredient bed must be built exclusively from: rolled oats, dried lavender.');
     expect(block).toContain('TEXTURED_BED_CAMERA_LOCK: True top-down flat lay only (90 degrees overhead).');
     expect(block).toContain('DEPTH_LEVEL_CONTROL: Immersive -> deep immersion');
+    expect(block).toContain('Product must still remain clearly visible and readable');
     expect(block).toContain('LABEL_CLEARANCE_RULE:');
   });
 
@@ -80,6 +81,7 @@ describe('Textured Bed / Scatter Base contracts', () => {
 
     expect(world).toContain('TEXTURED_BED_SCENE: The user ingredient "matcha powder" defines the full physical ground plane.');
     expect(world).toContain('TEXTURED_BED_VISUAL_DOMINANCE: The ingredient provided by the user defines the physical surface.');
+    expect(world).toContain('TEXTURED_BED_VISIBILITY_RULE: Product must be clearly visible as hero subject.');
     expect(world).toContain('TEXTURED_BED_OVERRIDE: This mode fully overrides default studio material profile and clean-surface defaults.');
   });
 
