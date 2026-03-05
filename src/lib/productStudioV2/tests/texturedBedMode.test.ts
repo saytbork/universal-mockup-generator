@@ -50,6 +50,65 @@ describe('Textured Bed / Scatter Base contracts', () => {
     expect(block).toContain('TEXTURED_BED_PROHIBITED_DEFAULTS:');
     expect(block).toContain('No coffee beans.');
   });
+
+  it('buildWorld uses user ingredient as full physical base surface', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'flat-lay',
+      photoMode: 'Textured Bed / Scatter Base',
+      ingredientObjects: 'matcha powder',
+    };
+
+    const world = buildWorld(
+      {
+        creativeIntent: 'conversion',
+        world: 'studio',
+        motion: 'static',
+        composition: 'flat-lay',
+        permissions: {
+          allowSplash: false,
+          allowAtmosphere: false,
+          allowParticles: false,
+          allowHorizontalSpread: true,
+          allowVerticalDominance: true,
+        },
+      },
+      undefined,
+      state
+    );
+
+    expect(world).toContain('TEXTURED_BED_SCENE: The user ingredient "matcha powder" defines the full physical ground plane.');
+    expect(world).toContain('TEXTURED_BED_VISUAL_DOMINANCE: The ingredient provided by the user defines the physical surface.');
+    expect(world).toContain('TEXTURED_BED_OVERRIDE: This mode fully overrides default studio material profile and clean-surface defaults.');
+  });
+
+  it('buildWorld throws when textured bed ingredient is missing', () => {
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'flat-lay',
+      photoMode: 'Textured Bed / Scatter Base',
+    };
+
+    expect(() =>
+      buildWorld(
+        {
+          creativeIntent: 'conversion',
+          world: 'studio',
+          motion: 'static',
+          composition: 'flat-lay',
+          permissions: {
+            allowSplash: false,
+            allowAtmosphere: false,
+            allowParticles: false,
+            allowHorizontalSpread: true,
+            allowVerticalDominance: true,
+          },
+        },
+        undefined,
+        state
+      )
+    ).toThrow('Textured Bed invariant violation');
+  });
 });
 
 describe('Gel Smear Editorial contracts', () => {

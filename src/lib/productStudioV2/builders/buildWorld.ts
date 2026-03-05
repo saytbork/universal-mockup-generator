@@ -41,7 +41,7 @@ const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   'Ice Cubes': 'clean studio surface with scattered ice cubes around the product, cold premium refreshment look with controlled condensation',
   'Condensation Droplets': 'clean studio scene with realistic condensation droplets on the product surface, cold-premium hydration look',
   'Fruit Garnish / Citrus Accents': 'clean studio surface with fresh citrus and fruit accent elements arranged around the product, vibrant premium editorial',
-  'Textured Bed / Scatter Base': 'editorial studio surface with textured base material and curated scattered elements supporting the product',
+  // Textured Bed has dynamic ingredient authority resolution below (do not define static fallback here).
   'Floating Particles': 'clean dark studio background with fine floating particles creating depth and premium atmospheric energy around the product',
   'Foam & Texture': 'editorial studio surface with textured foam and material accents creating tactile contrast around the product',
   'Routine Carousel': 'clean studio multi-product arrangement with editorial spacing, routine lifestyle context, product-first hierarchy',
@@ -83,6 +83,26 @@ const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   'Winery Scene': 'wine bottle in authentic winery environment, stone cellar or barrel room background, natural imperfect lighting, editorial depth of field, bottle as primary subject',
 };
 
+function buildTexturedBedScene(state?: StudioUIState): string {
+  const ingredient = String(state?.ingredientObjects || '').trim();
+  if (!ingredient) {
+    throw new Error(
+      '[buildWorld] Textured Bed invariant violation: ingredient is mandatory. ' +
+      'No fallback surface is allowed for Textured Bed / Scatter Base.'
+    );
+  }
+
+  return [
+    `TEXTURED_BED_SCENE: The user ingredient "${ingredient}" defines the full physical ground plane.`,
+    `TEXTURED_BED_SURFACE_AUTHORITY: Ground surface must be made from ${ingredient} only. No studio floor, no marble, no neutral stone, no abstract generic texture, and no substitutions unless explicitly requested by user.`,
+    'TEXTURED_BED_VISUAL_DOMINANCE: The ingredient provided by the user defines the physical surface. It must be visually dominant and clearly identifiable across the entire base plane.',
+    'TEXTURED_BED_PRODUCT_CONTACT: Product must obey gravity and physically interact with ingredient surface. Allowed interaction includes partial sinking, loose-particle support, compression indentation, and light displacement around the base.',
+    'TEXTURED_BED_FLOATING_BAN: No floating. No hovering. No detached product placement above the ingredient bed.',
+    'TEXTURED_BED_RECOGNIZABILITY: Ingredient texture must remain recognizable and material-accurate in color/particle form.',
+    'TEXTURED_BED_OVERRIDE: This mode fully overrides default studio material profile and clean-surface defaults.',
+  ].join(' ');
+}
+
 export function buildWorld(
   authority: StudioAuthorityBundle,
   explicitWorld?: StudioAuthorityBundle['world'],
@@ -121,6 +141,14 @@ export function buildWorld(
       console.log('[DEBUG][buildWorld] FINAL background string emitted (V2_BG_RESOLVER):', JSON.stringify(result));
       return result;
     }
+  }
+
+  if (photoMode === 'Textured Bed / Scatter Base') {
+    const texturedBedScene = buildTexturedBedScene(state);
+    const result = `PHOTO_MODE_SCENE: ${texturedBedScene} SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][buildWorld] FINAL background string emitted (TEXTURED_BED_SCENE):', JSON.stringify(result));
+    return result;
   }
 
   const photoModeScene = photoMode ? PHOTO_MODE_SCENE_MAP[photoMode] : undefined;
