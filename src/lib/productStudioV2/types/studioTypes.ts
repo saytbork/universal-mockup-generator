@@ -247,12 +247,13 @@ export interface StudioUIState {
    * source:
    *   "product" — derived from productPaletteA/B/C (product label extraction)
    *   "brand"   — derived from brandPalette.primaryColor/secondaryColor/accentColor
+   *   "custom"  — user-entered custom colors (productPaletteSource === 'Custom')
    *   "neutral" — no palette data available; neutral light-gray fallback
    */
   resolvedPalette?: {
     primary: string;
     secondary: string;
     tertiary: string;
-    source: 'product' | 'brand' | 'neutral';
+    source: 'product' | 'brand' | 'custom' | 'neutral';
   };
 }

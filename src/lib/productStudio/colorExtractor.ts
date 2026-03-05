@@ -5,7 +5,7 @@
  * Algorithm:
  *   1. Downscale image to ≤200px on the longest side.
  *   2. Sample full image (not just center crop) to capture all label regions.
- *   3. Filter near-white (R>245, G>245, B>245), near-black, and transparent pixels.
+ *   3. Filter near-white (R>245, G>245, B>245) and transparent pixels.
  *   4. Run k-means with k=5 for up to 20 iterations to cluster the remaining pixels.
  *   5. Sort clusters by pixel count (largest = most frequent color).
  *   6. Return top-3 non-white cluster centroids as dominant / secondary / accent.
@@ -146,7 +146,6 @@ export async function extractDominantColors(
                 if (a < 128) continue;                          // skip transparent
                 allOpaque.push([r, g, b]);
                 if (r > 245 && g > 245 && b > 245) continue;   // skip near-white
-                if (r < 10 && g < 10 && b < 10) continue;      // skip near-black
                 usable.push([r, g, b]);
             }
 

@@ -142,7 +142,7 @@ export function buildPalette(state: StudioUIState): string {
     );
   }
 
-  state.resolvedPalette = { primary, secondary, tertiary, source: source as 'product' | 'brand' | 'neutral' };
+  state.resolvedPalette = { primary, secondary, tertiary, source };
 
   // eslint-disable-next-line no-console
   console.log(

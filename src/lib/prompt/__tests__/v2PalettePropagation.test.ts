@@ -67,6 +67,30 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
+  it('REGRESSION: dominant missing but secondary/accent present → promotes product color instead of neutral fallback', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      products: [
+        {
+          id: 'p1',
+          name: 'Test Product',
+          palette: {
+            dominant: '',
+            secondary: '#C7423A',
+            accent: '#A92F29',
+          },
+        },
+      ],
+    });
+    const v2State = toStudioV2State(state);
+
+    // Bridge logic promotes any valid extracted color into A.
+    expect(v2State.productPaletteA).toBe('#C7423A');
+    buildPalette(v2State);
+    expect(v2State.resolvedPalette?.source).toBe('product');
+    expect(v2State.resolvedPalette?.primary).toBe('#c7423a');
+  });
+
   it('Hero Landing Page: gradient mode produces gradientEnabled=true with product colors', () => {
     const state = baseState({ photoMode: 'Hero Landing Page' });
     const v2State = toStudioV2State(state);

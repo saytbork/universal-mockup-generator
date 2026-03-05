@@ -7,6 +7,7 @@ export default defineConfig({
     include: [
       'src/lib/prompt/__tests__/**/*.test.ts',
       'src/lib/productStudioV2/__tests__/**/*.test.ts',
+      'src/lib/productStudioV2/tests/**/*.test.ts',
     ],
     coverage: {
       reporter: ['text', 'html'],

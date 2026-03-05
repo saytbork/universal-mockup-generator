@@ -2,8 +2,8 @@ import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.
 
 export interface StudioBackgroundResolution {
   backgroundString: string;
-  /** Mirrors resolvedPalette.source — 'product' | 'brand' | 'neutral'. */
-  colorSource: 'product' | 'brand' | 'neutral';
+  /** Mirrors resolvedPalette.source — 'product' | 'brand' | 'custom' | 'neutral'. */
+  colorSource: 'product' | 'brand' | 'custom' | 'neutral';
   primaryColor: string;
   gradientEnabled: boolean;
 }
@@ -52,7 +52,7 @@ export function buildStudioBackground(
   if (photoMode === 'Color Pop Hero') {
     // Bold color field: primary as background, secondary as radial energy source
     gradientEnabled = false;
-    backgroundString = `Bold color-field studio background in ${primary}. Radial energy gradient expanding from behind the product using ${secondary}. Strong silhouette contrast between product and background. High-impact advertising style studio lighting. Product fully centered and dominant.`;
+    backgroundString = `Bold color-field background using the dominant product color ${primary}. Radial energy gradient expanding from behind the product using ${secondary}. Accent edge energy using ${tertiary}. High contrast silhouette separation. Advertising-style lighting. Product fully centered and dominant.`;
   } else {
     // Hero Landing Page — respect backgroundType from config
     const backgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
@@ -71,4 +71,3 @@ export function buildStudioBackground(
 
   return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };
 }
-

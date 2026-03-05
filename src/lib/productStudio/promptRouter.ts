@@ -992,13 +992,44 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         if (/^[0-9A-Fa-f]{3}$/.test(s) || /^[0-9A-Fa-f]{6}$/.test(s)) return `#${s}`;
         return '';
       };
+      const parseHex = (hex: string): [number, number, number] | null => {
+        const h = hex.replace('#', '');
+        if (h.length !== 6) return null;
+        const r = parseInt(h.slice(0, 2), 16);
+        const g = parseInt(h.slice(2, 4), 16);
+        const b = parseInt(h.slice(4, 6), 16);
+        if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return null;
+        return [r, g, b];
+      };
+      const toHex = (r: number, g: number, b: number): string =>
+        `#${[r, g, b]
+          .map((n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0'))
+          .join('')}`;
+      const lighten = (hex: string, amount = 15): string => {
+        const rgb = parseHex(hex);
+        if (!rgb) return hex;
+        const t = amount / 100;
+        return toHex(rgb[0] + (255 - rgb[0]) * t, rgb[1] + (255 - rgb[1]) * t, rgb[2] + (255 - rgb[2]) * t);
+      };
+      const darken = (hex: string, amount = 15): string => {
+        const rgb = parseHex(hex);
+        if (!rgb) return hex;
+        const t = amount / 100;
+        return toHex(rgb[0] * (1 - t), rgb[1] * (1 - t), rgb[2] * (1 - t));
+      };
 
       const activeProduct = Array.isArray(state.products)
         ? state.products.find((p) => p.id === state.activeProductId) ?? state.products[0]
         : undefined;
-      const labelDominant = sanitizeHex(activeProduct?.palette?.dominant);
-      const labelSecondary = sanitizeHex(activeProduct?.palette?.secondary);
-      const labelAccent = sanitizeHex(activeProduct?.palette?.accent);
+      const rawDominant = sanitizeHex(activeProduct?.palette?.dominant);
+      const rawSecondary = sanitizeHex(activeProduct?.palette?.secondary);
+      const rawAccent = sanitizeHex(activeProduct?.palette?.accent);
+
+      // Promote any available extracted tone to A so V2 never discards product palette
+      // due to a missing dominant field.
+      const labelDominant = rawDominant || rawSecondary || rawAccent;
+      const labelSecondary = rawSecondary || (labelDominant ? darken(labelDominant) : '');
+      const labelAccent = rawAccent || (labelDominant ? lighten(labelDominant) : '');
       const hasLabelColors = !!labelDominant;
 
       // V2 background color source is product image palette only.
@@ -1018,9 +1049,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       // eslint-disable-next-line no-console
       console.log(
         '[extractProductPalette]\n' +
-        `A ${labelDominant || '(none)'}\n` +
-        `B ${labelSecondary || '(none)'}\n` +
-        `C ${labelAccent || '(none)'}`
+        `A ${labelDominant || '#f9fafb'}\n` +
+        `B ${labelSecondary || '#f3f4f6'}\n` +
+        `C ${labelAccent || '#e5e7eb'}`
       );
 
       // Forward heroLandingPage.backgroundType to V2 photoModeConfig
