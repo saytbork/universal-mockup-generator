@@ -911,6 +911,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     // ── Menu option injections (last-selection-wins, read directly from state) ──
     ...(() => {
       const extras: Record<string, string> = {};
+      const currentPhotoMode = state.photoMode as string | undefined;
+      const dynamicRaw = currentPhotoMode
+        ? (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode]
+        : undefined;
       // Basic lighting selector (natural-light / overcast / cozy-indoors / ring-light)
       const basicLighting = String((state as any).lighting || '').trim();
       if (basicLighting) extras.basicLighting = basicLighting;
@@ -927,8 +931,15 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       if (productColor) extras.productColor = productColor;
       const productFormScale = String((state as any).productFormScale || (state as any).productScale || '').trim();
       if (productFormScale) extras.productFormScale = productFormScale;
-      // Ingredient objects (Ingredient Stack / Ingredient Flat Lay)
-      const ingredientObjects = String((state as any).props || '').trim();
+      // Ingredient objects:
+      // Primary source is state.props. For Textured Bed, also accept dynamic customIngredients
+      // so V2 does not fail invariant when user entered ingredients in the mode sub-control.
+      const propsIngredientObjects = String((state as any).props || '').trim();
+      const texturedBedDynamicIngredients =
+        currentPhotoMode === 'Textured Bed / Scatter Base'
+          ? String((dynamicRaw as any)?.customIngredients || '').trim()
+          : '';
+      const ingredientObjects = propsIngredientObjects || texturedBedDynamicIngredients;
       if (ingredientObjects) extras.ingredientObjects = ingredientObjects;
       const ingredientLayout = String((state as any).ingredientLayout || '').trim();
       if (ingredientLayout) extras.ingredientLayout = ingredientLayout;

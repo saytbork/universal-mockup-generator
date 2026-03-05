@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { buildPhotoModeDynamic } from '../builders/buildPhotoModeDynamic';
 import { buildIngredients } from '../builders/buildIngredients';
 import { buildWorld } from '../builders/buildWorld';
+import { toStudioV2State } from '../../productStudio/promptRouter';
 import type { StudioUIState } from '../types/studioTypes';
 
 describe('Textured Bed / Scatter Base contracts', () => {
@@ -108,6 +109,50 @@ describe('Textured Bed / Scatter Base contracts', () => {
         state
       )
     ).toThrow('Textured Bed invariant violation');
+  });
+
+  it('toStudioV2State maps Textured Bed customIngredients into ingredientObjects', () => {
+    const state = {
+      photoMode: 'Textured Bed / Scatter Base',
+      props: '',
+      photoModeConfig: {
+        dynamic: {
+          'Textured Bed / Scatter Base': {
+            customIngredients: 'crushed lavender',
+            depthLevel: 'Balanced',
+          },
+        },
+      },
+      palette: { source: 'auto', primaryColor: null, secondaryColor: null, accentColor: null, brandPresetId: null },
+      products: [],
+      activeProductId: null,
+      definition: { type: 'bottle', physical: { kind: 'dummy', v: {} } },
+      stateMotion: 'static',
+      aspectRatio: '1:1',
+    } as any;
+
+    const v2State = toStudioV2State(state);
+    expect(v2State.ingredientObjects).toBe('crushed lavender');
+
+    const world = buildWorld(
+      {
+        creativeIntent: 'conversion',
+        world: 'studio',
+        motion: 'static',
+        composition: 'flat-lay',
+        permissions: {
+          allowSplash: false,
+          allowAtmosphere: false,
+          allowParticles: false,
+          allowHorizontalSpread: true,
+          allowVerticalDominance: true,
+        },
+      },
+      undefined,
+      v2State
+    );
+
+    expect(world).toContain('The user ingredient "crushed lavender" defines the full physical ground plane.');
   });
 });
 
