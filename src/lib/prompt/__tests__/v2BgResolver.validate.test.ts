@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { buildPalette } from '../../productStudioV2/builders/buildPalette';
 import { buildStudioBackground } from '../../productStudioV2/builders/buildStudioBackground';
 import type { StudioAuthorityBundle, StudioUIState } from '../../productStudioV2/types/studioTypes';
 
@@ -16,15 +17,19 @@ const authority: StudioAuthorityBundle = {
   },
 };
 
+/** Build a StudioUIState, run buildPalette to populate resolvedPalette, then return the state. */
 function makeState(overrides: Partial<StudioUIState>): StudioUIState {
-  return { motion: 'static', composition: 'hero', ...overrides };
+  const state: StudioUIState = { motion: 'static', composition: 'hero', ...overrides };
+  buildPalette(state);
+  return state;
 }
 
-describe('buildStudioBackground — V2 deterministic brand resolver', () => {
-  it('Hero LP: label colors gradient → contains both hex codes', () => {
+// ─── Core contract: resolvedPalette is the single source of truth ─────────────
+
+describe('buildStudioBackground — V2 resolvedPalette contract', () => {
+  it('Hero LP: product palette gradient → contains all three hex codes, colorSource=product', () => {
     const state = makeState({
       photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Use product label colors',
       productPaletteA: '#C0392B',
       productPaletteB: '#2980B9',
       productPaletteC: '#F1C40F',
@@ -33,68 +38,83 @@ describe('buildStudioBackground — V2 deterministic brand resolver', () => {
     const result = buildStudioBackground(authority, state);
     expect(result).not.toBeNull();
     expect(result!.gradientEnabled).toBe(true);
-    expect(result!.colorSource).toBe('label');
-    expect(result!.backgroundString).toContain('#C0392B');
-    expect(result!.backgroundString).toContain('#2980B9');
+    expect(result!.colorSource).toBe('product');
+    expect(result!.backgroundString).toContain('#c0392b');
+    expect(result!.backgroundString).toContain('#2980b9');
+    expect(result!.backgroundString).toContain('#f1c40f');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Hero LP: label colors solid → only primary, no gradient', () => {
+  it('Hero LP: product palette solid → only primary in output, colorSource=product', () => {
     const state = makeState({
       photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Use product label colors',
       productPaletteA: '#C0392B',
       photoModeConfig: { heroLandingPage: { backgroundType: 'Solid' } },
     });
     const result = buildStudioBackground(authority, state);
     expect(result!.gradientEnabled).toBe(false);
-    expect(result!.backgroundString).toContain('#C0392B');
+    expect(result!.colorSource).toBe('product');
+    expect(result!.backgroundString).toContain('#c0392b');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Hero LP: brand system colors → uses brandPalette', () => {
+  it('Hero LP: only productPaletteA → secondary/tertiary derived, still no #FFFFFF', () => {
     const state = makeState({
       photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Brand Colors',
-      brandPalette: { primaryColor: '#7B1FA2', secondaryColor: '#4CAF50' },
+      productPaletteA: '#C0392B',
+      // productPaletteB/C absent → derived by buildPalette
+      photoModeConfig: { heroLandingPage: { backgroundType: 'Gradient' } },
+    });
+    const result = buildStudioBackground(authority, state);
+    expect(result!.colorSource).toBe('product');
+    expect(result!.primaryColor).toBe('#c0392b');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
+    expect(result!.backgroundString).not.toContain('#ffffff');
+    // gradient enabled — secondary was derived by buildPalette
+    expect(result!.gradientEnabled).toBe(true);
+  });
+
+  it('Hero LP: brand palette (no product) → colorSource=brand, brand colors in output', () => {
+    const state = makeState({
+      photoMode: 'Hero Landing Page',
+      brandPalette: { primaryColor: '#7B1FA2', secondaryColor: '#4CAF50', accentColor: '#FF9800' },
       photoModeConfig: { heroLandingPage: { backgroundType: 'Gradient' } },
     });
     const result = buildStudioBackground(authority, state);
     expect(result!.colorSource).toBe('brand');
-    expect(result!.primaryColor).toBe('#7B1FA2');
-    expect(result!.backgroundString).toContain('#7B1FA2');
-    expect(result!.backgroundString).toContain('#4CAF50');
+    expect(result!.primaryColor).toBe('#7b1fa2');
+    expect(result!.backgroundString).toContain('#7b1fa2');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Hero LP: fallback → #FFFFFF', () => {
+  it('Hero LP: no palette anywhere → neutral-gray fallback, colorSource=neutral, never #FFFFFF', () => {
     const state = makeState({ photoMode: 'Hero Landing Page' });
     const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('fallback');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-    expect(result!.backgroundString).toContain('#FFFFFF');
+    expect(result!.colorSource).toBe('neutral');
+    expect(result!.primaryColor).toBe('#f9fafb');
+    expect(result!.backgroundString).toContain('#f9fafb');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Color Pop Hero: always solid, primary only', () => {
+  it('Color Pop Hero: always solid, primary only, no secondary in output', () => {
     const state = makeState({
       photoMode: 'Color Pop Hero',
-      productPaletteSource: 'Use product label colors',
       productPaletteA: '#C0392B',
       productPaletteB: '#2980B9',
     });
     const result = buildStudioBackground(authority, state);
     expect(result!.gradientEnabled).toBe(false);
-    expect(result!.backgroundString).toContain('#C0392B');
-    expect(result!.backgroundString).not.toContain('#2980B9');
+    expect(result!.colorSource).toBe('product');
+    expect(result!.backgroundString).toContain('#c0392b');
+    expect(result!.backgroundString).not.toContain('#2980b9');
   });
 
-  it('Color Pop Hero: custom override → uses custom color', () => {
-    const state = makeState({
-      photoMode: 'Color Pop Hero',
-      productPaletteSource: 'Custom',
-      productPaletteA: '#00BCD4',
-    });
+  it('Color Pop Hero: no palette → neutral-gray, no #FFFFFF', () => {
+    const state = makeState({ photoMode: 'Color Pop Hero' });
     const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('custom');
-    expect(result!.backgroundString).toContain('#00BCD4');
-    expect(result!.backgroundString).not.toContain('#C0392B');
+    expect(result!.colorSource).toBe('neutral');
+    expect(result!.primaryColor).toBe('#f9fafb');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
   it('other photo modes → returns null (not handled by this builder)', () => {
@@ -103,147 +123,58 @@ describe('buildStudioBackground — V2 deterministic brand resolver', () => {
   });
 });
 
-// ─── normalizeSource robustness ───────────────────────────────────────────────
+// ─── Invariant guard ──────────────────────────────────────────────────────────
 
-describe('buildStudioBackground — normalizeSource / source alias coverage', () => {
-  it('V1 "Product label colors" alias resolves same as V2 "Use product label colors"', () => {
-    // promptRouter always maps to V2 canonical, but if a raw V1 string leaks through the
-    // normalizeSource helper must still resolve correctly.
-    const withV2 = makeState({
+describe('buildStudioBackground — invariant guard', () => {
+  it('throws if resolvedPalette is missing (buildPalette not called)', () => {
+    // Bypass makeState helper — do NOT call buildPalette
+    const state: StudioUIState = {
+      motion: 'static',
+      composition: 'hero',
       photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Use product label colors',
-      productPaletteA: '#AA0000',
-    });
-    // Simulate the V1 raw string leaking through (cast to bypass TS)
-    const withV1 = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Product label colors' as never,
-      productPaletteA: '#AA0000',
-    });
-    const r2 = buildStudioBackground(authority, withV2);
-    const r1 = buildStudioBackground(authority, withV1);
-    expect(r2!.colorSource).toBe('label');
-    expect(r1!.colorSource).toBe('label');
-    expect(r1!.primaryColor).toBe('#AA0000');
-  });
-
-  it('"Neutral brand tones" alias (V1 string leaking) resolves as custom with neutral palette', () => {
-    // 'Neutral brand tones' is normalized to 'custom' by normalizeSource.
-    // promptRouter populates productPaletteA/B/C with neutral whites before calling buildStudioBackground,
-    // so pA will be '#FFFFFF'. Simulate that full path here.
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Neutral brand tones' as never,
-      productPaletteA: '#FFFFFF',
-      productPaletteB: '#F3F4F6',
-      productPaletteC: '#E5E7EB',
-      photoModeConfig: { heroLandingPage: { backgroundType: 'Solid' } },
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result).not.toBeNull();
-    expect(result!.colorSource).toBe('custom');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-    expect(result!.backgroundString).toContain('#FFFFFF');
+      productPaletteA: '#C0392B',
+    };
+    expect(() => buildStudioBackground(authority, state)).toThrow(
+      '[buildStudioBackground] Invariant violation'
+    );
   });
 });
 
-// ─── label-source fallback chain ──────────────────────────────────────────────
+// ─── Product palette always beats brand ───────────────────────────────────────
 
-describe('buildStudioBackground — label-source cascade to brand when pA is empty', () => {
-  it('label source + no productPaletteA + brandPalette present → cascades to brand, not white', () => {
-    // Reproduces the real bug: label extraction pending, brandPalette set via promptRouter.
+describe('buildStudioBackground — product always beats brand', () => {
+  it('product + brand both present → product wins, brand colors absent from output', () => {
     const state = makeState({
       photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Use product label colors',
-      // productPaletteA intentionally absent (extraction pending)
-      brandPalette: { primaryColor: '#3B0764', secondaryColor: '#7E22CE' },
-      photoModeConfig: { heroLandingPage: { backgroundType: 'Solid' } },
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result).not.toBeNull();
-    expect(result!.colorSource).toBe('brand');
-    expect(result!.primaryColor).toBe('#3B0764');
-    expect(result!.backgroundString).toContain('#3B0764');
-    // Must NOT fall through to white
-    expect(result!.primaryColor).not.toBe('#FFFFFF');
-  });
-
-  it('label source + no productPaletteA + no brandPalette → fallback to white', () => {
-    // Only when truly no colors exist anywhere do we go to white.
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Use product label colors',
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('fallback');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-  });
-
-  it('brand source + no brandPalette → fallback to white', () => {
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Brand Colors',
-      // no brandPalette
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('fallback');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-  });
-
-  it('custom source + no productPaletteA → fallback to white', () => {
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Custom',
-      // no productPaletteA
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('fallback');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-  });
-
-  it('undefined source → fallback to white', () => {
-    const state = makeState({ photoMode: 'Hero Landing Page' });
-    const result = buildStudioBackground(authority, state);
-    expect(result!.colorSource).toBe('fallback');
-    expect(result!.primaryColor).toBe('#FFFFFF');
-  });
-});
-
-// ─── promptRouter integration: 'Neutral brand tones' full path ────────────────
-
-describe('buildStudioBackground — promptRouter "Neutral brand tones" full path simulation', () => {
-  it('after promptRouter maps Neutral brand tones → Custom + neutral whites, resolver returns custom/white', () => {
-    // Simulates the exact state that promptRouter.ts produces for paletteSource='Neutral brand tones':
-    //   productPaletteSource='Custom', productPaletteA='#FFFFFF', productPaletteB='#F3F4F6', productPaletteC='#E5E7EB'
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Custom',
-      productPaletteA: '#FFFFFF',
-      productPaletteB: '#F3F4F6',
-      productPaletteC: '#E5E7EB',
-      photoModeConfig: { heroLandingPage: { backgroundType: 'Solid' } },
-    });
-    const result = buildStudioBackground(authority, state);
-    expect(result).not.toBeNull();
-    expect(result!.colorSource).toBe('custom');
-    // Primary is white (as designed — neutral brand tones IS white-neutral)
-    expect(result!.primaryColor).toBe('#FFFFFF');
-    // No white fallback confusion — colorSource MUST be 'custom', not 'fallback'
-    expect(result!.colorSource).not.toBe('fallback');
-  });
-
-  it('Neutral brand tones + Gradient backgroundType → gradient enabled with neutral stops', () => {
-    const state = makeState({
-      photoMode: 'Hero Landing Page',
-      productPaletteSource: 'Custom',
-      productPaletteA: '#FFFFFF',
-      productPaletteB: '#F3F4F6',
-      productPaletteC: '#E5E7EB',
+      productPaletteA: '#C0392B',
+      productPaletteB: '#2980B9',
+      productPaletteC: '#F1C40F',
+      brandPalette: { primaryColor: '#7B1FA2', secondaryColor: '#4CAF50' },
       photoModeConfig: { heroLandingPage: { backgroundType: 'Gradient' } },
     });
     const result = buildStudioBackground(authority, state);
+    expect(result!.colorSource).toBe('product');
+    expect(result!.backgroundString).toContain('#c0392b');
+    expect(result!.backgroundString).not.toContain('#7b1fa2');
+    expect(result!.backgroundString).not.toContain('#4caf50');
+  });
+});
+
+// ─── Neutral brand tones path (via buildPalette derivation) ──────────────────
+
+describe('buildStudioBackground — neutral brand tones path', () => {
+  it('neutral-gray palette produces neutral gradient with no #FFFFFF', () => {
+    // Simulates buildPalette resolving to neutral grays (no product, no brand)
+    const state = makeState({
+      photoMode: 'Hero Landing Page',
+      photoModeConfig: { heroLandingPage: { backgroundType: 'Gradient' } },
+    });
+    const result = buildStudioBackground(authority, state);
+    expect(result!.colorSource).toBe('neutral');
     expect(result!.gradientEnabled).toBe(true);
-    expect(result!.backgroundString).toContain('#FFFFFF');
-    expect(result!.backgroundString).toContain('#F3F4F6');
+    expect(result!.backgroundString).toContain('#f9fafb');
+    expect(result!.backgroundString).toContain('#f3f4f6');
+    expect(result!.backgroundString).toContain('#e5e7eb');
+    expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 });
