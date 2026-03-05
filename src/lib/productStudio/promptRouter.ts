@@ -981,9 +981,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     })(),
     // ── Context preset (studio environment / world context) ──
     ...(state.contextPreset ? { contextPresetValue: String(state.contextPreset) } : {}),
-    // ── V2 brand palette injection (buildStudioBackground reads these) ──
+    // ── V2 product palette injection (buildPalette reads these) ──
     // Maps V1 store palette fields → V2 StudioUIState palette fields.
-    // Without this block, buildStudioBackground always falls through to #FFFFFF fallback.
     ...(() => {
       // Minimal hex sanitizer: accepts #RGB and #RRGGBB only. Returns '' for invalid values.
       const sanitizeHex = (raw: unknown): string => {
@@ -1002,43 +1001,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const labelAccent = sanitizeHex(activeProduct?.palette?.accent);
       const hasLabelColors = !!labelDominant;
 
-      const brandPrimary = sanitizeHex(state.palette?.primaryColor);
-      const brandSecondary = sanitizeHex(state.palette?.secondaryColor);
-      const brandAccent = sanitizeHex(state.palette?.accentColor);
-      const hasBrandColors = !!brandPrimary;
-
-      // Normalize paletteSource from heroLandingPage config into V2 field names.
-      // heroLandingPage.paletteSource actual values (HeroLandingPagePaletteSource):
-      //   'Product label colors' | 'Neutral brand tones' | 'Custom'
-      // NOTE: 'Brand Colors' is NOT a valid V1 type value — it was a stale comment.
-      const heroPaletteSource = String(
-        state.photoModeConfig?.heroLandingPage?.paletteSource || ''
-      ).trim();
-      let productPaletteSource: 'Use product label colors' | 'Brand Colors' | 'Custom' | undefined;
-      if (heroPaletteSource === 'Product label colors' || heroPaletteSource === 'Use product label colors') {
-        // Only declare label source if label colors actually exist; otherwise downgrade.
-        productPaletteSource = hasLabelColors
-          ? 'Use product label colors'
-          : hasBrandColors
-          ? 'Brand Colors'
-          : undefined;
-      } else if (heroPaletteSource === 'Neutral brand tones') {
-        // 'Neutral brand tones' = clean neutral whites — treat as Custom with fixed neutral palette.
-        // Matches resolveHeroLandingBrandColors() in store.ts which returns ['#FFFFFF','#F3F4F6','#E5E7EB'].
-        productPaletteSource = 'Custom';
-      } else if (heroPaletteSource === 'Brand Colors' || heroPaletteSource === 'brand') {
-        // Legacy alias — not a real V1 type value but kept for safety.
-        productPaletteSource = 'Brand Colors';
-      } else if (heroPaletteSource === 'Custom') {
-        productPaletteSource = 'Custom';
-      } else {
-        // Fallback: auto-detect best source
-        productPaletteSource = hasLabelColors
-          ? 'Use product label colors'
-          : hasBrandColors
-          ? 'Brand Colors'
-          : undefined;
-      }
+      // V2 background color source is product image palette only.
+      const productPaletteSource: 'Use product label colors' | undefined = hasLabelColors
+        ? 'Use product label colors'
+        : undefined;
 
       const paletteBlock: Record<string, unknown> = {};
       if (productPaletteSource) paletteBlock.productPaletteSource = productPaletteSource;
@@ -1047,31 +1013,6 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         paletteBlock.productPaletteA = labelDominant;
         if (labelSecondary) paletteBlock.productPaletteB = labelSecondary;
         if (labelAccent) paletteBlock.productPaletteC = labelAccent;
-      } else if (productPaletteSource === 'Brand Colors' && hasBrandColors) {
-        paletteBlock.productPaletteA = brandPrimary;
-        if (brandSecondary) paletteBlock.productPaletteB = brandSecondary;
-        if (brandAccent) paletteBlock.productPaletteC = brandAccent;
-      } else if (productPaletteSource === 'Custom' && heroPaletteSource === 'Neutral brand tones') {
-        // Neutral brand tones: fixed neutral white palette matching store.ts resolveHeroLandingBrandColors()
-        paletteBlock.productPaletteA = '#FFFFFF';
-        paletteBlock.productPaletteB = '#F3F4F6';
-        paletteBlock.productPaletteC = '#E5E7EB';
-      } else if (productPaletteSource === 'Custom') {
-        // Custom: read from backgroundColor / gradientStart / gradientEnd
-        const customPrimary = sanitizeHex(state.backgroundColor);
-        const customSecondary = sanitizeHex(state.gradientStart);
-        const customTertiary = sanitizeHex(state.gradientEnd);
-        if (customPrimary) paletteBlock.productPaletteA = customPrimary;
-        if (customSecondary) paletteBlock.productPaletteB = customSecondary;
-        if (customTertiary) paletteBlock.productPaletteC = customTertiary;
-      }
-
-      if (hasBrandColors) {
-        paletteBlock.brandPalette = {
-          primaryColor: brandPrimary || undefined,
-          secondaryColor: brandSecondary || undefined,
-          accentColor: brandAccent || undefined,
-        };
       }
 
       // Forward heroLandingPage.backgroundType to V2 photoModeConfig

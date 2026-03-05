@@ -7,7 +7,11 @@ function isValidHex(v: unknown): v is string {
 }
 
 function normalizeHex(v: unknown): string {
-  return isValidHex(v) ? (v as string).trim().toLowerCase() : '';
+  if (typeof v !== 'string') return '';
+  let h = v.trim();
+  if (!h) return '';
+  if (!h.startsWith('#')) h = `#${h}`;
+  return isValidHex(h) ? h.toLowerCase() : '';
 }
 
 /**
@@ -30,7 +34,7 @@ function toHex(r: number, g: number, b: number): string {
 
 /**
  * Lighten a hex color by mixing it toward white by `amount` (0–100).
- * amount = 12 → 12% closer to #FFFFFF.
+ * amount = 12 -> 12% closer to pure white.
  */
 function lighten(hex: string, amount: number): string {
   const rgb = parseHex(hex);
@@ -59,77 +63,38 @@ function darken(hex: string, amount: number): string {
 }
 
 /**
- * buildPalette — resolves the canonical 3-color palette used by the pipeline.
+ * buildPalette — resolves the canonical 3-color palette used by V2.
  *
- * Priority order (product is the visual source of truth):
- *
- *   1. productPaletteA/B/C  (product label extraction or manual custom input)
- *      Missing secondary/tertiary slots are derived from primary via lighten/darken
- *      so the gradient always feels visually cohesive with the product.
- *
- *   2. brandPalette.primaryColor / secondaryColor / accentColor
- *      Used only when NO product palette exists.
- *
- *   3. Neutral light-gray fallback (#F9FAFB / #F3F4F6 / #E5E7EB)
- *      Never white — neutral-gray reads better on hero canvases.
- *
- * Design invariant:
- *   If productPalette exists, resolvedPalette.primary MUST NOT be a pure-white fallback.
- *   A guard throws an error if this invariant is violated.
+ * Rule:
+ *   product image -> extracted product palette -> resolvedPalette.
+ *   No brand/neutral fallback is allowed in this builder.
  *
  * Side-effect:
- *   Writes state.resolvedPalette = { primary, secondary, tertiary, source }
- *   All downstream builders must read ONLY state.resolvedPalette.
- *
- * Returns '' — this is a side-effect-only stage with no prompt text.
+ *   Writes state.resolvedPalette = { primary, secondary, tertiary, source }.
  */
 export function buildPalette(state: StudioUIState): string {
   const pA = normalizeHex(state.productPaletteA);
   const pB = normalizeHex(state.productPaletteB);
   const pC = normalizeHex(state.productPaletteC);
-
-  const bpA = normalizeHex(state.brandPalette?.primaryColor);
-  const bpB = normalizeHex(state.brandPalette?.secondaryColor);
-  const bpC = normalizeHex(state.brandPalette?.accentColor);
-
-  let primary: string;
-  let secondary: string;
-  let tertiary: string;
-  let source: 'product' | 'brand' | 'neutral';
-
-  if (pA) {
-    // ── Path 1: product palette is the source of truth ───────────────────────
-    // Missing slots are derived from primary to guarantee visual coherence.
-    source    = 'product';
-    primary   = pA;
-    secondary = pB || lighten(pA, 15);
-    tertiary  = pC || darken(pA, 15);
-  } else if (bpA) {
-    // ── Path 2: brand system palette (no product palette present) ────────────
-    source    = 'brand';
-    primary   = bpA;
-    secondary = bpB || lighten(bpA, 15);
-    tertiary  = bpC || darken(bpA, 15);
-  } else {
-    // ── Path 3: neutral fallback — readable on any canvas, never pure white ──
-    source    = 'neutral';
-    primary   = '#f9fafb';
-    secondary = '#f3f4f6';
-    tertiary  = '#e5e7eb';
-  }
-
-  // ── Invariant guard ───────────────────────────────────────────────────────
-  // If a product palette exists but we somehow resolved to pure white, the
-  // pipeline has a bug that must surface immediately rather than silently
-  // generating white backgrounds.
-  if (pA && primary.replace('#', '').toLowerCase() === 'ffffff') {
+  if (!pA) {
     throw new Error(
-      `[buildPalette] Invariant violation: product palette exists (${pA}) but resolved primary is #FFFFFF. ` +
-      'Check normalizeHex and the priority chain.'
+      '[buildPalette] Missing product dominant color (productPaletteA). ' +
+      'Run product palette extraction from the uploaded product image before background generation.'
     );
   }
 
-  // Attach to state — single authoritative source for all downstream builders.
+  const source: 'product' = 'product';
+  const primary = pA;
+  const secondary = pB || lighten(pA, 15);
+  const tertiary = pC || darken(pA, 15);
+
+  if (normalizeHex(primary) === '#ffffff') {
+    throw new Error(
+      `[buildPalette] Invariant violation: product dominant color resolved to white (${primary}). ` +
+      'Background must use extracted product dominant color.'
+    );
+  }
+
   state.resolvedPalette = { primary, secondary, tertiary, source };
 
   // eslint-disable-next-line no-console
