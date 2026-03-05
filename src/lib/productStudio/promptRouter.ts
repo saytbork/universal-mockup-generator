@@ -1015,6 +1015,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         if (labelAccent) paletteBlock.productPaletteC = labelAccent;
       }
 
+      // eslint-disable-next-line no-console
+      console.log(
+        '[extractProductPalette]\n' +
+        `A ${labelDominant || '(none)'}\n` +
+        `B ${labelSecondary || '(none)'}\n` +
+        `C ${labelAccent || '(none)'}`
+      );
+
       // Forward heroLandingPage.backgroundType to V2 photoModeConfig
       const heroBackgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
       if (heroBackgroundType) {

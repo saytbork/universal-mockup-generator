@@ -65,9 +65,12 @@ function darken(hex: string, amount: number): string {
 /**
  * buildPalette — resolves the canonical 3-color palette used by V2.
  *
- * Rule:
- *   product image -> extracted product palette -> resolvedPalette.
- *   No brand/neutral fallback is allowed in this builder.
+ * Priority rule:
+ *   1. productPalette (product is always the visual source of truth)
+ *   2. brandPalette (derived from product when available; used only when no product palette)
+ *   3. neutral-gray (#f9fafb / #f3f4f6 / #e5e7eb) — never pure white
+ *
+ * Missing secondary/tertiary slots are derived via lighten()/darken() from primary.
  *
  * Side-effect:
  *   Writes state.resolvedPalette = { primary, secondary, tertiary, source }.
@@ -76,19 +79,34 @@ export function buildPalette(state: StudioUIState): string {
   const pA = normalizeHex(state.productPaletteA);
   const pB = normalizeHex(state.productPaletteB);
   const pC = normalizeHex(state.productPaletteC);
-  if (!pA) {
-    throw new Error(
-      '[buildPalette] Missing product dominant color (productPaletteA). ' +
-      'Run product palette extraction from the uploaded product image before background generation.'
-    );
+  const bpA = normalizeHex(state.brandPalette?.primaryColor);
+  const bpB = normalizeHex(state.brandPalette?.secondaryColor);
+  const bpC = normalizeHex(state.brandPalette?.accentColor);
+
+  let source: 'product' | 'brand' | 'neutral';
+  let primary: string;
+  let secondary: string;
+  let tertiary: string;
+
+  if (pA) {
+    source = 'product';
+    primary = pA;
+    secondary = pB || lighten(pA, 15);
+    tertiary = pC || darken(pA, 15);
+  } else if (bpA) {
+    source = 'brand';
+    primary = bpA;
+    secondary = bpB || lighten(bpA, 15);
+    tertiary = bpC || darken(bpA, 15);
+  } else {
+    source = 'neutral';
+    primary = '#f9fafb';
+    secondary = '#f3f4f6';
+    tertiary = '#e5e7eb';
   }
 
-  const source: 'product' = 'product';
-  const primary = pA;
-  const secondary = pB || lighten(pA, 15);
-  const tertiary = pC || darken(pA, 15);
-
-  if (normalizeHex(primary) === '#ffffff') {
+  // Guard: product palette must never resolve to pure white
+  if (pA && primary === '#ffffff') {
     throw new Error(
       `[buildPalette] Invariant violation: product dominant color resolved to white (${primary}). ` +
       'Background must use extracted product dominant color.'
@@ -99,10 +117,11 @@ export function buildPalette(state: StudioUIState): string {
 
   // eslint-disable-next-line no-console
   console.log(
-    '[buildPalette] source=', source,
-    '| primary=', primary,
-    '| secondary=', secondary,
-    '| tertiary=', tertiary,
+    '[buildPalette]\n' +
+    `source=${source}\n` +
+    `primary=${primary}\n` +
+    `secondary=${secondary}\n` +
+    `tertiary=${tertiary}`
   );
 
   return '';

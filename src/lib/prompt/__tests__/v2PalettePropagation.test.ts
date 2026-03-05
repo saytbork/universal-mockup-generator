@@ -97,13 +97,11 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
-  it('Hero Landing Page: Brand Colors source — colors land in productPaletteA via toStudioV2State, colorSource=product', () => {
-    // toStudioV2State flattens brandPrimary → productPaletteA when paletteSource='Brand Colors'.
-    // buildPalette sees productPaletteA and correctly assigns source='product'.
-    // The brand/product distinction is resolved at the promptRouter level before buildPalette runs.
+  it('Hero Landing Page: no product palette + no brand forwarded by promptRouter → neutral fallback', () => {
+    // toStudioV2State does NOT forward brandPalette to v2State.
+    // When products is empty and no label palette exists, buildPalette falls to neutral-gray.
     const state = baseState({
       photoMode: 'Hero Landing Page',
-      // No product palette — force brand path by omitting products
       products: [],
       activeProductId: null,
       photoModeConfig: {
@@ -111,15 +109,15 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
       },
     });
     const v2State = toStudioV2State(state);
-    // toStudioV2State copies brandPrimary → productPaletteA
-    expect(v2State.productPaletteA).toBe('#7B1FA2');
+    expect(v2State.productPaletteA).toBeUndefined();
     buildPalette(v2State);
-    // buildPalette sees productPaletteA → source='product' (brand was flattened in by promptRouter)
-    expect(v2State.resolvedPalette?.source).toBe('product');
+    // No product palette, no brandPalette forwarded → neutral
+    expect(v2State.resolvedPalette?.source).toBe('neutral');
+    expect(v2State.resolvedPalette?.primary).toBe('#f9fafb');
     const authority = resolveStudioAuthority(v2State);
     const result = buildStudioBackground(authority, v2State);
-    expect(result!.colorSource).toBe('product');
-    expect(result!.primaryColor).toBe('#7b1fa2');
+    expect(result!.colorSource).toBe('neutral');
+    expect(result!.primaryColor).toBe('#f9fafb');
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
