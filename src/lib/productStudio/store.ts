@@ -68,6 +68,7 @@ import type {
 } from './types';
 import { validateAndCorrectCapabilities } from './productCapabilities';
 import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
+import { resolveIndustryProfileModule } from '../productStudioV2/industryProfiles/registry';
 
 
 // ============================================================================
@@ -1250,58 +1251,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
     setIndustryProfile: (profile) =>
         set((state) => {
-            const normalizedProfile = (
-                profile === 'wine'
-                    ? 'wine'
-                    : profile === 'coffee'
-                        ? 'coffee'
-                        : 'supplements'
-            ) as 'supplements' | 'wine' | 'coffee';
-            const mappedVisualProfile: VisualProfile =
-                normalizedProfile === 'wine'
-                    ? 'wine-prestige'
-                    : normalizedProfile === 'coffee'
-                        ? 'coffee'
-                        : 'default';
-
-            const baseReset: Partial<ProductStudioState> = {
-                // Wine-specific residue
-                wineType: undefined,
-                carbonationLevel: undefined,
-                wineBottleState: undefined,
-                wineGlassMode: undefined,
-                wineClosureType: undefined,
-                wineServeAmount: undefined,
-                serveVolumeMode: undefined,
-                wineEngineVersion: undefined,
-                wineStyleArchetype: null,
-                wineAction: 'static-presentation',
-                winePourStyle: 'mid-flow-elegance',
-                wineMoodModifier: 'None',
-                // Coffee-specific residue
-                coffeeMode: 'studio',
-                coffeeAction: 'static',
-                coffeeLightingTone: 'auto',
-                coffeeMoodModifier: 'coffee-cinematic-luxury',
-                coffeeSteamLevel: 'auto',
-                coffeeLiquidPhysics: true,
-                // Generic ingredient/prop residue
-                props: '',
-                customIngredients: [],
-                selectedProps: [],
-            };
-
+            if (state.industryProfile === profile) {
+                return { industryProfile: profile };
+            }
+            const previousProfileModule = resolveIndustryProfileModule(state.industryProfile);
+            const nextProfileModule = resolveIndustryProfileModule(profile);
             return {
-                ...baseReset,
-                visualProfile: mappedVisualProfile,
-                industryProfile: normalizedProfile,
-                interpretationNotes: {
-                    ...state.interpretationNotes,
-                    industryProfile: {
-                        message: `Industry switched to ${normalizedProfile}. Residual industry state reset.`,
-                        ts: Date.now(),
-                    },
-                },
+                ...(previousProfileModule.resetState?.() || {}),
+                ...(nextProfileModule.resetState?.() || {}),
+                industryProfile: profile,
             };
         }),
     setVisualProfile: (profile) =>

@@ -1,6 +1,7 @@
 import type { IndustryProfile, ProductAsset, ProductStateMotion, ProductStudioState } from './types';
 import { mapSceneToPrompt, type ScenePromptResult } from './mapSceneToPrompt';
 import { generateStudioPromptV2, type StudioUIState } from '../productStudioV2/index';
+import { resolveIndustryProfileModule } from '../productStudioV2/industryProfiles/registry';
 import { industryRules } from './industryRules';
 import { resolveCoffeeIndustryIntent, type CoffeeIndustryIntent } from './resolveCoffeeIntent';
 import { getWineArchetypeNarrative } from './winePrestige';
@@ -24,8 +25,10 @@ function isStudioV2Enabled(): boolean {
   return enabled;
 }
 
-function assertIndustry(i: IndustryProfile): IndustryProfile {
-  return i;
+function assertIndustry(i: unknown): IndustryProfile {
+  const normalized = String(i || '').trim();
+  if (normalized === 'wine' || normalized === 'coffee') return normalized;
+  return 'supplements';
 }
 
 function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
@@ -651,23 +654,12 @@ function resolveIndustryProductState(
   industryProfile: IndustryProfile,
   resolvedCoffeeIntent?: CoffeeIndustryIntent
 ): ProductStateMotion {
-  if (industryProfile === 'wine') {
-    return state.stateMotion === 'opened' ? 'opened' : 'static';
+  const profile = resolveIndustryProfileModule(industryProfile);
+  if (profile.resolveProductState) {
+    return profile.resolveProductState(state, resolvedCoffeeIntent);
   }
-
-  if (industryProfile === 'coffee') {
-    const allowed = (industryRules.coffee.productStateWhitelistByIntent?.[resolvedCoffeeIntent || 'editorial-ritual'] ||
-      industryRules.coffee.productStateWhitelist ||
-      ['static']) as ProductStateMotion[];
-    return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
-  }
-
-  if (industryProfile === 'supplements') {
-    const allowed = resolveSupplementsAllowedProductStates(state);
-    return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
-  }
-
-  return 'static';
+  const allowed = resolveSupplementsAllowedProductStates(state);
+  return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
 }
 
 function resolvePackagingBehavior(
@@ -675,22 +667,10 @@ function resolvePackagingBehavior(
   stateMotion: ProductStateMotion,
   state: ProductStudioState
 ): string {
-  if (industryProfile === 'wine') {
-    if (stateMotion === 'opened' || stateMotion === 'pouring') return 'wine-cork-removal';
-    return 'wine-cork';
+  const profile = resolveIndustryProfileModule(industryProfile);
+  if (profile.resolvePackagingBehavior) {
+    return profile.resolvePackagingBehavior(state, stateMotion);
   }
-
-  if (industryProfile === 'supplements') {
-    if (state.definition.type === 'capsules') return 'supplement-plastic-cap';
-    if (state.definition.type === 'drops') return 'dropper-pipette';
-    if (state.definition.type === 'powder') return 'generic-screw-cap';
-    return 'generic-screw-cap';
-  }
-
-  if (industryProfile === 'coffee') {
-    return '';
-  }
-
   return '';
 }
 
@@ -749,8 +729,11 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = assertIndustry(state.industryProfile);
-  const coffeeLayer =
-    industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
+  const industryModule = resolveIndustryProfileModule(industryProfile);
+  const layerByIndustry: Partial<Record<IndustryProfile, ReturnType<typeof resolveCoffeeIndustryLayer>>> = {
+    coffee: resolveCoffeeIndustryLayer(state),
+  };
+  const coffeeLayer = layerByIndustry[industryProfile] || null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
   const resolvedAllowedMotions = getResolvedAllowedMotions(
     state.photoMode,
@@ -779,22 +762,21 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     },
     industryProfile,
     {
-      wineCorkRemovalActive:
-        industryProfile === 'wine' &&
-        (capabilityResolvedProductState === 'opened' || capabilityResolvedProductState === 'pouring'),
+      wineCorkRemovalActive: packagingBehavior === 'wine-cork-removal',
       distortionRiskThreshold: 0.75,
     }
   );
   for (const warning of resolvedCamera.warnings) {
     console.warn(`[CAMERA SAFETY] ${warning}`);
   }
-  const shouldAssignWineFields = industryProfile === 'wine';
+  const wineEnabledProfiles = new Set<IndustryProfile>(['wine']);
+  const shouldAssignWineFields = wineEnabledProfiles.has(industryProfile);
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
     String(state.photoMode || '').trim() === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
-  const winePrestigeMode = industryProfile === 'wine';
+  const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
@@ -806,7 +788,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const v2State: StudioUIState = {
     industryProfile,
     creativeIntent: inferStudioIntent(state),
-    visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
+    visualIntent:
+      ({ coffee: coffeeLayer?.intent } as Partial<Record<IndustryProfile, string | undefined>>)[industryProfile] ||
+      state.visualIntent,
     visualProfile: industryProfile,
     coffeeIndustryLayer: false,
     autoRandomizeCoffeeEnvironment: false,
@@ -1083,7 +1067,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
 
   if (rules?.allowedProductTypes && !rules.allowedProductTypes.includes(v2State.productType || '')) {
-    if (industryProfile === 'wine' && v2State.productType !== 'Custom') {
+    if (wineEnabledProfiles.has(industryProfile) && v2State.productType !== 'Custom') {
       console.warn('Wine profile forcing Custom product type');
     }
     v2State.productType = rules.allowedProductTypes[0];
@@ -1097,22 +1081,27 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     v2State.visualStyle = rules.allowedVisualStyles[0];
   }
 
-  if (industryProfile === 'coffee') {
-    const resolvedIntent = coffeeLayer?.intent || 'editorial-ritual';
-    v2State.visualIntent = resolvedIntent;
-    v2State.lightingTemperatureProfile = coffeeLayer?.lightingTemperatureProfile;
-    v2State.shadowProfile = coffeeLayer?.shadowProfile;
-    v2State.contrastProfile = coffeeLayer?.contrastProfile;
-    v2State.compositionProfile = coffeeLayer?.compositionProfile;
+  const resolvedIntent = String(coffeeLayer?.intent || 'editorial-ritual');
+  const runtimePatchByIndustry: Partial<Record<IndustryProfile, Partial<StudioUIState>>> = {
+    coffee: {
+      visualIntent: resolvedIntent,
+      lightingTemperatureProfile: coffeeLayer?.lightingTemperatureProfile,
+      shadowProfile: coffeeLayer?.shadowProfile,
+      contrastProfile: coffeeLayer?.contrastProfile,
+      compositionProfile: coffeeLayer?.compositionProfile,
+    },
+  };
+  Object.assign(v2State, runtimePatchByIndustry[industryProfile] || {});
 
-    allowedInteractions = rules?.interactionWhitelistByIntent?.[resolvedIntent] || ['none'];
-  } else if (industryProfile === 'wine') {
-    allowedInteractions = rules?.interactionWhitelist || ['none'];
-  } else if (industryProfile === 'supplements') {
-    allowedInteractions = rules?.interactionWhitelist || ['none'];
-  } else {
-    allowedInteractions = rules?.interactionWhitelist || ['none'];
-  }
+  const interactionWhitelistByIndustry: Record<IndustryProfile, string[]> = {
+    coffee: rules?.interactionWhitelistByIntent?.[resolvedIntent] || ['none'],
+    wine: rules?.interactionWhitelist || ['none'],
+    supplements: rules?.interactionWhitelist || ['none'],
+  };
+  const rawInteractionWhitelist = interactionWhitelistByIndustry[industryProfile] || ['none'];
+  allowedInteractions = industryModule.resolveAllowedInteractions
+    ? industryModule.resolveAllowedInteractions(rawInteractionWhitelist, resolvedIntent)
+    : rawInteractionWhitelist;
 
   const capabilityAllowedInteractions = resolveAllowedInteractionsByCapability(
     allowedInteractions as ProductStudioState['interaction'][],
@@ -1129,17 +1118,16 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const productStudioInteractionRaw =
     String((state as any).productStudioInteraction || '').trim() ||
     String((state as any).productInteraction || '').trim();
+  const forceNoInteraction = Boolean(industryModule.forceInteractionNone);
   const resolvedInteractionInput =
-    industryProfile === 'wine'
-      ? 'none'
-      : productStudioInteractionRaw || state.interaction;
+    forceNoInteraction ? 'none' : productStudioInteractionRaw || state.interaction;
   const interactionKey = String(resolvedInteractionInput || '').trim();
   const interactionCandidates = INTERACTION_STATE_TO_CANONICAL_CANDIDATES[interactionKey] || [interactionKey || 'none'];
   const preferredCandidate =
     interactionCandidates.find((candidate) => capabilityAllowedInteractions.includes(candidate as ProductStudioState['interaction'])) ||
     (interactionCandidates[0] as ProductStudioState['interaction']) ||
     'none';
-  const sanitizedInteractionCanonical = industryProfile === 'wine'
+  const sanitizedInteractionCanonical = forceNoInteraction
     ? 'none'
     : resolveInteractionByCapability(
         preferredCandidate as ProductStudioState['interaction'],
@@ -1151,7 +1139,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     interactionCandidates.some((candidate) =>
       capabilityAllowedInteractions.includes(candidate as ProductStudioState['interaction'])
     ) && sanitizedInteractionCanonical === preferredCandidate;
-  if (!interactionAllowed && industryProfile !== 'wine') {
+  if (!interactionAllowed && !forceNoInteraction) {
     console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
   }
   v2State.interaction = sanitizedInteractionCanonical;
@@ -1169,40 +1157,10 @@ function mapV2ToScenePromptResult(prompt: string): ScenePromptResult {
   };
 }
 
-const COFFEE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
-  /\bWINE_[A-Z0-9_]*\b/,
-  /\bwine-prestige\b/i,
-  /\bwine-glass-priority\b/i,
-  /\bCORK_RENDERING\b/i,
-  /\bBOTTLE_TILT_RULE\b/i,
-  /\bwine translucency\b/i,
-];
-
-const WINE_FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
-  /\bINTERACTION_[A-Z0-9_]*\b/i,
-  /\bHAND_POSITIONING\b/i,
-  /\bFRAMING_BIAS\b/i,
-  /\bHAND_[A-Z0-9_]*\b/i,
-  /\bPOUR(?:ING)?\b/i,
-  /\bSPILL(?:ED|ING)?\b/i,
-  /\bFALL(?:ING)?\b/i,
-  /\bDISPENS(?:E|ED|ING)\b/i,
-  /\bGRAVITY\b/i,
-];
-
-function sanitizePromptForIndustry(prompt: string, industryProfile: IndustryProfile): string {
-  if (industryProfile !== 'coffee' && industryProfile !== 'wine') return prompt;
-
-  const forbiddenPatterns =
-    industryProfile === 'coffee' ? COFFEE_FORBIDDEN_PROMPT_PATTERNS : WINE_FORBIDDEN_PROMPT_PATTERNS;
-
-  const sanitized = prompt
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => !forbiddenPatterns.some((pattern) => pattern.test(sentence)))
-    .join(' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-
+function applyIndustryPromptPolicy(prompt: string, industryProfile: IndustryProfile): string {
+  const profile = resolveIndustryProfileModule(industryProfile);
+  const sanitized = profile.sanitizePrompt ? profile.sanitizePrompt(prompt) : prompt;
+  if (profile.validatePrompt) profile.validatePrompt(sanitized);
   return sanitized;
 }
 
@@ -1226,9 +1184,8 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   }
 
   console.log('[STUDIO ROUTER] engine=v2');
-  if (!['supplements', 'wine', 'coffee'].includes(state.industryProfile)) {
-    throw new Error('[INDUSTRY INVALID] Unsupported industryProfile');
-  }
+  const resolvedIndustryProfile = assertIndustry(state.industryProfile);
+  resolveIndustryProfileModule(resolvedIndustryProfile);
   const v2State = toStudioV2State(state);
   console.log('[STUDIO ROUTER] v2-state', v2State);
   console.log('[STUDIO ROUTER] v2State.photoMode =', JSON.stringify(v2State.photoMode));
@@ -1236,20 +1193,9 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   const v2Prompt = generateStudioPromptV2(v2State);
 
   // Sanitize for industry-specific forbidden patterns (wine/coffee).
-  const prompt = sanitizePromptForIndustry(v2Prompt, v2State.visualProfile as IndustryProfile);
+  const prompt = applyIndustryPromptPolicy(v2Prompt, resolvedIndustryProfile);
 
-  // Temporary hard validation logs for industry isolation.
   console.log('[INDUSTRY ACTIVE]', state.industryProfile);
-  if (state.industryProfile === 'supplements') {
-    const leaked = /\b(WINE_|CLOSURE_|LIQUID_|GLASS_)/.test(prompt);
-    if (leaked) {
-      console.error('[INDUSTRY LEAK DETECTED] wine/liquid/glass segments present while industry is supplements');
-      throw new Error('[INDUSTRY LEAK DETECTED] supplements prompt contains wine/liquid/glass segments');
-    }
-  }
-  if (state.industryProfile !== 'wine' && /\bWINE_/.test(prompt)) {
-    console.error('[INDUSTRY LEAK DETECTED] Wine segments present while industry is not wine');
-  }
 
   if (v2State.visualProfile === 'coffee' && !/\bCOFFEE_PACKAGING_MODE\b/.test(prompt)) {
     console.warn('[COFFEE PACKAGING GUARD MISSING]');

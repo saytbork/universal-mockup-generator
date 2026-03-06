@@ -1,29 +1,51 @@
-// Solo para testing estructural
-import type { IndustryProfile } from '@/lib/productStudio/types';
+import {
+  buildPalette,
+  buildArtworkImmutability,
+  buildIntent,
+  buildWorld,
+  buildCameraOverrides,
+  buildComposition,
+  buildMotion,
+  buildInteraction,
+  buildPhysics,
+  buildModifiers,
+  buildPhotoModeDynamic,
+  buildLighting,
+  buildMaterials,
+  buildProductPhysical,
+  buildGeometry,
+  buildIngredients,
+  buildAdvancedOverrideParts,
+  buildProtectionLayer,
+  sanitizePromptParts,
+  finalizePromptFromSegments,
+  resolveStudioAuthority,
+  getAllowedStudioModifiers,
+  buildProductOrientation,
+} from '../index';
+import type { StudioUIState } from '../index';
+import { resolveIndustryProfileModule } from '../industryProfiles/registry';
 
-function injectCoffeeEngine(parts: string[], _state: StudioUIState): string[] {
-  return parts;
+function buildIndustrySegments(state: StudioUIState, base: string[]): string[] {
+  const profile = resolveIndustryProfileModule(state.industryProfile);
+  return [...base, ...profile.truthLayer(state), ...profile.compositionRules(state)];
 }
 
-function validateIndustrySegments(prompt: string, industry: IndustryProfile): void {
-  const wineTokens = /\b(WINE_|CLOSURE_|GLASS_|DECANTER_)/;
-  const coffeeTokens = /\b(COFFEE_|STEAM_|CREMA_)/;
-
-  if (industry !== 'wine' && wineTokens.test(prompt)) {
-    throw new Error('[INDUSTRY LEAK] wine tokens detected');
-  }
-
-  if (industry !== 'coffee' && coffeeTokens.test(prompt)) {
-    throw new Error('[INDUSTRY LEAK] coffee tokens detected');
-  }
+function finalizeWithIndustryValidation(prompt: string, state: StudioUIState): string {
+  const profile = resolveIndustryProfileModule(state.industryProfile);
+  const sanitized = profile.sanitizePrompt ? profile.sanitizePrompt(prompt) : prompt;
+  if (profile.validatePrompt) profile.validatePrompt(sanitized);
+  return sanitized;
 }
 
 export function __buildSegmentsForTest(state: StudioUIState) {
   const authority = resolveStudioAuthority(state);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority, state);
+  const profile = resolveIndustryProfileModule(state.industryProfile);
+
   const studioBlocks = [
-    buildPalette(state),                        // ← first: resolves state.resolvedPalette
+    buildPalette(state),
     buildIntent(authority, state),
     buildArtworkImmutability(),
     buildWorld(authority, state.world, state),
@@ -36,53 +58,38 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildPhotoModeDynamic(state),
     buildLighting(authority, state),
     buildMaterials(authority, state),
-    buildProductPhysical(state),
+    buildProductPhysical(state, profile),
     buildGeometry(authority, state),
     buildProductOrientation(state),
     buildIngredients(state),
     ...protectionLayer,
     ...buildAdvancedOverrideParts(state),
   ];
-  const industry = state.industryProfile;
-  let industryInjected = studioBlocks;
 
-  switch (industry) {
-    case 'supplements':
-      break;
-    case 'wine':
-      industryInjected = injectWineEngine(industryInjected, state);
-      break;
-    case 'coffee':
-      industryInjected = injectCoffeeEngine(industryInjected, state);
-      break;
-    default: {
-      const neverCheck: never = industry;
-      throw new Error(`[INDUSTRY UNHANDLED] ${neverCheck}`);
-    }
-  }
-
+  const industryInjected = buildIndustrySegments(state, studioBlocks);
   const sanitizedParts = sanitizePromptParts(industryInjected);
   const segments: any[] = [];
+
   for (const part of sanitizedParts) {
     segments.push({ type: 'guardrail', content: part });
   }
-  // Temporary diagnostics for isolation validation.
+
   // eslint-disable-next-line no-console
   console.log('[INDUSTRY ACTIVE]', state.industryProfile);
   // eslint-disable-next-line no-console
-  console.log('[ACTIVE BUILDERS]', segments.map(s => s.type));
+  console.log('[ACTIVE BUILDERS]', segments.map((s) => s.type));
   return segments;
 }
-import { buildPalette, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildProductOrientation } from '../index';
-import type { StudioUIState } from '../index';
 
 export const genericPipeline = {
   build(state: StudioUIState): string {
     const authority = resolveStudioAuthority(state);
     const modifiers = getAllowedStudioModifiers(authority, state);
     const protectionLayer = buildProtectionLayer(authority, state);
+    const profile = resolveIndustryProfileModule(state.industryProfile);
+
     const studioBlocks = [
-      buildPalette(state),                      // ← first: resolves state.resolvedPalette
+      buildPalette(state),
       buildIntent(authority, state),
       buildArtworkImmutability(),
       buildWorld(authority, state.world, state),
@@ -95,43 +102,28 @@ export const genericPipeline = {
       buildPhotoModeDynamic(state),
       buildLighting(authority, state),
       buildMaterials(authority, state),
-      buildProductPhysical(state),
+      buildProductPhysical(state, profile),
       buildGeometry(authority, state),
       buildProductOrientation(state),
       buildIngredients(state),
       ...protectionLayer,
       ...buildAdvancedOverrideParts(state),
     ];
-    const industry = state.industryProfile;
-    let industryInjected = studioBlocks;
 
-    switch (industry) {
-      case 'supplements':
-        break;
-      case 'wine':
-        industryInjected = injectWineEngine(industryInjected, state);
-        break;
-      case 'coffee':
-        industryInjected = injectCoffeeEngine(industryInjected, state);
-        break;
-      default: {
-        const neverCheck: never = industry;
-        throw new Error(`[INDUSTRY UNHANDLED] ${neverCheck}`);
-      }
-    }
-
+    const industryInjected = buildIndustrySegments(state, studioBlocks);
     const sanitizedParts = sanitizePromptParts(industryInjected);
     const segments: any[] = [];
+
     for (const part of sanitizedParts) {
       segments.push({ type: 'guardrail', content: part });
     }
-    // Temporary diagnostics for isolation validation.
+
     // eslint-disable-next-line no-console
     console.log('[INDUSTRY ACTIVE]', state.industryProfile);
     // eslint-disable-next-line no-console
-    console.log('[ACTIVE BUILDERS]', segments.map(s => s.type));
+    console.log('[ACTIVE BUILDERS]', segments.map((s) => s.type));
+
     const finalPrompt = finalizePromptFromSegments(segments, authority);
-    validateIndustrySegments(finalPrompt, state.industryProfile);
-    return finalPrompt;
-  }
+    return finalizeWithIndustryValidation(finalPrompt, state);
+  },
 };

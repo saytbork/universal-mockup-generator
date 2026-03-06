@@ -2842,75 +2842,83 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </div>
 
-                    {industryProfile === 'wine' && industryModuleRegistry.wine && (
-                      <industryModuleRegistry.wine
-                        wineAction={productStore.wineAction}
-                        winePourStyle={productStore.winePourStyle}
-                        contextPreset={productStore.contextPreset}
-                        wineLightingTone={productStore.wineLightingTone}
-                        wineMoodModifier={productStore.wineMoodModifier}
-                        onWineActionChange={(action) => {
-                          productStore.setWineAction(action);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWinePourStyleChange={(style) => {
-                          productStore.setWinePourStyle(style);
-                          markSectionTouched('product-setup');
-                        }}
-                        onContextPresetChange={(preset) => {
-                          productStore.setContextPreset(preset);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWineLightingToneChange={(tone) => {
-                          productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWineMoodModifierChange={(modifier) => {
-                          productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
-                          markSectionTouched('product-setup');
-                        }}
-                      />
-                    )}
+                    {(() => {
+                      const industryModules = industryModuleRegistry as Partial<
+                        Record<IndustryProfile, React.ComponentType<any>>
+                      >;
+                      const ActiveIndustryModule = industryModules[industryProfile];
+                      if (!ActiveIndustryModule) return null;
 
-                    {industryProfile === 'coffee' && industryModuleRegistry.coffee && (
-                      <industryModuleRegistry.coffee
-                        coffeeAction={productStore.coffeeAction}
-                        contextPreset={productStore.contextPreset}
-                        coffeeLightingTone={productStore.coffeeLightingTone}
-                        coffeeMoodModifier={productStore.coffeeMoodModifier}
-                        coffeeSteamLevel={productStore.coffeeSteamLevel}
-                        coffeeLiquidPhysics={productStore.coffeeLiquidPhysics}
-                        propsValue={productStore.props}
-                        onCoffeeActionChange={(action) => {
-                          productStore.setCoffeeAction(action);
-                          markSectionTouched('product-setup');
-                        }}
-                        onContextPresetChange={(preset) => {
-                          productStore.setContextPreset(preset);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeLightingToneChange={(tone) => {
-                          productStore.setCoffeeLightingTone(tone);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeMoodModifierChange={(modifier) => {
-                          productStore.setCoffeeMoodModifier(modifier);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeSteamLevelChange={(level) => {
-                          productStore.setCoffeeSteamLevel(level);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeLiquidPhysicsChange={(enabled) => {
-                          productStore.setCoffeeLiquidPhysics(enabled);
-                          markSectionTouched('product-setup');
-                        }}
-                        onPropsValueChange={(next) => {
-                          productStore.setProps(next);
-                          markSectionTouched('product-setup');
-                        }}
-                      />
-                    )}
+                      const modulePropsByIndustry: Record<IndustryProfile, Record<string, unknown>> = {
+                        supplements: {},
+                        wine: {
+                          wineAction: productStore.wineAction,
+                          winePourStyle: productStore.winePourStyle,
+                          contextPreset: productStore.contextPreset,
+                          wineLightingTone: productStore.wineLightingTone,
+                          wineMoodModifier: productStore.wineMoodModifier,
+                          onWineActionChange: (action: ProductStudioState['wineAction']) => {
+                            productStore.setWineAction(action);
+                            markSectionTouched('product-setup');
+                          },
+                          onWinePourStyleChange: (style: ProductStudioState['winePourStyle']) => {
+                            productStore.setWinePourStyle(style);
+                            markSectionTouched('product-setup');
+                          },
+                          onContextPresetChange: (preset: string) => {
+                            productStore.setContextPreset(preset);
+                            markSectionTouched('product-setup');
+                          },
+                          onWineLightingToneChange: (tone: string) => {
+                            productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
+                            markSectionTouched('product-setup');
+                          },
+                          onWineMoodModifierChange: (modifier: string) => {
+                            productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
+                            markSectionTouched('product-setup');
+                          },
+                        },
+                        coffee: {
+                          coffeeAction: productStore.coffeeAction,
+                          contextPreset: productStore.contextPreset,
+                          coffeeLightingTone: productStore.coffeeLightingTone,
+                          coffeeMoodModifier: productStore.coffeeMoodModifier,
+                          coffeeSteamLevel: productStore.coffeeSteamLevel,
+                          coffeeLiquidPhysics: productStore.coffeeLiquidPhysics,
+                          propsValue: productStore.props,
+                          onCoffeeActionChange: (action: ProductStudioState['coffeeAction']) => {
+                            productStore.setCoffeeAction(action);
+                            markSectionTouched('product-setup');
+                          },
+                          onContextPresetChange: (preset: string) => {
+                            productStore.setContextPreset(preset);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeLightingToneChange: (tone: ProductStudioState['coffeeLightingTone']) => {
+                            productStore.setCoffeeLightingTone(tone);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeMoodModifierChange: (modifier: ProductStudioState['coffeeMoodModifier']) => {
+                            productStore.setCoffeeMoodModifier(modifier);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeSteamLevelChange: (level: ProductStudioState['coffeeSteamLevel']) => {
+                            productStore.setCoffeeSteamLevel(level);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeLiquidPhysicsChange: (enabled: boolean) => {
+                            productStore.setCoffeeLiquidPhysics(enabled);
+                            markSectionTouched('product-setup');
+                          },
+                          onPropsValueChange: (next: string) => {
+                            productStore.setProps(next);
+                            markSectionTouched('product-setup');
+                          },
+                        },
+                      };
+
+                      return <ActiveIndustryModule {...modulePropsByIndustry[industryProfile]} />;
+                    })()}
 
                     {/* ─── 2. PHOTO MODE ─────────────────────────── */}
                     {/* ─── 3. OUTPUT PROFILE ──────────────────────── */}
