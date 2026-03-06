@@ -1,4 +1,4 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority, buildPalette } from '../index';
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
@@ -6,9 +6,10 @@ import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineM
 // For structural testing only
 export function __buildSegmentsForTest(state: StudioUIState) {
   const wineEffectiveState = applyWineDeterministicStateMachine(state);
+  // Ensure resolvedPalette exists before any world builder path that can call buildStudioBackground.
+  buildPalette(wineEffectiveState);
   const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
   const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
-  const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
   const segments: any[] = [];
   segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'guardrail', content: buildArtworkImmutability() });
@@ -25,7 +26,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
 
 export const winePipeline = {
   build(state: StudioUIState): string {
-    const photoMode = String((state as any).photoMode || '').trim();
+    const photoMode = String(state.photoMode || '').trim();
 
     // RULE 3: Bottle + Glass forces serve state = served.
     // Pre-patch the state before the deterministic machine runs so that
@@ -37,6 +38,8 @@ export const winePipeline = {
         : state;
 
     const wineEffectiveState = applyWineDeterministicStateMachine(stateForMachine);
+    // Ensure resolvedPalette exists before any world builder path that can call buildStudioBackground.
+    buildPalette(wineEffectiveState);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
     const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
@@ -53,6 +56,7 @@ export const winePipeline = {
         { type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) },
         { type: 'guardrail', content: buildArtworkImmutability() },
         { type: 'physics', content: physicsBlock },
+        { type: 'world', content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState) },
         {
           type: 'guardrail',
           content: [
@@ -133,15 +137,16 @@ export const winePipeline = {
       }
     }
 
-    // [5] World ownership comes from world builder router.
     segments.push({
       type: 'world',
       content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState),
     });
 
     if (winerysceneActive && !hasWineEnvironment) {
+      segments.push({ type: 'guardrail', content: 'WINE_ENVIRONMENT: winery-scene.' });
       segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
     } else if (hasWineEnvironment) {
+      segments.push({ type: 'guardrail', content: `WINE_ENVIRONMENT: ${String(state.wineEnvironmentVariation || '').trim()}.` });
       segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
     }
 

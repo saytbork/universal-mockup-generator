@@ -1,3 +1,5 @@
+// Freeze guard: preserve deterministic segment ordering and final prompt integrity checks.
+// Snapshot baseline and regression tests depend on this pipeline contract.
 import {
   buildPalette,
   buildArtworkImmutability,
@@ -26,60 +28,205 @@ import {
 import type { StudioUIState } from '../index';
 import { resolveIndustryProfileModule } from '../industryProfiles/registry';
 
-function resolveEnvironment(state: StudioUIState): string | null {
-  const s = state as StudioUIState & {
-    environment?: string;
-    environmentPreset?: string;
-    environmentMode?: string;
-  };
-  return (
-    String(s.environment || '').trim() ||
-    String(s.environmentPreset || '').trim() ||
-    String(s.environmentMode || '').trim() ||
-    String(s.contextPresetValue || '').trim() ||
-    null
-  );
-}
+type StudioStateDebug = StudioUIState & {
+  environment?: string;
+  environmentPreset?: string;
+  contextPresetValue?: string;
+  lighting?: string;
+  lightingPreset?: string;
+  lightingMode?: string;
+  basicLighting?: string;
+};
 
-function resolveLighting(state: StudioUIState): string | null {
-  const s = state as StudioUIState & {
-    lighting?: string;
-    lightingPreset?: string;
-    lightingMode?: string;
-  };
-  return (
-    String(s.basicLighting || '').trim() ||
-    String(s.lighting || '').trim() ||
-    String(s.lightingPreset || '').trim() ||
-    String(s.lightingMode || '').trim() ||
-    null
-  );
-}
+type CanonicalSegmentType =
+  | 'camera'
+  | 'composition'
+  | 'photoMode'
+  | 'world'
+  | 'lighting'
+  | 'materials'
+  | 'placement'
+  | 'guardrail';
 
-function buildEnvironmentBlock(environment: string): string {
-  const raw = String(environment || '').trim();
-  const normalized = raw.toLowerCase();
-  if (normalized.includes('bathroom') && normalized.includes('vanity')) {
-    return [
-      'ENVIRONMENT_CONTEXT: luxury bathroom vanity.',
-      'SURFACE_MATERIAL: marble sink.',
-      'AMBIENT_CONTEXT: premium cosmetic bathroom interior.',
-    ].join(' ');
+type PipelinePromptSegmentType = 'physics' | 'world' | 'camera' | 'composition' | 'interaction' | 'guardrail' | 'output';
+
+type PipelinePromptSegment = {
+  type: PipelinePromptSegmentType;
+  content: string;
+};
+
+const SEGMENT_WEIGHT: Record<CanonicalSegmentType, number> = {
+  camera: 0,
+  composition: 1,
+  photoMode: 2,
+  world: 3,
+  lighting: 4,
+  materials: 5,
+  placement: 6,
+  guardrail: 7,
+};
+
+function classifySegmentType(part: string): CanonicalSegmentType {
+  const p = String(part || '').trim().toUpperCase();
+  if (!p) return 'guardrail';
+
+  if (
+    p.startsWith('STUDIO_CAMERA_') ||
+    p.startsWith('LENS_PROFILE:') ||
+    p.startsWith('DISTORTION:') ||
+    p.startsWith('DEPTH_STYLE:') ||
+    p.startsWith('ROTATION:') ||
+    p.startsWith('STUDIO_FRAMING_GUIDE:')
+  ) {
+    return 'camera';
   }
-  return `ENVIRONMENT_CONTEXT: ${raw}.`;
+
+  if (
+    p.startsWith('ARTWORK_IMMUTABILITY:') ||
+    p.startsWith('STUDIO_VISUAL_INTENT:') ||
+    p.startsWith('STUDIO_COMPOSITION_PROFILE:') ||
+    p.startsWith('FRAME_CONSTRAINT:') ||
+    p.startsWith('NEGATIVE_SPACE_POLICY:') ||
+    p.startsWith('HERO_COMPOSITION_DISCIPLINE:') ||
+    p.startsWith('FRAMING:') ||
+    p.startsWith('COMPOSITION:') ||
+    p.startsWith('RULE_OF_THIRDS_DEFAULT:') ||
+    p.startsWith('ASYMMETRICAL_BALANCE:') ||
+    p.startsWith('HORIZONTAL_BALANCE:') ||
+    p.startsWith('VERTICAL_BALANCE:') ||
+    p.startsWith('CENTER_SYMMETRY_LOCK:')
+  ) {
+    return 'composition';
+  }
+
+  if (
+    p.startsWith('PHOTO_MODE_DYNAMIC_CONTROLS:') ||
+    p.startsWith('PHOTO_MODE_ATMOSPHERE:') ||
+    p.startsWith('GEL_SMEAR_EDITORIAL_SCENE:') ||
+    p.startsWith('TEXTURED_BED_INGREDIENT_AUTHORITY:') ||
+    p.startsWith('PHOTO_MODE_SETTING_WATERLEVEL:') ||
+    p.startsWith('PHOTO_MODE_SETTING_WATERENERGY:') ||
+    p.startsWith('INTERACTION_MODE:') ||
+    p.startsWith('MATERIAL_MODE:') ||
+    p.startsWith('TEXTURE_TYPE:') ||
+    p.startsWith('TEXTURE_DENSITY:') ||
+    p.startsWith('STUDIO_PHYSICS_MODEL:') ||
+    p.startsWith('IMPACT_TYPE:') ||
+    p.startsWith('FLOW_DIRECTION:') ||
+    p.startsWith('CONTACT_SURFACE:') ||
+    p.startsWith('APPLICATION_ZONE:') ||
+    p.startsWith('NO_SPLASH_POLICY:') ||
+    p.startsWith('PRODUCT_GROUNDING:') ||
+    p.startsWith('LOCAL_DEFORMATION:') ||
+    p.startsWith('FLUID_REALISM_CONSTRAINT:')
+  ) {
+    return 'photoMode';
+  }
+
+  if (
+    p.startsWith('STUDIO_WORLD:') ||
+    p.startsWith('PHOTO_MODE_SCENE:') ||
+    p.startsWith('ENVIRONMENT_CONTEXT:') ||
+    p.startsWith('BACKGROUND_CONTEXT:') ||
+    p.startsWith('SURFACE_MATERIAL:') ||
+    p.startsWith('AMBIENT_CONTEXT:') ||
+    p.startsWith('SCENE_STYLE:') ||
+    p.startsWith('NATURAL_MATERIAL_REALISM:') ||
+    p.startsWith('NO_SYNTHETIC_RENDERING:') ||
+    p.startsWith('SURFACE_MICRODETAIL:') ||
+    p.startsWith('PHOTOGRAPHIC_LIGHT_RESPONSE:') ||
+    p.startsWith('WINE_ENVIRONMENT:') ||
+    p.startsWith('ENVIRONMENT_PHYSICS_OVERRIDE:') ||
+    p.startsWith('WINE_STYLE_ARCHETYPE:') ||
+    p.startsWith('WINE_AESTHETIC_PROFILE:')
+  ) {
+    return 'world';
+  }
+
+  if (
+    p.startsWith('STUDIO_LIGHTING_PROFILE:') ||
+    p.startsWith('LIGHTING_PROFILE:') ||
+    p.startsWith('STUDIO_LIGHT_DIRECTION:') ||
+    p.startsWith('STUDIO_SHADOW_STYLE:') ||
+    p.startsWith('COFFEE_LIGHTING_PROFILE:') ||
+    p.startsWith('HERO_STUDIO_LIGHTING:') ||
+    p.startsWith('WINE_LIGHTING:') ||
+    p.startsWith('LIGHTING:') ||
+    p.startsWith('SHADOW_ROLLOFF:') ||
+    p.startsWith('HIGHLIGHT_BEHAVIOR:')
+  ) {
+    return 'lighting';
+  }
+
+  if (
+    p.startsWith('STUDIO_MATERIAL_PROFILE:') ||
+    p.startsWith('MATERIALS:') ||
+    p.startsWith('MATERIAL_BEHAVIOR:') ||
+    p.startsWith('STUDIO_MATERIAL_MODEL:') ||
+    p.startsWith('WINE_MATERIALS:') ||
+    p.startsWith('GLASS_MATERIAL_LOCK:') ||
+    p.startsWith('MATERIAL_INTEGRITY:')
+  ) {
+    return 'materials';
+  }
+
+  if (
+    p.startsWith('STUDIO_PRODUCT_MOTION:') ||
+    p.startsWith('MOTION:') ||
+    p.startsWith('PHYSICAL_PRESENCE:') ||
+    p.startsWith('PHYSICAL_PLACEMENT:') ||
+    p.startsWith('PHYSICAL_PLACEMENT_CONTEXT:') ||
+    p.startsWith('BOTTLE_ORIENTATION:') ||
+    p.startsWith('INTERACTION_PROFILE:') ||
+    p.startsWith('STUDIO_MODIFIER_') ||
+    p.startsWith('STUDIO_MODIFIERS:')
+  ) {
+    return 'placement';
+  }
+
+  return 'guardrail';
 }
 
-function buildLightingBlock(lighting: string): string {
-  const raw = String(lighting || '').trim();
-  const normalized = raw.toLowerCase();
-  if (normalized === 'sunny day' || normalized === 'natural-light' || normalized === 'natural light') {
-    return [
-      'LIGHTING_PROFILE: sunny day window light.',
-      'LIGHT_DIRECTION: natural side illumination.',
-      'SHADOW_STYLE: soft daylight shadows.',
-    ].join(' ');
+function toPromptSegmentType(type: CanonicalSegmentType): PipelinePromptSegmentType {
+  if (type === 'camera') return 'camera';
+  if (type === 'composition') return 'composition';
+  if (type === 'world') return 'world';
+  if (type === 'guardrail') return 'guardrail';
+  return 'interaction';
+}
+
+function toOrderedSegments(parts: string[]): PipelinePromptSegment[] {
+  const ordered = parts.map((part, index) => ({
+    canonicalType: classifySegmentType(part),
+    content: String(part || ''),
+    index,
+  }));
+  ordered.sort((a, b) => {
+    const w = SEGMENT_WEIGHT[a.canonicalType] - SEGMENT_WEIGHT[b.canonicalType];
+    if (w !== 0) return w;
+    return a.index - b.index;
+  });
+  const seen = new Set<string>();
+
+  const cleaned: PipelinePromptSegment[] = [];
+
+  for (const segment of ordered) {
+    const normalized = segment.content.replace(/\s+/g, ' ').trim();
+    if (!normalized) continue;
+    const key = `${segment.canonicalType}|${normalized}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push({
+      type: toPromptSegmentType(segment.canonicalType),
+      content: normalized,
+    });
   }
-  return `LIGHTING_PROFILE: ${raw}.`;
+
+  return cleaned;
+}
+
+export function __orderSegmentsForTest(parts: string[]): PipelinePromptSegment[] {
+  return toOrderedSegments(parts);
 }
 
 function buildIndustrySegments(state: StudioUIState, base: string[]): string[] {
@@ -94,25 +241,110 @@ function finalizeWithIndustryValidation(prompt: string, state: StudioUIState): s
   return sanitized;
 }
 
-export function __buildSegmentsForTest(state: StudioUIState) {
+function normalizeText(text: string): string {
+  return String(text || '').replace(/\s+/g, ' ').trim();
+}
+
+function extractPromptBlocks(prompt: string): string[] {
+  const source = String(prompt || '').trim();
+  if (!source) return [];
+  if (source.includes('\n\n')) {
+    return source
+      .split('\n\n')
+      .map((block) => normalizeText(block))
+      .filter(Boolean);
+  }
+  const tokenPattern = /[A-Z][A-Z0-9_]+:/g;
+  const matches = Array.from(source.matchAll(tokenPattern));
+  if (matches.length === 0) return [normalizeText(source)];
+
+  const blocks: string[] = [];
+  for (let i = 0; i < matches.length; i += 1) {
+    const start = matches[i].index ?? 0;
+    const end = i + 1 < matches.length ? (matches[i + 1].index ?? source.length) : source.length;
+    const block = normalizeText(source.slice(start, end));
+    if (block) blocks.push(block);
+  }
+  return blocks;
+}
+
+function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void {
+  const debugState = state as StudioStateDebug;
+  const normalizedPrompt = normalizeText(prompt);
+  const photoMode = String(state.photoMode || '').trim().toLowerCase();
+  const environmentPreset = String(debugState.environmentPreset || '').trim().toLowerCase();
+
+  if (photoMode === 'splash shot') {
+    if (!normalizedPrompt.includes('STUDIO_PHYSICS_MODEL:')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:SPLASH_PHYSICS_MODEL_MISSING]');
+    }
+    if (!normalizedPrompt.includes('IMPACT_TYPE: liquid_splash')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:SPLASH_IMPACT_TYPE_MISSING]');
+    }
+  }
+
+  if (environmentPreset === 'nature elements') {
+    const anchors = [
+      'NATURAL_MATERIAL_REALISM:',
+      'NO_SYNTHETIC_RENDERING:',
+      'SURFACE_MICRODETAIL:',
+      'PHOTOGRAPHIC_LIGHT_RESPONSE:',
+    ];
+    for (const anchor of anchors) {
+      if (!normalizedPrompt.includes(anchor)) {
+        throw new Error(`[PIPELINE_INTEGRITY_FAILURE:NATURE_ANCHOR_MISSING:${anchor.replace(':', '')}]`);
+      }
+    }
+  }
+
+  if (photoMode === 'wine macro label') {
+    const hasInteraction = normalizedPrompt.includes('INTERACTION_MODE:');
+    const hasLabelZone = normalizedPrompt.includes('APPLICATION_ZONE: front label.');
+    if (!hasInteraction && !hasLabelZone) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:WINE_MACRO_INTERACTION_MISSING]');
+    }
+  }
+
+  const blocks = extractPromptBlocks(prompt);
+  const seen = new Set<string>();
+  for (const block of blocks) {
+    if (seen.has(block)) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:DUPLICATE_NORMALIZED_BLOCK]');
+    }
+    seen.add(block);
+  }
+}
+
+export function __validateFinalPromptForTest(prompt: string, state: StudioUIState): void {
+  assertFinalPromptIntegrity(prompt, state);
+}
+
+function resolveEnvironmentLabel(state: StudioStateDebug): string {
+  return String(state.environmentPreset || state.environment || state.contextPresetValue || '');
+}
+
+function resolveLightingLabel(state: StudioStateDebug): string {
+  return String(state.lighting || state.lightingPreset || state.lightingMode || state.basicLighting || '');
+}
+
+export function __buildOrderedSegmentsForTest(state: StudioUIState): PipelinePromptSegment[] {
+  const debugState = state as StudioStateDebug;
   const authority = resolveStudioAuthority(state);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority, state);
   const profile = resolveIndustryProfileModule(state.industryProfile);
-  const environment = resolveEnvironment(state);
-  const lighting = resolveLighting(state);
   // eslint-disable-next-line no-console
   console.log('[STUDIO V2 STATE]', {
     ...state,
-    environment: (state as any).environment,
-    environmentPreset: (state as any).environmentPreset,
-    lighting: (state as any).lighting,
-    lightingPreset: (state as any).lightingPreset,
+    environment: debugState.environment,
+    environmentPreset: debugState.environmentPreset,
+    lighting: debugState.lighting,
+    lightingPreset: debugState.lightingPreset,
   });
   // eslint-disable-next-line no-console
-  console.log('[ENVIRONMENT RESOLVED]', environment || '');
+  console.log('[ENVIRONMENT RESOLVED]', resolveEnvironmentLabel(debugState));
   // eslint-disable-next-line no-console
-  console.log('[LIGHTING RESOLVED]', lighting || '');
+  console.log('[LIGHTING RESOLVED]', resolveLightingLabel(debugState));
 
   const studioBlocks = [
     buildPalette(state),
@@ -122,8 +354,6 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildComposition(authority, state),
     buildPhotoModeDynamic(state),
     buildWorld(authority, state.world, state),
-    ...(environment ? [buildEnvironmentBlock(environment)] : []),
-    ...(lighting ? [buildLightingBlock(lighting)] : []),
     buildLighting(authority, state),
     buildMotion(authority, state),
     buildInteraction(authority, state),
@@ -140,11 +370,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
 
   const industryInjected = buildIndustrySegments(state, studioBlocks);
   const sanitizedParts = sanitizePromptParts(industryInjected);
-  const segments: any[] = [];
-
-  for (const part of sanitizedParts) {
-    segments.push({ type: 'guardrail', content: part });
-  }
+  const segments = toOrderedSegments(sanitizedParts);
 
   // eslint-disable-next-line no-console
   console.log('[INDUSTRY ACTIVE]', state.industryProfile);
@@ -155,26 +381,43 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   return segments;
 }
 
+export function __buildPromptForTest(state: StudioUIState): string {
+  const authority = resolveStudioAuthority(state);
+  const finalPrompt = finalizePromptFromSegments(__buildOrderedSegmentsForTest(state), authority);
+  assertFinalPromptIntegrity(finalPrompt, state);
+  return finalPrompt;
+}
+
+export const __buildSegmentsForTest = __buildOrderedSegmentsForTest;
+
 export const genericPipeline = {
   build(state: StudioUIState): string {
+    /*
+     * Protected baseline coverage:
+     * - segment ordering
+     * - splash ownership
+     * - nature anchors
+     * - lighting priority
+     * - assembler block boundaries
+     * - protected baseline snapshots
+     */
+    const debugState = state as StudioStateDebug;
     const authority = resolveStudioAuthority(state);
     const modifiers = getAllowedStudioModifiers(authority, state);
     const protectionLayer = buildProtectionLayer(authority, state);
     const profile = resolveIndustryProfileModule(state.industryProfile);
-    const environment = resolveEnvironment(state);
-    const lighting = resolveLighting(state);
     // eslint-disable-next-line no-console
     console.log('[STUDIO V2 STATE]', {
       ...state,
-      environment: (state as any).environment,
-      environmentPreset: (state as any).environmentPreset,
-      lighting: (state as any).lighting,
-      lightingPreset: (state as any).lightingPreset,
+      environment: debugState.environment,
+      environmentPreset: debugState.environmentPreset,
+      lighting: debugState.lighting,
+      lightingPreset: debugState.lightingPreset,
     });
     // eslint-disable-next-line no-console
-    console.log('[ENVIRONMENT RESOLVED]', environment || '');
+    console.log('[ENVIRONMENT RESOLVED]', resolveEnvironmentLabel(debugState));
     // eslint-disable-next-line no-console
-    console.log('[LIGHTING RESOLVED]', lighting || '');
+    console.log('[LIGHTING RESOLVED]', resolveLightingLabel(debugState));
 
     const studioBlocks = [
       buildPalette(state),
@@ -184,8 +427,6 @@ export const genericPipeline = {
       buildComposition(authority, state),
       buildPhotoModeDynamic(state),
       buildWorld(authority, state.world, state),
-      ...(environment ? [buildEnvironmentBlock(environment)] : []),
-      ...(lighting ? [buildLightingBlock(lighting)] : []),
       buildLighting(authority, state),
       buildMotion(authority, state),
       buildInteraction(authority, state),
@@ -202,11 +443,7 @@ export const genericPipeline = {
 
     const industryInjected = buildIndustrySegments(state, studioBlocks);
     const sanitizedParts = sanitizePromptParts(industryInjected);
-    const segments: any[] = [];
-
-    for (const part of sanitizedParts) {
-      segments.push({ type: 'guardrail', content: part });
-    }
+    const segments = toOrderedSegments(sanitizedParts);
 
     // eslint-disable-next-line no-console
     console.log('[INDUSTRY ACTIVE]', state.industryProfile);
@@ -216,6 +453,7 @@ export const genericPipeline = {
     console.log('[PROMPT PARTS COUNT]', sanitizedParts.length);
 
     const finalPrompt = finalizePromptFromSegments(segments, authority);
+    assertFinalPromptIntegrity(finalPrompt, state);
     return finalizeWithIndustryValidation(finalPrompt, state);
   },
 };

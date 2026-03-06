@@ -1,3 +1,4 @@
+// Freeze guard: splash interaction stays in splashMode; fallback physics token logic stays here.
 import type { StudioModifier } from '../modifiers/studioModifierRegistry.ts';
 import { getStudioModifierDefinition } from '../modifiers/studioModifierRegistry.ts';
 import type { StudioUIState } from '../types/studioTypes.ts';
@@ -38,11 +39,24 @@ export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIStat
 
   const hyperProEffectsArtDirection =
     'STUDIO_EFFECTS_ART_DIRECTION: Hyper-professional commercial finish required. Effects must feel intentionally art-directed with clean energy, controlled depth layering, premium contrast architecture, and strict hero-product readability.';
+  const hasSplashModifier = modifiers.includes('splash');
 
   const lines = modifiers.map((modifier) => {
     const definition = getStudioModifierDefinition(modifier);
     return `STUDIO_MODIFIER_${modifier.toUpperCase()}: ${definition.blocks.join(' ')}`;
   });
 
-  return ['STUDIO_MODIFIERS:', hyperProEffectsArtDirection, ...lines].join(' ');
+  const normalizedLines = lines.map((line) => line.replace(/\s+/g, ' ').trim());
+  const splashPhysicsAlreadyDefined = normalizedLines.some((line) => line.includes('STUDIO_PHYSICS_MODEL'));
+
+  const shouldEmitFallbackPhysics = hasSplashModifier && !state;
+  const physicsBlock = shouldEmitFallbackPhysics
+    ? splashPhysicsAlreadyDefined
+      ? []
+      : [
+          'STUDIO_PHYSICS_MODEL: fluid_dynamics_surface_impact.',
+        ]
+    : [];
+
+  return ['STUDIO_MODIFIERS:', hyperProEffectsArtDirection, ...lines, ...physicsBlock].filter(Boolean).join(' ');
 }

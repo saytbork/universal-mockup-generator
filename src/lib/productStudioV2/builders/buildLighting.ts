@@ -1,4 +1,13 @@
+// Freeze guard: respect protected lighting resolution priority chain.
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
+
+type LightingState = StudioUIState & {
+  lighting?: string;
+  lightingPreset?: string;
+  lightingMode?: string;
+  customLightColor?: string;
+  accentLightIntensity?: number;
+};
 
 /** Maps basic lighting selector values to natural-language descriptions for the image model. */
 const BASIC_LIGHTING_MAP: Record<string, string> = {
@@ -9,7 +18,18 @@ const BASIC_LIGHTING_MAP: Record<string, string> = {
   'clinical-softbox': 'conversion softbox wrap with label-priority separation',
 };
 
+const PRESET_ALIAS_MAP: Record<string, string> = {
+  'natural-light': 'natural light',
+  'soft-diffused': 'soft diffused',
+  'studio-high-key': 'studio high key',
+  'studio-low-key': 'studio low key',
+  'overcast-natural': 'overcast natural',
+  'golden-hour': 'golden hour',
+  'sunny-day': 'sunny day',
+};
+
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  const lightingState = state as LightingState | undefined;
   if (state?.visualProfile === 'coffee') {
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
     if (mood === 'coffee-cinematic-luxury') {
@@ -37,6 +57,15 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
 
   const override = String(state?.lightingModelOverride || '').trim();
   const basicLighting = String(state?.basicLighting || '').trim().toLowerCase();
+  const rawPresetLighting = String(
+    lightingState?.lighting ||
+      lightingState?.lightingPreset ||
+      lightingState?.lightingMode ||
+      ''
+  )
+    .trim()
+    .toLowerCase();
+  const normalizedPreset = PRESET_ALIAS_MAP[rawPresetLighting] ?? rawPresetLighting;
   const photoMode = String(state?.photoMode || '').trim().toLowerCase();
   const isBeachFoamMode = photoMode === 'beach foam splash';
   const splashAdMode = Boolean(state?.splashAdMode);
@@ -47,6 +76,24 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   } else if (basicLighting && BASIC_LIGHTING_MAP[basicLighting]) {
     // Basic lighting selector — user explicit choice, always wins over world inference
     parts.push(`STUDIO_LIGHTING_PROFILE: ${BASIC_LIGHTING_MAP[basicLighting]}.`);
+  } else if (normalizedPreset) {
+    if (normalizedPreset === 'sunny day' || normalizedPreset === 'natural light') {
+      parts.push('STUDIO_LIGHTING_PROFILE: sunny day window light.');
+      parts.push('STUDIO_LIGHT_DIRECTION: natural side illumination.');
+      parts.push('STUDIO_SHADOW_STYLE: soft daylight shadows.');
+    } else if (normalizedPreset === 'golden hour') {
+      parts.push('STUDIO_LIGHTING_PROFILE: golden hour directional sunlight with warm rim falloff.');
+    } else if (normalizedPreset === 'soft diffused') {
+      parts.push('STUDIO_LIGHTING_PROFILE: soft diffused studio daylight with gentle wrap.');
+    } else if (normalizedPreset === 'overcast natural') {
+      parts.push('STUDIO_LIGHTING_PROFILE: overcast natural daylight with low-contrast diffuse shadows.');
+    } else if (normalizedPreset === 'studio high key') {
+      parts.push('STUDIO_LIGHTING_PROFILE: studio high-key lighting with bright even exposure.');
+    } else if (normalizedPreset === 'studio low key') {
+      parts.push('STUDIO_LIGHTING_PROFILE: studio low-key lighting with controlled deep shadow contrast.');
+    } else {
+      parts.push(`STUDIO_LIGHTING_PROFILE: ${normalizedPreset}.`);
+    }
   } else {
     const lightingModel = (() => {
       if (photoMode === 'underwater split') {
@@ -79,8 +126,8 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   }
 
   // Accent/gel light color injection (from Pro Mode controls)
-  const customColor = String((state as any)?.customLightColor || '').trim().toUpperCase();
-  const intensity = Number((state as any)?.accentLightIntensity ?? 50);
+  const customColor = String(lightingState?.customLightColor || '').trim().toUpperCase();
+  const intensity = Number(lightingState?.accentLightIntensity ?? 50);
   if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
     const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
     parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow.`);

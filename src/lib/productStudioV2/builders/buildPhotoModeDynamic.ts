@@ -21,7 +21,10 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   // eslint-disable-next-line no-console
   console.log('[PHOTO MODE BUILDER RESOLVED]', builder ? builder.name || photoMode : 'buildGenericDynamicContract');
 
-  const contract = builder ? builder(state) : buildGenericDynamicContract(state);
+  let contract = builder ? builder(state) : buildGenericDynamicContract(state);
+  if (photoMode === 'Wine Macro Label' && !/INTERACTION_MODE:/i.test(contract)) {
+    contract = ['INTERACTION_MODE: label-inspection.', contract].filter(Boolean).join(' ');
+  }
 
   // eslint-disable-next-line no-console
   console.log('[PHOTO MODE CONTRACT GENERATED]', JSON.stringify(contract));
