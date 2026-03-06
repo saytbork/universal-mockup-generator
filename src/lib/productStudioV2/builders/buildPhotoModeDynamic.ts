@@ -106,52 +106,48 @@ function buildGelSmearEditorialContract(): string {
   ].join(' ');
 }
 
-function buildFoamTextureMode(settings?: Record<string, string>): string {
-  const read = (key: string): string =>
-    String(
-      settings?.[key] ??
-      settings?.[key.toLowerCase()] ??
-      settings?.[key.toUpperCase()] ??
-      ''
-    ).trim();
+function getFoamPreset(preset = 'cosmetic'): string {
+  if (preset === 'shower') {
+    return [
+      'STUDIO_WORLD: shower foam environment.',
+      'ENVIRONMENT_CONTEXT: wet ceramic surface.',
+      'FOAM_MATERIAL: rich shampoo foam with airy bubble clusters.',
+      'FOAM_DENSITY: heavy.',
+      'FOAM_STRUCTURE: thick foam piles with layered bubble networks.',
+      'FOAM_SPREAD: foam spreads across the wet surface forming natural clusters.',
+      'WET_SURFACE_DETAIL: visible water droplets and wet reflections.',
+      'PRODUCT_GROUNDING: product rests within dense foam accumulation.',
+      'PHYSICAL_BEHAVIOR: foam obeys gravity and natural liquid residue behavior.',
+    ].join(' ');
+  }
 
-  const normalizeChoice = (
-    value: string,
-    allowed: string[],
-    fallback: string
-  ): string => {
-    const normalized = value.toLowerCase();
-    const match = allowed.find((item) => item.toLowerCase() === normalized);
-    return match || fallback;
-  };
-
-  const textureType = normalizeChoice(read('textureType'), ['foam', 'cream', 'gel', 'powder'], 'foam');
-  const textureDensity = normalizeChoice(read('textureDensity'), ['light', 'rich', 'dense'], 'light');
-  const focusDistance = normalizeChoice(read('focusDistance'), ['macro', 'close'], 'macro');
-  const cleanliness = normalizeChoice(
-    read('cleanliness'),
-    ['pristine', 'natural imperfections'],
-    'pristine'
-  );
-
-  const behaviorRule =
-    textureType === 'foam'
-      ? 'TEXTURE_BEHAVIOR: Micro-bubble clusters allowed near product base with coherent grouped structure.'
-      : textureType === 'powder'
-        ? 'TEXTURE_BEHAVIOR: Fine particulate scattering allowed only around product contact perimeter.'
-        : 'TEXTURE_BEHAVIOR: Smooth viscous local flow allowed around product base with cohesive material behavior.';
+  if (preset === 'macro') {
+    return [
+      'STUDIO_WORLD: macro foam texture environment.',
+      'FOAM_MATERIAL: macro cosmetic bubbles.',
+      'FOAM_DENSITY: medium.',
+      'FOAM_STRUCTURE: large bubble clusters with visible surface tension.',
+      'FOAM_VARIATION: macro bubble structures mixed with micro foam.',
+      'PRODUCT_GROUNDING: product rests on foam surface.',
+      'FOAM_CONTACT: foam touches product base without covering label.',
+      'FOCUS_DISTANCE: macro.',
+      'PHYSICAL_BEHAVIOR: foam maintains cohesive bubble structures.',
+    ].join(' ');
+  }
 
   return [
-    'STUDIO_WORLD: textured surface environment.',
-    `TEXTURE_TYPE: ${textureType}.`,
-    `TEXTURE_DENSITY: ${textureDensity}.`,
-    `FOCUS_DISTANCE: ${focusDistance}.`,
-    `SURFACE_CLEANLINESS: ${cleanliness}.`,
-    'TEXTURE_INTERACTION_ZONE: Texture interacts only around the product base.',
-    'PRODUCT_GROUNDING: Product remains grounded on the surface. No floating.',
-    'LOCAL_DEFORMATION: Localized surface deformation around contact zone is allowed.',
-    behaviorRule,
-    'SPLASH_BAN: No large splash arcs, no water tank container, no splash impact vectors, no SPLASH_SPATIAL_POLICY, no SPLASH_SPREAD_POLICY.',
+    'STUDIO_WORLD: premium cosmetic environment with dense volumetric foam.',
+    'ENVIRONMENT_CONTEXT: bathroom vanity or ceramic sink environment.',
+    'SURFACE_TYPE: marble vanity surface or ceramic basin.',
+    'FOAM_MATERIAL: dense cosmetic foam with creamy bubble clusters.',
+    'FOAM_DENSITY: medium-to-heavy accumulation.',
+    'FOAM_STRUCTURE: layered foam mounds with visible bubble clusters and soft peaks.',
+    'FOAM_VARIATION: mixed macro and micro bubble structures with natural foam clustering.',
+    'FOAM_PLACEMENT: foam accumulates organically around the product base and spreads across the surrounding surface.',
+    'WET_SURFACE_DETAIL: subtle moisture and reflective wetness allowed on surrounding surfaces.',
+    'PRODUCT_GROUNDING: product rests naturally embedded within the foam layer.',
+    'FOAM_CONTACT: foam surrounds the base of the product while keeping the label fully visible.',
+    'PHYSICAL_BEHAVIOR: foam obeys gravity and surface tension forming natural accumulation patterns.',
   ].join(' ');
 }
 
@@ -176,13 +172,7 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   console.log('[DEBUG][buildPhotoModeDynamic] EXECUTED. photoMode=', photoMode, '| photoModeDynamicSettings=', JSON.stringify(settings));
 
   if (isFoamTexture) {
-    const settingsMap =
-      settings && typeof settings === 'object'
-        ? (Object.fromEntries(
-            Object.entries(settings).filter(([, v]) => String(v).trim())
-          ) as Record<string, string>)
-        : {};
-    const result = buildFoamTextureMode(settingsMap);
+    const result = getFoamPreset('cosmetic');
     // eslint-disable-next-line no-console
     console.log('[DEBUG][buildPhotoModeDynamic] emitted (foam texture mode):', JSON.stringify(result));
     return result;
