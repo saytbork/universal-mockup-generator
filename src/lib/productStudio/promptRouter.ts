@@ -24,6 +24,10 @@ function isStudioV2Enabled(): boolean {
   return enabled;
 }
 
+function assertIndustry(i: IndustryProfile): IndustryProfile {
+  return i;
+}
+
 function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
   const explicitWorld = normalize((state as any).world);
   const explicitEnvironment = normalize((state as any).environment);
@@ -663,8 +667,7 @@ function resolveIndustryProductState(
     return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
   }
 
-  const genericAllowed = (industryRules[industryProfile]?.productStateWhitelist || ['static']) as ProductStateMotion[];
-  return genericAllowed.includes(state.stateMotion) ? state.stateMotion : 'static';
+  return 'static';
 }
 
 function resolvePackagingBehavior(
@@ -688,7 +691,7 @@ function resolvePackagingBehavior(
     return '';
   }
 
-  return 'generic-screw-cap';
+  return '';
 }
 
 function inferCameraSystemOverride(state: ProductStudioState): string {
@@ -745,10 +748,7 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = state.industryProfile;
-  if (!industryProfile) {
-    throw new Error('[STUDIO ROUTER] Missing required state.industryProfile');
-  }
+  const industryProfile = assertIndustry(state.industryProfile);
   const coffeeLayer =
     industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
@@ -1226,6 +1226,9 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   }
 
   console.log('[STUDIO ROUTER] engine=v2');
+  if (!['supplements', 'wine', 'coffee'].includes(state.industryProfile)) {
+    throw new Error('[INDUSTRY INVALID] Unsupported industryProfile');
+  }
   const v2State = toStudioV2State(state);
   console.log('[STUDIO ROUTER] v2-state', v2State);
   console.log('[STUDIO ROUTER] v2State.photoMode =', JSON.stringify(v2State.photoMode));

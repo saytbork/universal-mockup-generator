@@ -185,10 +185,6 @@ export function getIndustryDefaultInteraction(
     supplements: 'holding',
     wine: 'none',
     coffee: 'holding',
-    beauty: 'holding',
-    luxury: 'holding',
-    tech: 'holding',
-    general: 'holding',
   };
   const preferred = preferredByIndustry[industryProfile] || 'holding';
   if (allowed.includes(preferred)) return preferred;
@@ -263,10 +259,6 @@ export function resolveStateMotionByCapability(
     wine: ['static', 'opened'],
     coffee: ['static', 'dispensed'],
     supplements: ['static', 'opened', 'dispensed'],
-    beauty: ['static', 'opened', 'dispensed'],
-    luxury: ['static', 'opened', 'dispensed'],
-    tech: ['static', 'opened', 'dispensed'],
-    general: ['static', 'opened', 'dispensed'],
   };
   const allowed = limitedByIndustry[industryProfile] || ['static'];
   if (allowed.includes(stateMotion)) return stateMotion;
@@ -296,7 +288,7 @@ export function getIndustryAllowedMotions(
     return allowed;
   }
 
-  return (industryRules[industryProfile]?.productStateWhitelist || ['static']) as ProductStateMotion[];
+  return ['static'];
 }
 
 export function getResolvedAllowedMotions(

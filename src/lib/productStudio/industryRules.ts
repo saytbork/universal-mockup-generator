@@ -115,21 +115,6 @@ export const industryRules: Record<
       'Warm Window Wood',
     ],
   },
-  beauty: {
-    productStateWhitelist: ['static'],
-    interactionWhitelist: [
-      'none',
-      'passive-presence',
-      'cropped-hand',
-      'supported-hold',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-      'framed-presentation',
-      'applying-opening',
-      'resting-interaction',
-    ],
-  },
   coffee: {
     conversionPhotoModes: [
       'hero-landing',
@@ -167,46 +152,5 @@ export const industryRules: Record<
         'presenting',
       ],
     },
-  },
-  luxury: {
-    interactionWhitelist: [
-      'none',
-      'passive-presence',
-      'cropped-hand',
-      'supported-hold',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-      'framed-presentation',
-      'resting-interaction',
-    ],
-  },
-  tech: {
-    interactionWhitelist: [
-      'none',
-      'passive-presence',
-      'cropped-hand',
-      'supported-hold',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-      'framed-presentation',
-      'applying-opening',
-      'resting-interaction',
-    ],
-  },
-  general: {
-    interactionWhitelist: [
-      'none',
-      'passive-presence',
-      'cropped-hand',
-      'supported-hold',
-      'holding',
-      'two-hand-hold',
-      'presenting',
-      'framed-presentation',
-      'applying-opening',
-      'resting-interaction',
-    ],
   },
 };

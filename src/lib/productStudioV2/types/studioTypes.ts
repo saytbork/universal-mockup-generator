@@ -1,3 +1,5 @@
+import type { IndustryProfile } from '@/lib/productStudio/types';
+
 export type StudioCreativeIntent =
   | 'conversion'
   | 'luxury'
@@ -42,7 +44,7 @@ export interface StudioAuthorityBundle {
 }
 
 export interface StudioUIState {
-  industryProfile?: 'supplements' | 'wine' | 'coffee' | 'beauty' | 'luxury' | 'tech' | 'general';
+  industryProfile: IndustryProfile;
   creativeIntent?: StudioCreativeIntent;
   world?: StudioWorld;
   motion: StudioMotion;

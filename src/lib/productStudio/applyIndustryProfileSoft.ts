@@ -23,30 +23,18 @@ const INDUSTRY_VISUAL_INTENT_ALLOWED: Record<IndustryProfile, string[]> = {
   supplements: ['conversion', 'campaign'],
   wine: ['campaign'],
   coffee: ['campaign', 'conversion'],
-  beauty: ['campaign', 'conversion'],
-  luxury: ['campaign', 'conversion'],
-  tech: ['conversion', 'campaign'],
-  general: ['conversion', 'campaign'],
 };
 
 const INDUSTRY_LIGHTING_ALLOWED: Record<IndustryProfile, string[]> = {
   supplements: ['clinical-softbox', 'natural-light', 'overcast', 'cozy-indoors', 'ring-light'],
   wine: ['warm-lateral', 'golden-ambient', 'cellar-dramatic', 'candle-intimate'],
   coffee: ['natural-light', 'cozy-indoors', 'overcast'],
-  beauty: ['natural-light', 'clinical-softbox', 'overcast', 'cozy-indoors'],
-  luxury: ['cozy-indoors', 'natural-light', 'overcast'],
-  tech: ['clinical-softbox', 'natural-light', 'overcast'],
-  general: ['natural-light', 'clinical-softbox', 'overcast', 'cozy-indoors'],
 };
 
 const PRESET_VISUAL_INTENT_FALLBACK: Record<IndustryProfile, string> = {
   supplements: 'conversion',
   wine: 'campaign',
   coffee: 'campaign',
-  beauty: 'campaign',
-  luxury: 'campaign',
-  tech: 'conversion',
-  general: 'conversion',
 };
 
 const normalize = (value: unknown): string => String(value ?? '').trim();

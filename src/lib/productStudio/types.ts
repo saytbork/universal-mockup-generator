@@ -619,11 +619,7 @@ export type ControlTier = 'basic' | 'pro';
 export type IndustryProfile =
     | 'supplements'
     | 'wine'
-    | 'beauty'
-    | 'coffee'
-    | 'luxury'
-    | 'tech'
-    | 'general';
+    | 'coffee';
 export type VisualProfile = 'default' | 'wine-prestige' | IndustryProfile;
 export type WineEnvironmentPreset =
     | 'Vineyard Golden Hour'
