@@ -49,6 +49,7 @@ import type {
     PhotoMode,
     PhotoModeConfig,
     ProductPlacement,
+    IndustryProfile,
     VisualProfile,
     WineAction,
     WineLightingTone,
@@ -665,6 +666,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     category: '',
     contextPreset: '',
     visualProfile: 'default',
+    industryProfile: 'supplements',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
@@ -831,6 +833,7 @@ type ProductStudioActions = {
     // Creativity
     setCategory: (category: string) => void;
     setContextPreset: (preset: string) => void;
+    setIndustryProfile: (profile: IndustryProfile) => void;
     setVisualProfile: (profile: VisualProfile) => void;
     setWineAction: (action: WineAction) => void;
     setWinePourStyle: (style: WinePourStyle) => void;
@@ -1245,6 +1248,62 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Creativity
     setCategory: (category) => set({ category: String(category || '').trim() }),
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
+    setIndustryProfile: (profile) =>
+        set((state) => {
+            const normalizedProfile = (
+                profile === 'wine'
+                    ? 'wine'
+                    : profile === 'coffee'
+                        ? 'coffee'
+                        : 'supplements'
+            ) as 'supplements' | 'wine' | 'coffee';
+            const mappedVisualProfile: VisualProfile =
+                normalizedProfile === 'wine'
+                    ? 'wine-prestige'
+                    : normalizedProfile === 'coffee'
+                        ? 'coffee'
+                        : 'default';
+
+            const baseReset: Partial<ProductStudioState> = {
+                // Wine-specific residue
+                wineType: undefined,
+                carbonationLevel: undefined,
+                wineBottleState: undefined,
+                wineGlassMode: undefined,
+                wineClosureType: undefined,
+                wineServeAmount: undefined,
+                serveVolumeMode: undefined,
+                wineEngineVersion: undefined,
+                wineStyleArchetype: null,
+                wineAction: 'static-presentation',
+                winePourStyle: 'mid-flow-elegance',
+                wineMoodModifier: 'None',
+                // Coffee-specific residue
+                coffeeMode: 'studio',
+                coffeeAction: 'static',
+                coffeeLightingTone: 'auto',
+                coffeeMoodModifier: 'coffee-cinematic-luxury',
+                coffeeSteamLevel: 'auto',
+                coffeeLiquidPhysics: true,
+                // Generic ingredient/prop residue
+                props: '',
+                customIngredients: [],
+                selectedProps: [],
+            };
+
+            return {
+                ...baseReset,
+                visualProfile: mappedVisualProfile,
+                industryProfile: normalizedProfile,
+                interpretationNotes: {
+                    ...state.interpretationNotes,
+                    industryProfile: {
+                        message: `Industry switched to ${normalizedProfile}. Residual industry state reset.`,
+                        ts: Date.now(),
+                    },
+                },
+            };
+        }),
     setVisualProfile: (profile) =>
         set((state) => {
             const normalizedProfile = (
@@ -1259,6 +1318,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (normalizedProfile === 'supplements') {
                 return {
                     visualProfile: 'default',
+                    industryProfile: 'supplements',
                     category: '',
                     contextPreset: '',
                     wineAction: 'static-presentation',
@@ -1270,6 +1330,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (normalizedProfile === 'coffee') {
                 return {
                     visualProfile: 'coffee',
+                    industryProfile: 'coffee',
                     coffeeMode: state.coffeeMode || 'studio',
                     coffeeAction: state.coffeeAction || 'static',
                     coffeeMoodModifier: state.coffeeMoodModifier || 'coffee-cinematic-luxury',
@@ -1277,6 +1338,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
             return {
                 visualProfile: 'wine-prestige',
+                industryProfile: 'wine',
                 category: state.category || 'Wine',
                 contextPreset: state.contextPreset || '',
                 wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)

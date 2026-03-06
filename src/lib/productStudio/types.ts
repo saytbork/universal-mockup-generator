@@ -852,6 +852,7 @@ export type ProductStudioState = {
     category: string;
     contextPreset: string;
     visualProfile: VisualProfile;
+    industryProfile: IndustryProfile;
     wineLightingTone: WineLightingTone;
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;

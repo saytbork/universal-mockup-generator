@@ -21,6 +21,7 @@ function getColorDescription(color: { hex?: string; semanticName?: string } | nu
 }
 
 export function buildProductPhysical(state?: StudioUIState): string {
+  if (state?.industryProfile !== 'supplements') return '';
   const def = state?.productPhysicalDef;
   if (!def || !def.kind || def.kind === 'dummy') return '';
   const v = def.v;

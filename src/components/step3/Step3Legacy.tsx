@@ -1423,12 +1423,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // ============================================================================
   const productStore = useProductStudioStore();
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
-  const industryProfile: IndustryProfile =
-    productStore.visualProfile === 'wine-prestige'
-      ? 'wine'
-      : productStore.visualProfile === 'default'
-        ? 'supplements'
-        : (productStore.visualProfile as IndustryProfile);
+  const industryProfile: IndustryProfile = productStore.industryProfile;
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
@@ -1468,16 +1463,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       }, 200);
     }
 
-    if (nextProfile === 'wine') {
-      productStore.setVisualProfile('wine-prestige');
-      resetIndustryFields(nextProfile, productStore);
-    } else if (nextProfile === 'coffee') {
-      productStore.setVisualProfile('coffee');
-      resetIndustryFields(nextProfile, productStore);
-    } else {
-      productStore.setVisualProfile('default');
-      resetIndustryFields(nextProfile, productStore);
-    }
+    productStore.setIndustryProfile(nextProfile);
+    resetIndustryFields(nextProfile, productStore);
 
     if (softState.visualIntent && softState.visualIntent !== productStore.visualIntent) {
       productStore.setVisualIntent(softState.visualIntent as ProductStudioState['visualIntent']);
@@ -5899,7 +5886,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	            </p>
 	          </div>
 
-              {industryProfile !== 'wine' && (
+              {(industryProfile === 'supplements' || industryProfile === 'coffee') && (
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
                   <p className="text-xs text-gray-500 dark:text-white/50 mb-2">

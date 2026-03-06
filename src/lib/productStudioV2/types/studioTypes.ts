@@ -42,6 +42,7 @@ export interface StudioAuthorityBundle {
 }
 
 export interface StudioUIState {
+  industryProfile?: 'supplements' | 'wine' | 'coffee' | 'beauty' | 'luxury' | 'tech' | 'general';
   creativeIntent?: StudioCreativeIntent;
   world?: StudioWorld;
   motion: StudioMotion;

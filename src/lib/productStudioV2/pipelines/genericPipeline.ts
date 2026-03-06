@@ -24,13 +24,18 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     ...protectionLayer,
     ...buildAdvancedOverrideParts(state),
   ];
-  const isWineReferenceCategory = String((state as any).referenceProductCategory || '').trim().toLowerCase() === 'wine';
-  const withWineEngine = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
+  const isWineIndustry = state.industryProfile === 'wine';
+  const withWineEngine = isWineIndustry ? injectWineEngine(studioBlocks, state) : studioBlocks;
   const sanitizedParts = sanitizePromptParts(withWineEngine);
   const segments: any[] = [];
   for (const part of sanitizedParts) {
     segments.push({ type: 'guardrail', content: part });
   }
+  // Temporary diagnostics for isolation validation.
+  // eslint-disable-next-line no-console
+  console.log('[INDUSTRY ACTIVE]', state.industryProfile);
+  // eslint-disable-next-line no-console
+  console.log('[ACTIVE BUILDERS]', segments.map(s => s.type));
   return segments;
 }
 import { buildPalette, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildInteraction, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildPhotoModeDynamic, buildProductPhysical, buildGeometry, buildIngredients, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers, buildProductOrientation } from '../index';
@@ -62,13 +67,18 @@ export const genericPipeline = {
       ...protectionLayer,
       ...buildAdvancedOverrideParts(state),
     ];
-    const isWineReferenceCategory = String((state as any).referenceProductCategory || '').trim().toLowerCase() === 'wine';
-    const withWineEngine = isWineReferenceCategory ? injectWineEngine(studioBlocks, state) : studioBlocks;
+    const isWineIndustry = state.industryProfile === 'wine';
+    const withWineEngine = isWineIndustry ? injectWineEngine(studioBlocks, state) : studioBlocks;
     const sanitizedParts = sanitizePromptParts(withWineEngine);
     const segments: any[] = [];
     for (const part of sanitizedParts) {
       segments.push({ type: 'guardrail', content: part });
     }
+    // Temporary diagnostics for isolation validation.
+    // eslint-disable-next-line no-console
+    console.log('[INDUSTRY ACTIVE]', state.industryProfile);
+    // eslint-disable-next-line no-console
+    console.log('[ACTIVE BUILDERS]', segments.map(s => s.type));
     const finalPrompt = finalizePromptFromSegments(segments, authority);
     return finalPrompt;
   }

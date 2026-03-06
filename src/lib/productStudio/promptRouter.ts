@@ -222,12 +222,6 @@ const INTERACTION_STATE_TO_CANONICAL_CANDIDATES: Record<string, string[]> = {
   spoonStir: ['none'],
 };
 
-function resolveIndustryProfile(visualProfile: ProductStudioState['visualProfile']): IndustryProfile {
-  if (visualProfile === 'wine-prestige') return 'wine';
-  if (visualProfile === 'default') return 'supplements';
-  return visualProfile as IndustryProfile;
-}
-
 const WINE_ENVIRONMENT_VARIATIONS: Array<
   NonNullable<StudioUIState['wineEnvironmentVariation']>
 > = [
@@ -751,7 +745,10 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = resolveIndustryProfile(state.visualProfile);
+  const industryProfile = state.industryProfile;
+  if (!industryProfile) {
+    throw new Error('[STUDIO ROUTER] Missing required state.industryProfile');
+  }
   const coffeeLayer =
     industryProfile === 'coffee' ? resolveCoffeeIndustryLayer(state) : null;
   const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
@@ -807,6 +804,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
     : '';
   const v2State: StudioUIState = {
+    industryProfile,
     creativeIntent: inferStudioIntent(state),
     visualIntent: industryProfile === 'coffee' ? coffeeLayer?.intent : state.visualIntent,
     visualProfile: industryProfile,
@@ -1236,6 +1234,20 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
 
   // Sanitize for industry-specific forbidden patterns (wine/coffee).
   const prompt = sanitizePromptForIndustry(v2Prompt, v2State.visualProfile as IndustryProfile);
+
+  // Temporary hard validation logs for industry isolation.
+  console.log('[INDUSTRY ACTIVE]', state.industryProfile);
+  if (state.industryProfile === 'supplements') {
+    const leaked = /\b(WINE_|CLOSURE_|LIQUID_|GLASS_)/.test(prompt);
+    if (leaked) {
+      console.error('[INDUSTRY LEAK DETECTED] wine/liquid/glass segments present while industry is supplements');
+      throw new Error('[INDUSTRY LEAK DETECTED] supplements prompt contains wine/liquid/glass segments');
+    }
+  }
+  if (state.industryProfile !== 'wine' && /\bWINE_/.test(prompt)) {
+    console.error('[INDUSTRY LEAK DETECTED] Wine segments present while industry is not wine');
+  }
+
   if (v2State.visualProfile === 'coffee' && !/\bCOFFEE_PACKAGING_MODE\b/.test(prompt)) {
     console.warn('[COFFEE PACKAGING GUARD MISSING]');
   }

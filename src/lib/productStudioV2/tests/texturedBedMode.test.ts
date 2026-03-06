@@ -115,6 +115,7 @@ describe('Textured Bed / Scatter Base contracts', () => {
 
   it('toStudioV2State maps Textured Bed customIngredients into ingredientObjects', () => {
     const state = {
+      industryProfile: 'supplements',
       photoMode: 'Textured Bed / Scatter Base',
       props: '',
       photoModeConfig: {
