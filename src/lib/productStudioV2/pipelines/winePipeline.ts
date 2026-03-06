@@ -1,4 +1,4 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
@@ -17,9 +17,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
   segments.push({ type: 'physics', content: winePhysicsBlock });
   segments.push({ type: 'guardrail', content: buildWineRealismCore() });
-  if (hasWineEnvironment) {
-    segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
-  }
+  segments.push({ type: 'world', content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
   return segments;
@@ -135,15 +133,16 @@ export const winePipeline = {
       }
     }
 
-    // [5] Environment context (surface, depth-field only — no light source redefinition)
+    // [5] World ownership comes from world builder router.
+    segments.push({
+      type: 'world',
+      content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState),
+    });
+
     if (winerysceneActive && !hasWineEnvironment) {
-      // Winery Scene mode: inject cellar environment if none explicitly set
-      segments.push({
-        type: 'world',
-        content: 'WINE_ENVIRONMENT: Authentic stone wine cellar. Wooden barrels in background. Irregular stone wall texture. Natural ambient cellar light. No stylized fog. No fantasy atmosphere.',
-      });
+      segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
     } else if (hasWineEnvironment) {
-      segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
+      segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
     }
 
     // [6] Photo Mode context block for Editorial Table
