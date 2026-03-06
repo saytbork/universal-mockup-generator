@@ -901,8 +901,22 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const dynamicRaw = currentPhotoMode
         ? (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode]
         : undefined;
+      const environmentPreset = String((state as any).environmentPreset || '').trim();
+      if (environmentPreset) extras.environmentPreset = environmentPreset;
+      const environmentMode = String((state as any).environmentMode || '').trim();
+      if (environmentMode) extras.environmentMode = environmentMode;
+      const environment = String((state as any).environment || '').trim();
+      if (environment) extras.environment = environment;
+      const lightingPreset = String((state as any).lightingPreset || '').trim();
+      if (lightingPreset) extras.lightingPreset = lightingPreset;
+      const lightingMode = String((state as any).lightingMode || '').trim();
+      if (lightingMode) extras.lightingMode = lightingMode;
+      const lightingRaw = String((state as any).lighting || '').trim();
+      if (lightingRaw) extras.lighting = lightingRaw;
       // Basic lighting selector (natural-light / overcast / cozy-indoors / ring-light)
-      const basicLighting = String((state as any).lighting || '').trim();
+      const basicLighting = String(
+        (state as any).lighting || (state as any).lightingPreset || (state as any).lightingMode || ''
+      ).trim();
       if (basicLighting) extras.basicLighting = basicLighting;
       // Viewpoint (eye-level / top-down / human-pov / suspended / display-view)
       const viewpoint = String((state as any).viewpoint || '').trim();
@@ -1004,7 +1018,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       };
     })(),
     // ── Context preset (studio environment / world context) ──
-    ...(state.contextPreset ? { contextPresetValue: String(state.contextPreset) } : {}),
+    ...(() => {
+      const contextPreset = String((state as any).contextPreset || '').trim();
+      const environmentPreset = String((state as any).environmentPreset || '').trim();
+      const environmentMode = String((state as any).environmentMode || '').trim();
+      const environment = String((state as any).environment || '').trim();
+      const resolved = contextPreset || environmentPreset || environmentMode || environment;
+      return resolved ? { contextPresetValue: resolved } : {};
+    })(),
     // ── V2 product palette injection (buildPalette reads these) ──
     // Maps V1 store palette fields → V2 StudioUIState palette fields.
     ...(() => {

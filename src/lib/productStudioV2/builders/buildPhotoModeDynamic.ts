@@ -119,7 +119,7 @@ function buildFoamTextureMode(state?: StudioUIState): string {
   const cleanliness = String(root?.cleanliness || 'Pristine').trim().toLowerCase();
 
   return [
-    'STUDIO_WORLD: textured surface environment.',
+    'MATERIAL_MODE: cosmetic texture behavior.',
     `TEXTURE_TYPE: ${textureType}.`,
     `TEXTURE_DENSITY: ${textureDensity}.`,
     `FOCUS_DISTANCE: ${focusDistance}.`,

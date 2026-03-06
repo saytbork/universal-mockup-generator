@@ -116,6 +116,12 @@ export interface StudioUIState {
     | 'pure-white-pdp';
   coffeeTemperatureFeel?: 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
   coffeeServeStyle?: 'cup-only' | 'cup-and-bag' | 'espresso-machine';
+  environment?: string;
+  environmentPreset?: string;
+  environmentMode?: string;
+  lighting?: string;
+  lightingPreset?: string;
+  lightingMode?: string;
   productReferencePresent?: boolean;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;

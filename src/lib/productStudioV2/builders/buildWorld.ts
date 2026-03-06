@@ -146,7 +146,7 @@ export function buildWorld(
   if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero') {
     const bgResolution = buildStudioBackground(authority, state!);
     if (bgResolution) {
-      const result = `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+      const result = `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
       // eslint-disable-next-line no-console
       console.log('[DEBUG][buildWorld] FINAL background string emitted (V2_BG_RESOLVER):', JSON.stringify(result));
       return result;
@@ -155,7 +155,7 @@ export function buildWorld(
 
   if (photoMode === 'Textured Bed / Scatter Base') {
     const texturedBedScene = buildTexturedBedScene(state);
-    const result = `PHOTO_MODE_SCENE: ${texturedBedScene} SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+    const result = `PHOTO_MODE_SCENE: ${texturedBedScene} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
     // eslint-disable-next-line no-console
     console.log('[DEBUG][buildWorld] FINAL background string emitted (TEXTURED_BED_SCENE):', JSON.stringify(result));
     return result;
@@ -165,7 +165,7 @@ export function buildWorld(
   // eslint-disable-next-line no-console
   console.log('[buildWorld] photoMode=', JSON.stringify(photoMode), '| found=', !!photoModeScene);
   if (photoModeScene) {
-    const result = `PHOTO_MODE_SCENE: ${photoModeScene}. SCENE_AUTHORITY: Photo Mode defines the environment. Do not substitute a plain studio background.`;
+    const result = `PHOTO_MODE_SCENE: ${photoModeScene}. SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
     // eslint-disable-next-line no-console
     console.log('[DEBUG][buildWorld] FINAL background string emitted (PHOTO_MODE_SCENE):', JSON.stringify(result));
     return result;
