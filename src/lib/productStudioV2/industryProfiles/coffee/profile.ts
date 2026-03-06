@@ -49,24 +49,26 @@ export const coffeeProfile: IndustryProfileModule = {
     return allowed.includes(state.stateMotion) ? state.stateMotion : 'static';
   },
   resolvePackagingBehavior: () => '',
-  resolveAllowedInteractions: (interactionWhitelist, resolvedCoffeeIntent) => {
-    const intent = String(resolvedCoffeeIntent || 'editorial-ritual');
-    if (intent === 'campaign') return interactionWhitelist;
-    return ['none'];
-  },
+  resolveAllowedInteractions: (interactionWhitelist) => interactionWhitelist,
   getAllowedMotions: (_productType, resolvedIntent) => {
     const intent = String(resolvedIntent || 'editorial-ritual');
+    if (intent === 'conversion') return ['static'];
     if (intent === 'campaign') return ['static', 'opened', 'pouring'];
-    return ['static'];
+    return ['static', 'pouring'];
   },
   resolveStateMotionByCapability: (stateMotion, stateMotionCapability, resolvedIntent) => {
     if (stateMotionCapability !== 'limited' && stateMotionCapability !== 'extended') {
       return 'static';
     }
     const intent = String(resolvedIntent || 'editorial-ritual');
+    if (intent === 'conversion') return 'static';
     if (intent === 'campaign') {
-      return ['static', 'pouring'].includes(stateMotion) ? stateMotion : 'static';
+      return stateMotionCapability === 'extended'
+        ? (['static', 'opened', 'pouring'].includes(stateMotion) ? stateMotion : 'static')
+        : (['static', 'opened'].includes(stateMotion) ? stateMotion : 'static');
     }
-    return stateMotion;
+    return stateMotionCapability === 'extended'
+      ? (['static', 'pouring'].includes(stateMotion) ? stateMotion : 'static')
+      : 'static';
   },
 };

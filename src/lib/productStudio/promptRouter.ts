@@ -26,8 +26,9 @@ function isStudioV2Enabled(): boolean {
 }
 
 function assertIndustry(i: unknown): IndustryProfile {
-  const normalized = String(i || '').trim();
-  if (normalized === 'wine' || normalized === 'coffee') return normalized;
+  const normalized = String(i || '').trim().toLowerCase();
+  if (normalized === 'wine' || normalized === 'wine-prestige') return 'wine';
+  if (normalized === 'coffee') return 'coffee';
   return 'supplements';
 }
 
@@ -729,7 +730,9 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = assertIndustry(state.industryProfile);
+  const industryProfile = assertIndustry(
+    state.industryProfile || state.visualProfile
+  );
   const industryModule = resolveIndustryProfileModule(industryProfile);
   const layerByIndustry: Partial<Record<IndustryProfile, ReturnType<typeof resolveCoffeeIndustryLayer>>> = {
     coffee: resolveCoffeeIndustryLayer(state),
@@ -1185,7 +1188,9 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   }
 
   console.log('[STUDIO ROUTER] engine=v2');
-  const resolvedIndustryProfile = assertIndustry(state.industryProfile);
+  const resolvedIndustryProfile = assertIndustry(
+    state.industryProfile || state.visualProfile
+  );
   resolveIndustryProfileModule(resolvedIndustryProfile);
   const v2State = toStudioV2State(state);
   console.log('[STUDIO ROUTER] v2-state', v2State);
