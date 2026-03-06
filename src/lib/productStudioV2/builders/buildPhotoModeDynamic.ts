@@ -106,6 +106,55 @@ function buildGelSmearEditorialContract(): string {
   ].join(' ');
 }
 
+function buildFoamTextureMode(settings?: Record<string, string>): string {
+  const read = (key: string): string =>
+    String(
+      settings?.[key] ??
+      settings?.[key.toLowerCase()] ??
+      settings?.[key.toUpperCase()] ??
+      ''
+    ).trim();
+
+  const normalizeChoice = (
+    value: string,
+    allowed: string[],
+    fallback: string
+  ): string => {
+    const normalized = value.toLowerCase();
+    const match = allowed.find((item) => item.toLowerCase() === normalized);
+    return match || fallback;
+  };
+
+  const textureType = normalizeChoice(read('textureType'), ['foam', 'cream', 'gel', 'powder'], 'foam');
+  const textureDensity = normalizeChoice(read('textureDensity'), ['light', 'rich', 'dense'], 'light');
+  const focusDistance = normalizeChoice(read('focusDistance'), ['macro', 'close'], 'macro');
+  const cleanliness = normalizeChoice(
+    read('cleanliness'),
+    ['pristine', 'natural imperfections'],
+    'pristine'
+  );
+
+  const behaviorRule =
+    textureType === 'foam'
+      ? 'TEXTURE_BEHAVIOR: Micro-bubble clusters allowed near product base with coherent grouped structure.'
+      : textureType === 'powder'
+        ? 'TEXTURE_BEHAVIOR: Fine particulate scattering allowed only around product contact perimeter.'
+        : 'TEXTURE_BEHAVIOR: Smooth viscous local flow allowed around product base with cohesive material behavior.';
+
+  return [
+    'STUDIO_WORLD: textured surface environment.',
+    `TEXTURE_TYPE: ${textureType}.`,
+    `TEXTURE_DENSITY: ${textureDensity}.`,
+    `FOCUS_DISTANCE: ${focusDistance}.`,
+    `SURFACE_CLEANLINESS: ${cleanliness}.`,
+    'TEXTURE_INTERACTION_ZONE: Texture interacts only around the product base.',
+    'PRODUCT_GROUNDING: Product remains grounded on the surface. No floating.',
+    'LOCAL_DEFORMATION: Localized surface deformation around contact zone is allowed.',
+    behaviorRule,
+    'SPLASH_BAN: No large splash arcs, no water tank container, no splash impact vectors, no SPLASH_SPATIAL_POLICY, no SPLASH_SPREAD_POLICY.',
+  ].join(' ');
+}
+
 /**
  * Injects Photo Mode dynamic sub-settings (macroTightness, dropletMode, etc.)
  * into the V2 prompt. These come from the user's per-Photo-Mode controls in the UI.
@@ -122,8 +171,22 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   const isPoolWater = photoMode === 'Pool Water';
   const isTexturedBed = photoMode === 'Textured Bed / Scatter Base';
   const isGelSmearEditorial = photoMode === 'Gel Smear Editorial';
+  const isFoamTexture = photoMode === 'Foam & Texture';
   // eslint-disable-next-line no-console
   console.log('[DEBUG][buildPhotoModeDynamic] EXECUTED. photoMode=', photoMode, '| photoModeDynamicSettings=', JSON.stringify(settings));
+
+  if (isFoamTexture) {
+    const settingsMap =
+      settings && typeof settings === 'object'
+        ? (Object.fromEntries(
+            Object.entries(settings).filter(([, v]) => String(v).trim())
+          ) as Record<string, string>)
+        : {};
+    const result = buildFoamTextureMode(settingsMap);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][buildPhotoModeDynamic] emitted (foam texture mode):', JSON.stringify(result));
+    return result;
+  }
 
   if (!settings || typeof settings !== 'object') {
     if (isPoolWater) {

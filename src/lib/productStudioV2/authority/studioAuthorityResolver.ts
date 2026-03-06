@@ -10,6 +10,7 @@ import type {
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
 const isBeachFoamMode = (value: unknown): boolean => normalize(value) === 'beach foam splash';
 const isTexturedBedMode = (value: unknown): boolean => normalize(value) === 'textured bed / scatter base';
+const isFoamTextureMode = (value: unknown): boolean => normalize(value) === 'foam & texture';
 
 const isDynamicMotion = (motion: StudioMotion): boolean =>
   motion === 'dispensed' || motion === 'pouring' || motion === 'falling';
@@ -17,6 +18,7 @@ const isDynamicMotion = (motion: StudioMotion): boolean =>
 const resolveWorld = (state: StudioUIState): StudioWorld => {
   if (state.world) return state.world;
   const mode = normalize(state.photoMode);
+  if (isFoamTextureMode(mode)) return 'studio';
   if (isBeachFoamMode(mode)) return 'beach-daylight';
   if (mode.includes('underwater')) return 'underwater';
   // Pool Water is a static water-surface scene — NOT a splash tank.

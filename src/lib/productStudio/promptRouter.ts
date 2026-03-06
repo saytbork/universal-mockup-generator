@@ -32,6 +32,7 @@ function assertIndustry(i: unknown): IndustryProfile {
 }
 
 function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
+  if (String(state.photoMode || '').trim() === 'Foam & Texture') return 'studio';
   const explicitWorld = normalize((state as any).world);
   const explicitEnvironment = normalize((state as any).environment);
   const explicitEnvironmentContext =
