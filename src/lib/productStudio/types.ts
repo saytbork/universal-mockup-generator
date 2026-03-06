@@ -423,6 +423,7 @@ export type SplashShotFreezeMoment = 'Early' | 'Mid-splash' | 'Peak';
 export type SplashShotProductStability = 'Fully grounded' | 'Slight interaction';
 
 export type FoamAndTextureTextureType = 'Foam' | 'Cream' | 'Gel' | 'Powder';
+export type FoamAndTextureMaterialState = 'foam' | 'cream' | 'gel' | 'powder';
 export type FoamAndTextureTextureDensity = 'Light' | 'Rich' | 'Dense';
 export type FoamAndTextureFocusDistance = 'Macro' | 'Close';
 export type FoamAndTextureCleanliness = 'Pristine' | 'Natural imperfections';
@@ -488,6 +489,7 @@ export type PhotoModeConfig = {
         productStability: SplashShotProductStability;
     };
     foamAndTexture: {
+        materialState: FoamAndTextureMaterialState;
         textureType: FoamAndTextureTextureType;
         textureDensity: FoamAndTextureTextureDensity;
         focusDistance: FoamAndTextureFocusDistance;

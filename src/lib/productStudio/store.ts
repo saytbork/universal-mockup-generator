@@ -589,6 +589,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         productStability: 'Slight interaction',
     },
     foamAndTexture: {
+        materialState: 'foam',
         textureType: 'Foam',
         textureDensity: 'Light',
         focusDistance: 'Macro',
@@ -1961,8 +1962,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     ...(patch.splashShot ?? {}),
                 }),
                 foamAndTexture: {
-                    ...state.photoModeConfig.foamAndTexture,
-                    ...(patch.foamAndTexture ?? {}),
+                    ...(() => {
+                        const base = state.photoModeConfig.foamAndTexture;
+                        const incoming = patch.foamAndTexture ?? {};
+                        const next = { ...base, ...incoming } as typeof base;
+                        const textureType = String(next.textureType || '').trim().toLowerCase();
+                        if (textureType === 'foam') next.materialState = 'foam';
+                        else if (textureType === 'cream') next.materialState = 'cream';
+                        else if (textureType === 'gel') next.materialState = 'gel';
+                        else if (textureType === 'powder') next.materialState = 'powder';
+                        return next;
+                    })(),
                 },
                 routineCarousel: {
                     ...state.photoModeConfig.routineCarousel,

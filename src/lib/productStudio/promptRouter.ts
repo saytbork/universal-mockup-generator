@@ -937,6 +937,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       if (!currentPhotoMode) return {};
       const dynamicRaw = (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode];
       const cleaned: Record<string, string> = {};
+      const normalizeMaterialState = (raw: string): string => {
+        const value = raw.trim().toLowerCase();
+        if (value === 'foam') return 'foam';
+        if (value === 'cream') return 'cream';
+        if (value === 'gel') return 'gel';
+        if (value === 'powder') return 'powder';
+        return '';
+      };
       if (dynamicRaw && typeof dynamicRaw === 'object') {
         // Sanitize: strip empty values and customIngredients (handled separately)
         for (const [k, v] of Object.entries(dynamicRaw)) {
@@ -963,7 +971,17 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           }
         }
       }
-      return Object.keys(cleaned).length > 0 ? { photoModeDynamicSettings: cleaned } : {};
+      const materialStateFromDynamic = normalizeMaterialState(String(cleaned.materialState || ''));
+      const materialStateFromTextureType = normalizeMaterialState(String(cleaned.textureType || ''));
+      const resolvedMaterialState = materialStateFromDynamic || materialStateFromTextureType;
+
+      if (!Object.keys(cleaned).length && !resolvedMaterialState) return {};
+      return {
+        photoModeDynamicSettings: cleaned,
+        ...(resolvedMaterialState
+          ? { materialState: resolvedMaterialState as StudioUIState['materialState'] }
+          : {}),
+      };
     })(),
     // ── Supplement / product type physical definition ──
     ...(() => {

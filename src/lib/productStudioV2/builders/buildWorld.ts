@@ -43,7 +43,7 @@ const PHOTO_MODE_SCENE_MAP: Record<string, string> = {
   'Fruit Garnish / Citrus Accents': 'clean studio surface with fresh citrus and fruit accent elements arranged around the product, vibrant premium editorial',
   // Textured Bed has dynamic ingredient authority resolution below (do not define static fallback here).
   'Floating Particles': 'clean dark studio background with fine floating particles creating depth and premium atmospheric energy around the product',
-  'Foam & Texture': 'editorial studio surface with textured foam and material accents creating tactile contrast around the product',
+  'Foam & Texture': 'premium cosmetic material-state scene with grounded product contact and physically plausible foam/cream/gel/powder behavior',
   'Routine Carousel': 'clean studio multi-product arrangement with editorial spacing, routine lifestyle context, product-first hierarchy',
   'Clinical Lab Counter': 'clean clinical studio surface with precision lab equipment accents, scientific premium atmosphere, product as hero',
   'Minimal Bathroom Vanity': 'minimal clean advertising studio surface, rigid materials like glass metal acrylic and stone, minimal elements, controlled reflections, product-first composition',
