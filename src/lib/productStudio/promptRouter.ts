@@ -917,6 +917,15 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       if (productColor) extras.productColor = productColor;
       const productFormScale = String((state as any).productFormScale || (state as any).productScale || '').trim();
       if (productFormScale) extras.productFormScale = productFormScale;
+      // Foam & Texture controls are read from root state in V2 builder.
+      const textureType = String((state as any).textureType || '').trim();
+      if (textureType) extras.textureType = textureType;
+      const textureDensity = String((state as any).textureDensity || '').trim();
+      if (textureDensity) extras.textureDensity = textureDensity;
+      const focusDistance = String((state as any).focusDistance || '').trim();
+      if (focusDistance) extras.focusDistance = focusDistance;
+      const cleanliness = String((state as any).cleanliness || '').trim();
+      if (cleanliness) extras.cleanliness = cleanliness;
       // Ingredient objects:
       // Primary source is state.props. For Textured Bed, also accept dynamic customIngredients
       // so V2 does not fail invariant when user entered ingredients in the mode sub-control.

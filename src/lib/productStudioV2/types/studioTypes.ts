@@ -201,6 +201,11 @@ export interface StudioUIState {
   productFormScale?: string;
   /** Photo Mode dynamic sub-settings from photoModeConfig.dynamic (key→value pairs) */
   photoModeDynamicSettings?: Record<string, string>;
+  /** Foam & Texture root controls from UI store */
+  textureType?: string;
+  textureDensity?: string;
+  focusDistance?: string;
+  cleanliness?: string;
   /** Canonical physical material state for material-driven photo modes (Foam/Cream/Gel/Powder). */
   materialState?: MaterialState;
   /** Full physical definition object from state.definition.physical — used by buildProductPhysical */

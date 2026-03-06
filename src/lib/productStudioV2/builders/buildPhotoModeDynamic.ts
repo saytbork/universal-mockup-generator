@@ -1,4 +1,4 @@
-import { MaterialState, type StudioUIState } from '../types/studioTypes.ts';
+import type { StudioUIState } from '../types/studioTypes.ts';
 
 /**
  * Per-photo-mode atmosphere descriptors emitted when no user dynamic settings are present.
@@ -106,110 +106,28 @@ function buildGelSmearEditorialContract(): string {
   ].join(' ');
 }
 
-const MATERIAL_BEHAVIOR: Record<MaterialState, Record<string, string | boolean>> = {
-  [MaterialState.FOAM]: {
-    physics: 'volumetric bubbles',
-    accumulation: true,
-    wetSurface: true,
-    bubbleVariation: true,
-  },
-  [MaterialState.CREAM]: {
-    physics: 'viscous cosmetic mass',
-    flow: 'slow',
-    glossySurface: true,
-  },
-  [MaterialState.GEL]: {
-    physics: 'translucent elastic material',
-    refraction: true,
-    smoothSurface: true,
-  },
-  [MaterialState.POWDER]: {
-    physics: 'dry particles',
-    scattering: true,
-    matteSurface: true,
-  },
-};
-
-type MaterialSceneConfig = {
-  sceneEnvironment: string;
-  surfaceMaterial: string;
-  materialState: MaterialState;
-};
-
-function resolveMaterialState(state?: StudioUIState, settings?: Record<string, string>): MaterialState {
-  const rawMaterial = String(state?.materialState || settings?.materialState || '').trim().toLowerCase();
-  const rawTextureType = String(settings?.textureType || '').trim().toLowerCase();
-  const raw = rawMaterial || rawTextureType;
-  if (raw === MaterialState.CREAM) return MaterialState.CREAM;
-  if (raw === MaterialState.GEL) return MaterialState.GEL;
-  if (raw === MaterialState.POWDER) return MaterialState.POWDER;
-  return MaterialState.FOAM;
-}
-
-function getFoamPreset(preset = 'cosmetic'): string {
-  if (preset === 'shower') {
-    return [
-      'STUDIO_WORLD: shower foam environment.',
-      'ENVIRONMENT_CONTEXT: wet ceramic surface.',
-      'FOAM_MATERIAL: rich shampoo foam accumulating on wet ceramic surfaces with dense bubble clusters.',
-      'FOAM_DENSITY: heavy.',
-      'FOAM_STRUCTURE: thick foam piles with layered bubble networks.',
-      'FOAM_VARIATION: mixed macro and micro bubble structures with visible surface tension.',
-      'FOAM_PLACEMENT: foam spreads across the wet surface forming natural clusters around product base.',
-      'WET_SURFACE_DETAIL: visible water droplets and wet reflections.',
-      'PRODUCT_GROUNDING: product rests within dense foam accumulation.',
-      'PHYSICAL_BEHAVIOR: foam obeys gravity and natural liquid residue behavior.',
-    ].join(' ');
-  }
-
-  if (preset === 'macro') {
-    return [
-      'STUDIO_WORLD: macro foam texture environment.',
-      'ENVIRONMENT_CONTEXT: close-in cosmetic set.',
-      'SURFACE_TYPE: premium cosmetic slab.',
-      'FOAM_MATERIAL: macro bubble foam structures with visible surface tension and large bubble clusters.',
-      'FOAM_DENSITY: medium.',
-      'FOAM_STRUCTURE: large bubble clusters with cohesive foam bridges.',
-      'FOAM_VARIATION: macro and micro bubble mixing with realistic clustering.',
-      'FOAM_PLACEMENT: foam accumulation around product base with controlled spread.',
-      'PRODUCT_GROUNDING: product rests naturally within foam clusters.',
-      'FOAM_CONTACT: foam touches product base without covering label.',
-      'FOCUS_DISTANCE: macro.',
-      'PHYSICAL_BEHAVIOR: foam maintains cohesive bubble structures under gravity and surface tension.',
-    ].join(' ');
-  }
+function buildFoamTextureMode(state?: StudioUIState): string {
+  const root = state as StudioUIState & {
+    textureType?: string;
+    textureDensity?: string;
+    focusDistance?: string;
+    cleanliness?: string;
+  };
+  const textureType = String(root?.textureType || 'Foam').trim().toLowerCase();
+  const textureDensity = String(root?.textureDensity || 'Light').trim().toLowerCase();
+  const focusDistance = String(root?.focusDistance || 'Macro').trim().toLowerCase();
+  const cleanliness = String(root?.cleanliness || 'Pristine').trim().toLowerCase();
 
   return [
-    'STUDIO_WORLD: premium cosmetic foam environment.',
-    'ENVIRONMENT_CONTEXT: luxury bathroom vanity or ceramic sink basin.',
-    'SURFACE_TYPE: marble vanity or ceramic surface.',
-    'FOAM_MATERIAL: dense cosmetic foam with creamy bubble clusters.',
-    'FOAM_DENSITY: medium-to-heavy accumulation.',
-    'FOAM_STRUCTURE: layered foam mounds with clustered bubbles and soft peaks.',
-    'FOAM_VARIATION: mixed macro and micro bubble sizes with visible surface tension.',
-    'FOAM_PLACEMENT: foam accumulates naturally around the product base and spreads across surrounding surfaces.',
-    'WET_SURFACE_DETAIL: subtle moisture and reflective wetness allowed.',
-    'PRODUCT_GROUNDING: product rests naturally embedded within the foam layer.',
-    'FOAM_CONTACT: foam surrounds the product base while keeping the label fully visible.',
-    'PHYSICAL_BEHAVIOR: foam obeys gravity and surface tension forming natural accumulation patterns.',
-    'FOAM_REALISM_CONSTRAINTS: foam accumulates in clusters, forms soft peaks, shows bubble-size variation, gathers in surface recesses, and never appears as flat noise texture.',
-  ].join(' ');
-}
-
-function buildFoamWorld(settings?: Record<string, string>): string {
-  const preset = String(settings?.foamPreset || '').trim().toLowerCase();
-  if (preset === 'shower') return getFoamPreset('shower');
-  if (preset === 'macro') return getFoamPreset('macro');
-  return getFoamPreset('cosmetic');
-}
-
-function buildMaterialStateWorld(config: MaterialSceneConfig): string {
-  const behavior = MATERIAL_BEHAVIOR[config.materialState];
-  return [
-    `SCENE_ENVIRONMENT: ${config.sceneEnvironment}.`,
-    `SURFACE_MATERIAL: ${config.surfaceMaterial}.`,
-    `MATERIAL_STATE: ${config.materialState}.`,
-    `MATERIAL_BEHAVIOR_PROFILE: ${JSON.stringify(behavior)}.`,
+    'STUDIO_WORLD: textured surface environment.',
+    `TEXTURE_TYPE: ${textureType}.`,
+    `TEXTURE_DENSITY: ${textureDensity}.`,
+    `FOCUS_DISTANCE: ${focusDistance}.`,
+    `SURFACE_CLEANLINESS: ${cleanliness}.`,
+    'TEXTURE_INTERACTION_ZONE: texture interacts only around product base.',
+    'PRODUCT_GROUNDING: product remains grounded.',
+    'LOCAL_SURFACE_DEFORMATION: localized deformation allowed.',
+    'NO_SPLASH_POLICY: splash systems must never activate in this mode.',
   ].join(' ');
 }
 
@@ -234,31 +152,7 @@ export function buildPhotoModeDynamic(state?: StudioUIState): string {
   console.log('[DEBUG][buildPhotoModeDynamic] EXECUTED. photoMode=', photoMode, '| photoModeDynamicSettings=', JSON.stringify(settings));
 
   if (isFoamTexture) {
-    const settingsMap =
-      settings && typeof settings === 'object'
-        ? (Object.fromEntries(
-            Object.entries(settings).filter(([, v]) => String(v).trim())
-          ) as Record<string, string>)
-        : {};
-    const materialState = resolveMaterialState(state, settingsMap);
-    const sceneConfig: MaterialSceneConfig = {
-      sceneEnvironment: materialState === MaterialState.FOAM ? 'bathroom vanity' : 'cosmetic studio set',
-      surfaceMaterial: materialState === MaterialState.FOAM ? 'marble' : 'premium cosmetic slab',
-      materialState,
-    };
-    const baseScene = buildMaterialStateWorld(sceneConfig);
-    const materialScene =
-      materialState === MaterialState.FOAM
-        ? buildFoamWorld(settingsMap)
-        : [
-            'STUDIO_WORLD: material-driven cosmetic environment.',
-            `ENVIRONMENT_CONTEXT: ${sceneConfig.sceneEnvironment}.`,
-            `SURFACE_TYPE: ${sceneConfig.surfaceMaterial}.`,
-            `MATERIAL_STATE: ${materialState}.`,
-            'PRODUCT_GROUNDING: product remains grounded with physically plausible contact and no floating.',
-            `PHYSICAL_BEHAVIOR: ${String(MATERIAL_BEHAVIOR[materialState].physics)}.`,
-          ].join(' ');
-    const result = [baseScene, materialScene].join(' ');
+    const result = buildFoamTextureMode(state);
     // eslint-disable-next-line no-console
     console.log('[DEBUG][buildPhotoModeDynamic] emitted (foam texture mode):', JSON.stringify(result));
     return result;
