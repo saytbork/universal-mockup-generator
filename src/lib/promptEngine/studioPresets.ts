@@ -6,7 +6,7 @@
  */
 
 import { buildQualityEnforcer } from './qualityEnforcer';
-import { buildPhotoModePrompt, type PhotoMode } from './photoModeResolver';
+import { buildPhotoModePrompt, type PhotoModeCompat } from './photoModeResolver';
 import { buildProductTypePrompt, type ProductType } from './productTypeResolver';
 import { buildPhysicalPropertiesPrompt } from './physicalPropertiesResolver';
 
@@ -570,7 +570,7 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // PHOTO MODE RESOLVER (Scene Authority - Layer 2)
     // =========================================================================
     if (options.photoMode) {
-        const photoModeResult = buildPhotoModePrompt(options.photoMode as PhotoMode, {
+        const photoModeResult = buildPhotoModePrompt(options.photoMode as PhotoModeCompat, {
             backgroundType: options.gradientStart && options.gradientEnd ? 'gradient' : 'solid',
             paletteColors: {
                 primary: options.paletteColor1,
@@ -606,7 +606,7 @@ export function buildStudioPrompt(options: StudioPromptOptions): string {
     // =========================================================================
     if (options.productType) {
         const productTypeResult = buildProductTypePrompt(options.productType as ProductType, {
-            photoMode: options.photoMode as PhotoMode
+            photoMode: options.photoMode as PhotoModeCompat
         });
 
         // CRITICAL: Block execution if Product Type validation fails

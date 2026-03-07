@@ -4,7 +4,7 @@
 
 import type { DeterministicPromptInput, SceneType } from '../sceneTypes';
 import { getSceneTypeRules, isLightingAllowed, isEnvironmentAllowed, areHandsAllowed } from '../sceneTypeRules';
-import { PHOTO_MODE_SCHEMAS } from '../../productStudio/photoModeSchema';
+import { getSceneSchema } from '../../productStudio/photoModeSchema';
 
 export interface ValidationResult {
     valid: boolean;
@@ -107,7 +107,7 @@ export function checkHardFails(input: Partial<DeterministicPromptInput>): string
     // HARD FAIL 11: PhotoMode × Placement (FULL SCHEMA ENFORCEMENT)
     // Validates ALL requiredPlacement constraints from photoModeSchema
     if (photoMode && placement) {
-        const schema = (PHOTO_MODE_SCHEMAS as any)[photoMode];
+        const schema = getSceneSchema(photoMode);
         const required = schema?.requiredPlacement as string | undefined;
         if (required && required !== 'any' && placement !== required) {
             errors.push(`HARD FAIL: Photo Mode "${photoMode}" requires placement="${required}". Current placement="${placement}". ABORT.`);
@@ -213,7 +213,7 @@ export function checkHardFails(input: Partial<DeterministicPromptInput>): string
     // HARD FAIL 16: Photo Mode × Person Presence (STUDIO VS LIFESTYLE)
     // Studio worlds forbid ALL person presence/interaction. lifestyle/UGC only.
     if (photoMode) {
-        const schema = (PHOTO_MODE_SCHEMAS as any)[photoMode];
+        const schema = getSceneSchema(photoMode);
         if (schema && schema.allowsPersonPresence === false && interaction && interaction !== 'none') {
             errors.push(`HARD FAIL: Photo Mode "${photoMode}" is a STUDIO world and forbids person presence or interaction. Interaction="${interaction}" is INVALID. ABORT.`);
         }

@@ -66,7 +66,7 @@ const INTERACTION_FRAGMENTS: Record<string, string[]> = {
     'INTERACTION_PROFILE: framed-presentation.',
     'Two hands frame the product without fully gripping — palms form a soft cradle or bookend.',
     'Product is elevated, centered in the frame created by the hands.',
-    'Minimal occlusion of label or product face.',
+    'Minimal occlusion of label or front-facing product surface.',
     'Editorial posture: controlled, intentional, clean energy.',
   ],
   applying: [

@@ -70,6 +70,25 @@ import { validateAndCorrectCapabilities } from './productCapabilities';
 import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
 import { resolveIndustryProfileModule } from '../productStudioV2/industryProfiles/registry';
 
+const VISUAL_STYLE_SELECTIONS = new Set([
+    'Clinical Lab Counter',
+    'Minimal Bathroom Vanity',
+    'Dark Premium Studio',
+    'Tech Clean Studio',
+    'Brand Campaign',
+    'Creator Premium Simulation',
+    'Soft Wellness Morning',
+    'Outdoor Energy Boost',
+    'Sunlit Stone Editorial',
+    'Golden Sunset Backlit',
+    'Bathroom Daylight Clean',
+    'Sky Float Minimal',
+    'Wet Rock Ripples',
+    'Sand Palm Shadows',
+    'Botanical Water Garden',
+    'Warm Window Wood',
+]);
+
 
 // ============================================================================
 // DEFAULT PHYSICAL BY TYPE
@@ -351,14 +370,13 @@ function reinterpretMacroInteraction(state: ProductStudioState): ProductStudioSt
 }
 
 function getAllowedMotionsForPhotoMode(photoMode: PhotoMode): ProductStateMotion[] | null {
-    // Keep this aligned with promptEngine/photoModeResolver.ts compatibility map.
-    if (photoMode === 'Hero Landing Page') return ['static', 'opened'];
-    if (photoMode === 'Splash Shot') return ['dispensed', 'pouring'];
-    if (photoMode === 'Foam & Texture') return ['static', 'opened'];
-    if (photoMode === 'Dark Premium Studio') return ['static', 'opened'];
-    if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
-    if (photoMode === 'Pool Water') return ['static', 'opened'];
-    if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
+  // Keep this aligned with promptEngine/photoModeResolver.ts compatibility map.
+  if (photoMode === 'Hero Landing Page') return ['static', 'opened'];
+  if (photoMode === 'Splash Shot') return ['dispensed', 'pouring'];
+  if (photoMode === 'Foam & Texture') return ['static', 'opened'];
+  if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
+  if (photoMode === 'Pool Water') return ['static', 'opened'];
+  if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
     return null;
 }
 
@@ -435,7 +453,8 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'clinical',
             paletteSource: 'brand',
             propDensity: 'none',
-            photoMode: 'Clinical Lab Counter',
+            photoMode: 'Hero Landing Page',
+            visualStyle: 'Clinical Lab Counter',
             proMode: true,
             lens: '50mm Product Prime',
             lightingRig: 'Softbox Wrap',
@@ -454,7 +473,8 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'soft',
             paletteSource: 'brand',
             propDensity: 'low',
-            photoMode: 'Sunlit Stone Editorial',
+            photoMode: 'Hero Landing Page',
+            visualStyle: 'Sunlit Stone Editorial',
             gradientEnabled: true,
             gradientAngle: 180,
             proMode: true,
@@ -1252,7 +1272,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Creativity
     setCategory: (category) => set({ category: String(category || '').trim() }),
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
-    setVisualStyle: (visualStyle) => set({ visualStyle: String(visualStyle || '').trim() || undefined }),
+    setVisualStyle: (visualStyle) => set({ visualStyle: (String(visualStyle || '').trim() || undefined) as ProductStudioState['visualStyle'] }),
     setIndustryProfile: (profile) =>
         set((state) => {
             if (state.industryProfile === profile) {
@@ -1742,7 +1762,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
         set((state) => {
             console.log('[SET PHOTO MODE]', mode);
             const rawMode = String(mode ?? '').trim();
-            const nextMode = (rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode) as PhotoMode;
+            const nextMode = rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode;
+
+            if (VISUAL_STYLE_SELECTIONS.has(nextMode)) {
+                return {
+                    visualStyle: nextMode as ProductStudioState['visualStyle'],
+                };
+            }
 
             // Phase 1 (locked): Photo Mode is the primary creative selector.
             // It maps to existing internal sceneType values and fully replaces Brand Look System.
@@ -1757,30 +1783,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Splash Shot',
                 'Foam & Texture',
                 'Routine Carousel',
-                'Clinical Lab Counter',
-                'Minimal Bathroom Vanity',
-                'Dark Premium Studio',
-                'Brand Campaign',
-                'Creator Premium Simulation',
-                'Tech Clean Studio',
                 'Luxury Editorial Tabletop',
-                'Soft Wellness Morning',
-                'Outdoor Energy Boost',
                 'Candy Gradient Lab',
                 'Golden Mist Aura',
-                'Sunlit Stone Editorial',
-                'Golden Sunset Backlit',
                 'Golden Hour Lifestyle',
-                'Bathroom Daylight Clean',
                 'Pastel Picnic',
-                'Sky Float Minimal',
-                'Wet Rock Ripples',
                 'Hands Application Clean',
                 'Underwater Split',
-                'Sand Palm Shadows',
-                'Botanical Water Garden',
                 'Macro Dew Label',
-                'Warm Window Wood',
                 'Gel Smear Editorial',
                 'Citrus Fresh Flat Lay',
                 'Stones & Crystals Flat Lay',
@@ -1800,7 +1810,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Winery Scene',
             ];
 
-            const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+            const resolvedMode: PhotoMode = allowed.includes(nextMode as PhotoMode) ? (nextMode as PhotoMode) : 'Hero Landing Page';
             const wineModeActive = isWinePrestigeMode(state);
             const splashBlockedInWineMode =
                 wineModeActive &&
@@ -1908,7 +1918,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 return {
                     ...common,
                     ...(splashBlockedInWineMode
-                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Hero Landing Page while preserving visual style controls.')
                         : {}),
                 };
             }
@@ -1916,7 +1926,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return {
                 ...common,
                 ...(splashBlockedInWineMode
-                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Hero Landing Page while preserving visual style controls.')
                     : {}),
             };
         }),

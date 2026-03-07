@@ -76,7 +76,7 @@ function buildTexturedBedScene(state?: StudioUIState): string {
     'TEXTURED_BED_VISUAL_DOMINANCE: The ingredient provided by the user defines the physical surface. It must be visually dominant and clearly identifiable across the entire base plane.',
     'TEXTURED_BED_PRODUCT_CONTACT: Product must obey gravity and physically interact with ingredient surface. Allowed interaction includes partial sinking, loose-particle support, compression indentation, and light displacement around the base.',
     depthInteractionRule,
-    'TEXTURED_BED_VISIBILITY_RULE: Product must be clearly visible as hero subject. Ingredient bed can wrap the lower body/perimeter but must not hide the product or obstruct the primary label zone.',
+    'TEXTURED_BED_VISIBILITY_RULE: Product must be clearly visible as hero subject. Ingredient bed can wrap the lower product silhouette/perimeter but must not hide the product or obstruct the primary label zone.',
     'TEXTURED_BED_FLOATING_BAN: No floating. No hovering. No detached product placement above the ingredient bed.',
     'TEXTURED_BED_RECOGNIZABILITY: Ingredient texture must remain recognizable and material-accurate in color/particle form.',
     'TEXTURED_BED_OVERRIDE: This mode fully overrides default studio material profile and clean-surface defaults.',

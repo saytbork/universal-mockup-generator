@@ -7,13 +7,14 @@ type SoftState = {
   lighting?: string;
   composition?: string;
   photoMode?: string;
+  visualStyle?: string;
   wineLightingTone?: string;
   tilt?: number;
   rotation?: number;
   cameraUiRotationLabel?: string;
 };
 
-const PRESET_WORLD_TO_PHOTO_MODE: Record<string, string> = {
+const PRESET_WORLD_TO_VISUAL_STYLE: Record<string, string> = {
   'clinical-lab-counter': 'Clinical Lab Counter',
   'dark-luxury-studio': 'Dark Premium Studio',
   'warm-window-editorial': 'Warm Window Wood',
@@ -84,17 +85,28 @@ export function applyIndustryProfileSoft<T extends SoftState>(
   }
 
   const currentPhotoMode = normalize(nextState.photoMode);
-  const preferredPhotoMode = PRESET_WORLD_TO_PHOTO_MODE[preset.world];
   const allowedPhotoModes = Array.isArray(rules?.allowedPhotoModes) ? rules.allowedPhotoModes : [];
   const photoModeInvalidByIndustry =
     allowedPhotoModes.length > 0 && (!currentPhotoMode || !allowedPhotoModes.includes(currentPhotoMode));
   if (photoModeInvalidByIndustry) {
     nextState.photoMode = (
-      (preferredPhotoMode && allowedPhotoModes.includes(preferredPhotoMode) ? preferredPhotoMode : allowedPhotoModes[0]) ||
+      allowedPhotoModes[0] ||
       currentPhotoMode
     ) as T['photoMode'];
-  } else if (!currentPhotoMode && preferredPhotoMode) {
-    nextState.photoMode = preferredPhotoMode as T['photoMode'];
+  }
+
+  const currentVisualStyle = normalize(nextState.visualStyle);
+  const preferredVisualStyle = PRESET_WORLD_TO_VISUAL_STYLE[preset.world];
+  const allowedVisualStyles = Array.isArray(rules?.allowedVisualStyles) ? rules.allowedVisualStyles : [];
+  const visualStyleInvalidByIndustry =
+    allowedVisualStyles.length > 0 && currentVisualStyle && !allowedVisualStyles.includes(currentVisualStyle);
+  if (visualStyleInvalidByIndustry) {
+    nextState.visualStyle = (
+      (preferredVisualStyle && allowedVisualStyles.includes(preferredVisualStyle) ? preferredVisualStyle : allowedVisualStyles[0]) ||
+      ''
+    ) as T['visualStyle'];
+  } else if (!currentVisualStyle && preferredVisualStyle) {
+    nextState.visualStyle = preferredVisualStyle as T['visualStyle'];
   }
 
   const currentTilt =

@@ -621,7 +621,7 @@ function resolveSplashShotConfig(state: ProductStudioState): ProductStudioState[
 }
 
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
-  const mode = state.photoMode as PhotoMode;
+  const mode = String(state.photoMode || '').trim();
   const cfg = state.photoModeConfig;
   const dynamic: Record<string, string> = {};
 
@@ -1000,7 +1000,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const isBundleMacroGuardActive = Boolean(state.bundle?.enabled);
   const effectivePhotoModeForPrompt: PhotoMode =
     isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label'
-      ? ('Brand Campaign' as PhotoMode)
+      ? 'Hero Landing Page'
       : (state.photoMode as PhotoMode);
 
   const photoModeResult = buildPhotoModePrompt(effectivePhotoModeForPrompt, {

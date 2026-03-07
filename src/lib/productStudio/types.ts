@@ -295,6 +295,25 @@ export type EcommercePdpConfig = {
 // PHOTO MODE SYSTEM (PHASE 1 — LOCKED)
 // =============================================================================
 
+export type VisualStyle =
+    | 'Clinical Lab Counter'
+    | 'Minimal Bathroom Vanity'
+    | 'Dark Premium Studio'
+    | 'Tech Clean Studio'
+    | 'Monochrome Brand' // legacy only
+    | 'Brand Campaign'
+    | 'Creator Premium Simulation'
+    | 'Soft Wellness Morning'
+    | 'Outdoor Energy Boost'
+    | 'Sunlit Stone Editorial'
+    | 'Golden Sunset Backlit'
+    | 'Bathroom Daylight Clean'
+    | 'Sky Float Minimal'
+    | 'Wet Rock Ripples'
+    | 'Sand Palm Shadows'
+    | 'Botanical Water Garden'
+    | 'Warm Window Wood';
+
 export type PhotoMode =
     // Studio modes
     | 'Hero Landing Page'
@@ -306,34 +325,15 @@ export type PhotoMode =
     | 'Splash Shot'
     | 'Foam & Texture'
     | 'Routine Carousel'
-    | 'Clinical Lab Counter'
-    | 'Minimal Bathroom Vanity'
-    | 'Dark Premium Studio'
-    | 'Monochrome Brand'
-    | 'Brand Campaign'
-    | 'Creator Premium Simulation'
-    | 'UGC Premium Simulation' // deprecated alias (backward compatibility)
-    | 'Tech Clean Studio'
-    // Lifestyle modes
+    // Lifestyle / interaction modes
     | 'Luxury Editorial Tabletop'
-    | 'Soft Wellness Morning'
     | 'Golden Hour Lifestyle'
-    | 'Outdoor Energy Boost'
     | 'Pastel Picnic'
     | 'Candy Gradient Lab'
     | 'Golden Mist Aura'
-    // v2.1 realism modes
-    | 'Sunlit Stone Editorial'
-    | 'Golden Sunset Backlit'
-    | 'Bathroom Daylight Clean'
-    | 'Sky Float Minimal'
-    | 'Wet Rock Ripples'
     | 'Hands Application Clean'
     | 'Underwater Split'
-    | 'Sand Palm Shadows'
-    | 'Botanical Water Garden'
     | 'Macro Dew Label'
-    | 'Warm Window Wood'
     | 'Gel Smear Editorial'
     | 'Citrus Fresh Flat Lay'
     | 'Stones & Crystals Flat Lay'
@@ -849,7 +849,7 @@ export type ProductStudioState = {
     // ========================================================================
     category: string;
     contextPreset: string;
-    visualStyle?: string;
+    visualStyle?: VisualStyle;
     visualProfile: VisualProfile;
     industryProfile: IndustryProfile;
     wineLightingTone: WineLightingTone;

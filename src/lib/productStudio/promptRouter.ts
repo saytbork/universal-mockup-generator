@@ -117,38 +117,41 @@ function inferLightingOverride(state: ProductStudioState): string | undefined {
 
 function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requestedModifiers'] {
   const requested = new Set<string>();
+  const photoMode = String(state.photoMode || '').trim();
+  const propsText = String((state as any).props || '').toLowerCase();
+  const selectedProps = Array.isArray((state as any).selectedProps)
+    ? (state as any).selectedProps.map((v: unknown) => String(v).toLowerCase())
+    : [];
+  const explicitEffects: string[] = Array.isArray((state as any).specialEffects)
+    ? (state as any).specialEffects.map((v: unknown) => String(v).trim())
+    : [];
+  const explicitEffectsLower = explicitEffects.map((value) => value.toLowerCase());
+  const hasExplicit = (...names: string[]) =>
+    names.some((name) => photoMode === name || explicitEffects.includes(name) || explicitEffectsLower.includes(name.toLowerCase()));
+  const propsHaystack = [propsText, ...selectedProps].join(' | ');
 
-  const photoMode = String(state.photoMode || '').toLowerCase();
-  const allText = [
-    photoMode,
-    String((state as any).props || '').toLowerCase(),
-    ...(Array.isArray((state as any).selectedProps) ? (state as any).selectedProps.map((v: unknown) => String(v).toLowerCase()) : []),
-    ...(Array.isArray((state as any).specialEffects) ? (state as any).specialEffects.map((v: unknown) => String(v).toLowerCase()) : []),
-  ];
-  const haystack = allText.join(' | ');
-
-  if (haystack.includes('splash') || haystack.includes('pool water') || haystack.includes('underwater')) {
+  if (hasExplicit('Splash Shot', 'Beach Foam Splash', 'Pool Water', 'Underwater Split')) {
     requested.add('splash');
   }
-  if (haystack.includes('foam')) {
+  if (hasExplicit('Foam & Texture')) {
     requested.add('foam');
   }
-  if (haystack.includes('condensation')) {
+  if (hasExplicit('Condensation Droplets')) {
     requested.add('condensation');
   }
-  if (haystack.includes('ice')) {
+  if (hasExplicit('Ice Cubes')) {
     requested.add('ice');
   }
-  if (haystack.includes('fruit') || haystack.includes('citrus') || haystack.includes('garnish')) {
+  if (hasExplicit('Fruit Garnish / Citrus Accents') || /fruit|citrus|garnish/.test(propsHaystack)) {
     requested.add('fruit');
   }
-  if (haystack.includes('textured bed') || haystack.includes('scatter base') || haystack.includes('stone') || haystack.includes('sand')) {
+  if (hasExplicit('Textured Bed / Scatter Base')) {
     requested.add('texturedBed');
   }
-  if (haystack.includes('particle')) {
+  if (hasExplicit('Floating Particles')) {
     requested.add('particles');
   }
-  if (haystack.includes('acrylic')) {
+  if (hasExplicit('Acrylic Blocks')) {
     requested.add('acrylic');
   }
 
@@ -269,6 +272,15 @@ function resolveVisualStyleFromState(state: ProductStudioState): string | undefi
   }
   if (VISUAL_STYLE_MODES.has(raw)) return raw;
   return undefined;
+}
+
+function resolveLegacyVisualStyleFromPhotoMode(state: ProductStudioState): string | undefined {
+  const raw = String(state.photoMode || '').trim();
+  if (!raw) return undefined;
+  if (!VISUAL_STYLE_MODES.has(raw)) return undefined;
+  // eslint-disable-next-line no-console
+  console.log('[LEGACY PHOTO MODE MIGRATED TO VISUAL STYLE]', raw);
+  return raw;
 }
 
 function resolveEnvironmentFromState(
@@ -999,7 +1011,8 @@ function normalizeCinematography(
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const photoModeRaw = String(state.photoMode || '').trim();
-  const resolvedPhotoMode = resolvePhotoModeFromState(state);
+  const legacyVisualStyle = resolveLegacyVisualStyleFromPhotoMode(state);
+  const resolvedPhotoMode = legacyVisualStyle ? undefined : resolvePhotoModeFromState(state);
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = assertIndustry(
     state.industryProfile || state.visualProfile
@@ -1073,9 +1086,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       (state as any).lifestyleWorldPreset ||
       ''
   ).trim();
-  const resolvedVisualStyle =
-    resolveVisualStyleFromState(state) ||
-    (VISUAL_STYLE_MODES.has(photoModeRaw) ? photoModeRaw : undefined);
+  const resolvedVisualStyle = resolveVisualStyleFromState(state) || legacyVisualStyle;
   const resolvedEnvironment = resolveEnvironmentFromState(state);
   const normalizedWorldAtmosphere = normalizeWorldAndAtmosphere(
     state,

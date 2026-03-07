@@ -327,6 +327,22 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     normalizedPrompt.includes('ARTWORK_IMMUTABILITY:') ||
     normalizedPrompt.includes('STUDIO_COMPOSITION_PROFILE:') ||
     normalizedPrompt.includes('PHOTO_MODE_SCENE:');
+  const forbiddenHumanPatterns = [
+    /\bperson\b/,
+    /\bpeople\b/,
+    /\bhuman\b/,
+    /\bportrait\b/,
+    /\bselfie\b/,
+    /\btorso\b/,
+    /\b(?:upper|lower|full)\s+body\b/,
+    /\b(?:human|visible|cropped|close(?:-up)?|full|partial)\s+face\b/,
+    /\bface\s+framing\b/,
+    /\bfacial\b/,
+    /\b(?:human|visible|cropped|full|partial)\s+head\b/,
+    /\b(?:human|visible|cropped|full|partial)\s+body\b/,
+    /\b(?:fashion|human)\s+model\b/,
+    /\bmodel-first\b/,
+  ];
 
   if (looksLikeAssembledPrompt && creativeIntent && !normalizedPrompt.includes('STUDIO_VISUAL_INTENT:')) {
     throw new Error('[PIPELINE_INTEGRITY_FAILURE:CREATIVE_DIRECTION_MISSING]');
@@ -371,6 +387,14 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
 
   if (looksLikeAssembledPrompt && !photoMode && (visualStyle || environmentPreset) && normalizedPrompt.includes('PHOTO_MODE_SCENE: Clean studio hero composition')) {
     throw new Error('[PIPELINE_INTEGRITY_FAILURE:WRONG_HERO_FALLBACK]');
+  }
+
+  if (looksLikeAssembledPrompt) {
+    for (const pattern of forbiddenHumanPatterns) {
+      if (pattern.test(lowerPrompt)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:FORBIDDEN_HUMAN_LANGUAGE]');
+      }
+    }
   }
 
   if (photoMode === 'splash shot') {

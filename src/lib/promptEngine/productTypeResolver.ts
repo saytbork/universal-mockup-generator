@@ -17,7 +17,7 @@
  * Product Type defines HOW THE PRODUCT EXISTS PHYSICALLY, not how it looks aesthetically.
  */
 
-import type { PhotoMode } from './photoModeResolver';
+import type { PhotoModeCompat } from './photoModeResolver';
 
 // =============================================================================
 // TYPES
@@ -33,7 +33,7 @@ export type ProductType =
 
 export interface ProductTypeOptions {
     // Validation context
-    photoMode?: PhotoMode;           // For compatibility checks
+    photoMode?: PhotoModeCompat;           // For compatibility checks
 
     // Physical modifiers (optional, future use)
     quantity?: number;               // Number of units
@@ -192,7 +192,7 @@ const MATERIAL_FLAGS: Record<ProductType, MaterialFlags> = {
 // =============================================================================
 
 const PRODUCT_TYPE_PHOTO_MODE_COMPATIBILITY: Record<ProductType, {
-    incompatiblePhotoModes: PhotoMode[];
+    incompatiblePhotoModes: PhotoModeCompat[];
 }> = {
     'Capsules': {
         incompatiblePhotoModes: ['Splash Shot', 'Foam & Texture']

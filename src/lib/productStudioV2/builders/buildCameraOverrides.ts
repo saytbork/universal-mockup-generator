@@ -48,7 +48,7 @@ function resolveDistortion(distance: string): string {
 const VIEWPOINT_MAP: Record<string, string> = {
   'eye-level': 'eye-level straight-on — camera at product mid-height, parallel to ground',
   'top-down': 'top-down overhead — camera directly above product, 90° looking down',
-  'human-pov': 'human point-of-view — slight downward angle as seen by a standing person',
+  'human-pov': 'handheld first-person product viewpoint — slight downward angle with natural operator perspective',
   'suspended': 'suspended floating — camera slightly below product equator, looking upward',
   'display-view': 'display-optimized — slight elevated front angle for shelf/display legibility',
 };

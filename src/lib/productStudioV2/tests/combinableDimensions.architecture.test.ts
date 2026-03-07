@@ -129,4 +129,17 @@ describe('combinable dimensions architecture', () => {
     } as any);
     expect(monochromeMapped.visualStyle).toBeUndefined();
   });
+
+  it('G) studio prompt rejects forbidden human language outside hands-only rules', () => {
+    expect(() =>
+      __buildPromptForTest(
+        base({
+          photoMode: 'Hero Landing Page',
+          visualStyle: 'Brand Campaign',
+          visualStyleCategory: 'brand',
+          environmentPreset: 'Studio Minimal',
+        } as any)
+      )
+    ).not.toThrow();
+  });
 });

@@ -19,7 +19,7 @@ import { TogglePillButton, getTogglePillClass } from '../ui/TogglePillButton';
 import { SwitchToggle } from '../ui/SwitchToggle';
 import ChipSelectGroup from '../ChipSelectGroup';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, VisualStyle, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productStudio/placementResolver';
 import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceResolver';
@@ -180,7 +180,6 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Splash Shot',
   'Foam & Texture',
   'Routine Carousel',
-  'Clinical Lab Counter',
 ]);
 
 const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
@@ -2622,10 +2621,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const isPhotoModeAllowedFromPlacement = useCallback((mode: string) => {
     const p = productStore.placement;
-    if (mode === 'Hero Landing Page' || mode === 'Minimal Bathroom Vanity') return p === 'surface';
+    if (mode === 'Hero Landing Page') return p === 'surface';
     if (mode === 'Acrylic Blocks') return p === 'supported';
     if (mode === 'Splash Shot') return p === 'surface';
-    if (mode === 'Underwater Split' || mode === 'Sky Float Minimal') return p === 'air';
+    if (mode === 'Underwater Split') return p === 'air';
     if (mode === 'Hands Application Clean') return p === 'held' || p === 'supported';
     return true;
   }, [productStore.placement]);
@@ -3083,7 +3082,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                   { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
                                 ];
 
-                            const visualStyleOptions: Array<{ label: string; mode: PhotoMode }> = [
+                            const visualStyleOptions: Array<{ label: string; mode: VisualStyle }> = [
                               { label: 'Clinical Lab Counter', mode: 'Clinical Lab Counter' },
                               { label: 'Minimal Bathroom Vanity', mode: 'Minimal Bathroom Vanity' },
                               { label: 'Dark Premium Studio', mode: 'Dark Premium Studio' },
@@ -3144,7 +3143,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               markSectionTouched('product-setup');
                             };
 
-                            const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
+                            const CHIP_TOOLTIPS: Partial<Record<PhotoMode | VisualStyle, string>> = {
                               'Hero Landing Page': 'Deterministic studio hero with copy-safe negative space (no props).',
                               'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
                               'Ingredient Flat Lay': 'Top-down flat lay with controlled spacing.',
@@ -3214,7 +3213,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const filteredCompositionOptions = compositionOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedPhotoModes || activeIndustryRules.allowedPhotoModes.includes(mode)
                             );
-                            const isAllowedVisualStyle = (mode: PhotoMode) =>
+                            const isAllowedVisualStyle = (mode: VisualStyle) =>
                               !activeIndustryRules?.allowedVisualStyles || activeIndustryRules.allowedVisualStyles.includes(mode);
                             const filteredIndustrySpecialEffectsOptions = filteredSpecialEffectsOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedSpecialEffects || activeIndustryRules.allowedSpecialEffects.includes(mode)
@@ -4315,7 +4314,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             )}
 
-                            {productStore.photoMode === 'Clinical Lab Counter' && (
+                            {productStore.visualStyle === 'Clinical Lab Counter' && (
                               <div className="space-y-3">
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Clinical Tone</p>

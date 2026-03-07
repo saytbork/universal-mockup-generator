@@ -58,7 +58,7 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
   // Physical Presence — product color reference
   const productColor = String(state?.productColor || '').trim();
   if (productColor) {
-    parts.push(`PRODUCT_COLOR_REFERENCE: ${productColor}. Preserve this color reference on the product body and label area.`);
+    parts.push(`PRODUCT_COLOR_REFERENCE: ${productColor}. Preserve this color reference on the product container and label area.`);
   }
 
   // Physical Presence — form scale
