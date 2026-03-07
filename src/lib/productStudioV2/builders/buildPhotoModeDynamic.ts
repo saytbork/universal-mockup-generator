@@ -166,7 +166,38 @@ function normalizeDropletMode(rawValues: Array<unknown>): 'clean' | 'wet' | 'dro
     if (value === 'wet') return 'wet';
     if (value === 'drops') return 'drops';
   }
-  return 'drops';
+  return 'clean';
+}
+
+function resolveMacroDewDropletMode(state: MacroDewState): {
+  value: 'clean' | 'wet' | 'drops';
+  sourceField: string;
+  rawValue: string;
+} {
+  const cfgValue = String((state as any)?.photoModeConfig?.macroDewLabel?.dropletMode || '').trim();
+  const settingsValue = String(state.photoModeDynamicSettings?.dropletMode || '').trim();
+  const rootValue = String(state.dropletMode || '').trim();
+  const legacyValues: Array<[string, string]> = [
+    ['photoModeSettingDropletMode', String(state.photoModeSettingDropletMode || '').trim()],
+    ['dropletModeSetting', String(state.dropletModeSetting || '').trim()],
+    ['dewDropletMode', String(state.dewDropletMode || '').trim()],
+  ];
+
+  const ordered: Array<[string, string]> = [
+    ['photoModeConfig.macroDewLabel.dropletMode', cfgValue],
+    ['photoModeDynamicSettings.dropletMode', settingsValue],
+    ['dropletMode', rootValue],
+    ...legacyValues,
+  ];
+
+  for (const [field, raw] of ordered) {
+    const resolved = normalizeDropletMode([raw]);
+    if (String(raw).trim()) {
+      return { value: resolved, sourceField: field, rawValue: raw };
+    }
+  }
+
+  return { value: 'clean', sourceField: 'default', rawValue: '' };
 }
 
 function normalizeDropletDensity(rawValues: Array<unknown>): 'low' | 'balanced' | 'high' {
@@ -204,16 +235,14 @@ function buildMacroDewLabelContract(state?: StudioUIState): string {
     settings.macroTightnessMode,
     settings.dewMacroTightness,
   ]);
-  const dropletMode = normalizeDropletMode([
-    macroState.dropletMode,
-    macroState.photoModeSettingDropletMode,
-    macroState.dropletModeSetting,
-    macroState.dewDropletMode,
-    settings.dropletMode,
-    settings.photoModeSettingDropletMode,
-    settings.dropletModeSetting,
-    settings.dewDropletMode,
-  ]);
+  const dropletModeResolved = resolveMacroDewDropletMode(macroState);
+  const dropletMode = dropletModeResolved.value;
+  // eslint-disable-next-line no-console
+  console.log('[MACRO_DEW_LABEL] dropletMode raw source field=', dropletModeResolved.sourceField);
+  // eslint-disable-next-line no-console
+  console.log('[MACRO_DEW_LABEL] dropletMode raw value=', dropletModeResolved.rawValue);
+  // eslint-disable-next-line no-console
+  console.log('[MACRO_DEW_LABEL] dropletMode resolved=', dropletModeResolved.value);
   const dropletDensity = normalizeDropletDensity([
     macroState.dropletDensity,
     macroState.photoModeSettingDropletDensity,
@@ -235,6 +264,25 @@ function buildMacroDewLabelContract(state?: StudioUIState): string {
     settings.dewHighlightControl,
   ]);
 
+  const surfaceWetnessRule =
+    dropletMode === 'clean'
+      ? 'SURFACE_WETNESS_RULE: dry-clean. No droplet presence. No condensate beading. No wet label rendering.'
+      : dropletMode === 'wet'
+        ? 'SURFACE_WETNESS_RULE: subtle-wet. Light moisture presence only. No heavy droplet field.'
+        : 'SURFACE_WETNESS_RULE: droplet-defined. Visible droplets with realistic adhesion and gravity.';
+  const dewPhysicsRule =
+    dropletMode === 'clean'
+      ? 'DEW_PHYSICS_RULE: Surface remains pristine and dry-clean. No condensation particles, no droplet fields, and no bead formation.'
+      : dropletMode === 'wet'
+        ? 'DEW_PHYSICS_RULE: Light moisture film is physically plausible. Keep wetness subtle with coherent adhesion and no large isolated droplets.'
+        : 'DEW_PHYSICS_RULE: Droplets must be physically plausible. Droplets must follow gravity and surface adhesion. No decorative fake splash behavior. No random condensation haze.';
+  const macroSceneRule =
+    dropletMode === 'clean'
+      ? 'MACRO_DEW_SCENE_RULE: Clean macro label scene with pristine dry surface finish and optical clarity prioritized.'
+      : dropletMode === 'wet'
+        ? 'MACRO_DEW_SCENE_RULE: Subtle wet macro label scene with light moisture film and controlled clean finish.'
+        : 'MACRO_DEW_SCENE_RULE: Droplet macro label scene with visible droplets attached through realistic surface tension and controlled commercial highlights.';
+
   return [
     'PHOTO_MODE_DYNAMIC_CONTROLS:',
     'MACRO_DEW_LABEL_MODE: active.',
@@ -242,34 +290,17 @@ function buildMacroDewLabelContract(state?: StudioUIState): string {
     `DROPLET_MODE: ${dropletMode}.`,
     `DROPLET_DENSITY: ${dropletDensity}.`,
     `HIGHLIGHT_CONTROL: ${highlightControl}.`,
+    surfaceWetnessRule,
+    macroSceneRule,
     'MACRO_CAPTURE_RULE: True macro proximity is mandatory. No medium framing. No wide framing. The primary label area must dominate the frame while remaining fully legible.',
     'LABEL_FIDELITY_RULE: Label typography fidelity is critical. No blur on key label text. No character reinterpretation. No text drift under droplet distortion.',
-    'DEW_PHYSICS_RULE: Droplets must be physically plausible. Droplets must follow gravity and surface adhesion. No decorative fake splash behavior. No random condensation haze.',
+    dewPhysicsRule,
     'OPTICAL_MACRO_RULE: Real macro magnification behavior. Shallow depth limited to non-text peripheral zones only. Primary label text plane must remain sharp.',
-  ].join(' ');
-}
-
-function buildColorPopHeroContract(): string {
-  return [
-    'PHOTO_MODE_DYNAMIC_CONTROLS:',
-    'COLOR_POP_HERO_MODE: active.',
-    'COLOR_POP_HERO_CONTRACT: Single product hero image. Bold color-field aesthetic. No props. No secondary objects. No environmental textures. No contextual narrative. No editorial clutter.',
-    'SILHOUETTE_RULE: Strong silhouette separation is required. The product edge must read clearly against the background. Maintain clean contour readability.',
-    'BACKGROUND_RULE: Use a clean color-pop studio field driven by resolved palette background color. Allow controlled radial energy or tonal falloff behind product. Do not introduce environmental scenery.',
-    'VISUAL_SIMPLICITY_RULE: Minimalist advertising image only. No fake rooms. No countertops. No contextual surfaces beyond minimal grounded studio support if needed.',
   ].join(' ');
 }
 
 export function buildPhotoModeDynamic(state?: StudioUIState): string {
   const photoMode = String(state?.photoMode || '').trim();
-  if (photoMode === 'Color Pop Hero') {
-    // eslint-disable-next-line no-console
-    console.log('[PHOTO MODE BUILDER RESOLVED]', 'buildColorPopHeroContract');
-    const contract = buildColorPopHeroContract();
-    // eslint-disable-next-line no-console
-    console.log('[PHOTO MODE CONTRACT GENERATED]', JSON.stringify(contract));
-    return contract;
-  }
   if (photoMode === 'Routine Carousel') {
     // eslint-disable-next-line no-console
     console.log('[PHOTO MODE BUILDER RESOLVED]', 'buildRoutineCarouselContract');

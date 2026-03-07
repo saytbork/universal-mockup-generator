@@ -8,11 +8,10 @@
  *   1. Product with strong label color → Hero background = label color
  *   2. Product with single color → secondary/tertiary derived automatically
  *   3. Product palette always preferred over brand palette
- *   4. Color Pop Hero → background = paletteA, secondary in prompt
- *   5. extractProductPalette never returns null paletteA (buildPalette fallback)
- *   6. Neutral fallback when NO palette data at all
- *   7. Custom source tier respected (between brand and neutral)
- *   8. [BG_COLOR_USED] log always fires
+ *   4. extractProductPalette never returns null paletteA (buildPalette fallback)
+ *   5. Neutral fallback when NO palette data at all
+ *   6. Custom source tier respected (between brand and neutral)
+ *   7. [BG_COLOR_USED] log always fires
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -41,17 +40,6 @@ function makeHeroState(overrides: Partial<StudioUIState> = {}): StudioUIState {
     motion: 'static',
     composition: 'hero',
     photoMode: 'Hero Landing Page',
-    ...overrides,
-  };
-  buildPalette(state);
-  return state;
-}
-
-function makeColorPopState(overrides: Partial<StudioUIState> = {}): StudioUIState {
-  const state: StudioUIState = {
-    motion: 'static',
-    composition: 'hero',
-    photoMode: 'Color Pop Hero',
     ...overrides,
   };
   buildPalette(state);
@@ -146,43 +134,6 @@ describe('Palette Pipeline — Product palette always beats brand palette', () =
     const bg = buildStudioBackground(authority, state);
     expect(bg!.colorSource).toBe('brand');
     expect(bg!.backgroundString).toContain('#1a237e');
-  });
-});
-
-describe('Palette Pipeline — Color Pop Hero', () => {
-  it('Background = productPaletteA, secondary in radial energy description', () => {
-    const state = makeColorPopState({
-      productPaletteA: '#c7423a',
-      productPaletteB: '#a92f29',
-      productPaletteC: '#f0b1a8',
-    });
-
-    expect(state.resolvedPalette!.source).toBe('product');
-
-    const bg = buildStudioBackground(authority, state);
-    expect(bg).not.toBeNull();
-    expect(bg!.colorSource).toBe('product');
-    expect(bg!.primaryColor).toBe('#c7423a');
-    expect(bg!.gradientEnabled).toBe(false);
-
-    // Primary in background
-    expect(bg!.backgroundString).toContain('#c7423a');
-    // Secondary used for radial energy
-    expect(bg!.backgroundString).toContain('#a92f29');
-  });
-
-  it('Color Pop: single product color → secondary derived, both appear in prompt', () => {
-    const state = makeColorPopState({
-      productPaletteA: '#c7423a',
-      // No B — should be derived
-    });
-
-    const bg = buildStudioBackground(authority, state);
-    expect(bg!.primaryColor).toBe('#c7423a');
-    // Secondary is derived, must appear in the Color Pop radial energy text
-    const secondary = state.resolvedPalette!.secondary;
-    expect(secondary).toBeTruthy();
-    expect(bg!.backgroundString).toContain(secondary);
   });
 });
 

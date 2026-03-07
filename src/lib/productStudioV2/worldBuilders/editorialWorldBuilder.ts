@@ -19,7 +19,6 @@ const PHOTO_MODE_SCENE_STYLE_MAP: Record<string, string> = {
   'Clinical Lab Counter': 'SCENE_STYLE: clean clinical studio surface with precision lab equipment accents, scientific premium atmosphere, product as hero',
   'Minimal Bathroom Vanity': 'SCENE_STYLE: minimal clean advertising studio surface, rigid materials like glass metal acrylic and stone, minimal elements, controlled reflections, product-first composition',
   'Dark Premium Studio': 'SCENE_STYLE: low-key premium advertising studio with dark background and controlled highlights, product edges remain clearly defined',
-  'Monochrome Brand': 'SCENE_STYLE: single-color brand world advertising composition, all elements remain within one color family, graphic minimal brand-driven abstraction',
   'Brand Campaign': 'SCENE_STYLE: high-end brand campaign advertising studio, architectural composition with premium rigid materials, controlled set design, product remains the focal point',
   'Tech Clean Studio': 'SCENE_STYLE: technology-driven advertising studio, precision surfaces, clean geometry, cool neutral tones, modern minimal performance-oriented atmosphere',
   'Luxury Editorial Tabletop': 'SCENE_STYLE: luxury editorial advertising studio surface composition, premium rigid surface materials with minimal glass acrylic or stone accents, product remains the focal point',
@@ -29,7 +28,6 @@ const PHOTO_MODE_SCENE_STYLE_MAP: Record<string, string> = {
   'Golden Mist Aura': 'SCENE_STYLE: atmospheric advertising studio lighting, subtle haze for depth separation, soft highlights, label clarity remains mandatory',
   'Creator Premium Simulation': 'SCENE_STYLE: premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
   'UGC Premium Simulation': 'SCENE_STYLE: premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
-  'Macro Dew Label': 'SCENE_STYLE: true macro close-up of primary label area and adjacent product surface, optical magnification of droplets, label texture and print fidelity prioritized, dew droplets attached with realistic surface tension, controlled commercial highlight behavior, no medium-shot fallback',
   'Gel Smear Editorial': 'SCENE_STYLE: premium editorial gel-smear composition on neutral stone/concrete cosmetic slab, real tactile smear material with visible thickness and controlled gloss, product adjacent in hero zone, balanced negative space, no props, no clutter, no background gradients',
   'Citrus Fresh Flat Lay': 'SCENE_STYLE: fresh ingredient-led flat lay composition with clean circular rhythm around the product, bright premium commercial styling, top-down discipline',
   'Stones & Crystals Flat Lay': 'SCENE_STYLE: neutral tactile flat lay with curated stones and crystal accents, balanced spacing and premium wellness editorial tone',
@@ -47,6 +45,30 @@ const PHOTO_MODE_SCENE_STYLE_MAP: Record<string, string> = {
   'Botanical Water Garden': 'SCENE_STYLE: botanical wet environment with shallow water and subtle natural foliage context, premium realistic lighting, clean product focus',
   'Warm Window Wood': 'SCENE_STYLE: warm wooden window environment, natural sunlight and soft interior shadows, realistic lifestyle-adjacent premium product scene',
 };
+
+function resolveMacroDewDropletMode(state?: StudioUIState): 'clean' | 'wet' | 'drops' {
+  const configMode = String((state as any)?.photoModeConfig?.macroDewLabel?.dropletMode || '').trim().toLowerCase();
+  if (configMode === 'clean' || configMode === 'wet' || configMode === 'drops') return configMode;
+
+  const settingsMode = String(state?.photoModeDynamicSettings?.dropletMode || '').trim().toLowerCase();
+  if (settingsMode === 'clean' || settingsMode === 'wet' || settingsMode === 'drops') return settingsMode;
+
+  const rootMode = String((state as any)?.dropletMode || '').trim().toLowerCase();
+  if (rootMode === 'clean' || rootMode === 'wet' || rootMode === 'drops') return rootMode;
+
+  return 'clean';
+}
+
+function buildMacroDewSceneStyle(state?: StudioUIState): string {
+  const dropletMode = resolveMacroDewDropletMode(state);
+  if (dropletMode === 'wet') {
+    return 'SCENE_STYLE: true macro close-up of primary label area and adjacent product surface, subtle moisture presence, label texture and print fidelity prioritized, controlled commercial highlight behavior, no medium-shot fallback';
+  }
+  if (dropletMode === 'drops') {
+    return 'SCENE_STYLE: true macro close-up of primary label area and adjacent product surface, visible droplets attached with realistic surface tension, label texture and print fidelity prioritized, controlled commercial highlight behavior, no medium-shot fallback';
+  }
+  return 'SCENE_STYLE: true macro close-up of primary label area and adjacent product surface, clean dry premium finish, label texture and print fidelity prioritized, controlled commercial highlight behavior, no medium-shot fallback';
+}
 
 function buildTexturedBedScene(state?: StudioUIState): string {
   const ingredient = String(state?.ingredientObjects || '').trim();
@@ -83,11 +105,14 @@ export function buildEditorialWorld(
 ): string {
   const photoMode = String(state?.photoMode || '').trim();
 
-  if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero') {
+  if (photoMode === 'Hero Landing Page') {
     const bgResolution = buildStudioBackground(authority, state!);
     if (bgResolution) {
       return `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
     }
+  }
+  if (photoMode === 'Macro Dew Label') {
+    return `PHOTO_MODE_SCENE: ${buildMacroDewSceneStyle(state)} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
   }
 
   if (photoMode === 'Textured Bed / Scatter Base') {

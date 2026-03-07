@@ -40,7 +40,7 @@ export function resolveWorldBuilder(
     return { name: 'buildEditorialWorld', builder: buildEditorialWorld };
   }
 
-  if (environment.includes('bathroom vanity') || environment.includes('vanity') || environment.includes('bathroom')) {
+  if (!photoMode && (environment.includes('bathroom vanity') || environment.includes('vanity') || environment.includes('bathroom'))) {
     return { name: 'buildEnvironmentWorld', builder: buildEnvironmentWorld };
   }
 
@@ -50,4 +50,3 @@ export function resolveWorldBuilder(
 
   return { name: 'buildStudioWorld', builder: buildStudioWorld };
 }
-

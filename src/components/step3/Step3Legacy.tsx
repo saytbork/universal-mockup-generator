@@ -174,7 +174,6 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
 
 const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Hero Landing Page',
-  'Color Pop Hero',
   'Ingredient Stack',
   'Ingredient Flat Lay',
   'Acrylic Blocks',
@@ -3078,7 +3077,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               ? wineCompositionOptions
                               : [
                                   { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
-                                  { label: 'Color Pop Hero', mode: 'Color Pop Hero' },
                                   { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
                                   { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
                                   { label: 'Routine Carousel', mode: 'Routine Carousel' },
@@ -3089,7 +3087,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Clinical Lab Counter', mode: 'Clinical Lab Counter' },
                               { label: 'Minimal Bathroom Vanity', mode: 'Minimal Bathroom Vanity' },
                               { label: 'Dark Premium Studio', mode: 'Dark Premium Studio' },
-                              { label: 'Monochrome Brand', mode: 'Monochrome Brand' },
                               { label: 'Brand Campaign', mode: 'Brand Campaign' },
                               { label: 'Creator Premium Simulation', mode: 'Creator Premium Simulation' },
                               { label: 'Tech Clean Studio', mode: 'Tech Clean Studio' },
@@ -3144,7 +3141,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
                               'Hero Landing Page': 'Deterministic studio hero with copy-safe negative space (no props).',
-                              'Color Pop Hero': 'Bold studio hero driven by brand color.',
                               'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
                               'Ingredient Flat Lay': 'Top-down flat lay with controlled spacing.',
                               'Routine Carousel': 'Carousel-friendly product sequence styling.',
@@ -3152,7 +3148,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Clinical Lab Counter': 'Clinical countertop with lab-grade cleanliness.',
                               'Minimal Bathroom Vanity': 'Clean bathroom counter vibe (minimal context).',
                               'Dark Premium Studio': 'Premium dark studio mood and contrast.',
-                              'Monochrome Brand': 'Monochrome brand-first studio look.',
                               'Brand Campaign': 'Campaign-grade studio polish and drama.',
                               'Creator Premium Simulation': 'Premium UGC-style realism with controlled capture.',
                               'Tech Clean Studio': 'Techy clean studio surfaces and clarity.',
@@ -3284,7 +3279,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
-                                            x.mode === 'Monochrome Brand' ||
                                             x.mode === 'Brand Campaign' ||
                                             x.mode === 'Creator Premium Simulation'
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
@@ -3776,120 +3770,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </>
                                   );
                                 })()}
-                              </div>
-                            )}
-
-                            {productStore.photoMode === 'Color Pop Hero' && (
-                              <div className="space-y-3">
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Background Type</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Solid', 'Gradient'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.backgroundType === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { backgroundType: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {productStore.photoModeConfig.colorPopHero.backgroundType === 'Gradient' && (
-                                  <div>
-                                    <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
-                                    <div className="flex flex-wrap gap-2">
-                                      {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
-                                        <Chip
-                                          key={v}
-                                          selected={productStore.photoModeConfig.colorPopHero.gradientStyle === v}
-                                          onClick={() => {
-                                            productStore.setPhotoModeConfig({ colorPopHero: { gradientStyle: v } });
-                                            markSectionTouched('product-setup');
-                                          }}
-                                        >
-                                          {v}
-                                        </Chip>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Color Source</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Brand Colors', 'Product Label Colors', 'Custom Color'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.colorSource === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { colorSource: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Saturation Level</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Moderate', 'High'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.saturationLevel === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { saturationLevel: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Contrast Strategy</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Soft', 'High'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.contrastStrategy === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { contrastStrategy: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Negative Space</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.negativeSpace === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { negativeSpace: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
                               </div>
                             )}
 

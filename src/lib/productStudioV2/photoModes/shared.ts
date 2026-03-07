@@ -3,8 +3,6 @@ import type { StudioUIState } from '../types/studioTypes';
 export const PHOTO_MODE_ATMOSPHERE_FALLBACKS: Record<string, string> = {
   'Hero Landing Page':
     'Soft atmospheric depth separation behind the product. Subtle falloff from center to edges emphasizing silhouette. Copy-safe negative space preserved for overlay text.',
-  'Color Pop Hero':
-    'Strong silhouette separation with radial atmospheric depth field. High-contrast studio lighting that isolates the product from the background. No environmental props or textures.',
   'Pool Water':
     'Product positioned near clear swimming pool water surface. Sunlight refracting through water creating natural caustic patterns on pool floor and product base. Subtle ripples and reflective highlights around the product. Clean turquoise water environment with realistic refraction, wet reflections, and natural light dispersion.',
 };

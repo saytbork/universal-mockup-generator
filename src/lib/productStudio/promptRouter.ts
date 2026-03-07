@@ -170,7 +170,6 @@ const VISUAL_STYLE_MODES = new Set([
   'Clinical Lab Counter',
   'Minimal Bathroom Vanity',
   'Dark Premium Studio',
-  'Monochrome Brand',
   'Brand Campaign',
   'Creator Premium Simulation',
   'Tech Clean Studio',
@@ -188,7 +187,6 @@ const VISUAL_STYLE_MODES = new Set([
 
 const PHOTO_MODES = new Set([
   'Hero Landing Page',
-  'Color Pop Hero',
   'Routine Carousel',
   'Macro Dew Label',
   'Splash Shot',
@@ -222,7 +220,6 @@ const STUDIO_VISUAL_STYLES = new Set([
 ]);
 
 const BRAND_VISUAL_STYLES = new Set([
-  'Monochrome Brand',
   'Brand Campaign',
   'Creator Premium Simulation',
 ]);
@@ -257,15 +254,51 @@ function resolveVisualStyleFromState(state: ProductStudioState): string | undefi
   ).trim();
 
   if (!raw) return undefined;
+  if (raw === 'Monochrome Brand') {
+    // eslint-disable-next-line no-console
+    console.log('[LEGACY STYLE NORMALIZED] Monochrome Brand -> cleared');
+    return undefined;
+  }
   if (VISUAL_STYLE_MODES.has(raw)) return raw;
   return undefined;
 }
 
-function resolvePhotoModeFromState(state: ProductStudioState): string {
+function resolveEnvironmentFromState(
+  state: ProductStudioState
+): { value?: string; source: string; raw: string } {
+  const candidates: Array<{ source: string; value: string }> = [
+    { source: 'environmentContext.macro', value: String((state as any).environmentContext?.macro || '').trim() },
+    { source: 'contextPreset', value: String((state as any).contextPreset || '').trim() },
+    { source: 'environmentPreset', value: String((state as any).environmentPreset || '').trim() },
+    { source: 'environmentMode', value: String((state as any).environmentMode || '').trim() },
+    { source: 'environment', value: String((state as any).environment || '').trim() },
+    { source: 'selectedEnvironment', value: String((state as any).selectedEnvironment || '').trim() },
+    { source: 'worldEnvironment', value: String((state as any).worldEnvironment || '').trim() },
+    { source: 'studioEnvironment', value: String((state as any).studioEnvironment || '').trim() },
+    { source: 'contextPresetValue', value: String((state as any).contextPresetValue || '').trim() },
+    { source: 'worldPreset', value: String((state as any).worldPreset || '').trim() },
+    { source: 'environmentStyle', value: String((state as any).environmentStyle || '').trim() },
+    { source: 'sceneEnvironment', value: String((state as any).sceneEnvironment || '').trim() },
+  ];
+
+  const found = candidates.find((candidate) => candidate.value);
+  return {
+    value: found?.value,
+    source: found?.source || '',
+    raw: found?.value || '',
+  };
+}
+
+function resolvePhotoModeFromState(state: ProductStudioState): ProductStudioState['photoMode'] {
   const raw = String(state.photoMode || '').trim();
-  if (!raw) return '';
-  if (PHOTO_MODES.has(raw)) return raw;
-  return raw;
+  if (!raw) return 'Hero Landing Page';
+  if (raw === 'Color Pop Hero') {
+    // eslint-disable-next-line no-console
+    console.log('[LEGACY MODE NORMALIZED] Color Pop Hero -> Hero Landing Page');
+    return 'Hero Landing Page';
+  }
+  if (PHOTO_MODES.has(raw)) return raw as ProductStudioState['photoMode'];
+  return 'Hero Landing Page';
 }
 
 const SPECIAL_EFFECT_MODES = new Set([
@@ -811,6 +844,8 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
 }
 
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
+  const photoModeRaw = String(state.photoMode || '').trim();
+  const resolvedPhotoMode = resolvePhotoModeFromState(state);
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = assertIndustry(
     state.industryProfile || state.visualProfile
@@ -820,9 +855,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     coffee: resolveCoffeeIndustryLayer(state),
   };
   const coffeeLayer = layerByIndustry[industryProfile] || null;
-  const photoModeCapabilities = getPhotoModeCapabilities(state.photoMode);
+  const photoModeCapabilities = getPhotoModeCapabilities(resolvedPhotoMode);
   const resolvedAllowedMotions = getResolvedAllowedMotions(
-    state.photoMode,
+    resolvedPhotoMode,
     industryProfile,
     state.definition.type,
     coffeeLayer?.intent
@@ -860,7 +895,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
-    String(state.photoMode || '').trim() === 'Splash Shot' &&
+    resolvedPhotoMode === 'Splash Shot' &&
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
@@ -871,8 +906,6 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineArchetypeNarrative = winePrestigeMode
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
     : '';
-  const photoModeRaw = String(state.photoMode || '').trim();
-  const resolvedPhotoMode = resolvePhotoModeFromState(state);
   const visualStyleRaw = String(
     (state as any).visualStyle ||
       (state as any).selectedVisualStyle ||
@@ -890,6 +923,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const resolvedVisualStyleCategory = resolvedVisualStyle
     ? resolveVisualStyleCategory(resolvedVisualStyle)
     : undefined;
+  const resolvedEnvironment = resolveEnvironmentFromState(state);
   // eslint-disable-next-line no-console
   console.log('[PHOTO MODE RAW]', photoModeRaw);
   // eslint-disable-next-line no-console
@@ -900,6 +934,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   console.log('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
   // eslint-disable-next-line no-console
   console.log('[VISUAL STYLE CATEGORY]', resolvedVisualStyleCategory || '');
+  // eslint-disable-next-line no-console
+  console.log('[ENVIRONMENT RAW]', resolvedEnvironment.raw || '');
+  // eslint-disable-next-line no-console
+  console.log('[ENVIRONMENT FIELD SOURCE]', resolvedEnvironment.source || '');
   const v2State: StudioUIState = {
     industryProfile,
     creativeIntent: inferStudioIntent(state),
@@ -973,9 +1011,15 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         }
       : {}),
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
-    specialEffect: SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined,
+    specialEffect: SPECIAL_EFFECT_MODES.has(resolvedPhotoMode) ? resolvedPhotoMode : undefined,
     visualStyle: resolvedVisualStyle,
     ...(resolvedVisualStyleCategory ? { visualStyleCategory: resolvedVisualStyleCategory } : {}),
+    ...(resolvedEnvironment.value
+      ? {
+          environmentPreset: resolvedEnvironment.value,
+          environment: resolvedEnvironment.value,
+        }
+      : {}),
     ...(coffeeLayer
       ? {
           coffeeIndustryLayer: true,
@@ -1009,7 +1053,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     // ── Menu option injections (last-selection-wins, read directly from state) ──
     ...(() => {
       const extras: Record<string, string> = {};
-      const currentPhotoMode = state.photoMode as string | undefined;
+      const currentPhotoMode = resolvedPhotoMode || undefined;
       const dynamicRaw = currentPhotoMode
         ? (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode]
         : undefined;
@@ -1068,7 +1112,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     })(),
     // ── Photo Mode dynamic sub-settings (last-selection-wins) ──
     ...(() => {
-      const currentPhotoMode = state.photoMode as string | undefined;
+      const currentPhotoMode = resolvedPhotoMode || undefined;
       if (!currentPhotoMode) return {};
       const dynamicRaw = (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode];
       const cleaned: Record<string, string> = {};
@@ -1135,7 +1179,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const environmentPreset = String((state as any).environmentPreset || '').trim();
       const environmentMode = String((state as any).environmentMode || '').trim();
       const environment = String((state as any).environment || '').trim();
-      const resolved = contextPreset || environmentPreset || environmentMode || environment;
+      const resolved =
+        resolvedEnvironment.value || contextPreset || environmentPreset || environmentMode || environment;
       return resolved ? { contextPresetValue: resolved } : {};
     })(),
     // ── V2 product palette injection (buildPalette reads these) ──
@@ -1309,6 +1354,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
   v2State.interaction = sanitizedInteractionCanonical;
   v2State.packagingBehavior = packagingBehavior;
+  // eslint-disable-next-line no-console
+  console.log('[ENVIRONMENT RESOLVED]', v2State.environmentPreset || '');
 
   return v2State;
 }

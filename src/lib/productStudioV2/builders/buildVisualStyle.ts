@@ -33,12 +33,6 @@ const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
     scene:
       'clean technology studio aesthetic, precise neutral background, sleek commercial lighting, high-clarity industrial polish, minimal modern tech presentation, controlled reflection design',
   },
-  'Monochrome Brand': {
-    name: 'monochrome-brand',
-    category: 'brand',
-    scene:
-      'monochrome brand world, reduced palette discipline, cohesive tonal branding, restrained premium composition, high consistency brand styling, minimal distraction around product',
-  },
   'Brand Campaign': {
     name: 'brand-campaign',
     category: 'brand',
@@ -79,7 +73,6 @@ function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null
 }
 
 export function buildVisualStyle(state?: StudioUIState): string {
-  if (String(state?.photoMode || '').trim() === 'Color Pop Hero') return '';
   const definition = resolveVisualStyle(state);
   if (!definition) return '';
 

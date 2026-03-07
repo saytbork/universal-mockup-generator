@@ -474,7 +474,7 @@ export const BRAND_PRESETS: BrandPreset[] = [
             creativityLevel: 2,
             lightStyle: 'contrast',
             propDensity: 'medium',
-            photoMode: 'Color Pop Hero',
+            photoMode: 'Hero Landing Page',
             gradientEnabled: true,
             gradientAngle: 135,
             proMode: true,
@@ -1747,7 +1747,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             // Missing modes here cause setPhotoMode to silently coerce to 'Hero Landing Page'.
             const allowed: PhotoMode[] = [
                 'Hero Landing Page',
-                'Color Pop Hero',
                 'Ingredient Stack',
                 'Ingredient Flat Lay',
                 'Acrylic Blocks',
@@ -1758,7 +1757,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Clinical Lab Counter',
                 'Minimal Bathroom Vanity',
                 'Dark Premium Studio',
-                'Monochrome Brand',
                 'Brand Campaign',
                 'Creator Premium Simulation',
                 'Tech Clean Studio',

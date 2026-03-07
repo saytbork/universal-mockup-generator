@@ -28,6 +28,7 @@ import {
 import type { StudioUIState } from '../index';
 import { resolveIndustryProfileModule } from '../industryProfiles/registry';
 import { buildVisualStyle } from '../builders/buildVisualStyle';
+import { buildEnvironmentStyle } from '../builders/buildEnvironmentStyle';
 
 type StudioStateDebug = StudioUIState & {
   environment?: string;
@@ -97,8 +98,7 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('ASYMMETRICAL_BALANCE:') ||
     p.startsWith('HORIZONTAL_BALANCE:') ||
     p.startsWith('VERTICAL_BALANCE:') ||
-    p.startsWith('CENTER_SYMMETRY_LOCK:') ||
-    p.startsWith('COLOR_POP_COMPOSITION_RULE:')
+    p.startsWith('CENTER_SYMMETRY_LOCK:')
   ) {
     return 'composition';
   }
@@ -111,6 +111,8 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('DROPLET_MODE:') ||
     p.startsWith('DROPLET_DENSITY:') ||
     p.startsWith('HIGHLIGHT_CONTROL:') ||
+    p.startsWith('SURFACE_WETNESS_RULE:') ||
+    p.startsWith('MACRO_DEW_SCENE_RULE:') ||
     p.startsWith('MACRO_CAPTURE_RULE:') ||
     p.startsWith('LABEL_FIDELITY_RULE:') ||
     p.startsWith('DEW_PHYSICS_RULE:') ||
@@ -142,10 +144,6 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('PRODUCT_GROUNDING:') ||
     p.startsWith('LOCAL_DEFORMATION:') ||
     p.startsWith('FLUID_REALISM_CONSTRAINT:') ||
-    p.startsWith('COLOR_POP_HERO_MODE:') ||
-    p.startsWith('COLOR_POP_HERO_CONTRACT:') ||
-    p.startsWith('SILHOUETTE_RULE:') ||
-    p.startsWith('BACKGROUND_RULE:') ||
     p.startsWith('VISUAL_SIMPLICITY_RULE:')
   ) {
     return 'photoMode';
@@ -159,6 +157,10 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('VISUAL_STYLE_NAME:') ||
     p.startsWith('VISUAL_STYLE_SCENE:') ||
     p.startsWith('VISUAL_STYLE_AUTHORITY:') ||
+    p.startsWith('ENVIRONMENT_STYLE_MODE:') ||
+    p.startsWith('ENVIRONMENT_STYLE_NAME:') ||
+    p.startsWith('ENVIRONMENT_CONTEXT:') ||
+    p.startsWith('ENVIRONMENT_AUTHORITY:') ||
     p.startsWith('ENVIRONMENT_CONTEXT:') ||
     p.startsWith('BACKGROUND_CONTEXT:') ||
     p.startsWith('SURFACE_MATERIAL:') ||
@@ -330,6 +332,21 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     }
   }
 
+  if (environmentPreset) {
+    const requiredEnvironmentTokens = ['ENVIRONMENT_STYLE_MODE:', 'ENVIRONMENT_STYLE_NAME:', 'ENVIRONMENT_CONTEXT:'];
+    for (const token of requiredEnvironmentTokens) {
+      if (!normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:ENVIRONMENT_CONTRACT_MISSING]');
+      }
+    }
+  }
+
+  if (photoMode && environmentPreset) {
+    if (!normalizedPrompt.includes('PHOTO_MODE_SCENE:') || !normalizedPrompt.includes('ENVIRONMENT_CONTEXT:')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:PHOTO_MODE_ENVIRONMENT_COMBINATION_MISSING]');
+    }
+  }
+
   if (photoMode === 'wine macro label') {
     const hasInteraction = normalizedPrompt.includes('INTERACTION_MODE:');
     const hasLabelZone = normalizedPrompt.includes('APPLICATION_ZONE: front label.');
@@ -383,26 +400,24 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_DEW_LABEL_HERO_FALLBACK_LEAK]');
       }
     }
-  }
 
-  if (photoMode === 'color pop hero') {
-    const required = [
-      'COLOR_POP_HERO_MODE:',
-      'COLOR_POP_HERO_CONTRACT:',
-      'SILHOUETTE_RULE:',
-      'BACKGROUND_RULE:',
-      'STUDIO_COMPOSITION_PROFILE: color-pop-hero.',
-    ];
-    for (const token of required) {
-      if (!normalizedPrompt.includes(token)) {
-        throw new Error('[PIPELINE_INTEGRITY_FAILURE:COLOR_POP_HERO_CONTRACT_MISSING]');
+    if (normalizedPrompt.includes('DROPLET_MODE: clean.')) {
+      const cleanForbidden = [
+        'DROPLET_MODE: drops',
+        'visible droplets',
+        'dew droplets attached',
+        'condensation beads',
+        'droplet-defined',
+        'realistic surface tension',
+      ];
+      for (const token of cleanForbidden) {
+        if (normalizedPrompt.toLowerCase().includes(token.toLowerCase())) {
+          throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_CLEAN_DROPLET_LEAK]');
+        }
       }
-    }
-    if (
-      normalizedPrompt.includes('VISUAL_STYLE_MODE:') ||
-      normalizedPrompt.includes('VISUAL_STYLE_NAME:')
-    ) {
-      throw new Error('[PIPELINE_INTEGRITY_FAILURE:COLOR_POP_HERO_VISUAL_STYLE_LEAK]');
+      if (!normalizedPrompt.includes('SURFACE_WETNESS_RULE: dry-clean.')) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_CLEAN_RULE_MISSING]');
+      }
     }
   }
 
@@ -442,7 +457,6 @@ function normalizeVisualStyleName(visualStyle: string): string {
     'Minimal Bathroom Vanity': 'minimal-bathroom-vanity',
     'Dark Premium Studio': 'dark-premium-studio',
     'Tech Clean Studio': 'tech-clean-studio',
-    'Monochrome Brand': 'monochrome-brand',
     'Brand Campaign': 'brand-campaign',
     'Creator Premium Simulation': 'creator-premium-simulation',
     'Soft Wellness Morning': 'soft-wellness-morning',
@@ -490,6 +504,7 @@ export function __buildOrderedSegmentsForTest(state: StudioUIState): PipelinePro
     buildComposition(authority, state),
     buildPhotoModeDynamic(state),
     buildWorld(authority, state.world, state),
+    buildEnvironmentStyle(state),
     buildVisualStyle(state),
     buildLighting(authority, state),
     buildMotion(authority, state),
@@ -564,6 +579,7 @@ export const genericPipeline = {
       buildComposition(authority, state),
       buildPhotoModeDynamic(state),
       buildWorld(authority, state.world, state),
+      buildEnvironmentStyle(state),
       buildVisualStyle(state),
       buildLighting(authority, state),
       buildMotion(authority, state),
