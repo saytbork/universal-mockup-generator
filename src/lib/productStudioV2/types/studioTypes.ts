@@ -260,6 +260,7 @@ export interface StudioUIState {
   photoModeConfig?: {
     heroLandingPage?: {
       backgroundType?: 'Solid' | 'Gradient';
+      legacyColorPopHero?: boolean;
     };
   };
   /**

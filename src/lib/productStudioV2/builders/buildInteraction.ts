@@ -80,7 +80,7 @@ const INTERACTION_FRAGMENTS: Record<string, string[]> = {
   'applying-opening': [
     'PHYSICAL_PRESENCE: contact.',
     'INTERACTION_PROFILE: applying-opening.',
-    'One hand grips cap or pump — other hand stabilizes container body.',
+    'One hand grips cap or pump — other hand stabilizes the container.',
     'Wrist posture implies active dispensing or opening action.',
     'Product must remain recognizable and both cap region and label visible.',
   ],

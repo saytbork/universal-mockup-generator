@@ -113,11 +113,42 @@ const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
     scene:
       'warm window wood lifestyle mood, natural sunlight warmth, soft interior shadowing, premium domestic realism with controlled product focus',
   },
+  'Sky Float Minimal': {
+    name: 'sky-float-minimal',
+    category: 'lifestyle',
+    scene:
+      'minimal sky-float atmosphere with airy daylight, soft horizon depth, clean uplifted mood, and strict product readability',
+  },
+  'Wet Rock Ripples': {
+    name: 'wet-rock-ripples',
+    category: 'lifestyle',
+    scene:
+      'wet rock ripple atmosphere with shallow reflective water movement, tactile stone realism, premium highlight control, and grounded product presence',
+  },
+  'Sand Palm Shadows': {
+    name: 'sand-palm-shadows',
+    category: 'lifestyle',
+    scene:
+      'sunlit sand atmosphere with soft palm-shadow patterns, warm premium beach tonality, controlled realism, and clean product-first composition',
+  },
+  'Botanical Water Garden': {
+    name: 'botanical-water-garden',
+    category: 'lifestyle',
+    scene:
+      'botanical water-garden atmosphere with natural foliage depth cues, calm reflective moisture, premium outdoor realism, and clear product hierarchy',
+  },
+};
+
+const VISUAL_STYLE_ALIASES: Record<string, string> = {
+  'Golden Sunset Backlit Atmosphere': 'Golden Sunset Backlit',
+  'Wet Rock Ripples Atmosphere': 'Wet Rock Ripples',
+  'Wrt Rock Ripples': 'Wet Rock Ripples',
+  'WRT Rock Ripples': 'Wet Rock Ripples',
 };
 
 function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null {
   const rawStyle = String(state?.visualStyle || '').trim();
-  const style = rawStyle === 'Golden Sunset Backlit Atmosphere' ? 'Golden Sunset Backlit' : rawStyle;
+  const style = VISUAL_STYLE_ALIASES[rawStyle] || rawStyle;
   if (!style) return null;
   const definition = VISUAL_STYLE_DEFINITIONS[style];
   if (!definition) return null;

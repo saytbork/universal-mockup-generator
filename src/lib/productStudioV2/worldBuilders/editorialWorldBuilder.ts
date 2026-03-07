@@ -105,7 +105,7 @@ export function buildEditorialWorld(
 ): string {
   const photoMode = String(state?.photoMode || '').trim();
 
-  if (photoMode === 'Hero Landing Page') {
+  if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero') {
     const bgResolution = buildStudioBackground(authority, state!);
     if (bgResolution) {
       return `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;

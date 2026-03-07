@@ -10,7 +10,7 @@ export interface StudioBackgroundResolution {
 
 /**
  * Deterministic background resolver for V2 engine.
- * Handles Hero Landing Page ONLY.
+ * Handles Hero Landing Page and Color Pop Hero (legacy compatibility).
  *
  * Single source of truth: state.resolvedPalette (populated by buildPalette earlier
  * in the pipeline). This function does NOT perform any palette fallback logic —
@@ -23,8 +23,11 @@ export function buildStudioBackground(
   state: StudioUIState
 ): StudioBackgroundResolution | null {
   const photoMode = String(state.photoMode || '').trim();
+  const legacyColorPopHero = Boolean(state.photoModeConfig?.heroLandingPage?.legacyColorPopHero);
 
-  if (photoMode !== 'Hero Landing Page') {
+  const isHeroLanding = photoMode === 'Hero Landing Page';
+  const isColorPopHero = photoMode === 'Color Pop Hero';
+  if (!isHeroLanding && !isColorPopHero) {
     return null;
   }
 
@@ -48,6 +51,12 @@ export function buildStudioBackground(
 
   let backgroundString: string;
   let gradientEnabled = false;
+
+  if (isColorPopHero || (isHeroLanding && legacyColorPopHero)) {
+    gradientEnabled = false;
+    backgroundString = `Color-pop hero studio composition. Solid dominant background color ${primary} with controlled radial tonal energy using ${secondary}. High-contrast silhouette separation, clean premium advertising framing, no environmental context, single-product focus.`;
+    return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };
+  }
 
   // Hero Landing Page — respect backgroundType from config
   const backgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
