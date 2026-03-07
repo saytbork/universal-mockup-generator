@@ -8,6 +8,38 @@ type VisualStyleDefinition = {
   scene: string;
 };
 
+const GOLDEN_SUNSET_BG_VARIANTS: Array<{ name: string; scene: string }> = [
+  {
+    name: 'sea-horizon-glow',
+    scene:
+      'sunset sea horizon background with intense amber sky gradient, low sun bloom, and soft reflective water bokeh',
+  },
+  {
+    name: 'desert-heat-haze',
+    scene:
+      'sunset desert background with warm orange haze, subtle heat shimmer, and smooth distant dune silhouette',
+  },
+  {
+    name: 'city-rooftop-sunset',
+    scene:
+      'urban sunset skyline background with golden haze, distant soft high-rise silhouettes, and atmospheric backlight diffusion',
+  },
+  {
+    name: 'coastal-rock-sunset',
+    scene:
+      'coastal rock sunset background with warm flare bloom, glowing horizon band, and soft foreground bokeh rolloff',
+  },
+  {
+    name: 'open-sky-sunset-wash',
+    scene:
+      'open sunset sky background with strong golden wash, radial light falloff, and minimal horizon depth separation',
+  },
+];
+
+function pickRandom<T>(values: T[]): T {
+  return values[Math.floor(Math.random() * values.length)];
+}
+
 const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
   'Clinical Lab Counter': {
     name: 'clinical-lab-counter',
@@ -84,7 +116,8 @@ const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
 };
 
 function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null {
-  const style = String(state?.visualStyle || '').trim();
+  const rawStyle = String(state?.visualStyle || '').trim();
+  const style = rawStyle === 'Golden Sunset Backlit Atmosphere' ? 'Golden Sunset Backlit' : rawStyle;
   if (!style) return null;
   const definition = VISUAL_STYLE_DEFINITIONS[style];
   if (!definition) return null;
@@ -100,11 +133,22 @@ export function buildVisualStyle(state?: StudioUIState): string {
   const definition = resolveVisualStyle(state);
   if (!definition) return '';
 
+  const isGoldenSunset = definition.name === 'golden-sunset-backlit';
+  const goldenVariant = isGoldenSunset ? pickRandom(GOLDEN_SUNSET_BG_VARIANTS) : null;
+  const sceneText = goldenVariant ? `${definition.scene}, ${goldenVariant.scene}` : definition.scene;
+
   return [
     'VISUAL_STYLE_MODE: active.',
     `VISUAL_STYLE_CATEGORY: ${definition.category}.`,
     `VISUAL_STYLE_NAME: ${definition.name}.`,
-    `VISUAL_STYLE_SCENE: ${definition.scene}`,
+    `VISUAL_STYLE_SCENE: ${sceneText}`,
+    ...(goldenVariant
+      ? [
+          'GOLDEN_SUNSET_BACKLIT_ATMOSPHERE: active.',
+          'GOLDEN_SUNSET_BG_RANDOMIZATION: always-on.',
+          `GOLDEN_SUNSET_BG_VARIANT: ${goldenVariant.name}.`,
+        ]
+      : []),
     'VISUAL_STYLE_AUTHORITY: Visual Style defines aesthetic world mood, surface language, tonal identity, and styling bias. It does not override product geometry, artwork fidelity, or physical truth constraints.',
   ].join(' ');
 }
