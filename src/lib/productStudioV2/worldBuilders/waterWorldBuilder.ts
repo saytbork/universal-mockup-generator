@@ -18,8 +18,7 @@ export function buildWaterWorld(
     return 'STUDIO_WORLD: underwater environment with refraction-consistent optical depth.';
   }
   if (photoMode.includes('splash') || photoMode.includes('foam')) {
-    return 'STUDIO_WORLD: splash tank environment with bounded liquid containment.';
+    return 'STUDIO_WORLD: open-air grounded splash environment with unconstrained surface collision realism.';
   }
   return 'STUDIO_WORLD: controlled water-adjacent environment.';
 }
-

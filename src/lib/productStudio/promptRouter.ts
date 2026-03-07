@@ -83,7 +83,7 @@ function inferStudioMotionFromStateMotion(
   return 'static';
 }
 
-function inferStudioIntent(state: ProductStudioState): StudioUIState['creativeIntent'] {
+function inferStudioIntent(state: ProductStudioState): NonNullable<StudioUIState['creativeIntent']> {
   if (state.qualityProfile === 'clinical') return 'clinical';
   if (state.qualityProfile === 'luxury-brand') return 'luxury';
   if (state.visualIntent === 'campaign') return 'campaign';
@@ -227,6 +227,10 @@ const BRAND_VISUAL_STYLES = new Set([
 const LIFESTYLE_VISUAL_STYLES = new Set([
   'Soft Wellness Morning',
   'Outdoor Energy Boost',
+  'Sunlit Stone Editorial',
+  'Golden Sunset Backlit',
+  'Bathroom Daylight Clean',
+  'Warm Window Wood',
 ]);
 
 function resolveVisualStyleCategory(
@@ -289,16 +293,16 @@ function resolveEnvironmentFromState(
   };
 }
 
-function resolvePhotoModeFromState(state: ProductStudioState): ProductStudioState['photoMode'] {
+function resolvePhotoModeFromState(state: ProductStudioState): ProductStudioState['photoMode'] | undefined {
   const raw = String(state.photoMode || '').trim();
-  if (!raw) return 'Hero Landing Page';
+  if (!raw) return undefined;
   if (raw === 'Color Pop Hero') {
     // eslint-disable-next-line no-console
     console.log('[LEGACY MODE NORMALIZED] Color Pop Hero -> Hero Landing Page');
     return 'Hero Landing Page';
   }
   if (PHOTO_MODES.has(raw)) return raw as ProductStudioState['photoMode'];
-  return 'Hero Landing Page';
+  return undefined;
 }
 
 const SPECIAL_EFFECT_MODES = new Set([
@@ -843,37 +847,133 @@ function inferFramingGuideOverride(state: ProductStudioState): string {
   return uiLabel || byKey[state.framing];
 }
 
-export function toStudioV2State(state: ProductStudioState): StudioUIState {
-  const photoModeRaw = String(state.photoMode || '').trim();
-  const resolvedPhotoMode = resolvePhotoModeFromState(state);
-  const requestedModifiers = inferRequestedModifiers(state);
-  const industryProfile = assertIndustry(
-    state.industryProfile || state.visualProfile
-  );
-  const industryModule = resolveIndustryProfileModule(industryProfile);
-  const layerByIndustry: Partial<Record<IndustryProfile, ReturnType<typeof resolveCoffeeIndustryLayer>>> = {
-    coffee: resolveCoffeeIndustryLayer(state),
+function normalizeCreativeDirection(state: ProductStudioState): {
+  creativeIntent: NonNullable<StudioUIState['creativeIntent']>;
+  visualIntent: string;
+} {
+  return {
+    creativeIntent: inferStudioIntent(state),
+    visualIntent: String(state.visualIntent || '').trim() || 'conversion',
   };
-  const coffeeLayer = layerByIndustry[industryProfile] || null;
-  const photoModeCapabilities = getPhotoModeCapabilities(resolvedPhotoMode);
-  const resolvedAllowedMotions = getResolvedAllowedMotions(
-    resolvedPhotoMode,
+}
+
+function normalizePhysicalPresence(state: ProductStudioState): {
+  physicalPresence: string;
+  placementContext: string;
+  groundingMode: string;
+} {
+  const placement = String((state as any).physicalPlacement || (state as any).placement || '').trim().toLowerCase();
+  const physicalPresence =
+    placement === 'held'
+      ? 'held'
+      : placement === 'air-suspended'
+        ? 'suspended'
+        : placement === 'supported'
+          ? 'supported'
+          : 'surface';
+
+  const placementContext =
+    physicalPresence === 'held'
+      ? 'hand-supported hold with natural ergonomic contact'
+      : physicalPresence === 'suspended'
+        ? 'air-suspended placement with no base contact'
+        : physicalPresence === 'supported'
+          ? 'supported lean or prop contact on a stable base'
+          : 'grounded base contact on a stable surface';
+
+  const groundingMode =
+    physicalPresence === 'suspended'
+      ? 'controlled-floating'
+      : physicalPresence === 'held'
+        ? 'hand-grounded'
+        : 'surface-grounded';
+
+  return { physicalPresence, placementContext, groundingMode };
+}
+
+function normalizeMotionAndInteraction(
+  state: ProductStudioState,
+  resolvedPhotoMode: ProductStudioState['photoMode'] | undefined,
+  capabilityResolvedProductState: ProductStateMotion
+): {
+  photoMode?: ProductStudioState['photoMode'];
+  motion: NonNullable<StudioUIState['motion']>;
+  interactionProfile: string;
+  splashMedium: string;
+  motionIntensity: string;
+  freezeMoment: string;
+  productStability: string;
+  macroTightness: string;
+  dropletMode: string;
+  dropletDensity: string;
+  highlightControl: string;
+} {
+  const photoModeDynamic = ((state as any).photoModeConfig?.dynamic?.[String(resolvedPhotoMode || '')] || {}) as Record<string, unknown>;
+
+  return {
+    photoMode: resolvedPhotoMode,
+    motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
+    interactionProfile: String(state.interaction || '').trim() || 'none',
+    splashMedium: String(photoModeDynamic.splashMedium || '').trim() || 'water',
+    motionIntensity: String((state as any).photoModeConfig?.splashShot?.motionIntensity || '').trim() || 'static',
+    freezeMoment: String((state as any).photoModeConfig?.splashShot?.freezeMoment || '').trim() || 'peak',
+    productStability: 'grounded',
+    macroTightness: String(photoModeDynamic.macroTightness || (state as any).macroTightness || '').trim() || 'Extreme',
+    dropletMode:
+      String((state as any)?.photoModeConfig?.macroDewLabel?.dropletMode || (state as any).dropletMode || '').trim() ||
+      'Clean',
+    dropletDensity: String(photoModeDynamic.dropletDensity || (state as any).dropletDensity || '').trim() || 'Balanced',
+    highlightControl:
+      String(photoModeDynamic.highlightControl || (state as any).highlightControl || '').trim() || 'Balanced',
+  };
+}
+
+function normalizeWorldAndAtmosphere(
+  state: ProductStudioState,
+  resolvedEnvironment: { value?: string; source: string; raw: string },
+  resolvedVisualStyle: string | undefined
+): {
+  environmentPreset?: string;
+  visualStyle?: string;
+  visualStyleCategory?: StudioUIState['visualStyleCategory'];
+  atmosphereMode: string;
+} {
+  return {
+    environmentPreset: resolvedEnvironment.value,
+    visualStyle: resolvedVisualStyle,
+    visualStyleCategory: resolvedVisualStyle ? resolveVisualStyleCategory(resolvedVisualStyle) : undefined,
+    atmosphereMode: String((state as any).atmosphereMode || (state as any).environmentMode || '').trim() || 'neutral',
+  };
+}
+
+function normalizeProductCharacter(
+  state: ProductStudioState,
+  industryProfile: IndustryProfile
+): {
+  industryProfile: IndustryProfile;
+  visualProfile: string;
+  productType: string;
+  packagingType: string;
+} {
+  return {
     industryProfile,
-    state.definition.type,
-    coffeeLayer?.intent
-  );
-  const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
-    ? state.stateMotion
-    : 'static';
-  const packagingBehavior = resolvePackagingBehavior(
-    industryProfile,
-    capabilityResolvedProductState,
-    state
-  );
-  const advancedControls =
-    state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+    visualProfile: industryProfile,
+    productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
+    packagingType: String((state as any).packagingType || state.packagingMode || '').trim() || 'standard',
+  };
+}
+
+function normalizeCinematography(
+  state: ProductStudioState,
+  resolvedPhotoMode: ProductStudioState['photoMode'] | undefined,
+  industryProfile: IndustryProfile,
+  packagingBehavior: string
+): {
+  camera: ReturnType<typeof resolveCameraByCapability>;
+  composition: StudioUIState['composition'];
+} {
   const resolvedCamera = resolveCameraByCapability(
-    state.photoMode,
+    resolvedPhotoMode || 'Hero Landing Page',
     {
       cameraSystem: inferCameraSystemOverride(state),
       cameraAngle: inferAngleOverride(state),
@@ -887,6 +987,57 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       distortionRiskThreshold: 0.75,
     }
   );
+
+  return {
+    camera: resolvedCamera,
+    composition: inferStudioComposition(state),
+  };
+}
+
+export function toStudioV2State(state: ProductStudioState): StudioUIState {
+  const photoModeRaw = String(state.photoMode || '').trim();
+  const resolvedPhotoMode = resolvePhotoModeFromState(state);
+  const requestedModifiers = inferRequestedModifiers(state);
+  const industryProfile = assertIndustry(
+    state.industryProfile || state.visualProfile
+  );
+  const industryModule = resolveIndustryProfileModule(industryProfile);
+  const layerByIndustry: Partial<Record<IndustryProfile, ReturnType<typeof resolveCoffeeIndustryLayer>>> = {
+    coffee: resolveCoffeeIndustryLayer(state),
+  };
+  const coffeeLayer = layerByIndustry[industryProfile] || null;
+  const safePhotoModeForCapabilities = resolvedPhotoMode || 'Hero Landing Page';
+  const photoModeCapabilities = getPhotoModeCapabilities(safePhotoModeForCapabilities);
+  const resolvedAllowedMotions = getResolvedAllowedMotions(
+    safePhotoModeForCapabilities,
+    industryProfile,
+    state.definition.type,
+    coffeeLayer?.intent
+  );
+  const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
+    ? state.stateMotion
+    : 'static';
+  const packagingBehavior = resolvePackagingBehavior(
+    industryProfile,
+    capabilityResolvedProductState,
+    state
+  );
+  const normalizedCreativeDirection = normalizeCreativeDirection(state);
+  const normalizedPhysicalPresence = normalizePhysicalPresence(state);
+  const normalizedMotionInteraction = normalizeMotionAndInteraction(
+    state,
+    resolvedPhotoMode,
+    capabilityResolvedProductState
+  );
+  const advancedControls =
+    state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
+  const normalizedCinematography = normalizeCinematography(
+    state,
+    resolvedPhotoMode,
+    industryProfile,
+    packagingBehavior
+  );
+  const resolvedCamera = normalizedCinematography.camera;
   for (const warning of resolvedCamera.warnings) {
     console.warn(`[CAMERA SAFETY] ${warning}`);
   }
@@ -919,11 +1070,16 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       (state as any).lifestyleWorldPreset ||
       ''
   ).trim();
-  const resolvedVisualStyle = resolveVisualStyleFromState(state);
-  const resolvedVisualStyleCategory = resolvedVisualStyle
-    ? resolveVisualStyleCategory(resolvedVisualStyle)
-    : undefined;
+  const resolvedVisualStyle =
+    resolveVisualStyleFromState(state) ||
+    (VISUAL_STYLE_MODES.has(photoModeRaw) ? photoModeRaw : undefined);
   const resolvedEnvironment = resolveEnvironmentFromState(state);
+  const normalizedWorldAtmosphere = normalizeWorldAndAtmosphere(
+    state,
+    resolvedEnvironment,
+    resolvedVisualStyle
+  );
+  const normalizedProductCharacter = normalizeProductCharacter(state, industryProfile);
   // eslint-disable-next-line no-console
   console.log('[PHOTO MODE RAW]', photoModeRaw);
   // eslint-disable-next-line no-console
@@ -933,27 +1089,45 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   // eslint-disable-next-line no-console
   console.log('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
   // eslint-disable-next-line no-console
-  console.log('[VISUAL STYLE CATEGORY]', resolvedVisualStyleCategory || '');
+  console.log('[VISUAL STYLE CATEGORY]', normalizedWorldAtmosphere.visualStyleCategory || '');
   // eslint-disable-next-line no-console
   console.log('[ENVIRONMENT RAW]', resolvedEnvironment.raw || '');
   // eslint-disable-next-line no-console
   console.log('[ENVIRONMENT FIELD SOURCE]', resolvedEnvironment.source || '');
+  // eslint-disable-next-line no-console
+  console.log('[CREATIVE DIRECTION RESOLVED]', normalizedCreativeDirection);
+  // eslint-disable-next-line no-console
+  console.log('[PHYSICAL PRESENCE RESOLVED]', normalizedPhysicalPresence);
+  // eslint-disable-next-line no-console
+  console.log('[MOTION & INTERACTION RESOLVED]', normalizedMotionInteraction);
+  // eslint-disable-next-line no-console
+  console.log('[WORLD & ATMOSPHERE RESOLVED]', normalizedWorldAtmosphere);
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT CHARACTER RESOLVED]', normalizedProductCharacter);
+  // eslint-disable-next-line no-console
+  console.log('[CINEMATOGRAPHY RESOLVED]', {
+    cameraAngle: resolvedCamera.cameraAngle,
+    cameraDistance: resolvedCamera.cameraDistance,
+    cameraRotation: resolvedCamera.cameraRotation,
+    framingGuide: resolvedCamera.framingGuide,
+    composition: normalizedCinematography.composition,
+  });
   const v2State: StudioUIState = {
     industryProfile,
-    creativeIntent: inferStudioIntent(state),
+    creativeIntent: normalizedCreativeDirection.creativeIntent,
     visualIntent:
       ({ coffee: coffeeLayer?.intent } as Partial<Record<IndustryProfile, string | undefined>>)[industryProfile] ||
-      state.visualIntent,
-    visualProfile: industryProfile,
+      normalizedCreativeDirection.visualIntent,
+    visualProfile: normalizedProductCharacter.visualProfile,
     coffeeIndustryLayer: false,
     autoRandomizeCoffeeEnvironment: false,
     world: inferStudioWorld(state),
-    motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
-    composition: inferStudioComposition(state),
+    motion: normalizedMotionInteraction.motion,
+    composition: normalizedCinematography.composition,
     ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
     aspectRatio: state.aspectRatio,
-    photoMode: resolvedPhotoMode,
+    photoMode: normalizedMotionInteraction.photoMode,
     subjectOrientation: inferSubjectOrientation(state),
     cameraSystem: resolvedCamera.cameraSystem,
     cameraAngle: resolvedCamera.cameraAngle,
@@ -1010,14 +1184,30 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.finish ? { finishOverride: state.finish } : {}),
         }
       : {}),
-    productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
-    specialEffect: SPECIAL_EFFECT_MODES.has(resolvedPhotoMode) ? resolvedPhotoMode : undefined,
-    visualStyle: resolvedVisualStyle,
-    ...(resolvedVisualStyleCategory ? { visualStyleCategory: resolvedVisualStyleCategory } : {}),
-    ...(resolvedEnvironment.value
+    productType: normalizedProductCharacter.productType,
+    packagingType: normalizedProductCharacter.packagingType,
+    physicalPresence: normalizedPhysicalPresence.physicalPresence,
+    placementContext: normalizedPhysicalPresence.placementContext,
+    groundingMode: normalizedPhysicalPresence.groundingMode,
+    interactionProfile: normalizedMotionInteraction.interactionProfile,
+    splashMedium: normalizedMotionInteraction.splashMedium,
+    motionIntensity: normalizedMotionInteraction.motionIntensity,
+    freezeMoment: normalizedMotionInteraction.freezeMoment,
+    productStability: normalizedMotionInteraction.productStability,
+    macroTightness: normalizedMotionInteraction.macroTightness,
+    dropletMode: normalizedMotionInteraction.dropletMode,
+    dropletDensity: normalizedMotionInteraction.dropletDensity,
+    highlightControl: normalizedMotionInteraction.highlightControl,
+    specialEffect: resolvedPhotoMode && SPECIAL_EFFECT_MODES.has(resolvedPhotoMode) ? resolvedPhotoMode : undefined,
+    visualStyle: normalizedWorldAtmosphere.visualStyle,
+    ...(normalizedWorldAtmosphere.visualStyleCategory
+      ? { visualStyleCategory: normalizedWorldAtmosphere.visualStyleCategory }
+      : {}),
+    atmosphereMode: normalizedWorldAtmosphere.atmosphereMode,
+    ...(normalizedWorldAtmosphere.environmentPreset
       ? {
-          environmentPreset: resolvedEnvironment.value,
-          environment: resolvedEnvironment.value,
+          environmentPreset: normalizedWorldAtmosphere.environmentPreset,
+          environment: normalizedWorldAtmosphere.environmentPreset,
         }
       : {}),
     ...(coffeeLayer
@@ -1271,7 +1461,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const rules = industryRules[industryProfile];
   let allowedInteractions = ['none'];
 
-  if (rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode || '')) {
+  if (v2State.photoMode && rules?.allowedPhotoModes && !rules.allowedPhotoModes.includes(v2State.photoMode)) {
     v2State.photoMode = rules.allowedPhotoModes[0];
   }
 

@@ -6,7 +6,7 @@ const PHOTO_MODE_SCENE_STYLE_MAP: Record<string, string> = {
   'Ingredient Flat Lay': 'SCENE_STYLE: top-down flat lay on clean studio surface with ingredients arranged in controlled layout around the product',
   'Acrylic Blocks': 'SCENE_STYLE: clean studio with geometric acrylic block props as compositional accents, premium minimal editorial look',
   'Glass Pedestal Studio': 'SCENE_STYLE: clean studio with transparent glass pedestal elevating the product, premium material contrast and reflections',
-  'Splash Shot': 'SCENE_STYLE: controlled splash tank environment, product center-frame with dynamic liquid splash, freeze-frame energy, clean readability',
+  'Splash Shot': 'SCENE_STYLE: grounded open-air splash collision scene, product center-frame with directional impact energy, visible base-adjacent origin, clean readability, no enclosure context',
   'Beach Foam Splash': 'SCENE_STYLE: sunlit tropical shoreline with white foam wash at product base, wet compact sand, turquoise water background, clean product grounding',
   'Pool Water': 'SCENE_STYLE: sunlit pool edge scene with clear blue pool water beside the product, premium outdoor hydration atmosphere',
   'Cheers (Hands Clink)': 'SCENE_STYLE: social beverage scene with hands clinking products, warm lifestyle ambient lighting, natural celebratory energy',

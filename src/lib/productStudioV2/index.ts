@@ -34,6 +34,8 @@ export {
   resolveStudioAuthority,
   getAllowedStudioModifiers,
   buildPhotoModeDynamic,
+  buildProductCharacter,
+  buildPhysicalPresence,
   buildProductPhysical,
   buildIngredients,
   buildStudioBackground,
@@ -58,6 +60,8 @@ import { buildLighting } from './builders/buildLighting.ts';
 import { buildMaterials } from './builders/buildMaterials.ts';
 import { buildPackaging } from './builders/buildPackaging.ts';
 import { buildPhotoModeDynamic } from './builders/buildPhotoModeDynamic.ts';
+import { buildProductCharacter } from './builders/buildProductCharacter.ts';
+import { buildPhysicalPresence } from './builders/buildPhysicalPresence.ts';
 import { buildProductPhysical } from './builders/buildProductPhysical.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';

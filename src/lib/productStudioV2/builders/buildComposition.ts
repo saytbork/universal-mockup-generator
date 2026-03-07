@@ -78,6 +78,16 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 }
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (String(state?.photoMode || '').trim() === 'Splash Shot') {
+    return [
+      'STUDIO_COMPOSITION_PROFILE: splash-impact-hero.',
+      'FRAME_CONSTRAINT: Directional splash hero framing with visible impact origin near product base.',
+      'NEGATIVE_SPACE_POLICY: controlled and minimal.',
+      'HORIZONTAL_BALANCE: directional splash spread allowed.',
+      'VERTICAL_BALANCE: impact-origin emphasis.',
+    ].join(' ');
+  }
+
   if (String(state?.photoMode || '').trim() === 'Macro Dew Label') {
     return [
       'STUDIO_COMPOSITION_PROFILE: macro-label.',

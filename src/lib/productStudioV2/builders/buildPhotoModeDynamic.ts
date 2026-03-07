@@ -46,7 +46,11 @@ function buildGenericDynamicContract(state?: StudioUIState): string {
     return emitPhotoModeSettings(settings);
   }
 
-  return buildHeroMode(photoMode);
+  if (photoMode === 'Hero Landing Page') {
+    return buildHeroMode(photoMode);
+  }
+
+  return '';
 }
 
 function normalizeFrameCount(rawValues: Array<unknown>): '3' | '4' | '5' {

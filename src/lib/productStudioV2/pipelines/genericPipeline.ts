@@ -4,11 +4,13 @@ import {
   buildPalette,
   buildArtworkImmutability,
   buildIntent,
+  buildProductCharacter,
   buildWorld,
   buildCameraOverrides,
   buildComposition,
   buildMotion,
   buildInteraction,
+  buildPhysicalPresence,
   buildPhysics,
   buildModifiers,
   buildPhotoModeDynamic,
@@ -137,6 +139,11 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('TEXTURE_DENSITY:') ||
     p.startsWith('STUDIO_PHYSICS_MODEL:') ||
     p.startsWith('IMPACT_TYPE:') ||
+    p.startsWith('IMPACT_ORIGIN:') ||
+    p.startsWith('GRAVITY_VECTOR:') ||
+    p.startsWith('FORBID_ENCLOSURE_SHAPES:') ||
+    p.startsWith('FORBID_HOLLOW_WATER_RINGS:') ||
+    p.startsWith('FORBID_FLOATING_DROPLETS:') ||
     p.startsWith('FLOW_DIRECTION:') ||
     p.startsWith('CONTACT_SURFACE:') ||
     p.startsWith('APPLICATION_ZONE:') ||
@@ -198,6 +205,10 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('MATERIALS:') ||
     p.startsWith('MATERIAL_BEHAVIOR:') ||
     p.startsWith('STUDIO_MATERIAL_MODEL:') ||
+    p.startsWith('PRODUCT_CHARACTER_PROFILE:') ||
+    p.startsWith('PRODUCT_TYPE_CHARACTER:') ||
+    p.startsWith('PACKAGING_TYPE_CHARACTER:') ||
+    p.startsWith('PRODUCT_VISUAL_PROFILE:') ||
     p.startsWith('WINE_MATERIALS:') ||
     p.startsWith('GLASS_MATERIAL_LOCK:') ||
     p.startsWith('MATERIAL_INTEGRITY:')
@@ -209,6 +220,7 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('STUDIO_PRODUCT_MOTION:') ||
     p.startsWith('MOTION:') ||
     p.startsWith('PHYSICAL_PRESENCE:') ||
+    p.startsWith('GROUNDING_MODE:') ||
     p.startsWith('PHYSICAL_PLACEMENT:') ||
     p.startsWith('PHYSICAL_PLACEMENT_CONTEXT:') ||
     p.startsWith('BOTTLE_ORIENTATION:') ||
@@ -306,8 +318,60 @@ function extractPromptBlocks(prompt: string): string[] {
 function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void {
   const debugState = state as StudioStateDebug;
   const normalizedPrompt = normalizeText(prompt);
+  const lowerPrompt = normalizedPrompt.toLowerCase();
   const photoMode = String(state.photoMode || '').trim().toLowerCase();
   const environmentPreset = String(debugState.environmentPreset || '').trim().toLowerCase();
+  const creativeIntent = String(state.creativeIntent || '').trim();
+  const visualStyle = String(state.visualStyle || '').trim();
+  const looksLikeAssembledPrompt =
+    normalizedPrompt.includes('ARTWORK_IMMUTABILITY:') ||
+    normalizedPrompt.includes('STUDIO_COMPOSITION_PROFILE:') ||
+    normalizedPrompt.includes('PHOTO_MODE_SCENE:');
+
+  if (looksLikeAssembledPrompt && creativeIntent && !normalizedPrompt.includes('STUDIO_VISUAL_INTENT:')) {
+    throw new Error('[PIPELINE_INTEGRITY_FAILURE:CREATIVE_DIRECTION_MISSING]');
+  }
+
+  if (looksLikeAssembledPrompt && String(state.physicalPresence || state.physicalPlacement || '').trim()) {
+    if (!normalizedPrompt.includes('PHYSICAL_PRESENCE:') && !normalizedPrompt.includes('PHYSICAL_PLACEMENT_CONTEXT:')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:PHYSICAL_PRESENCE_MISSING]');
+    }
+  }
+
+  if (looksLikeAssembledPrompt && (photoMode || String(state.motion || '').trim() || String(state.interaction || '').trim())) {
+    if (
+      !normalizedPrompt.includes('STUDIO_PRODUCT_MOTION:') &&
+      !normalizedPrompt.includes('INTERACTION_MODE:') &&
+      !normalizedPrompt.includes('INTERACTION_PROFILE:')
+    ) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:MOTION_INTERACTION_MISSING]');
+    }
+  }
+
+  if (looksLikeAssembledPrompt && photoMode && environmentPreset) {
+    if (!normalizedPrompt.includes('PHOTO_MODE_SCENE:') || !normalizedPrompt.includes('ENVIRONMENT_CONTEXT:')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:WORLD_ENVIRONMENT_MISSING]');
+    }
+  }
+
+  if (looksLikeAssembledPrompt && visualStyle) {
+    if (!normalizedPrompt.includes('VISUAL_STYLE_MODE:')) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:VISUAL_STYLE_MISSING]');
+    }
+  }
+
+  if (
+    looksLikeAssembledPrompt &&
+    String(state.cameraAngle || state.cameraDistance || state.cameraRotation || state.framingGuide || '').trim() &&
+    !normalizedPrompt.includes('STUDIO_CAMERA_') &&
+    !normalizedPrompt.includes('LENS_PROFILE:')
+  ) {
+    throw new Error('[PIPELINE_INTEGRITY_FAILURE:CINEMATOGRAPHY_MISSING]');
+  }
+
+  if (looksLikeAssembledPrompt && !photoMode && (visualStyle || environmentPreset) && normalizedPrompt.includes('PHOTO_MODE_SCENE: Clean studio hero composition')) {
+    throw new Error('[PIPELINE_INTEGRITY_FAILURE:WRONG_HERO_FALLBACK]');
+  }
 
   if (photoMode === 'splash shot') {
     if (!normalizedPrompt.includes('STUDIO_PHYSICS_MODEL:')) {
@@ -315,6 +379,19 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     }
     if (!normalizedPrompt.includes('IMPACT_TYPE: liquid_splash')) {
       throw new Error('[PIPELINE_INTEGRITY_FAILURE:SPLASH_IMPACT_TYPE_MISSING]');
+    }
+    const forbiddenSplashLexemes = [
+      'splash tank environment',
+      'bounded liquid containment',
+      'water tank',
+      'bowl',
+      'hollow ring',
+      'hollow loop',
+    ];
+    for (const token of forbiddenSplashLexemes) {
+      if (lowerPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:SPLASH_ENCLOSURE_LANGUAGE_LEAK]');
+      }
     }
   }
 
@@ -338,12 +415,6 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
       if (!normalizedPrompt.includes(token)) {
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:ENVIRONMENT_CONTRACT_MISSING]');
       }
-    }
-  }
-
-  if (photoMode && environmentPreset) {
-    if (!normalizedPrompt.includes('PHOTO_MODE_SCENE:') || !normalizedPrompt.includes('ENVIRONMENT_CONTEXT:')) {
-      throw new Error('[PIPELINE_INTEGRITY_FAILURE:PHOTO_MODE_ENVIRONMENT_COMBINATION_MISSING]');
     }
   }
 
@@ -411,7 +482,7 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
         'realistic surface tension',
       ];
       for (const token of cleanForbidden) {
-        if (normalizedPrompt.toLowerCase().includes(token.toLowerCase())) {
+        if (lowerPrompt.includes(token.toLowerCase())) {
           throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_CLEAN_DROPLET_LEAK]');
         }
       }
@@ -421,7 +492,6 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     }
   }
 
-  const visualStyle = String(state.visualStyle || '').trim();
   if (visualStyle) {
     const required = [
       'VISUAL_STYLE_MODE:',
@@ -461,6 +531,10 @@ function normalizeVisualStyleName(visualStyle: string): string {
     'Creator Premium Simulation': 'creator-premium-simulation',
     'Soft Wellness Morning': 'soft-wellness-morning',
     'Outdoor Energy Boost': 'outdoor-energy-boost',
+    'Sunlit Stone Editorial': 'sunlit-stone-editorial',
+    'Golden Sunset Backlit': 'golden-sunset-backlit',
+    'Bathroom Daylight Clean': 'bathroom-daylight-clean',
+    'Warm Window Wood': 'warm-window-wood',
   };
   return map[String(visualStyle || '').trim()] || '';
 }
@@ -499,6 +573,7 @@ export function __buildOrderedSegmentsForTest(state: StudioUIState): PipelinePro
   const studioBlocks = [
     buildPalette(state),
     buildIntent(authority, state),
+    buildProductCharacter(state),
     buildArtworkImmutability(),
     buildCameraOverrides(state),
     buildComposition(authority, state),
@@ -510,6 +585,7 @@ export function __buildOrderedSegmentsForTest(state: StudioUIState): PipelinePro
     buildMotion(authority, state),
     buildInteraction(authority, state),
     buildPhysics(authority, state),
+    buildPhysicalPresence(state),
     buildModifiers(modifiers, state),
     buildMaterials(authority, state),
     buildProductPhysical(state, profile),
@@ -574,6 +650,7 @@ export const genericPipeline = {
     const studioBlocks = [
       buildPalette(state),
       buildIntent(authority, state),
+      buildProductCharacter(state),
       buildArtworkImmutability(),
       buildCameraOverrides(state),
       buildComposition(authority, state),
@@ -585,6 +662,7 @@ export const genericPipeline = {
       buildMotion(authority, state),
       buildInteraction(authority, state),
       buildPhysics(authority, state),
+      buildPhysicalPresence(state),
       buildModifiers(modifiers, state),
       buildMaterials(authority, state),
       buildProductPhysical(state, profile),

@@ -55,6 +55,21 @@ const VIEWPOINT_MAP: Record<string, string> = {
 
 export function buildCameraOverrides(state?: StudioUIState): string {
   const photoMode = String(state?.photoMode || '').trim();
+  if (photoMode === 'Splash Shot') {
+    return [
+      'STUDIO_CAMERA_SYSTEM: DSLR / mirrorless camera system.',
+      'CAMERA_STABILITY_LOCK: Camera roll must remain exactly 0 degrees. The horizon must remain level. Do not apply Dutch angle. Do not simulate camera tilt. The camera optical axis must remain perpendicular to the ground plane.',
+      'STUDIO_CAMERA_ANGLE: Eye level.',
+      'STUDIO_CAMERA_DISTANCE: Standard.',
+      'LENS_PROFILE: 85mm equivalent.',
+      'DISTORTION: minimal distortion with telephoto compression.',
+      'STUDIO_CAMERA_ROTATION: 0°.',
+      'ROTATION: 0°.',
+      'STUDIO_FRAMING_GUIDE: Directional splash hero.',
+      'FRAMING: Directional splash hero.',
+      'STUDIO_VIEWPOINT: splash-impact composition with visible impact origin near product base.',
+    ].join(' ');
+  }
   if (photoMode === 'Macro Dew Label') {
     const tightness = resolveMacroTightness(state);
     const macroFramingRule =

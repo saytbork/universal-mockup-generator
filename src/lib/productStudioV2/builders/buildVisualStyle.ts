@@ -57,6 +57,30 @@ const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
     scene:
       'outdoor energy atmosphere, bright active lifestyle tone, clean dynamic freshness, uplifting natural environment cues, vitality-oriented product presentation, energetic premium realism',
   },
+  'Sunlit Stone Editorial': {
+    name: 'sunlit-stone-editorial',
+    category: 'lifestyle',
+    scene:
+      'sunlit stone editorial atmosphere, architectural hard-light shadows, premium warm-neutral tonal control, product-first composition with tactile mineral surfaces',
+  },
+  'Golden Sunset Backlit': {
+    name: 'golden-sunset-backlit',
+    category: 'lifestyle',
+    scene:
+      'golden sunset backlit mood, warm edge glow, controlled flare behavior, premium aspirational energy, readable product silhouette',
+  },
+  'Bathroom Daylight Clean': {
+    name: 'bathroom-daylight-clean',
+    category: 'lifestyle',
+    scene:
+      'bathroom daylight clean aesthetic, soft natural window illumination, minimal self-care styling, premium cleanliness and restrained context',
+  },
+  'Warm Window Wood': {
+    name: 'warm-window-wood',
+    category: 'lifestyle',
+    scene:
+      'warm window wood lifestyle mood, natural sunlight warmth, soft interior shadowing, premium domestic realism with controlled product focus',
+  },
 };
 
 function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null {
