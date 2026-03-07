@@ -79,6 +79,7 @@ function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null
 }
 
 export function buildVisualStyle(state?: StudioUIState): string {
+  if (String(state?.photoMode || '').trim() === 'Color Pop Hero') return '';
   const definition = resolveVisualStyle(state);
   if (!definition) return '';
 
@@ -90,4 +91,3 @@ export function buildVisualStyle(state?: StudioUIState): string {
     'VISUAL_STYLE_AUTHORITY: Visual Style defines aesthetic world mood, surface language, tonal identity, and styling bias. It does not override product geometry, artwork fidelity, or physical truth constraints.',
   ].join(' ');
 }
-

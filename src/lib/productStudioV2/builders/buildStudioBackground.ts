@@ -52,7 +52,7 @@ export function buildStudioBackground(
   if (photoMode === 'Color Pop Hero') {
     // Bold color field: primary as background, secondary as radial energy source
     gradientEnabled = false;
-    backgroundString = `Bold color-field background using the dominant product color ${primary}. Radial energy gradient expanding from behind the product using ${secondary}. Accent edge energy using ${tertiary}. High contrast silhouette separation. Advertising-style lighting. Product fully centered and dominant.`;
+    backgroundString = `Bold studio color-field background using resolved dominant palette color ${primary}. Controlled radial tonal energy behind product using ${secondary}, with accent energy from ${tertiary}. Clean high-contrast silhouette separation. Minimalist advertising-style composition. No props. No room context. No editorial set dressing. Single product dominant.`;
   } else {
     // Hero Landing Page — respect backgroundType from config
     const backgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;

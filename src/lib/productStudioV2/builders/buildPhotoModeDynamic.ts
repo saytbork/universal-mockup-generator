@@ -249,8 +249,27 @@ function buildMacroDewLabelContract(state?: StudioUIState): string {
   ].join(' ');
 }
 
+function buildColorPopHeroContract(): string {
+  return [
+    'PHOTO_MODE_DYNAMIC_CONTROLS:',
+    'COLOR_POP_HERO_MODE: active.',
+    'COLOR_POP_HERO_CONTRACT: Single product hero image. Bold color-field aesthetic. No props. No secondary objects. No environmental textures. No contextual narrative. No editorial clutter.',
+    'SILHOUETTE_RULE: Strong silhouette separation is required. The product edge must read clearly against the background. Maintain clean contour readability.',
+    'BACKGROUND_RULE: Use a clean color-pop studio field driven by resolved palette background color. Allow controlled radial energy or tonal falloff behind product. Do not introduce environmental scenery.',
+    'VISUAL_SIMPLICITY_RULE: Minimalist advertising image only. No fake rooms. No countertops. No contextual surfaces beyond minimal grounded studio support if needed.',
+  ].join(' ');
+}
+
 export function buildPhotoModeDynamic(state?: StudioUIState): string {
   const photoMode = String(state?.photoMode || '').trim();
+  if (photoMode === 'Color Pop Hero') {
+    // eslint-disable-next-line no-console
+    console.log('[PHOTO MODE BUILDER RESOLVED]', 'buildColorPopHeroContract');
+    const contract = buildColorPopHeroContract();
+    // eslint-disable-next-line no-console
+    console.log('[PHOTO MODE CONTRACT GENERATED]', JSON.stringify(contract));
+    return contract;
+  }
   if (photoMode === 'Routine Carousel') {
     // eslint-disable-next-line no-console
     console.log('[PHOTO MODE BUILDER RESOLVED]', 'buildRoutineCarouselContract');

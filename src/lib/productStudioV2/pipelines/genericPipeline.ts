@@ -97,7 +97,8 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('ASYMMETRICAL_BALANCE:') ||
     p.startsWith('HORIZONTAL_BALANCE:') ||
     p.startsWith('VERTICAL_BALANCE:') ||
-    p.startsWith('CENTER_SYMMETRY_LOCK:')
+    p.startsWith('CENTER_SYMMETRY_LOCK:') ||
+    p.startsWith('COLOR_POP_COMPOSITION_RULE:')
   ) {
     return 'composition';
   }
@@ -140,7 +141,12 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('NO_SPLASH_POLICY:') ||
     p.startsWith('PRODUCT_GROUNDING:') ||
     p.startsWith('LOCAL_DEFORMATION:') ||
-    p.startsWith('FLUID_REALISM_CONSTRAINT:')
+    p.startsWith('FLUID_REALISM_CONSTRAINT:') ||
+    p.startsWith('COLOR_POP_HERO_MODE:') ||
+    p.startsWith('COLOR_POP_HERO_CONTRACT:') ||
+    p.startsWith('SILHOUETTE_RULE:') ||
+    p.startsWith('BACKGROUND_RULE:') ||
+    p.startsWith('VISUAL_SIMPLICITY_RULE:')
   ) {
     return 'photoMode';
   }
@@ -376,6 +382,27 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
       if (normalizedPrompt.includes(token)) {
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_DEW_LABEL_HERO_FALLBACK_LEAK]');
       }
+    }
+  }
+
+  if (photoMode === 'color pop hero') {
+    const required = [
+      'COLOR_POP_HERO_MODE:',
+      'COLOR_POP_HERO_CONTRACT:',
+      'SILHOUETTE_RULE:',
+      'BACKGROUND_RULE:',
+      'STUDIO_COMPOSITION_PROFILE: color-pop-hero.',
+    ];
+    for (const token of required) {
+      if (!normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:COLOR_POP_HERO_CONTRACT_MISSING]');
+      }
+    }
+    if (
+      normalizedPrompt.includes('VISUAL_STYLE_MODE:') ||
+      normalizedPrompt.includes('VISUAL_STYLE_NAME:')
+    ) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:COLOR_POP_HERO_VISUAL_STYLE_LEAK]');
     }
   }
 

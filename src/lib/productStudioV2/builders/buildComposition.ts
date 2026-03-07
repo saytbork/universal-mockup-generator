@@ -78,6 +78,15 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 }
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (String(state?.photoMode || '').trim() === 'Color Pop Hero') {
+    return [
+      'STUDIO_COMPOSITION_PROFILE: color-pop-hero.',
+      'FRAME_CONSTRAINT: Hero framing with strong central dominance and clean controlled margins.',
+      'NEGATIVE_SPACE_POLICY: controlled and minimal.',
+      'HERO_COMPOSITION_DISCIPLINE: single product only. no props. no secondary objects. no environmental clutter.',
+      'COLOR_POP_COMPOSITION_RULE: Clean advertising composition with one dominant product and high silhouette clarity.',
+    ].join(' ');
+  }
   if (String(state?.photoMode || '').trim() === 'Macro Dew Label') {
     return [
       'STUDIO_COMPOSITION_PROFILE: macro-label.',

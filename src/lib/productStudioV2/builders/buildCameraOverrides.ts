@@ -55,6 +55,22 @@ const VIEWPOINT_MAP: Record<string, string> = {
 
 export function buildCameraOverrides(state?: StudioUIState): string {
   const photoMode = String(state?.photoMode || '').trim();
+  if (photoMode === 'Color Pop Hero') {
+    return [
+      'STUDIO_CAMERA_SYSTEM: DSLR / mirrorless camera system.',
+      'CAMERA_STABILITY_LOCK: Camera roll must remain exactly 0 degrees. The horizon must remain level. Do not apply Dutch angle. Do not simulate camera tilt. The camera optical axis must remain perpendicular to the ground plane.',
+      'STUDIO_CAMERA_ANGLE: Eye level.',
+      'STUDIO_CAMERA_DISTANCE: Standard.',
+      'LENS_PROFILE: 85mm equivalent.',
+      'DISTORTION: minimal distortion with telephoto compression.',
+      'DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.',
+      'STUDIO_CAMERA_ROTATION: 0°.',
+      'ROTATION: 0°.',
+      'STUDIO_FRAMING_GUIDE: Centered pop hero.',
+      'FRAMING: Centered pop hero.',
+      'STUDIO_VIEWPOINT: straight-on hero product framing optimized for silhouette clarity.',
+    ].join(' ');
+  }
   if (photoMode === 'Macro Dew Label') {
     const tightness = resolveMacroTightness(state);
     const macroFramingRule =

@@ -23,6 +23,7 @@ function normalizedSegments(state: StudioUIState): string[] {
 describe('Studio mini matrix smoke', () => {
   const scenes: Array<{ id: string; state: StudioUIState }> = [
     { id: 'hero', state: base({ photoMode: 'Hero Landing Page' }) },
+    { id: 'color-pop-hero', state: base({ photoMode: 'Color Pop Hero' }) },
     {
       id: 'visual-style-dark-premium',
       state: base({ photoMode: 'Hero Landing Page', visualStyle: 'Dark Premium Studio', visualStyleCategory: 'studio' }),
@@ -103,6 +104,12 @@ describe('Studio mini matrix smoke', () => {
       if (scene.id === 'visual-style-dark-premium') {
         expect(prompt).toContain('VISUAL_STYLE_MODE: active.');
         expect(prompt).toContain('VISUAL_STYLE_NAME: dark-premium-studio.');
+      }
+
+      if (scene.id === 'color-pop-hero') {
+        expect(prompt).toContain('COLOR_POP_HERO_MODE: active.');
+        expect(prompt).toContain('STUDIO_COMPOSITION_PROFILE: color-pop-hero.');
+        expect(buildPhotoModeDynamic(scene.state)).not.toBe('');
       }
     });
   }

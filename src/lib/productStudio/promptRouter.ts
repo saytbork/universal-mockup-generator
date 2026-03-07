@@ -186,6 +186,34 @@ const VISUAL_STYLE_MODES = new Set([
   'Warm Window Wood',
 ]);
 
+const PHOTO_MODES = new Set([
+  'Hero Landing Page',
+  'Color Pop Hero',
+  'Routine Carousel',
+  'Macro Dew Label',
+  'Splash Shot',
+  'Ingredient Stack',
+  'Ingredient Flat Lay',
+  'Foam & Texture',
+  'Textured Bed / Scatter Base',
+  'Gel Smear Editorial',
+  'Pool Water',
+  'Wine Macro Label',
+  'Acrylic Blocks',
+  'Glass Pedestal Studio',
+  'Beach Foam Splash',
+  'Cheers (Hands Clink)',
+  'Ice Cubes',
+  'Condensation Droplets',
+  'Fruit Garnish / Citrus Accents',
+  'Floating Particles',
+  'Citrus Fresh Flat Lay',
+  'Stones & Crystals Flat Lay',
+  'Dried Citrus Earth',
+  'Underwater Split',
+  'Hands Application Clean',
+]);
+
 const STUDIO_VISUAL_STYLES = new Set([
   'Clinical Lab Counter',
   'Minimal Bathroom Vanity',
@@ -225,13 +253,19 @@ function resolveVisualStyleFromState(state: ProductStudioState): string | undefi
       (state as any).studioWorldPreset ||
       (state as any).brandWorldPreset ||
       (state as any).lifestyleWorldPreset ||
-      state.photoMode ||
       ''
   ).trim();
 
   if (!raw) return undefined;
   if (VISUAL_STYLE_MODES.has(raw)) return raw;
   return undefined;
+}
+
+function resolvePhotoModeFromState(state: ProductStudioState): string {
+  const raw = String(state.photoMode || '').trim();
+  if (!raw) return '';
+  if (PHOTO_MODES.has(raw)) return raw;
+  return raw;
 }
 
 const SPECIAL_EFFECT_MODES = new Set([
@@ -837,6 +871,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineArchetypeNarrative = winePrestigeMode
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
     : '';
+  const photoModeRaw = String(state.photoMode || '').trim();
+  const resolvedPhotoMode = resolvePhotoModeFromState(state);
   const visualStyleRaw = String(
     (state as any).visualStyle ||
       (state as any).selectedVisualStyle ||
@@ -848,13 +884,16 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       (state as any).studioWorldPreset ||
       (state as any).brandWorldPreset ||
       (state as any).lifestyleWorldPreset ||
-      state.photoMode ||
       ''
   ).trim();
   const resolvedVisualStyle = resolveVisualStyleFromState(state);
   const resolvedVisualStyleCategory = resolvedVisualStyle
     ? resolveVisualStyleCategory(resolvedVisualStyle)
     : undefined;
+  // eslint-disable-next-line no-console
+  console.log('[PHOTO MODE RAW]', photoModeRaw);
+  // eslint-disable-next-line no-console
+  console.log('[PHOTO MODE RESOLVED]', resolvedPhotoMode || '');
   // eslint-disable-next-line no-console
   console.log('[VISUAL STYLE RAW]', visualStyleRaw);
   // eslint-disable-next-line no-console
@@ -876,7 +915,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(advancedControls ? { advancedControls: true } : {}),
     lightingModelOverride: inferLightingOverride(state),
     aspectRatio: state.aspectRatio,
-    photoMode: state.photoMode,
+    photoMode: resolvedPhotoMode,
     subjectOrientation: inferSubjectOrientation(state),
     cameraSystem: resolvedCamera.cameraSystem,
     cameraAngle: resolvedCamera.cameraAngle,
