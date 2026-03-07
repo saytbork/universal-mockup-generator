@@ -849,6 +849,7 @@ export type ProductStudioState = {
     // ========================================================================
     category: string;
     contextPreset: string;
+    visualStyle?: string;
     visualProfile: VisualProfile;
     industryProfile: IndustryProfile;
     wineLightingTone: WineLightingTone;

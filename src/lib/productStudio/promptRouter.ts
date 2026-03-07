@@ -230,6 +230,10 @@ const LIFESTYLE_VISUAL_STYLES = new Set([
   'Sunlit Stone Editorial',
   'Golden Sunset Backlit',
   'Bathroom Daylight Clean',
+  'Sky Float Minimal',
+  'Wet Rock Ripples',
+  'Sand Palm Shadows',
+  'Botanical Water Garden',
   'Warm Window Wood',
 ]);
 
@@ -319,7 +323,6 @@ const SPECIAL_EFFECT_MODES = new Set([
   'Floating Particles',
   'Gel Smear Editorial',
   'Underwater Split',
-  'Wet Rock Ripples',
 ]);
 
 const INTERACTION_STATE_TO_CANONICAL_CANDIDATES: Record<string, string[]> = {

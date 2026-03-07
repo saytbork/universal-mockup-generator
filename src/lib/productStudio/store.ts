@@ -667,6 +667,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // 5️⃣ CREATIVE DIRECTION
     category: '',
     contextPreset: '',
+    visualStyle: undefined,
     visualProfile: 'default',
     industryProfile: 'supplements',
     wineLightingTone: 'Warm Lateral',
@@ -835,6 +836,7 @@ type ProductStudioActions = {
     // Creativity
     setCategory: (category: string) => void;
     setContextPreset: (preset: string) => void;
+    setVisualStyle: (visualStyle: string | undefined) => void;
     setIndustryProfile: (profile: IndustryProfile) => void;
     setVisualProfile: (profile: VisualProfile) => void;
     setWineAction: (action: WineAction) => void;
@@ -1250,6 +1252,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Creativity
     setCategory: (category) => set({ category: String(category || '').trim() }),
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
+    setVisualStyle: (visualStyle) => set({ visualStyle: String(visualStyle || '').trim() || undefined }),
     setIndustryProfile: (profile) =>
         set((state) => {
             if (state.industryProfile === profile) {

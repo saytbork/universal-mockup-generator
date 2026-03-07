@@ -534,6 +534,10 @@ function normalizeVisualStyleName(visualStyle: string): string {
     'Sunlit Stone Editorial': 'sunlit-stone-editorial',
     'Golden Sunset Backlit': 'golden-sunset-backlit',
     'Bathroom Daylight Clean': 'bathroom-daylight-clean',
+    'Sky Float Minimal': 'sky-float-minimal',
+    'Wet Rock Ripples': 'wet-rock-ripples',
+    'Sand Palm Shadows': 'sand-palm-shadows',
+    'Botanical Water Garden': 'botanical-water-garden',
     'Warm Window Wood': 'warm-window-wood',
   };
   return map[String(visualStyle || '').trim()] || '';

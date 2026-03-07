@@ -3139,6 +3139,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               showPhotoModeSettingsHint(mode);
                             };
 
+                            const applyVisualStyle = (mode: string) => {
+                              productStore.setVisualStyle(mode);
+                              markSectionTouched('product-setup');
+                            };
+
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
                               'Hero Landing Page': 'Deterministic studio hero with copy-safe negative space (no props).',
                               'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
@@ -3195,8 +3200,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Floating Particles', mode: 'Floating Particles' },
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
-                              { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
-                              // REMOVED: 'Botanical Water Garden' - already in Visual Style group (line 2439)
                             ];
                             const filteredSpecialEffectsOptions = winePrestigeModeActive
                               // In wine mode, only wine-appropriate special effects are shown
@@ -3263,10 +3266,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3284,10 +3287,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3305,10 +3308,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3328,10 +3331,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3351,10 +3354,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
