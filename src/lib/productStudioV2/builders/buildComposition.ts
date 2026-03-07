@@ -78,6 +78,17 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 }
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (String(state?.photoMode || '').trim() === 'Macro Dew Label') {
+    return [
+      'STUDIO_COMPOSITION_PROFILE: macro-label.',
+      'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins.',
+      'No medium composition.',
+      'No wide composition.',
+      'HORIZONTAL_BALANCE: controlled for macro framing.',
+      'VERTICAL_BALANCE: macro emphasis.',
+    ].join(' ');
+  }
+
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
   if (state?.winePrestigeMode) {

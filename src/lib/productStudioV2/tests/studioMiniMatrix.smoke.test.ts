@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { buildPhotoModeDynamic } from '../builders/buildPhotoModeDynamic';
 import { __buildOrderedSegmentsForTest, __buildPromptForTest } from '../pipelines/genericPipeline';
 import type { StudioUIState } from '../types/studioTypes';
 
-function base(overrides: Partial<StudioUIState> = {}): StudioUIState {
+function base(overrides: Record<string, unknown> = {}): StudioUIState {
   return {
     industryProfile: 'supplements',
     motion: 'static',
@@ -22,6 +23,17 @@ function normalizedSegments(state: StudioUIState): string[] {
 describe('Studio mini matrix smoke', () => {
   const scenes: Array<{ id: string; state: StudioUIState }> = [
     { id: 'hero', state: base({ photoMode: 'Hero Landing Page' }) },
+    {
+      id: 'macro-dew-label',
+      state: base({
+        photoMode: 'Macro Dew Label',
+        composition: 'macro',
+        macroTightness: 'Extreme',
+        dropletMode: 'Drops',
+        dropletDensity: 'High',
+        highlightControl: 'Balanced',
+      }),
+    },
     { id: 'foam', state: base({ photoMode: 'Foam & Texture', textureType: 'Foam' }) },
     { id: 'textured-bed', state: base({ photoMode: 'Textured Bed / Scatter Base', ingredientObjects: 'matcha powder' as any }) },
     { id: 'gel-smear', state: base({ photoMode: 'Gel Smear Editorial' }) },
@@ -37,6 +49,17 @@ describe('Studio mini matrix smoke', () => {
         wineBottleState: 'sealed',
         wineGlassMode: 'none',
         wineClosureType: 'from-reference',
+      }),
+    },
+    {
+      id: 'routine-carousel',
+      state: base({
+        photoMode: 'Routine Carousel',
+        composition: 'carousel',
+        routineFrameCount: 3,
+        routineFlow: 'Left → Right',
+        routineConsistency: 'Same background',
+        routineHeroFrame: 'First',
       }),
     },
     { id: 'ingredient-flat-lay', state: base({ photoMode: 'Ingredient Flat Lay', composition: 'flat-lay' }) },
@@ -60,6 +83,17 @@ describe('Studio mini matrix smoke', () => {
 
       if (scene.id === 'wine-macro') {
         expect(prompt).toContain('APPLICATION_ZONE: front label.');
+      }
+
+      if (scene.id === 'routine-carousel') {
+        expect(prompt).toContain('ROUTINE_CAROUSEL_MODE: active.');
+        expect(buildPhotoModeDynamic(scene.state)).not.toBe('');
+      }
+
+      if (scene.id === 'macro-dew-label') {
+        expect(prompt).toContain('MACRO_DEW_LABEL_MODE: active.');
+        expect(prompt).toContain('STUDIO_CAMERA_DISTANCE: Macro.');
+        expect(buildPhotoModeDynamic(scene.state)).not.toBe('');
       }
     });
   }

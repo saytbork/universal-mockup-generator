@@ -1,11 +1,39 @@
 import type { StudioUIState } from '../types/studioTypes.ts';
 
+type MacroCameraState = StudioUIState & {
+  macroTightness?: string;
+  photoModeSettingMacroTightness?: string;
+  macroTightnessMode?: string;
+  dewMacroTightness?: string;
+};
+
 function resolveLensProfile(distance: string): string {
   const normalized = distance.toLowerCase();
   if (normalized.includes('macro')) return '100mm macro equivalent';
   if (normalized.includes('wide')) return '35mm equivalent';
   if (normalized.includes('tight')) return '85mm equivalent';
   return '50mm equivalent';
+}
+
+function resolveMacroTightness(state?: StudioUIState): 'tight' | 'extreme' {
+  const s = (state || {}) as MacroCameraState;
+  const settings = s.photoModeDynamicSettings || {};
+  const candidates = [
+    s.macroTightness,
+    s.photoModeSettingMacroTightness,
+    s.macroTightnessMode,
+    s.dewMacroTightness,
+    settings.macroTightness,
+    settings.photoModeSettingMacroTightness,
+    settings.macroTightnessMode,
+    settings.dewMacroTightness,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate || '').trim().toLowerCase();
+    if (value === 'tight') return 'tight';
+    if (value === 'extreme') return 'extreme';
+  }
+  return 'extreme';
 }
 
 function resolveDistortion(distance: string): string {
@@ -26,6 +54,31 @@ const VIEWPOINT_MAP: Record<string, string> = {
 };
 
 export function buildCameraOverrides(state?: StudioUIState): string {
+  const photoMode = String(state?.photoMode || '').trim();
+  if (photoMode === 'Macro Dew Label') {
+    const tightness = resolveMacroTightness(state);
+    const macroFramingRule =
+      tightness === 'tight'
+        ? 'MACRO_FRAMING_RULE: close macro framing with label dominant while retaining a small bottle context.'
+        : 'MACRO_FRAMING_RULE: extreme macro framing where label area and adjacent material texture occupy most of the frame.';
+
+    return [
+      'STUDIO_CAMERA_SYSTEM: DSLR / mirrorless camera system.',
+      'CAMERA_STABILITY_LOCK: Camera roll must remain exactly 0 degrees. The horizon must remain level. Do not apply Dutch angle. Do not simulate camera tilt. The camera optical axis must remain perpendicular to the ground plane.',
+      'STUDIO_CAMERA_ANGLE: Macro close-up.',
+      'STUDIO_CAMERA_DISTANCE: Macro.',
+      'LENS_PROFILE: 100mm macro equivalent.',
+      'DISTORTION: near-zero distortion with macro field compression.',
+      'DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.',
+      'STUDIO_CAMERA_ROTATION: 0°.',
+      'ROTATION: 0°.',
+      'STUDIO_FRAMING_GUIDE: Macro detail.',
+      'FRAMING: Macro detail.',
+      'STUDIO_VIEWPOINT: macro label-plane close-up.',
+      macroFramingRule,
+    ].join(' ');
+  }
+
   const cameraSystem = String(state?.cameraSystem || state?.cameraSystemOverride || '').trim();
   const angle = String(state?.cameraAngle || state?.angleOverride || '').trim();
   const distance = String(state?.cameraDistance || state?.distanceOverride || '').trim();

@@ -76,7 +76,9 @@ function classifySegmentType(part: string): CanonicalSegmentType {
     p.startsWith('DISTORTION:') ||
     p.startsWith('DEPTH_STYLE:') ||
     p.startsWith('ROTATION:') ||
-    p.startsWith('STUDIO_FRAMING_GUIDE:')
+    p.startsWith('STUDIO_FRAMING_GUIDE:') ||
+    p.startsWith('STUDIO_VIEWPOINT:') ||
+    p === 'FRAMING: MACRO DETAIL.'
   ) {
     return 'camera';
   }
@@ -102,6 +104,25 @@ function classifySegmentType(part: string): CanonicalSegmentType {
   if (
     p.startsWith('PHOTO_MODE_DYNAMIC_CONTROLS:') ||
     p.startsWith('PHOTO_MODE_ATMOSPHERE:') ||
+    p.startsWith('MACRO_DEW_LABEL_MODE:') ||
+    p.startsWith('MACRO_TIGHTNESS:') ||
+    p.startsWith('DROPLET_MODE:') ||
+    p.startsWith('DROPLET_DENSITY:') ||
+    p.startsWith('HIGHLIGHT_CONTROL:') ||
+    p.startsWith('MACRO_CAPTURE_RULE:') ||
+    p.startsWith('LABEL_FIDELITY_RULE:') ||
+    p.startsWith('DEW_PHYSICS_RULE:') ||
+    p.startsWith('OPTICAL_MACRO_RULE:') ||
+    p.startsWith('ROUTINE_CAROUSEL_MODE:') ||
+    p.startsWith('FRAME_COUNT:') ||
+    p.startsWith('ROUTINE_FLOW:') ||
+    p.startsWith('CONSISTENCY:') ||
+    p.startsWith('HERO_FRAME:') ||
+    p.startsWith('CAROUSEL_STRUCTURE:') ||
+    p.startsWith('FRAME_LAYOUT_RULE:') ||
+    p.startsWith('FRAME_CONSISTENCY_RULE:') ||
+    p.startsWith('FLOW_RULE:') ||
+    p.startsWith('HERO_FRAME_RULE:') ||
     p.startsWith('GEL_SMEAR_EDITORIAL_SCENE:') ||
     p.startsWith('TEXTURED_BED_INGREDIENT_AUTHORITY:') ||
     p.startsWith('PHOTO_MODE_SETTING_WATERLEVEL:') ||
@@ -302,6 +323,53 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     const hasLabelZone = normalizedPrompt.includes('APPLICATION_ZONE: front label.');
     if (!hasInteraction && !hasLabelZone) {
       throw new Error('[PIPELINE_INTEGRITY_FAILURE:WINE_MACRO_INTERACTION_MISSING]');
+    }
+  }
+
+  if (photoMode === 'routine carousel') {
+    const required = [
+      'ROUTINE_CAROUSEL_MODE:',
+      'FRAME_COUNT:',
+      'ROUTINE_FLOW:',
+      'CONSISTENCY:',
+      'HERO_FRAME:',
+      'CAROUSEL_STRUCTURE:',
+    ];
+    for (const token of required) {
+      if (!normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:ROUTINE_CAROUSEL_CONTRACT_MISSING]');
+      }
+    }
+  }
+
+  if (photoMode === 'macro dew label') {
+    const required = [
+      'MACRO_DEW_LABEL_MODE:',
+      'MACRO_TIGHTNESS:',
+      'DROPLET_MODE:',
+      'DROPLET_DENSITY:',
+      'HIGHLIGHT_CONTROL:',
+      'STUDIO_CAMERA_DISTANCE: Macro.',
+      'LENS_PROFILE: 100mm macro equivalent.',
+      'STUDIO_FRAMING_GUIDE: Macro detail.',
+    ];
+    for (const token of required) {
+      if (!normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_DEW_LABEL_CONTRACT_MISSING]');
+      }
+    }
+
+    const forbidden = [
+      'STUDIO_CAMERA_ANGLE: 45° hero.',
+      'STUDIO_CAMERA_DISTANCE: Standard.',
+      'LENS_PROFILE: 50mm equivalent.',
+      'STUDIO_FRAMING_GUIDE: Centered hero.',
+      'STUDIO_COMPOSITION_PROFILE: hero-45.',
+    ];
+    for (const token of forbidden) {
+      if (normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:MACRO_DEW_LABEL_HERO_FALLBACK_LEAK]');
+      }
     }
   }
 
