@@ -186,6 +186,54 @@ const VISUAL_STYLE_MODES = new Set([
   'Warm Window Wood',
 ]);
 
+const STUDIO_VISUAL_STYLES = new Set([
+  'Clinical Lab Counter',
+  'Minimal Bathroom Vanity',
+  'Dark Premium Studio',
+  'Tech Clean Studio',
+]);
+
+const BRAND_VISUAL_STYLES = new Set([
+  'Monochrome Brand',
+  'Brand Campaign',
+  'Creator Premium Simulation',
+]);
+
+const LIFESTYLE_VISUAL_STYLES = new Set([
+  'Soft Wellness Morning',
+  'Outdoor Energy Boost',
+]);
+
+function resolveVisualStyleCategory(
+  visualStyle: string
+): StudioUIState['visualStyleCategory'] | undefined {
+  if (STUDIO_VISUAL_STYLES.has(visualStyle)) return 'studio';
+  if (BRAND_VISUAL_STYLES.has(visualStyle)) return 'brand';
+  if (LIFESTYLE_VISUAL_STYLES.has(visualStyle)) return 'lifestyle';
+  return undefined;
+}
+
+function resolveVisualStyleFromState(state: ProductStudioState): string | undefined {
+  const raw = String(
+    (state as any).visualStyle ||
+      (state as any).selectedVisualStyle ||
+      (state as any).visualStylePreset ||
+      (state as any).worldStyle ||
+      (state as any).styleWorld ||
+      (state as any).visualWorld ||
+      (state as any).creativeWorld ||
+      (state as any).studioWorldPreset ||
+      (state as any).brandWorldPreset ||
+      (state as any).lifestyleWorldPreset ||
+      state.photoMode ||
+      ''
+  ).trim();
+
+  if (!raw) return undefined;
+  if (VISUAL_STYLE_MODES.has(raw)) return raw;
+  return undefined;
+}
+
 const SPECIAL_EFFECT_MODES = new Set([
   'Splash Shot',
   'Beach Foam Splash',
@@ -789,6 +837,30 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineArchetypeNarrative = winePrestigeMode
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
     : '';
+  const visualStyleRaw = String(
+    (state as any).visualStyle ||
+      (state as any).selectedVisualStyle ||
+      (state as any).visualStylePreset ||
+      (state as any).worldStyle ||
+      (state as any).styleWorld ||
+      (state as any).visualWorld ||
+      (state as any).creativeWorld ||
+      (state as any).studioWorldPreset ||
+      (state as any).brandWorldPreset ||
+      (state as any).lifestyleWorldPreset ||
+      state.photoMode ||
+      ''
+  ).trim();
+  const resolvedVisualStyle = resolveVisualStyleFromState(state);
+  const resolvedVisualStyleCategory = resolvedVisualStyle
+    ? resolveVisualStyleCategory(resolvedVisualStyle)
+    : undefined;
+  // eslint-disable-next-line no-console
+  console.log('[VISUAL STYLE RAW]', visualStyleRaw);
+  // eslint-disable-next-line no-console
+  console.log('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
+  // eslint-disable-next-line no-console
+  console.log('[VISUAL STYLE CATEGORY]', resolvedVisualStyleCategory || '');
   const v2State: StudioUIState = {
     industryProfile,
     creativeIntent: inferStudioIntent(state),
@@ -863,7 +935,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       : {}),
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
     specialEffect: SPECIAL_EFFECT_MODES.has(state.photoMode) ? state.photoMode : undefined,
-    visualStyle: VISUAL_STYLE_MODES.has(state.photoMode) ? state.photoMode : undefined,
+    visualStyle: resolvedVisualStyle,
+    ...(resolvedVisualStyleCategory ? { visualStyleCategory: resolvedVisualStyleCategory } : {}),
     ...(coffeeLayer
       ? {
           coffeeIndustryLayer: true,
@@ -1131,6 +1204,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
 
   if (rules?.allowedVisualStyles && v2State.visualStyle && !rules.allowedVisualStyles.includes(v2State.visualStyle)) {
     v2State.visualStyle = rules.allowedVisualStyles[0];
+    v2State.visualStyleCategory = resolveVisualStyleCategory(v2State.visualStyle);
   }
 
   const resolvedIntent = String(coffeeLayer?.intent || 'editorial-ritual');

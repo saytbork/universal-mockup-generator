@@ -24,6 +24,10 @@ describe('Studio mini matrix smoke', () => {
   const scenes: Array<{ id: string; state: StudioUIState }> = [
     { id: 'hero', state: base({ photoMode: 'Hero Landing Page' }) },
     {
+      id: 'visual-style-dark-premium',
+      state: base({ photoMode: 'Hero Landing Page', visualStyle: 'Dark Premium Studio', visualStyleCategory: 'studio' }),
+    },
+    {
       id: 'macro-dew-label',
       state: base({
         photoMode: 'Macro Dew Label',
@@ -94,6 +98,11 @@ describe('Studio mini matrix smoke', () => {
         expect(prompt).toContain('MACRO_DEW_LABEL_MODE: active.');
         expect(prompt).toContain('STUDIO_CAMERA_DISTANCE: Macro.');
         expect(buildPhotoModeDynamic(scene.state)).not.toBe('');
+      }
+
+      if (scene.id === 'visual-style-dark-premium') {
+        expect(prompt).toContain('VISUAL_STYLE_MODE: active.');
+        expect(prompt).toContain('VISUAL_STYLE_NAME: dark-premium-studio.');
       }
     });
   }

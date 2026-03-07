@@ -184,6 +184,7 @@ export interface StudioUIState {
   packagingBehavior?: string;
   specialEffect?: string;
   visualStyle?: string;
+  visualStyleCategory?: 'studio' | 'brand' | 'lifestyle';
   lightingTemperatureProfile?: string;
   shadowProfile?: string;
   contrastProfile?: string;

@@ -27,6 +27,7 @@ import {
 } from '../index';
 import type { StudioUIState } from '../index';
 import { resolveIndustryProfileModule } from '../industryProfiles/registry';
+import { buildVisualStyle } from '../builders/buildVisualStyle';
 
 type StudioStateDebug = StudioUIState & {
   environment?: string;
@@ -147,6 +148,11 @@ function classifySegmentType(part: string): CanonicalSegmentType {
   if (
     p.startsWith('STUDIO_WORLD:') ||
     p.startsWith('PHOTO_MODE_SCENE:') ||
+    p.startsWith('VISUAL_STYLE_MODE:') ||
+    p.startsWith('VISUAL_STYLE_CATEGORY:') ||
+    p.startsWith('VISUAL_STYLE_NAME:') ||
+    p.startsWith('VISUAL_STYLE_SCENE:') ||
+    p.startsWith('VISUAL_STYLE_AUTHORITY:') ||
     p.startsWith('ENVIRONMENT_CONTEXT:') ||
     p.startsWith('BACKGROUND_CONTEXT:') ||
     p.startsWith('SURFACE_MATERIAL:') ||
@@ -373,6 +379,26 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     }
   }
 
+  const visualStyle = String(state.visualStyle || '').trim();
+  if (visualStyle) {
+    const required = [
+      'VISUAL_STYLE_MODE:',
+      'VISUAL_STYLE_CATEGORY:',
+      'VISUAL_STYLE_NAME:',
+      'VISUAL_STYLE_SCENE:',
+    ];
+    for (const token of required) {
+      if (!normalizedPrompt.includes(token)) {
+        throw new Error('[PIPELINE_INTEGRITY_FAILURE:VISUAL_STYLE_CONTRACT_MISSING]');
+      }
+    }
+
+    const expectedName = normalizeVisualStyleName(visualStyle);
+    if (!expectedName || !normalizedPrompt.includes(`VISUAL_STYLE_NAME: ${expectedName}.`)) {
+      throw new Error('[PIPELINE_INTEGRITY_FAILURE:VISUAL_STYLE_NAME_MISMATCH]');
+    }
+  }
+
   const blocks = extractPromptBlocks(prompt);
   const seen = new Set<string>();
   for (const block of blocks) {
@@ -381,6 +407,21 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     }
     seen.add(block);
   }
+}
+
+function normalizeVisualStyleName(visualStyle: string): string {
+  const map: Record<string, string> = {
+    'Clinical Lab Counter': 'clinical-lab-counter',
+    'Minimal Bathroom Vanity': 'minimal-bathroom-vanity',
+    'Dark Premium Studio': 'dark-premium-studio',
+    'Tech Clean Studio': 'tech-clean-studio',
+    'Monochrome Brand': 'monochrome-brand',
+    'Brand Campaign': 'brand-campaign',
+    'Creator Premium Simulation': 'creator-premium-simulation',
+    'Soft Wellness Morning': 'soft-wellness-morning',
+    'Outdoor Energy Boost': 'outdoor-energy-boost',
+  };
+  return map[String(visualStyle || '').trim()] || '';
 }
 
 export function __validateFinalPromptForTest(prompt: string, state: StudioUIState): void {
@@ -422,6 +463,7 @@ export function __buildOrderedSegmentsForTest(state: StudioUIState): PipelinePro
     buildComposition(authority, state),
     buildPhotoModeDynamic(state),
     buildWorld(authority, state.world, state),
+    buildVisualStyle(state),
     buildLighting(authority, state),
     buildMotion(authority, state),
     buildInteraction(authority, state),
@@ -495,6 +537,7 @@ export const genericPipeline = {
       buildComposition(authority, state),
       buildPhotoModeDynamic(state),
       buildWorld(authority, state.world, state),
+      buildVisualStyle(state),
       buildLighting(authority, state),
       buildMotion(authority, state),
       buildInteraction(authority, state),
