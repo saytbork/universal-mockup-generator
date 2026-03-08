@@ -148,7 +148,7 @@ export const winePipeline = {
     if (bottleAndGlassMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: BOTTLE_AND_GLASS. Sealed bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. No full pour-in-progress.',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS. Opened service bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. Bottle fill level reflects poured service. No full pour-in-progress.',
       });
     } else if (bottleAndGlassPourMode) {
       segments.push({

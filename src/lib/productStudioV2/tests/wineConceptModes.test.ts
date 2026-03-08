@@ -17,6 +17,16 @@ function makeWineState(photoMode: PhotoMode, overrides: Partial<ProductStudioSta
 }
 
 describe('wine concept modes', () => {
+  it('keeps bottle + glass composition aligned with served-open wine physics', () => {
+    const mapped = toStudioV2State(makeWineState('Bottle + Glass'));
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineGlassMode).toBe('filled');
+    expect(prompt).toContain('bottleState=open; serveState=served;');
+    expect(prompt).toContain('COMPOSITION: BOTTLE_AND_GLASS. Opened service bottle and filled wine glass.');
+    expect(prompt).not.toContain('Sealed bottle and filled wine glass.');
+  });
+
   it('maps bottle + glass pour to controlled pour wine state', () => {
     const mapped = toStudioV2State(makeWineState('Bottle + Glass Pour'));
     const prompt = generateStudioPromptV2(mapped);
