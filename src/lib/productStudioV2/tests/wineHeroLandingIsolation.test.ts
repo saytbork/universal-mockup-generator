@@ -42,4 +42,15 @@ describe('wine hero landing isolation', () => {
     expect(prompt).toContain('NO_GLASS:');
     expect(prompt).toContain('serveState=none');
   });
+
+  it('keeps wine hero surfaces clean and premium', () => {
+    const mapped = toStudioV2State(makeWineHeroState({ contextPreset: 'Dark Luxury Studio' }));
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).not.toContain('Tiny dust particles');
+    expect(prompt).not.toContain('surface scuffs');
+    expect(prompt).not.toContain('cleaning marks');
+    expect(prompt).toContain('No visible dust, salt, residue, or debris.');
+    expect(prompt).toContain('Clean premium tabletop or set surface.');
+  });
 });
