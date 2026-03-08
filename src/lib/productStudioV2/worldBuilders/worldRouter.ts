@@ -24,9 +24,14 @@ export function resolveWorldBuilder(
   _explicitWorld?: StudioAuthorityBundle['world']
 ): { name: string; builder: WorldBuilderFn } {
   const photoMode = String(state?.photoMode || '').trim();
+  const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
   const environment = String(
     state?.environment || state?.environmentPreset || state?.environmentMode || state?.contextPresetValue || ''
   ).trim().toLowerCase();
+
+  if (industryProfile === 'wine') {
+    return { name: 'buildWineWorld', builder: buildWineWorld };
+  }
 
   if (WINE_PHOTO_MODES.has(photoMode)) {
     return { name: 'buildWineWorld', builder: buildWineWorld };

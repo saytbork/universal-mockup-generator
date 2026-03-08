@@ -1103,6 +1103,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
   const wineEnabledProfiles = new Set<IndustryProfile>(['wine']);
   const shouldAssignWineFields = wineEnabledProfiles.has(industryProfile);
+  const isWineHeroLanding = industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
@@ -1201,16 +1202,22 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(wineMoodProfile ? { wineMoodProfile } : {}),
     ...(shouldAssignWineFields
       ? {
+          ...(isWineHeroLanding
+            ? {
+                wineGlassMode: 'none',
+                wineBottleState: 'sealed',
+              }
+            : {}),
           ...(state.contextPreset ? { wineContextPreset: state.contextPreset } : {}),
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
           wineEngineVersion: state.wineEngineVersion,
           wineAction: 'static-presentation',
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
-          wineGlassMode: state.wineGlassMode,
+          wineGlassMode: isWineHeroLanding ? 'none' : state.wineGlassMode,
           wineClosureType: state.wineClosureType,
           wineType: state.wineType,
-          wineBottleState: state.wineBottleState,
+          wineBottleState: isWineHeroLanding ? 'sealed' : state.wineBottleState,
           carbonationLevel: state.carbonationLevel,
           ...((state as any).wineStyleArchetype ? { wineStyleArchetype: (state as any).wineStyleArchetype } : {}),
           ...(wineArchetypeNarrative ? { wineArchetypeNarrative } : {}),
