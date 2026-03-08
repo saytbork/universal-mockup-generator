@@ -85,11 +85,11 @@ describe('wine truth layer enforcement', () => {
 
   test('buildWinePhysicalPrompt includes all required physical tokens', () => {
     const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
-    // New model: bottle always sealed, served adds glass only
+    // Served model: bottle is opened for service and glass is present
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
-    expect(prompt).toContain('sealed');
-    expect(prompt).not.toContain('wine bottle that is open');
+    expect(prompt).toContain('bottleState=open');
+    expect(prompt).toContain('opened for service');
     expect(prompt).not.toContain('Liquid level must sit');
   });
 
@@ -103,7 +103,7 @@ describe('wine truth layer enforcement', () => {
     const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
-    expect(prompt).not.toContain('wine bottle that is open');
+    expect(prompt).toContain('bottleState=open');
   });
 
   test('glassFillLevel=none emits sealed state, no reduction, no transfer, factory-full', () => {
@@ -127,7 +127,7 @@ describe('wine truth layer enforcement', () => {
     // expect(prompt).toContain('factory-full'); // Uncomment if present in output
   });
 
-  test('glassFillLevel=half: served mode adds WINE_GLASS, bottle stays sealed', () => {
+  test('glassFillLevel=half: served mode opens bottle and reduces fill level', () => {
     const source = buildWineState({
       wineType: 'sparkling-white' as any,
       wineBottleState: 'open' as any,
@@ -139,12 +139,10 @@ describe('wine truth layer enforcement', () => {
     source.wineClosureType = 'screw-cap';
     const v2State = toStudioV2State(source);
     const prompt = generateStudioPromptV2(v2State);
-    // New model: no half-empty bottle, just WINE_GLASS added
     expect(prompt).toContain('WINE_GLASS:');
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
-    expect(prompt).not.toContain('VOLUME_LOCK');
-    expect(prompt).not.toContain('Factory-full appearance preserved.');
-    expect(prompt).not.toContain('Bottle not factory-full.');
+    expect(prompt).toContain('bottleState=open');
+    expect(prompt).toContain('visibly below retail-full level');
   });
 
   test('wineType=still emits no carbonation block and carbonationLevel is none', () => {
@@ -158,7 +156,7 @@ describe('wine truth layer enforcement', () => {
     expect(prompt).not.toContain('CARBONATION_BEHAVIOR');
   });
 
-  test('closureType=screw: BOTTLE_PRESERVATION_LOCK present, no open-bottle tokens', () => {
+  test('closureType=screw: served state still preserves bottle lock with open service bottle', () => {
     const source = buildWineState({
       wineClosureType: 'screw' as any,
       wineGlassMode: 'filled' as any,
@@ -170,11 +168,8 @@ describe('wine truth layer enforcement', () => {
     const prompt = generateStudioPromptV2(v2State);
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
-    expect(prompt).not.toContain('Bottle is open');
-    expect(prompt).not.toContain('No closure attached');
-    expect(prompt).not.toContain('pry-state');
-    expect(prompt).not.toContain('thread');
-    expect(prompt).not.toContain('seated');
+    expect(prompt).toContain('bottleState=open');
+    expect(prompt).toContain('opened for service');
   });
 
   test('does not leak wine truth layer into coffee profile', () => {
