@@ -1140,6 +1140,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
     : null;
+  const effectiveWineEnvironment =
+    winePrestigeMode && resolvedPhotoMode === 'Winery Scene'
+      ? {
+          variation: 'dark-cellar' as NonNullable<StudioUIState['wineEnvironmentVariation']>,
+          autoRandomize: false,
+        }
+      : wineEnvironment;
   const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
   const wineArchetypeNarrative = winePrestigeMode
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
@@ -1219,10 +1226,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(splashAdMode ? { splashAdMode: true } : {}),
     ...(winePrestigeMode ? { winePrestigeMode: true } : {}),
     ...(winePrestigeV2Mode ? { winePrestigeV2Mode: true } : {}),
-    ...(wineEnvironment
+    ...(effectiveWineEnvironment
       ? {
-          wineEnvironmentVariation: wineEnvironment.variation,
-          autoRandomizeWineEnvironment: wineEnvironment.autoRandomize,
+          wineEnvironmentVariation: effectiveWineEnvironment.variation,
+          autoRandomizeWineEnvironment: effectiveWineEnvironment.autoRandomize,
         }
       : {}),
     ...(wineMoodProfile ? { wineMoodProfile } : {}),

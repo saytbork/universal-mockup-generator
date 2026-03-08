@@ -36,6 +36,17 @@ describe('wine concept modes', () => {
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
 
+  it('forces winery scene environment ownership and emits dedicated winery scene guidance', () => {
+    const mapped = toStudioV2State(makeWineState('Winery Scene', { contextPreset: 'Dark Luxury Studio' }));
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineEnvironmentVariation).toBe('dark-cellar');
+    expect(prompt).toContain('WINE_ENVIRONMENT: dark-cellar.');
+    expect(prompt).toContain('PHOTO_MODE: Winery Scene.');
+    expect(prompt).toContain('SCENE_STYLE: wine cellar editorial photography.');
+    expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
+  });
+
   it('renders bottle in hand cutout as cropped-hand wine concept', () => {
     const mapped = toStudioV2State(makeWineState('Bottle In Hand Cutout'));
     const prompt = generateStudioPromptV2(mapped);

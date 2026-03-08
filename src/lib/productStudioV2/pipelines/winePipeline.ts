@@ -53,7 +53,6 @@ export const winePipeline = {
     buildPalette(wineEffectiveState);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
-    const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
 
     // ── WINE MACRO LABEL — Hard override path ─────────────────────────────
     // When Photo Mode === 'Wine Macro Label', the label region is the ONLY subject.
@@ -105,6 +104,10 @@ export const winePipeline = {
     // ── WINERY SCENE — Environment injection shortcut ─────────────────────
     // Forces stone-cellar environment if wineEnvironmentVariation not already set.
     const winerysceneActive = photoMode === 'Winery Scene';
+    const effectiveWineEnvironmentVariation = winerysceneActive
+      ? 'dark-cellar'
+      : String(state.wineEnvironmentVariation || '').trim();
+    const hasWineEnvironment = Boolean(effectiveWineEnvironmentVariation);
 
     // ── Strict hierarchy — one of each, no duplicates ─────────────────────
     // [0] Engine status / intent
@@ -184,12 +187,8 @@ export const winePipeline = {
       content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState),
     });
 
-    if (winerysceneActive && !hasWineEnvironment) {
-      segments.push({ type: 'guardrail', content: 'WINE_ENVIRONMENT: winery-scene.' });
-      segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
-    } else if (hasWineEnvironment) {
-      segments.push({ type: 'guardrail', content: `WINE_ENVIRONMENT: ${String(state.wineEnvironmentVariation || '').trim()}.` });
-      segments.push({ type: 'guardrail', content: 'SCENE_STYLE: wine editorial photography.' });
+    if (hasWineEnvironment) {
+      segments.push({ type: 'guardrail', content: `WINE_ENVIRONMENT: ${effectiveWineEnvironmentVariation}.` });
     }
 
     // [6] Photo Mode context block for Editorial Table
@@ -197,6 +196,11 @@ export const winePipeline = {
       segments.push({
         type: 'guardrail',
         content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth.',
+      });
+    } else if (winerysceneActive) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback.',
       });
     } else if (bottleAndGlassPourMode) {
       segments.push({
