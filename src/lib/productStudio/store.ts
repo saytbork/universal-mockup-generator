@@ -1365,6 +1365,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (!patch) return { wineStyleArchetype: null };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { _archetypeNarrative, ambientLighting: _al, ...visualFields } = patch;
+            const sceneOwnedWineEnvironmentModes: PhotoMode[] = ['Winery Scene'];
+            const preserveManualContextPreset =
+                Boolean(String(state.contextPreset || '').trim()) ||
+                sceneOwnedWineEnvironmentModes.includes(state.photoMode as PhotoMode);
+            if (preserveManualContextPreset) {
+                delete (visualFields as Record<string, unknown>).contextPreset;
+            }
             // For Action Pour Photography: only apply wineAction if physics allow it
             if (archetype === 'Action Pour Photography') {
                 const pourOk = isActionPourCompatible({
