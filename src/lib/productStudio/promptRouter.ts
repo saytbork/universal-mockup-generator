@@ -207,6 +207,8 @@ const PHOTO_MODES = new Set([
   'Editorial Bottle Tabletop',
   'Bottle In Hand Cutout',
   'Rose Tasting Table',
+  'Editorial Table',
+  'Winery Scene',
   'Acrylic Blocks',
   'Glass Pedestal Studio',
   'Beach Foam Splash',
