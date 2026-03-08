@@ -3089,8 +3089,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Brand Campaign', mode: 'Brand Campaign' },
                               { label: 'Creator Premium Simulation', mode: 'Creator Premium Simulation' },
                               { label: 'Tech Clean Studio', mode: 'Tech Clean Studio' },
-                              { label: 'Soft Wellness Morning', mode: 'Soft Wellness Morning' },
-                              { label: 'Outdoor Energy Boost', mode: 'Outdoor Energy Boost' },
                               { label: 'Sunlit Stone Editorial', mode: 'Sunlit Stone Editorial' },
                               { label: 'Golden Sunset Backlit', mode: 'Golden Sunset Backlit' },
                               { label: 'Bathroom Daylight Clean', mode: 'Bathroom Daylight Clean' },
@@ -3158,8 +3156,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Brand Campaign': 'Campaign-grade studio polish and drama.',
                               'Creator Premium Simulation': 'Premium UGC-style realism with controlled capture.',
                               'Tech Clean Studio': 'Techy clean studio surfaces and clarity.',
-                              'Soft Wellness Morning': 'Soft wellness lifestyle mood and light.',
-                              'Outdoor Energy Boost': 'Outdoor energetic lifestyle context.',
                               'Sunlit Stone Editorial': 'Sunlit editorial realism on stone textures.',
                               'Golden Sunset Backlit': 'Golden backlight with controlled flare.',
                               'Bathroom Daylight Clean': 'Daylight bathroom realism, clean and minimal.',
@@ -3282,27 +3278,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           {visualStyleOptions.filter(x =>
                                             x.mode === 'Brand Campaign' ||
                                             x.mode === 'Creator Premium Simulation'
-                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                            <Chip
-                                              key={label}
-                                              selected={productStore.visualStyle === mode}
-                                              description={CHIP_TOOLTIPS[mode] || label}
-                                              onClick={() => {
-                                                applyVisualStyle(mode);
-                                              }}
-                                            >
-                                              <span className="truncate max-w-full">{label}</span>
-                                            </Chip>
-                                          ))}
-                                        </div>
-                                      </div>
-
-                                      <div className="space-y-3">
-                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
-                                        <div className="flex flex-wrap gap-3">
-                                          {visualStyleOptions.filter(x =>
-                                            x.mode === 'Soft Wellness Morning' ||
-                                            x.mode === 'Outdoor Energy Boost'
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}

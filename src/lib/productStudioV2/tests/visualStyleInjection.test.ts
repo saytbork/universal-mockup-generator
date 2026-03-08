@@ -373,4 +373,12 @@ describe('Visual Style injection', () => {
     expect(block).not.toContain('Brand Campaign');
     expect(block).not.toContain('Creator Premium Simulation');
   });
+
+  it('removed lifestyle visual styles no longer appear in the UI source', () => {
+    const source = readFileSync(join(process.cwd(), 'src/components/step3/Step3Legacy.tsx'), 'utf8');
+
+    expect(source).not.toContain('Lifestyle Worlds');
+    expect(source).not.toContain("{ label: 'Soft Wellness Morning', mode: 'Soft Wellness Morning' }");
+    expect(source).not.toContain("{ label: 'Outdoor Energy Boost', mode: 'Outdoor Energy Boost' }");
+  });
 });
