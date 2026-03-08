@@ -3218,6 +3218,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const filteredIndustrySpecialEffectsOptions = filteredSpecialEffectsOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedSpecialEffects || activeIndustryRules.allowedSpecialEffects.includes(mode)
                             );
+                            const visualStyleOverridesCoreSelection = Boolean(productStore.visualStyle);
 
                             return (
                               <div className="p-5 space-y-7">
@@ -3233,7 +3234,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         {filteredCompositionOptions.map(({ label, mode }) => (
                                           <Chip
                                             key={label}
-                                            selected={productStore.photoMode === mode}
+                                            selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
                                             description={CHIP_TOOLTIPS[mode] || label}
                                             onClick={() => {
                                               applyPhotoMode(mode);
@@ -3432,7 +3433,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
                               </div>
                             )}
-                            {productStore.photoMode === 'Hero Landing Page' && (
+                            {productStore.photoMode === 'Hero Landing Page' && !productStore.visualStyle && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
                                 {(() => {
                                   const heroCfg = productStore.photoModeConfig.heroLandingPage;
