@@ -1820,6 +1820,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 // Wine-exclusive photo modes
                 'Wine Macro Label',
                 'Bottle + Glass',
+                'Bottle + Glass Pour',
+                'Hands Pouring Wine',
+                'Wine Lineup Comparison',
+                'Editorial Bottle Tabletop',
+                'Bottle In Hand Cutout',
+                'Rose Tasting Table',
                 'Editorial Table',
                 'Winery Scene',
             ];

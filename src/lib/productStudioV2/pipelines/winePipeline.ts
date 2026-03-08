@@ -32,10 +32,21 @@ export const winePipeline = {
     // Pre-patch the state before the deterministic machine runs so that
     // resolveServeState() sees wineGlassMode='filled' and bottleState='open'.
     // This also prevents the Closed option from being effective when this mode is active.
-    const stateForMachine: StudioUIState =
-      photoMode === 'Bottle + Glass'
-        ? { ...state, wineGlassMode: 'filled', wineBottleState: 'open' } as StudioUIState
-        : state;
+    const servedGlassModes = new Set([
+      'Bottle + Glass',
+      'Bottle + Glass Pour',
+      'Hands Pouring Wine',
+      'Rose Tasting Table',
+    ]);
+    const activePourMode = photoMode === 'Bottle + Glass Pour' || photoMode === 'Hands Pouring Wine';
+    const stateForMachine: StudioUIState = servedGlassModes.has(photoMode)
+      ? {
+          ...state,
+          wineGlassMode: 'filled',
+          wineBottleState: activePourMode ? 'open' : state.wineBottleState || 'open',
+          wineAction: activePourMode ? 'controlled-pour' : state.wineAction,
+        } as StudioUIState
+      : state;
 
     const wineEffectiveState = applyWineDeterministicStateMachine(stateForMachine);
     // Ensure resolvedPalette exists before any world builder path that can call buildStudioBackground.
@@ -84,6 +95,12 @@ export const winePipeline = {
     // ── BOTTLE + GLASS — Served composition shortcut ──────────────────────
     // Routes to bottle-and-glass composition mode via winePipelineV4 composition logic.
     const bottleAndGlassMode = photoMode === 'Bottle + Glass';
+    const bottleAndGlassPourMode = photoMode === 'Bottle + Glass Pour';
+    const handsPouringMode = photoMode === 'Hands Pouring Wine';
+    const lineupMode = photoMode === 'Wine Lineup Comparison';
+    const editorialBottleTabletopMode = photoMode === 'Editorial Bottle Tabletop';
+    const bottleInHandCutoutMode = photoMode === 'Bottle In Hand Cutout';
+    const roseTastingTableMode = photoMode === 'Rose Tasting Table';
 
     // ── WINERY SCENE — Environment injection shortcut ─────────────────────
     // Forces stone-cellar environment if wineEnvironmentVariation not already set.
@@ -130,6 +147,31 @@ export const winePipeline = {
         type: 'composition',
         content: 'COMPOSITION: BOTTLE_AND_GLASS. Sealed bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. No full pour-in-progress.',
       });
+    } else if (bottleAndGlassPourMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle actively pours into a wine glass. Three-quarter camera angle. Elegant liquid ribbon. Controlled motion only. Label remains legible throughout.',
+      });
+    } else if (handsPouringMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. No visible identity cues. No torso. Bottle and glass remain primary subjects with premium service framing.',
+      });
+    } else if (lineupMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: WINE_LINEUP_COMPARISON. Multiple bottles arranged upright with clean spacing, balanced family-of-products rhythm, and clear varietal separation.',
+      });
+    } else if (bottleInHandCutoutMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: BOTTLE_IN_HAND_CUTOUT. Single cropped hand holds the bottle against a clean backdrop. No visible identity cues. No torso. Label remains front-readable and dominant.',
+      });
+    } else if (roseTastingTableMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: ROSE_TASTING_TABLE. Bright table-led editorial service scene with poured wine, elegant glass highlights, and refined seasonal accents. No people in frame.',
+      });
     } else {
       const compositionOverride = buildComposition(resolveStudioAuthority(wineEffectiveState), state);
       if (compositionOverride) {
@@ -155,6 +197,36 @@ export const winePipeline = {
       segments.push({
         type: 'guardrail',
         content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth.',
+      });
+    } else if (bottleAndGlassPourMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour. Elegant hospitality motion. Continuous liquid ribbon into glass. No explosive splash. Bottle label remains visible.',
+      });
+    } else if (handsPouringMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. No visible identity cues. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects.',
+      });
+    } else if (lineupMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Wine Lineup Comparison. Multiple bottles shown as a refined brand-family lineup. Clean spacing. Premium shadow geometry. Color variation across bottles is desirable.',
+      });
+    } else if (editorialBottleTabletopMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Bottle remains the hero subject.',
+      });
+    } else if (bottleInHandCutoutMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No visible identity cues. No torso. Minimal clean commercial backdrop. Bottle label remains fully visible and product-led.',
+      });
+    } else if (roseTastingTableMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Rose Tasting Table. Bright premium tasting-table scene for rose or white wine. Fresh glass highlights, refined floral or tasting accents, and no human subjects in frame.',
       });
     }
 

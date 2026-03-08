@@ -14,6 +14,12 @@ type WorldBuilderFn = (
 const WINE_PHOTO_MODES = new Set([
   'Wine Macro Label',
   'Bottle + Glass',
+  'Bottle + Glass Pour',
+  'Hands Pouring Wine',
+  'Wine Lineup Comparison',
+  'Editorial Bottle Tabletop',
+  'Bottle In Hand Cutout',
+  'Rose Tasting Table',
   'Editorial Table',
   'Winery Scene',
 ]);

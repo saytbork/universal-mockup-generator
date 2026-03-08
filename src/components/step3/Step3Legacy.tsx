@@ -1481,7 +1481,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // ── Photo mode stale-mode guard on industry switch ─────────────────────
     // When switching TO wine: clear any supplement-only modes (Macro Dew Label, etc.)
     // When switching FROM wine: clear any wine-only modes (Wine Macro Label, Bottle+Glass, etc.)
-    const WINE_ONLY_MODES: PhotoMode[] = ['Wine Macro Label', 'Bottle + Glass', 'Editorial Table', 'Winery Scene'];
+    const WINE_ONLY_MODES: PhotoMode[] = [
+      'Wine Macro Label',
+      'Bottle + Glass',
+      'Bottle + Glass Pour',
+      'Hands Pouring Wine',
+      'Wine Lineup Comparison',
+      'Editorial Bottle Tabletop',
+      'Bottle In Hand Cutout',
+      'Rose Tasting Table',
+      'Editorial Table',
+      'Winery Scene',
+    ];
     const SUPPLEMENT_ONLY_MODES: PhotoMode[] = ['Macro Dew Label', 'Ingredient Stack', 'Ingredient Flat Lay'];
     const currentPhotoMode = productStore.photoMode as PhotoMode;
     if (nextProfile === 'wine' && SUPPLEMENT_ONLY_MODES.includes(currentPhotoMode)) {
@@ -3066,6 +3077,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
                               { label: 'Wine Macro Label', mode: 'Wine Macro Label' },
                               { label: 'Bottle + Glass', mode: 'Bottle + Glass' },
+                              { label: 'Bottle + Glass Pour', mode: 'Bottle + Glass Pour' },
+                              { label: 'Hands Pouring Wine', mode: 'Hands Pouring Wine' },
+                              { label: 'Wine Lineup Comparison', mode: 'Wine Lineup Comparison' },
+                              { label: 'Editorial Bottle Tabletop', mode: 'Editorial Bottle Tabletop' },
+                              { label: 'Bottle In Hand Cutout', mode: 'Bottle In Hand Cutout' },
+                              { label: 'Rose Tasting Table', mode: 'Rose Tasting Table' },
                               { label: 'Editorial Table', mode: 'Editorial Table' },
                               { label: 'Winery Scene', mode: 'Winery Scene' },
                             ];
@@ -3185,6 +3202,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               // Wine-exclusive tooltips
                               'Wine Macro Label': 'Extreme close-up of label region only. No full bottle. 100mm macro lens.',
                               'Bottle + Glass': 'Sealed bottle with filled wine glass at 3/4 angle.',
+                              'Bottle + Glass Pour': 'Controlled premium pour from bottle into glass with elegant liquid motion.',
+                              'Hands Pouring Wine': 'Hands-only hospitality pour. No faces, no full person.',
+                              'Wine Lineup Comparison': 'Multiple wine bottles arranged as a clean brand or varietal lineup.',
+                              'Editorial Bottle Tabletop': 'Premium still-life tabletop with restrained wine props and editorial balance.',
+                              'Bottle In Hand Cutout': 'Single cropped hand holding the bottle against a clean commercial backdrop.',
+                              'Rose Tasting Table': 'Bright tasting-table scene for rose/white wine without people.',
                               'Editorial Table': 'Premium tabletop editorial with controlled wine-appropriate props.',
                               'Winery Scene': 'Bottle in authentic cellar or barrel room environment.',
                             };

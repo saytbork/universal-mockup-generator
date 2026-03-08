@@ -200,6 +200,13 @@ const PHOTO_MODES = new Set([
   'Gel Smear Editorial',
   'Pool Water',
   'Wine Macro Label',
+  'Bottle + Glass',
+  'Bottle + Glass Pour',
+  'Hands Pouring Wine',
+  'Wine Lineup Comparison',
+  'Editorial Bottle Tabletop',
+  'Bottle In Hand Cutout',
+  'Rose Tasting Table',
   'Acrylic Blocks',
   'Glass Pedestal Studio',
   'Beach Foam Splash',
@@ -1104,6 +1111,21 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineEnabledProfiles = new Set<IndustryProfile>(['wine']);
   const shouldAssignWineFields = wineEnabledProfiles.has(industryProfile);
   const isWineHeroLanding = industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
+  const isWinePourMode =
+    industryProfile === 'wine' &&
+    (resolvedPhotoMode === 'Bottle + Glass Pour' || resolvedPhotoMode === 'Hands Pouring Wine');
+  const isWineGlassMode =
+    industryProfile === 'wine' &&
+    (resolvedPhotoMode === 'Bottle + Glass' ||
+      resolvedPhotoMode === 'Bottle + Glass Pour' ||
+      resolvedPhotoMode === 'Hands Pouring Wine' ||
+      resolvedPhotoMode === 'Rose Tasting Table');
+  const resolvedWineAction =
+    isWinePourMode ? 'controlled-pour' : 'static-presentation';
+  const resolvedWineGlassMode =
+    isWineHeroLanding ? 'none' : isWineGlassMode ? 'filled' : state.wineGlassMode;
+  const resolvedWineBottleState =
+    isWineHeroLanding ? 'sealed' : isWinePourMode ? 'opened-with-cork-nearby' : state.wineBottleState;
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
@@ -1212,12 +1234,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.wineLightingTone ? { wineLightingTone: state.wineLightingTone } : {}),
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
           wineEngineVersion: state.wineEngineVersion,
-          wineAction: 'static-presentation',
+          wineAction: resolvedWineAction,
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
-          wineGlassMode: isWineHeroLanding ? 'none' : state.wineGlassMode,
+          wineGlassMode: resolvedWineGlassMode,
           wineClosureType: state.wineClosureType,
           wineType: state.wineType,
-          wineBottleState: isWineHeroLanding ? 'sealed' : state.wineBottleState,
+          wineBottleState: resolvedWineBottleState,
           carbonationLevel: state.carbonationLevel,
           ...((state as any).wineStyleArchetype ? { wineStyleArchetype: (state as any).wineStyleArchetype } : {}),
           ...(wineArchetypeNarrative ? { wineArchetypeNarrative } : {}),

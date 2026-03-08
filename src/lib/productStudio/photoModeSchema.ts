@@ -650,6 +650,138 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowsPersonPresence: false
     },
 
+    'Bottle + Glass Pour': {
+        id: 'bottle-and-glass-pour',
+        label: 'Bottle + Glass Pour',
+        scope: 'studio',
+        description: 'Bottle pours wine directly into a glass with controlled premium motion.',
+        basePrompt: 'wine bottle actively pouring into a wine glass, elegant continuous liquid ribbon, premium cellar-grade commercial photography, label preserved and readable, liquid color rendered authentically',
+        subOptions: [
+            { key: 'pourAngle', label: 'Pour Angle', values: ['Three-quarter', 'Side profile'] },
+            { key: 'streamShape', label: 'Stream Shape', values: ['Slow ribbon', 'Mid-flow elegance'] },
+            { key: 'glassFill', label: 'Glass Fill', values: ['One-third', 'Half'] },
+        ],
+        constraints: [
+            'Bottle must be visibly open during pour',
+            'Liquid stream must remain controlled and elegant',
+            'No explosive splash behavior',
+            'Label must remain readable on the bottle',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Hands Pouring Wine': {
+        id: 'hands-pouring-wine',
+        label: 'Hands Pouring Wine',
+        scope: 'studio',
+        description: 'Cropped hands-only service action pouring wine into a glass.',
+        basePrompt: 'cropped hands only pouring wine from bottle into wine glass, premium service ritual photography, bottle label remains visible, elegant hospitality framing, no faces, no full person',
+        subOptions: [
+            { key: 'handCrop', label: 'Hand Crop', values: ['Tight', 'Mid crop'] },
+            { key: 'serviceMood', label: 'Service Mood', values: ['Tasting room', 'Fine dining'] },
+            { key: 'glassFill', label: 'Glass Fill', values: ['One-third', 'Half'] },
+        ],
+        constraints: [
+            'Only hands or forearms may appear',
+            'No faces or full bodies',
+            'Bottle must be visibly open during pour',
+            'No chaotic splash behavior',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Wine Lineup Comparison': {
+        id: 'wine-lineup-comparison',
+        label: 'Wine Lineup Comparison',
+        scope: 'studio',
+        description: 'Multiple wine bottles arranged as a clean family lineup for brand or varietal comparison.',
+        basePrompt: 'multiple wine bottles arranged in a refined comparison lineup, clean spacing, premium studio shadows, varietal color contrast visible, family-of-products commercial photography',
+        subOptions: [
+            { key: 'lineupCount', label: 'Bottle Count', values: ['Three', 'Four'] },
+            { key: 'spacing', label: 'Spacing', values: ['Balanced', 'Wide'] },
+            { key: 'surfaceTone', label: 'Surface Tone', values: ['White', 'Stone'] },
+        ],
+        constraints: [
+            'Use product-family comparison framing',
+            'Bottles must remain upright and clearly separated',
+            'Clean shadow play is allowed',
+            'No human presence',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Editorial Bottle Tabletop': {
+        id: 'editorial-bottle-tabletop',
+        label: 'Editorial Bottle Tabletop',
+        scope: 'studio',
+        description: 'Editorial tabletop still life with bottle, optional glass, and minimal premium props.',
+        basePrompt: 'premium wine editorial tabletop still life, bottle hero on refined stone or marble surface, optional supporting glass, minimal premium props, soft luxury composition',
+        subOptions: [
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Marble', 'Warm wood'] },
+            { key: 'glassSupport', label: 'Glass Support', values: ['None', 'Single glass'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['Minimal', 'Balanced'] },
+        ],
+        constraints: [
+            'Bottle remains the hero subject',
+            'Props must stay minimal and wine-appropriate',
+            'No fantasy styling',
+            'Label must remain readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Bottle In Hand Cutout': {
+        id: 'bottle-in-hand-cutout',
+        label: 'Bottle In Hand Cutout',
+        scope: 'studio',
+        description: 'Hand-only cutout hold against a clean premium backdrop.',
+        basePrompt: 'wine bottle held by a single cropped hand against a clean premium backdrop, hand-only commercial cutout style, label fully visible, no face, no body, minimal art-direction',
+        subOptions: [
+            { key: 'backgroundTone', label: 'Background Tone', values: ['Soft pink', 'Warm neutral', 'Brand color'] },
+            { key: 'holdAngle', label: 'Hold Angle', values: ['Diagonal', 'Straight'] },
+            { key: 'cropTightness', label: 'Crop Tightness', values: ['Tight', 'Balanced'] },
+        ],
+        constraints: [
+            'Only one cropped hand or forearm may appear',
+            'No face or torso',
+            'Backdrop must remain clean and minimal',
+            'Bottle label must remain visible',
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding'],
+        allowsPersonPresence: false
+    },
+
+    'Rose Tasting Table': {
+        id: 'rose-tasting-table',
+        label: 'Rose Tasting Table',
+        scope: 'studio',
+        description: 'Bright tasting-table editorial scene optimized for rose or white wine service.',
+        basePrompt: 'bright wine tasting table with poured rose or white wine, fresh glass highlights, light floral or picnic-adjacent accents, elegant social tasting atmosphere without people',
+        subOptions: [
+            { key: 'wineTone', label: 'Wine Tone', values: ['Rose', 'White'] },
+            { key: 'tableMood', label: 'Table Mood', values: ['Fresh floral', 'Minimal tasting'] },
+            { key: 'glassCount', label: 'Glass Count', values: ['One', 'Multiple'] },
+        ],
+        constraints: [
+            'No people in frame',
+            'Scene must feel bright and premium, not casual party',
+            'Bottle or poured glass must remain clearly readable',
+            'Props must remain refined and minimal',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
     'Editorial Table': {
         id: 'editorial-table',
         label: 'Editorial Table',
