@@ -1420,9 +1420,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
   // ============================================================================
   const productStore = useProductStudioStore();
+  const industryProfile: IndustryProfile = productStore.industryProfile;
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const wineIndustryActive = industryProfile === 'wine' || winePrestigeModeActive;
-  const industryProfile: IndustryProfile = productStore.industryProfile;
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
