@@ -1421,6 +1421,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // ============================================================================
   const productStore = useProductStudioStore();
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
+  const wineIndustryActive = industryProfile === 'wine' || winePrestigeModeActive;
   const industryProfile: IndustryProfile = productStore.industryProfile;
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
@@ -3089,7 +3090,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                             // ── SUPPLEMENT/GENERIC COMPOSITION OPTIONS ───────────────────────
                             // Macro Dew Label is supplement-only — never shown in wine mode.
-                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = winePrestigeModeActive
+                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = wineIndustryActive
                               ? wineCompositionOptions
                               : [
                                   { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
@@ -3232,7 +3233,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
                             ];
-                            const filteredSpecialEffectsOptions = winePrestigeModeActive
+                            const filteredSpecialEffectsOptions = wineIndustryActive
                               // In wine mode, only wine-appropriate special effects are shown
                               ? specialEffectsOptions.filter(({ mode }) =>
                                   mode === 'Cheers (Hands Clink)' ||
@@ -4143,7 +4144,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             )}
 
-                            {productStore.photoMode === 'Splash Shot' && !winePrestigeModeActive && (
+                            {productStore.photoMode === 'Splash Shot' && !wineIndustryActive && (
                               <div className="space-y-3">
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Splash Medium</p>
