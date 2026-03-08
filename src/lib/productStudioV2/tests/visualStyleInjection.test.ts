@@ -381,4 +381,12 @@ describe('Visual Style injection', () => {
     expect(source).not.toContain("{ label: 'Soft Wellness Morning', mode: 'Soft Wellness Morning' }");
     expect(source).not.toContain("{ label: 'Outdoor Energy Boost', mode: 'Outdoor Energy Boost' }");
   });
+
+  it('special effects UI is grouped by commercial impact', () => {
+    const source = readFileSync(join(process.cwd(), 'src/components/step3/Step3Legacy.tsx'), 'utf8');
+
+    expect(source).toContain("label: 'Fresh / Hydration'");
+    expect(source).toContain("label: 'Luxury / Editorial'");
+    expect(source).toContain("label: 'Bold / Campaign'");
+  });
 });

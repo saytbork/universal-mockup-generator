@@ -3227,6 +3227,41 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const filteredIndustrySpecialEffectsOptions = filteredSpecialEffectsOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedSpecialEffects || activeIndustryRules.allowedSpecialEffects.includes(mode)
                             );
+                            const specialEffectsGroups: Array<{ label: string; modes: PhotoMode[] }> = [
+                              {
+                                label: 'Fresh / Hydration',
+                                modes: [
+                                  'Pool Water',
+                                  'Ice Cubes',
+                                  'Condensation Droplets',
+                                  'Caustic Light Ripples',
+                                  'Micro Mist Halo',
+                                  'Underwater Split',
+                                ],
+                              },
+                              {
+                                label: 'Luxury / Editorial',
+                                modes: [
+                                  'Acrylic Blocks',
+                                  'Glass Refraction Panels',
+                                  'Prism Rainbow Refractions',
+                                  'Floating Particles',
+                                  'Gel Smear Editorial',
+                                  'Shadow Pattern Projection',
+                                ],
+                              },
+                              {
+                                label: 'Bold / Campaign',
+                                modes: [
+                                  'Splash Shot',
+                                  'Beach Foam Splash',
+                                  'Cheers (Hands Clink)',
+                                  'Foam & Texture',
+                                  'Fruit Garnish / Citrus Accents',
+                                  'Textured Bed / Scatter Base',
+                                ],
+                              },
+                            ];
                             const visualStyleOverridesCoreSelection = Boolean(productStore.visualStyle);
 
                             return (
@@ -3388,19 +3423,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
                                       <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                     </div>
-                                    <div className="flex flex-wrap gap-3">
-                                      {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
-                                        <Chip
-                                          key={label}
-                                          selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
-                                          description={CHIP_TOOLTIPS[mode] || label}
-                                          onClick={() => {
-                                            applyPhotoMode(mode);
-                                          }}
-                                        >
-                                          <span className="truncate max-w-full">{label}</span>
-                                        </Chip>
-                                      ))}
+                                    <div className="space-y-5">
+                                      {specialEffectsGroups.map((group) => {
+                                        const options = filteredIndustrySpecialEffectsOptions.filter(({ mode }) =>
+                                          group.modes.includes(mode)
+                                        );
+
+                                        if (options.length === 0) return null;
+
+                                        return (
+                                          <div key={group.label} className="space-y-3">
+                                            <p className="text-xs font-semibold text-gray-400 dark:text-white/40">{group.label}</p>
+                                            <div className="flex flex-wrap gap-3">
+                                              {options.map(({ label, mode }) => (
+                                                <Chip
+                                                  key={label}
+                                                  selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
+                                                  description={CHIP_TOOLTIPS[mode] || label}
+                                                  onClick={() => {
+                                                    applyPhotoMode(mode);
+                                                  }}
+                                                >
+                                                  <span className="truncate max-w-full">{label}</span>
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                 )}
