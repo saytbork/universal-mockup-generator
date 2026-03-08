@@ -1110,7 +1110,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
   const wineEnabledProfiles = new Set<IndustryProfile>(['wine']);
   const shouldAssignWineFields = wineEnabledProfiles.has(industryProfile);
-  const isWineHeroLanding = industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
+  const isExplicitWineIndustry = String(state.industryProfile || '').trim().toLowerCase() === 'wine';
+  const isWineHeroLanding =
+    isExplicitWineIndustry && industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
   const isWinePourMode =
     industryProfile === 'wine' &&
     (resolvedPhotoMode === 'Bottle + Glass Pour' || resolvedPhotoMode === 'Hands Pouring Wine');
