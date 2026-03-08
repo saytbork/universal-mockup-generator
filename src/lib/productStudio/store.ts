@@ -89,15 +89,6 @@ const VISUAL_STYLE_SELECTIONS = new Set([
     'Warm Window Wood',
 ]);
 
-const CORE_STUDIO_PHOTO_MODES = new Set<PhotoMode>([
-    'Hero Landing Page',
-    'Ingredient Stack',
-    'Ingredient Flat Lay',
-    'Routine Carousel',
-    'Macro Dew Label',
-]);
-
-
 // ============================================================================
 // DEFAULT PHYSICAL BY TYPE
 // ============================================================================
@@ -1283,12 +1274,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setVisualStyle: (visualStyle) =>
         set((state) => {
             const nextVisualStyle = (String(visualStyle || '').trim() || undefined) as ProductStudioState['visualStyle'];
-            const shouldClearCorePhotoMode =
-                !!nextVisualStyle && !!state.photoMode && CORE_STUDIO_PHOTO_MODES.has(state.photoMode);
+            const shouldClearPhotoMode = !!nextVisualStyle && !!state.photoMode;
 
             return {
                 visualStyle: nextVisualStyle,
-                ...(shouldClearCorePhotoMode ? { photoMode: undefined } : {}),
+                ...(shouldClearPhotoMode ? { photoMode: undefined } : {}),
+                specialEffects: [],
             };
         }),
     setIndustryProfile: (profile) =>
@@ -1896,7 +1887,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             const common: Partial<ProductStudioState> = {
                 photoMode: effectiveMode,
-                ...(CORE_STUDIO_PHOTO_MODES.has(effectiveMode) ? { visualStyle: undefined } : {}),
+                visualStyle: undefined,
+                specialEffects: [],
                 placement: resolvedPlacement,
                 // Preserve environment once user enables it from PHOTO TYPE.
                 environmentContext: shouldUseEnvironment

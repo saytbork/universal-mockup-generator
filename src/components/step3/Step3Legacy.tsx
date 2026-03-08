@@ -3130,6 +3130,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             };
 
                             const applyPhotoMode = (mode: PhotoMode) => {
+                              if (productStore.visualStyle) {
+                                productStore.setVisualStyle(undefined);
+                              }
                               productStore.setPhotoMode(mode);
                               const cleaned = stripLegacyEffectSegments(productStore.props);
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
@@ -3227,24 +3230,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Choose how the product is framed and presented.</p>
                                   </div>
-                                  <div className="space-y-5">
-                                    <div className="space-y-3">
-                                      <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Core</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {filteredCompositionOptions.map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {filteredCompositionOptions.map(({ label, mode }) => (
+                                      <Chip
+                                        key={label}
+                                        selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
+                                        description={CHIP_TOOLTIPS[mode] || label}
+                                        onClick={() => {
+                                          applyPhotoMode(mode);
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
                                   </div>
                                 </div>
 
@@ -3409,7 +3407,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
                                         <Chip
                                           key={label}
-                                          selected={productStore.photoMode === mode}
+                                          selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
                                           description={CHIP_TOOLTIPS[mode] || label}
                                           onClick={() => {
                                             applyPhotoMode(mode);
