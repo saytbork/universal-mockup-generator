@@ -1812,6 +1812,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Fruit Garnish / Citrus Accents',
                 'Textured Bed / Scatter Base',
                 'Floating Particles',
+                'Caustic Light Ripples',
+                'Prism Rainbow Refractions',
+                'Glass Refraction Panels',
+                'Micro Mist Halo',
+                'Shadow Pattern Projection',
                 // Wine-exclusive photo modes
                 'Wine Macro Label',
                 'Bottle + Glass',

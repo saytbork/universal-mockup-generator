@@ -3175,6 +3175,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Fruit Garnish / Citrus Accents': 'Fruit/citrus accents as secondary styling props.',
                               'Textured Bed / Scatter Base': 'Controlled scatter/bed around the base.',
                               'Floating Particles': 'Subtle atmosphere particles (premium, controlled).',
+                              'Caustic Light Ripples': 'Premium refracted light ripples and caustic reflections around the product.',
+                              'Prism Rainbow Refractions': 'Controlled prism refractions with premium spectral highlights and clean readability.',
+                              'Glass Refraction Panels': 'Elegant glass-panel refractions adding depth and optical distortion around the product.',
+                              'Micro Mist Halo': 'Fine controlled mist halo for freshness, hydration, and cinematic depth separation.',
+                              'Shadow Pattern Projection': 'Projected shadow shapes adding modern editorial lighting and graphic depth.',
                               'Gel Smear Editorial': 'Editorial gel smear accents (controlled).',
                               'Underwater Split': 'Split-style underwater look with clean physics.',
                               // Wine-exclusive tooltips
@@ -3196,6 +3201,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Fruit Garnish / Citrus Accents', mode: 'Fruit Garnish / Citrus Accents' },
                               { label: 'Textured Bed / Scatter Base', mode: 'Textured Bed / Scatter Base' },
                               { label: 'Floating Particles', mode: 'Floating Particles' },
+                              { label: 'Caustic Light Ripples', mode: 'Caustic Light Ripples' },
+                              { label: 'Prism Rainbow Refractions', mode: 'Prism Rainbow Refractions' },
+                              { label: 'Glass Refraction Panels', mode: 'Glass Refraction Panels' },
+                              { label: 'Micro Mist Halo', mode: 'Micro Mist Halo' },
+                              { label: 'Shadow Pattern Projection', mode: 'Shadow Pattern Projection' },
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
                             ];

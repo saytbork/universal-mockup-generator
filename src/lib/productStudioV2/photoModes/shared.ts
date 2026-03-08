@@ -5,6 +5,16 @@ export const PHOTO_MODE_ATMOSPHERE_FALLBACKS: Record<string, string> = {
     'Soft atmospheric depth separation behind the product. Subtle falloff from center to edges emphasizing silhouette. Copy-safe negative space preserved for overlay text.',
   'Pool Water':
     'Product positioned near clear swimming pool water surface. Sunlight refracting through water creating natural caustic patterns on pool floor and product base. Subtle ripples and reflective highlights around the product. Clean turquoise water environment with realistic refraction, wet reflections, and natural light dispersion.',
+  'Caustic Light Ripples':
+    'Controlled refracted light ripples and premium caustic reflections play across the surrounding surface and background while the product remains crisp and fully readable.',
+  'Prism Rainbow Refractions':
+    'Subtle prism refractions create premium spectral highlights and directional color breakup around the product without obscuring label clarity.',
+  'Glass Refraction Panels':
+    'Elegant glass-panel refractions add optical depth, layered reflections, and premium distortion accents around the hero product.',
+  'Micro Mist Halo':
+    'A fine mist halo creates freshness, depth separation, and controlled atmospheric softness around the product while preserving packaging clarity.',
+  'Shadow Pattern Projection':
+    'Projected shadow shapes add graphic editorial depth and modern campaign contrast while keeping the product dominant and readable.',
 };
 
 const POOL_WATER_FORBIDDEN_ENERGY = new Set(['splashy', 'violent', 'dynamic', 'energetic', 'turbulent']);

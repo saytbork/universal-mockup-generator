@@ -347,6 +347,11 @@ export type PhotoMode =
     | 'Fruit Garnish / Citrus Accents'
     | 'Textured Bed / Scatter Base'
     | 'Floating Particles'
+    | 'Caustic Light Ripples'
+    | 'Prism Rainbow Refractions'
+    | 'Glass Refraction Panels'
+    | 'Micro Mist Halo'
+    | 'Shadow Pattern Projection'
     // ── Wine-exclusive Photo Modes (wine engine only) ──────────────────────
     | 'Wine Macro Label'
     | 'Bottle + Glass'
