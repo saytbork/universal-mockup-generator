@@ -62,7 +62,7 @@ describe('Visual Style injection', () => {
     expect(prompt).toContain('VISUAL_STYLE_SCENE:');
   });
 
-  it('Brand Campaign stays in visualStyle and does not hijack photoMode', () => {
+  it('Brand Campaign clears core photo mode in V2 when visual style is selected', () => {
     const mapped = toStudioV2State({
       photoMode: 'Hero Landing Page',
       visualStyle: 'Brand Campaign',
@@ -151,9 +151,103 @@ describe('Visual Style injection', () => {
       physicalScaleLabel: 'medium-tabletop',
     } as any);
 
-    expect(mapped.photoMode).toBe('Hero Landing Page');
+    expect(mapped.photoMode).toBeUndefined();
     expect(mapped.visualStyle).toBe('Brand Campaign');
     expect(mapped.visualStyleCategory).toBe('brand');
+  });
+
+  it('Clinical Lab Counter clears Hero Landing Page in V2 when both exist in raw state', () => {
+    const mapped = toStudioV2State({
+      photoMode: 'Hero Landing Page',
+      visualStyle: 'Clinical Lab Counter',
+      industryProfile: 'supplements',
+      definition: { type: 'skincare' },
+      packagingMode: 'without-box',
+      contextPreset: '',
+      controlTier: 'basic',
+      advancedModeEnabled: false,
+      proMode: false,
+      stateMotion: 'static',
+      photoModeConfig: {},
+      creativityLevel: 1,
+      composition: 'centered',
+      angle: '45_hero',
+      distance: 'standard',
+      rotation: 0,
+      framing: 'centered_hero',
+      cameraSystem: 'dslr_mirrorless',
+      environmentContext: null,
+      lighting: 'natural-light',
+      ambientLighting: 'natural-light',
+      environmentMacro: 'studio',
+      microPlace: 'neutral-surface',
+      customEnvironmentText: '',
+      customMicroPlaceText: '',
+      visualProfile: 'default',
+      visualIntent: 'conversion',
+      energyLevel: 'low',
+      creativeTheme: 'clinical-minimal',
+      propDensity: 'none',
+      selectedProps: [],
+      negativeSpace: 'none',
+      scale: 'dominant',
+      spacing: 'balanced',
+      lightStyle: 'soft',
+      products: [],
+      activeProductId: null,
+      mode: 'studio',
+      handsHolding: false,
+      palette: { source: 'auto', primaryColor: null, secondaryColor: null, accentColor: null, brandPresetId: null },
+      sceneType: 'studio-branding',
+      surface: 'neutral',
+      category: '',
+      wineLightingTone: 'Warm Lateral',
+      wineMoodModifier: 'None',
+      wineAction: 'static-presentation',
+      winePourStyle: 'mid-flow-elegance',
+      coffeeMode: 'studio',
+      coffeeAction: 'static',
+      coffeeLightingTone: 'auto',
+      coffeeMoodModifier: 'coffee-cinematic-luxury',
+      coffeeSteamLevel: 'auto',
+      coffeeLiquidPhysics: true,
+      blankSpaceEnabled: false,
+      blankSpaceSide: 'right',
+      aspectRatio: '4:3',
+      ecommercePdp: null,
+      bundle: { enabled: false, mode: 'single', products: [], layout: 'horizontal', spacing: 'tight' },
+      interpretationNotes: {},
+      qualityProfile: 'ecommerce-conversion',
+      ultraRealStrict: true,
+      splashStyle: 'Basic',
+      backgroundColor: '#FFFFFF',
+      accentColor: '#000000',
+      colorLocks: { background: false, accent: false, gradientStart: false, gradientEnd: false, gradientMid: false },
+      heroLandingAuto: { backgroundType: true },
+      alignment: 'center',
+      shadow: 'soft-drop',
+      gradientEnabled: false,
+      gradientStart: '#FFFFFF',
+      gradientEnd: '#FFFFFF',
+      gradientMid: '',
+      gradientAngle: 180,
+      props: '',
+      ingredientLayout: 'grounded',
+      interaction: 'none',
+      placement: 'surface',
+      viewpoint: 'eye-level',
+      lens: '50mm Product Prime',
+      lightingRig: 'Softbox Wrap',
+      lightColorTemp: 'Neutral (5000K)',
+      customLightColor: '',
+      accentLightIntensity: 50,
+      finish: 'High-Gloss Commercial',
+      physicalScaleLabel: 'medium-tabletop',
+    } as any);
+
+    expect(mapped.photoMode).toBeUndefined();
+    expect(mapped.visualStyle).toBe('Clinical Lab Counter');
+    expect(mapped.visualStyleCategory).toBe('studio');
   });
 
   it('legacy visual style in photoMode migrates to visualStyle instead of staying in photoMode', () => {

@@ -215,6 +215,14 @@ const PHOTO_MODES = new Set([
   'Hands Application Clean',
 ]);
 
+const CORE_PHOTO_MODES = new Set([
+  'Hero Landing Page',
+  'Routine Carousel',
+  'Macro Dew Label',
+  'Ingredient Stack',
+  'Ingredient Flat Lay',
+]);
+
 const STUDIO_VISUAL_STYLES = new Set([
   'Clinical Lab Counter',
   'Minimal Bathroom Vanity',
@@ -987,21 +995,31 @@ function normalizeCinematography(
   camera: ReturnType<typeof resolveCameraByCapability>;
   composition: StudioUIState['composition'];
 } {
-  const resolvedCamera = resolveCameraByCapability(
-    resolvedPhotoMode || 'Hero Landing Page',
-    {
-      cameraSystem: inferCameraSystemOverride(state),
-      cameraAngle: inferAngleOverride(state),
-      cameraDistance: inferDistanceOverride(state),
-      cameraRotation: inferRotationOverride(state),
-      framingGuide: inferFramingGuideOverride(state),
-    },
-    industryProfile,
-    {
-      wineCorkRemovalActive: packagingBehavior === 'wine-cork-removal',
-      distortionRiskThreshold: 0.75,
-    }
-  );
+  const userSelection = {
+    cameraSystem: inferCameraSystemOverride(state),
+    cameraAngle: inferAngleOverride(state),
+    cameraDistance: inferDistanceOverride(state),
+    cameraRotation: inferRotationOverride(state),
+    framingGuide: inferFramingGuideOverride(state),
+  };
+  const resolvedCamera = resolvedPhotoMode
+    ? resolveCameraByCapability(
+        resolvedPhotoMode,
+        userSelection,
+        industryProfile,
+        {
+          wineCorkRemovalActive: packagingBehavior === 'wine-cork-removal',
+          distortionRiskThreshold: 0.75,
+        }
+      )
+    : {
+        cameraSystem: userSelection.cameraSystem || 'DSLR / mirrorless camera system',
+        cameraAngle: userSelection.cameraAngle || 'Eye level',
+        cameraDistance: userSelection.cameraDistance || 'Standard',
+        cameraRotation: userSelection.cameraRotation || '0°',
+        framingGuide: userSelection.framingGuide || 'Centered product',
+        warnings: [] as string[],
+      };
 
   return {
     camera: resolvedCamera,
@@ -1012,7 +1030,7 @@ function normalizeCinematography(
 export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const photoModeRaw = String(state.photoMode || '').trim();
   const legacyVisualStyle = resolveLegacyVisualStyleFromPhotoMode(state);
-  const resolvedPhotoMode = legacyVisualStyle ? undefined : resolvePhotoModeFromState(state);
+  const preResolvedPhotoMode = legacyVisualStyle ? undefined : resolvePhotoModeFromState(state);
   const requestedModifiers = inferRequestedModifiers(state);
   const industryProfile = assertIndustry(
     state.industryProfile || state.visualProfile
@@ -1022,14 +1040,40 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     coffee: resolveCoffeeIndustryLayer(state),
   };
   const coffeeLayer = layerByIndustry[industryProfile] || null;
-  const safePhotoModeForCapabilities = resolvedPhotoMode || 'Hero Landing Page';
-  const photoModeCapabilities = getPhotoModeCapabilities(safePhotoModeForCapabilities);
-  const resolvedAllowedMotions = getResolvedAllowedMotions(
-    safePhotoModeForCapabilities,
-    industryProfile,
-    state.definition.type,
-    coffeeLayer?.intent
-  );
+  const visualStyleRaw = String(
+    (state as any).visualStyle ||
+      (state as any).selectedVisualStyle ||
+      (state as any).visualStylePreset ||
+      (state as any).worldStyle ||
+      (state as any).styleWorld ||
+      (state as any).visualWorld ||
+      (state as any).creativeWorld ||
+      (state as any).studioWorldPreset ||
+      (state as any).brandWorldPreset ||
+      (state as any).lifestyleWorldPreset ||
+      ''
+  ).trim();
+  const resolvedVisualStyle = resolveVisualStyleFromState(state) || legacyVisualStyle;
+  const resolvedPhotoMode =
+    resolvedVisualStyle && preResolvedPhotoMode && CORE_PHOTO_MODES.has(preResolvedPhotoMode)
+      ? undefined
+      : preResolvedPhotoMode;
+  const photoModeCapabilities = resolvedPhotoMode
+    ? getPhotoModeCapabilities(resolvedPhotoMode)
+    : { interactionCapability: 'optional' as const, stateMotionCapability: 'limited' as const };
+  const resolvedAllowedMotions = resolvedPhotoMode
+    ? getResolvedAllowedMotions(
+        resolvedPhotoMode,
+        industryProfile,
+        state.definition.type,
+        coffeeLayer?.intent
+      )
+    : getResolvedAllowedMotions(
+        'Hero Landing Page',
+        industryProfile,
+        state.definition.type,
+        coffeeLayer?.intent
+      );
   const capabilityResolvedProductState = resolvedAllowedMotions.includes(state.stateMotion)
     ? state.stateMotion
     : 'static';
@@ -1073,20 +1117,6 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineArchetypeNarrative = winePrestigeMode
     ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
     : '';
-  const visualStyleRaw = String(
-    (state as any).visualStyle ||
-      (state as any).selectedVisualStyle ||
-      (state as any).visualStylePreset ||
-      (state as any).worldStyle ||
-      (state as any).styleWorld ||
-      (state as any).visualWorld ||
-      (state as any).creativeWorld ||
-      (state as any).studioWorldPreset ||
-      (state as any).brandWorldPreset ||
-      (state as any).lifestyleWorldPreset ||
-      ''
-  ).trim();
-  const resolvedVisualStyle = resolveVisualStyleFromState(state) || legacyVisualStyle;
   const resolvedEnvironment = resolveEnvironmentFromState(state);
   const normalizedWorldAtmosphere = normalizeWorldAndAtmosphere(
     state,

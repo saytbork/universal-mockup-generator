@@ -38,7 +38,7 @@ function makeState(overrides: Partial<ProductStudioState> = {}): ProductStudioSt
 }
 
 describe('studio layer stack e2e', () => {
-  it('keeps photo mode + environment + visual style + lighting combinable in final prompt', () => {
+  it('clears core photo mode when visual style is selected, while preserving environment and lighting', () => {
     const v2State = toStudioV2State(
       makeState({
         photoMode: 'Hero Landing Page',
@@ -51,13 +51,14 @@ describe('studio layer stack e2e', () => {
 
     const prompt = generateStudioPromptV2(v2State);
 
-    expect(prompt).toContain('PHOTO_MODE_SCENE:');
+    expect(v2State.photoMode).toBeUndefined();
+    expect(prompt).not.toContain('PHOTO_MODE_SCENE:');
     expect(prompt).toContain('ENVIRONMENT_CONTEXT:');
     expect(prompt).toContain('VISUAL_STYLE_SCENE:');
     expect(prompt).toContain('STUDIO_LIGHTING_PROFILE:');
   });
 
-  it('keeps macro clean mode dry while preserving style, environment, and lighting', () => {
+  it('clears Macro Dew Label when a visual style is selected, while preserving style, environment, and lighting', () => {
     const v2State = toStudioV2State(
       makeState({
         photoMode: 'Macro Dew Label',
@@ -75,13 +76,11 @@ describe('studio layer stack e2e', () => {
 
     const prompt = generateStudioPromptV2(v2State);
 
-    expect(prompt).toContain('MACRO_DEW_LABEL_MODE: active.');
-    expect(prompt).toContain('DROPLET_MODE: clean.');
-    expect(prompt).toContain('SURFACE_WETNESS_RULE: dry-clean.');
+    expect(v2State.photoMode).toBeUndefined();
+    expect(prompt).not.toContain('MACRO_DEW_LABEL_MODE: active.');
     expect(prompt).toContain('ENVIRONMENT_CONTEXT:');
     expect(prompt).toContain('VISUAL_STYLE_SCENE:');
     expect(prompt).toContain('STUDIO_LIGHTING_PROFILE:');
-    expect(prompt.toLowerCase()).not.toContain('visible droplets');
   });
 
   it('keeps splash as a grounded event while preserving environment, style, and lighting', () => {
