@@ -1248,6 +1248,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           wineAction: resolvedWineAction,
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
           wineGlassMode: resolvedWineGlassMode,
+          ...((state as any).wineGlassType ? { wineGlassType: (state as any).wineGlassType } : {}),
           wineClosureType: state.wineClosureType,
           wineType: state.wineType,
           wineBottleState: resolvedWineBottleState,

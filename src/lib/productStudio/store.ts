@@ -693,6 +693,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
     winePourStyle: 'mid-flow-elegance',
+    wineGlassType: 'auto',
     wineStyleArchetype: null,
     coffeeMode: 'studio',
     coffeeAction: 'static',

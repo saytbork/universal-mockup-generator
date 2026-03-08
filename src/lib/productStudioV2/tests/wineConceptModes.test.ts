@@ -47,6 +47,18 @@ describe('wine concept modes', () => {
     expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
   });
 
+  it('uses explicit sparkling flute guidance when selected for served wine scenes', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Bottle + Glass Pour', {
+        wineType: 'sparkling-white',
+        wineGlassType: 'sparkling-flute' as any,
+      })
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('a slender sparkling flute');
+  });
+
   it('renders bottle in hand cutout as cropped-hand wine concept', () => {
     const mapped = toStudioV2State(makeWineState('Bottle In Hand Cutout'));
     const prompt = generateStudioPromptV2(mapped);

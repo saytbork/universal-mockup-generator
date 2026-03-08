@@ -159,6 +159,7 @@ export interface StudioUIState {
   carbonationLevel?: string;
   wineBottleState?: string;
   wineGlassMode?: string;
+  wineGlassType?: string;
   wineClosureType?: string;
   wineColor?: 'red' | 'white' | 'rose';
   wineStyle?: 'still' | 'sparkling';

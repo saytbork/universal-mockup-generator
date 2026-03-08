@@ -21,6 +21,7 @@ export const wineProfile: IndustryProfileModule = {
     carbonationLevel: undefined,
     wineBottleState: undefined,
     wineGlassMode: undefined,
+    wineGlassType: undefined,
     wineClosureType: undefined,
     wineServeAmount: undefined,
     serveVolumeMode: undefined,

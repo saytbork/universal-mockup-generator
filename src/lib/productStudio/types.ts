@@ -650,6 +650,7 @@ export type WineMoodModifier =
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
 export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type WineGlassType = 'auto' | 'red-bowl' | 'white-stem' | 'sparkling-flute';
 export type WineStyleArchetype =
     | 'Minimal Editorial Studio'
     | 'Ultra Minimal Black Luxury'
@@ -657,7 +658,8 @@ export type WineStyleArchetype =
     | 'Moody Wood Editorial'
     | 'Macro Label Branding'
     | 'Action Pour Photography'
-    | 'Cinematic Vineyard';
+    | 'Cinematic Vineyard'
+    | 'Warm Tasting Room';
 
 // ============================================================================
 // WINE ARCHETYPE SYSTEM v4 — ENTERPRISE TYPES
@@ -871,6 +873,7 @@ export type ProductStudioState = {
     carbonationLevel?: string;
     wineBottleState?: string;
     wineGlassMode?: string;
+    wineGlassType?: WineGlassType;
     wineClosureType?: string;
     wineServeAmount?: string;
     serveVolumeMode?: string;

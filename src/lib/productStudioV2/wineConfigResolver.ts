@@ -10,6 +10,26 @@ export type ResolvedWineConfig = {
   bottleFillState?: BottleFillState;
 };
 
+function resolveWineGlassDescriptor(state: StudioUIState): string {
+  const requested = String((state as any).wineGlassType || 'auto').trim().toLowerCase();
+  const wineType = String(state.wineType || 'auto').trim().toLowerCase();
+  const closureType = String(state.wineClosureType || '').trim().toLowerCase();
+  const isSparkling =
+    wineType === 'sparkling-white' ||
+    wineType === 'sparkling-rosé' ||
+    wineType === 'sparkling-rose' ||
+    closureType === 'cork-with-cage';
+
+  if (requested === 'red-bowl') return 'a wide-bowl red wine glass';
+  if (requested === 'white-stem') return 'a taller narrow white wine glass';
+  if (requested === 'sparkling-flute') return 'a slender sparkling flute';
+  if (isSparkling) return 'a slender sparkling flute';
+  if (wineType === 'white' || wineType === 'rosé' || wineType === 'rose') {
+    return 'a taller narrow white-wine style glass';
+  }
+  return 'a classic wine glass appropriate to the varietal';
+}
+
 /**
  * WINE TRUTH LAYER — simplified model
  *
@@ -76,7 +96,7 @@ export function buildWineTruthLayer(
 
   // GLASS — only for served mode
   const glassBlock = serveState === 'served'
-    ? 'WINE_GLASS: A wine glass filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.'
+    ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.`
     : 'NO_GLASS: No wine glass in the scene. No poured liquid. No extra props.';
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
