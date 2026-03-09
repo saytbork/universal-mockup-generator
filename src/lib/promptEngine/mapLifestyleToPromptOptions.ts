@@ -52,6 +52,47 @@ const normalizeKey = (value?: string) =>
             .replace(/-+/g, '-')
         : '';
 
+const hashSeed = (input: string): number => {
+    let hash = 2166136261;
+    for (let i = 0; i < input.length; i++) {
+        hash ^= input.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+};
+
+const pickSeeded = <T,>(items: readonly T[], seed: string, offset: number): T => {
+    const index = (hashSeed(`${seed}:${offset}`) + offset) % items.length;
+    return items[index] ?? items[0];
+};
+
+const UGC_VARIATION_POSES = [
+    'Relaxed Portrait',
+    'Dynamic Mid-Action',
+    'Leaned-In Close',
+    'Over-the-Shoulder',
+    'Offer-to-Lens Reach',
+] as const;
+
+const UGC_VARIATION_EXPRESSIONS = [
+    'Calm & Serene',
+    'Joyful & High-Energy',
+    'Playful & Candid',
+    'Relieved / Recovered',
+] as const;
+
+const UGC_VARIATION_EYE_DIRECTIONS = [
+    'Looking at camera',
+    'Looking at product',
+    'Looking away naturally',
+] as const;
+
+const UGC_VARIATION_APPEARANCE = [
+    'Regular',
+    'Well-groomed',
+    'Running Late',
+] as const;
+
 const OUTDOOR_ENVIRONMENT_LABELS = new Set([
     'Urban Exterior',
     'Natural Exterior',
@@ -931,6 +972,30 @@ export function mapLifestyleToPromptOptions(
         console.log('[MAP] Identity mode: LOCKED → key:', mapped.identityKey);
     }
 
+    const ugcAutoVariationActive =
+        isUGCMode &&
+        !hasModelReference &&
+        sceneState.sameCreatorAcrossScenes !== true &&
+        !sceneState.creatorPreset;
+    const ugcVariationSeed = String(mapped.identityVariationToken || identitySeed || generateIdentitySeed());
+    const effectivePoseLabel =
+        ugcAutoVariationActive && (!sceneState.pose || sceneState.pose === 'Relaxed Portrait')
+            ? pickSeeded(UGC_VARIATION_POSES, ugcVariationSeed, 1)
+            : sceneState.pose;
+    const effectiveAppearanceLevel =
+        ugcAutoVariationActive && (!sceneState.appearanceLevel || sceneState.appearanceLevel === 'Regular')
+            ? pickSeeded(UGC_VARIATION_APPEARANCE, ugcVariationSeed, 2)
+            : sceneState.appearanceLevel;
+    const effectiveExpressionLabel =
+        ugcAutoVariationActive &&
+        (!sceneState.facialExpression || sceneState.facialExpression === 'Soft Smile' || sceneState.facialExpression === 'Calm & Serene')
+            ? pickSeeded(UGC_VARIATION_EXPRESSIONS, ugcVariationSeed, 3)
+            : sceneState.facialExpression;
+    const effectiveEyeDirectionLabel =
+        ugcAutoVariationActive && (!sceneState.eyeDirection || sceneState.eyeDirection === 'Looking at camera')
+            ? pickSeeded(UGC_VARIATION_EYE_DIRECTIONS, ugcVariationSeed, 4)
+            : sceneState.eyeDirection;
+
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};
     const personIncluded = !sceneState.noPerson;
@@ -1126,8 +1191,8 @@ export function mapLifestyleToPromptOptions(
         }
 
         // POSE (Manual)
-        if (sceneState.pose) {
-            const pose = POSE_SEMANTIC_MAP[sceneState.pose] || sceneState.pose;
+        if (effectivePoseLabel) {
+            const pose = POSE_SEMANTIC_MAP[effectivePoseLabel] || effectivePoseLabel;
             mapped.personPose = pose;
             mapped.personDetails.personPose = pose;
         }
@@ -1149,7 +1214,7 @@ export function mapLifestyleToPromptOptions(
         }
 
         // APPEARANCE (Manual input)
-        const appearanceDescriptor = mapAppearanceLevel(sceneState.appearanceLevel);
+        const appearanceDescriptor = mapAppearanceLevel(effectiveAppearanceLevel);
         if (appearanceDescriptor) {
             mapped.personAppearance = appearanceDescriptor;
             mapped.personDetails.personAppearance = appearanceDescriptor;
@@ -1171,12 +1236,12 @@ export function mapLifestyleToPromptOptions(
         }
 
         // OTHER PERSON DETAILS (Non-conflicting)
-        const expressionLabel = sceneState.facialExpression || 'Calm & Serene';
+        const expressionLabel = effectiveExpressionLabel || 'Calm & Serene';
         const expressionSemantic =
             FACIAL_EXPRESSION_MAP[expressionLabel] || FACIAL_EXPRESSION_MAP['Calm & Serene'];
         mapped.personDetails.facialExpression = expressionSemantic;
 
-    const eyeDirectionLabel = sceneState.eyeDirection || 'Looking at camera';
+    const eyeDirectionLabel = effectiveEyeDirectionLabel || 'Looking at camera';
     // Expose the UI label for legacy/lifestyle builders that read top-level eyeDirection.
     mapped.eyeDirection = eyeDirectionLabel as any;
     mapped.personDetails.eyeDirection =
