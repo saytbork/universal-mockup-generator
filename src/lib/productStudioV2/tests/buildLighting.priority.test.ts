@@ -71,11 +71,22 @@ describe('buildLighting priority + alias normalization regression', () => {
 
   it('keeps accent gel constrained to rim separation without atmospheric glow language', () => {
     const out = buildLighting(authority, state({
+      lightingModelOverride: 'Prism Spotlight Duo',
       customLightColor: '#9966FF',
       accentLightIntensity: 69,
     }));
     expect(out).toContain('Use restrained colored edge/rim separation only.');
     expect(out).toContain('No colored haze, no diffuse bloom, no noisy spill across the background, and no label contamination.');
     expect(out).not.toContain('atmospheric glow');
+  });
+
+  it('does not inject accent gel text for non-gel lighting rigs', () => {
+    const out = buildLighting(authority, state({
+      lightingModelOverride: '3-Point Beauty Dish',
+      customLightColor: '#9966FF',
+      accentLightIntensity: 69,
+    }));
+    expect(out).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
+    expect(out).not.toContain('ACCENT LIGHT GEL:');
   });
 });

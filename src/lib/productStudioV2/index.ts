@@ -100,6 +100,16 @@ type PromptSegment = {
 
 const FORBIDDEN_TERMS = ['body', 'face'];
 
+function supportsAccentGelRig(lightingDescriptor: string): boolean {
+  const normalized = String(lightingDescriptor || '').trim().toLowerCase();
+  if (!normalized) return false;
+  return (
+    normalized.includes('gel') ||
+    normalized.includes('prism') ||
+    normalized.includes('acrylic')
+  );
+}
+
 function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUIState): string[] {
   const isWineIndustry = String(state?.visualProfile || '').trim().toLowerCase() === 'wine';
   if (!STRICT_GUARDRAILS && !isWineIndustry) return [];
@@ -286,7 +296,12 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
   if (resolvedLighting) {
     advancedParts.push(`STUDIO_LIGHTING_PROFILE: ${resolvedLighting}.`);
   }
-  if (hasAccentGel && resolvedLighting && !/\bnatural-light\b/i.test(resolvedLighting)) {
+  if (
+    hasAccentGel &&
+    resolvedLighting &&
+    !/\bnatural-light\b/i.test(resolvedLighting) &&
+    supportsAccentGelRig(resolvedLighting)
+  ) {
     advancedParts.push(`ACCENT_LIGHT_GEL: ${gelColor} at ${gelIntensity}% attached to resolved lighting.`);
   }
   if (resolvedFinish) {

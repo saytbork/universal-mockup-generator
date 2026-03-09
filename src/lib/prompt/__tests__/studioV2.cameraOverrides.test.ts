@@ -62,4 +62,23 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).toContain('LENS_PROFILE: 100mm Macro Prime.');
     expect(prompt).not.toContain('LENS_PROFILE: 50mm equivalent.');
   });
+
+  test('ignores stale accent gel when the selected rig is not gel-compatible', () => {
+    const prompt = generateStudioPromptV2({
+      ...baseState,
+      advancedControls: true,
+      cameraSystem: 'DSLR / mirrorless',
+      cameraAngle: '45° hero',
+      cameraDistance: 'Standard',
+      cameraRotation: '0°',
+      framingGuide: 'Centered hero',
+      lightingModelOverride: '3-Point Beauty Dish',
+      customLightColor: '#9966FF',
+      accentLightIntensity: 69,
+    });
+
+    expect(prompt).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
+    expect(prompt).not.toContain('ACCENT_LIGHT_GEL:');
+    expect(prompt).not.toContain('ACCENT LIGHT GEL:');
+  });
 });

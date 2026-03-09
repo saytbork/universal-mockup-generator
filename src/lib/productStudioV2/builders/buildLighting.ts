@@ -28,6 +28,16 @@ const PRESET_ALIAS_MAP: Record<string, string> = {
   'sunny-day': 'sunny day',
 };
 
+function supportsAccentGelRig(lightingDescriptor: string): boolean {
+  const normalized = String(lightingDescriptor || '').trim().toLowerCase();
+  if (!normalized) return false;
+  return (
+    normalized.includes('gel') ||
+    normalized.includes('prism') ||
+    normalized.includes('acrylic')
+  );
+}
+
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const lightingState = state as LightingState | undefined;
   const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
@@ -130,7 +140,13 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   // Accent/gel light color injection (from Pro Mode controls)
   const customColor = String(lightingState?.customLightColor || '').trim().toUpperCase();
   const intensity = Number(lightingState?.accentLightIntensity ?? 50);
-  if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
+  const activeLightingDescriptor = override || normalizedPreset || basicLighting;
+  if (
+    customColor &&
+    customColor !== '#FFFFFF' &&
+    /^#[0-9A-F]{6}$/.test(customColor) &&
+    supportsAccentGelRig(activeLightingDescriptor)
+  ) {
     const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
     parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Use restrained colored edge/rim separation only. Keep the glow localized to contour highlights. No colored haze, no diffuse bloom, no noisy spill across the background, and no label contamination.`);
   }
