@@ -2020,7 +2020,8 @@ export function mapLifestyleToPromptOptions(
     }
 
     const isLifestyleAdvertising =
-        sceneState.creationMode === 'lifestyle' && personIncluded;
+        (sceneState.creationMode === 'lifestyle' || sceneState.creationMode === 'aesthetic') &&
+        personIncluded;
     if (isLifestyleAdvertising) {
         const resolvedVisualIntent = String(mapped.visualIntent || 'editorial').toLowerCase();
         const settingLabel = String(
@@ -2041,10 +2042,10 @@ export function mapLifestyleToPromptOptions(
                 'Wardrobe must feel luxury-fashion adjacent: premium tailoring, clean silhouettes, rich materials, refined structure, and immaculate finish; no cheap basics, no sloppy casualwear, no worn fabrics, no domestic styling.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
-                    ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing.`
-                    : 'The environment is styled as an expensive luxury campaign set with premium materials, controlled geometry, and aspirational styling.';
+                    ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing. It must read as a real photographed location with believable construction, lived material response, natural lens behavior, and true-to-life depth; never as a 3D render, CGI environment, glossy showroom mockup, or synthetic virtual set.`
+                    : 'The environment is styled as an expensive luxury campaign set with premium materials, controlled geometry, aspirational styling, and real-location photographic believability; never as a 3D render, CGI environment, or synthetic virtual set.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Luxury Advertising): Do NOT depict cheap-looking materials, domestic realism, casual everyday styling, generic influencer aesthetics, messy environments, or documentary realism. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Luxury Advertising): Do NOT depict cheap-looking materials, domestic realism, casual everyday styling, generic influencer aesthetics, messy environments, documentary realism, 3D-rendered interiors, CGI surfaces, synthetic architecture, or virtual-set lighting. If any of these appear, the generation is invalid.';
             mapped.luxuryStyle = 'aspirational luxury campaign';
         } else if (resolvedVisualIntent === 'brand') {
             mapped.lifestyleAdvertisingProfile =
@@ -2053,10 +2054,10 @@ export function mapLifestyleToPromptOptions(
                 'Wardrobe must be premium, clean, intact, well-fitted, and commercially brand-safe; fabrics should look new, structured, and intentional; no sloppy basics, no worn garments, no domestic loungewear.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
-                    ? `The ${settingLabel} is styled as a premium brand campaign set with clean surfaces, intentional composition, disciplined props, and conversion-friendly readability.`
-                    : 'The environment is styled as a premium brand campaign set with clean surfaces, disciplined props, and conversion-friendly readability.';
+                    ? `The ${settingLabel} is styled as a premium brand campaign set with clean surfaces, intentional composition, disciplined props, and conversion-friendly readability. It must feel like a real photographed interior with believable materials, true room depth, natural imperfections, and physical lighting response; never like CGI, Unreal-style staging, or a 3D mockup.`
+                    : 'The environment is styled as a premium brand campaign set with clean surfaces, disciplined props, conversion-friendly readability, and real-location photographic believability; never like CGI or a 3D mockup.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Brand Advertising): Do NOT depict domestic realism, casual everyday styling, clutter, damaged wardrobe, cheap set dressing, or UGC/documentary vibes. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Brand Advertising): Do NOT depict domestic realism, casual everyday styling, clutter, damaged wardrobe, cheap set dressing, UGC/documentary vibes, CGI interiors, synthetic surfaces, virtual-set lighting, or 3D-rendered room geometry. If any of these appear, the generation is invalid.';
             mapped.brandLook = 'clean premium campaign';
         } else {
             mapped.lifestyleAdvertisingProfile =
@@ -2065,10 +2066,10 @@ export function mapLifestyleToPromptOptions(
                 'Wardrobe must be elevated and editorial: refined silhouettes, clean structure, high-quality fabrics, and intentional styling; no sloppy basics, no worn casualwear, no domestic clothing language.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
-                    ? `The ${settingLabel} is styled as a curated editorial campaign interior with clean surfaces, intentional styling, design-forward composition, and magazine-grade set discipline.`
-                    : 'The environment is styled as a curated editorial campaign set with design-forward composition and magazine-grade discipline.';
+                    ? `The ${settingLabel} is styled as a curated editorial campaign interior with clean surfaces, intentional styling, design-forward composition, and magazine-grade set discipline. It must still read as a real photographed place with believable architecture, true material texture, natural falloff, and optical depth; never as a CG concept room or synthetic render.`
+                    : 'The environment is styled as a curated editorial campaign set with design-forward composition, magazine-grade discipline, and real-location photographic believability; never as a CG concept room or synthetic render.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Editorial Advertising): Do NOT depict domestic realism, sloppy wardrobe, generic ecommerce stiffness, messy clutter, or UGC/documentary visuals. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Editorial Advertising): Do NOT depict domestic realism, sloppy wardrobe, generic ecommerce stiffness, messy clutter, UGC/documentary visuals, CG concept interiors, synthetic architecture, 3D-rendered surfaces, or fake virtual-set lighting. If any of these appear, the generation is invalid.';
             mapped.editorialStyle = 'design-forward editorial campaign';
         }
         (mapped as any).disableUgcSemantics = true;

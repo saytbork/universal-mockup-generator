@@ -75,6 +75,9 @@ const formatEnvironmentPhrase = (environmentText?: string): string => {
 const HUMAN_REALISM_GUARD =
     'Human realism guard (non-negotiable): real human face and skin only. Preserve pores, micro-texture, natural asymmetry, realistic eyelids, believable lip texture, and authentic facial structure. No doll face, no mannequin features, no porcelain skin, no waxy highlights, no CGI facial rendering, and no beauty-filter smoothing.';
 
+const ENVIRONMENT_REALISM_GUARD =
+    'Environment realism guard (non-negotiable): the location must look like a real photographed place with believable architecture, true material texture, natural lens depth, physical light falloff, and real-world wear patterns. No CGI room, no 3D render, no virtual set, no synthetic surfaces, no fake showroom gloss, and no unreal geometry.';
+
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
     return isNonUGC && options.personIncluded === true && (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic' || Boolean(options.formulationExpertEnabled));
@@ -181,7 +184,8 @@ export class SceneNarrativeBuilder {
                     Boolean(options.rawDomesticUgcActive);
                 const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
                 const isLifestyleCampaign =
-                    options.creationMode === 'lifestyle' && Boolean(options.personIncluded);
+                    (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic') &&
+                    Boolean(options.personIncluded);
 
                 if (isLifestyleCampaign) {
                     parts.push(
@@ -772,6 +776,10 @@ export class SceneNarrativeBuilder {
             );
         }
 
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(ENVIRONMENT_REALISM_GUARD);
+        }
+
 
         if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
@@ -783,7 +791,7 @@ export class SceneNarrativeBuilder {
         const shouldInjectLifestyleRealism =
             !options.ugcRealModeActive &&
             options.contentStyle !== 'ugc' &&
-            options.creationMode === 'lifestyle';
+            (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic');
 
         if (shouldInjectLifestyleRealism) {
             narrativeParts.push(

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LifestyleProfessionalBiasBuilder } from '../../promptEngine/builders/lifestyleProfessionalBias';
+import { mapLifestyleToPromptOptions } from '../../promptEngine/mapLifestyleToPromptOptions';
 import type { PromptOptions } from '../../promptEngine/types';
 
 const makeOptions = (overrides: Partial<PromptOptions> = {}): PromptOptions => ({
@@ -93,5 +94,48 @@ describe('LifestyleProfessionalBiasBuilder', () => {
     );
 
     expect(output).toBe('');
+  });
+
+  it('maps editorial aesthetic environments with anti-CGI realism language', () => {
+    const mapped = mapLifestyleToPromptOptions({
+      sceneType: 'lifestyle-real',
+      creationMode: 'aesthetic',
+      contentStyle: 'brand',
+      visualMode: 'default',
+      visualIntent: 'editorial',
+      environmentContext: { macro: 'Kitchen', micro: 'Countertop' },
+      environment: 'Kitchen',
+      noPerson: false,
+      age: 30,
+      gender: 'Female',
+      skinTone: 'Medium Neutral',
+      ethnicity: 'Non-specific',
+      bodyType: 'Average',
+      hair: 'Medium',
+      hairLength: 'Shoulder',
+      hairTexture: 'Wavy',
+      hairColor: 'Dark brown',
+      facialExpression: 'Calm & Serene',
+      eyeDirection: 'Looking at camera',
+      appearanceLevel: 'Regular',
+      pose: 'Relaxed Portrait',
+      skinRealism: 'Raw / Real',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural',
+      shotType: 'Medium',
+      cameraType: 'DSLR / mirrorless camera',
+      cameraAngle: 'Eye level',
+      framing: 'Rule of thirds',
+      productProminence: 'product-first',
+      productInteraction: 'background',
+      productStructure: 'single',
+      aspectRatio: '1:1 (Square)',
+    } as any);
+
+    expect(mapped.visualIntent).toBe('editorial');
+    expect(mapped.editorialStyle).toBe('design-forward editorial campaign');
+    expect(mapped.lifestyleEnvironmentInterpretation).toMatch(/real photographed place|real-location photographic believability/i);
+    expect(mapped.lifestyleEnvironmentInterpretation).toMatch(/never as a cg concept room|never as a 3d mockup|never like cgi/i);
+    expect(mapped.lifestyleHardRestrictions).toMatch(/3d-rendered|cg concept interiors|synthetic/i);
   });
 });
