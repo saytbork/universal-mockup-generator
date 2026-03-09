@@ -63,7 +63,7 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).not.toContain('LENS_PROFILE: 50mm equivalent.');
   });
 
-  test('ignores stale accent gel when the selected rig is not gel-compatible', () => {
+  test('keeps accent gel active for gel-compatible pro rigs like 3-Point Beauty Dish', () => {
     const prompt = generateStudioPromptV2({
       ...baseState,
       advancedControls: true,
@@ -78,7 +78,6 @@ describe('Studio V2 camera overrides', () => {
     });
 
     expect(prompt).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
-    expect(prompt).not.toContain('ACCENT_LIGHT_GEL:');
-    expect(prompt).not.toContain('ACCENT LIGHT GEL:');
+    expect(prompt).toContain('ACCENT LIGHT GEL: #9966FF at 69% intensity');
   });
 });

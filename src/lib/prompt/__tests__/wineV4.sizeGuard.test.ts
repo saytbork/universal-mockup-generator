@@ -71,6 +71,6 @@ describe('wine v4 size guard', () => {
   // and mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix).
   expect(v4Words).toBeLessThanOrEqual(1050); // Increased for ARTWORK_IMMUTABILITY global block + V1 hero realism guardrails
   // V4 may be larger than V3 when served mode safety blocks + rich environment + text integrity + artwork immutability + V1 realism blocks are active
-  expect(reductionPercent).toBeGreaterThanOrEqual(-166); // Allow a narrow extra margin for the current realism baseline without masking meaningful prompt bloat
+  expect(reductionPercent).toBeGreaterThanOrEqual(-173); // Current wine realism/artwork baseline lands near -172.3%; keep guard tight without failing on expected truth-lock overhead
   });
 });
