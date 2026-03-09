@@ -1241,7 +1241,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
-    sceneType: 'studio-branding',
+    sceneType: initialSceneIntent === 'ecommerce' ? 'studio-branding' : 'lifestyle-real',
     visualMode: 'default',
     visualIntent: initialSceneIntent === 'ecommerce' ? undefined : 'editorial',
     // Creator/Person
