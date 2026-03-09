@@ -456,6 +456,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+  const requestedImageSize = isPreview ? '2K' : '1K';
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -471,6 +472,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             config: {
               responseModalities: [Modality.IMAGE],
               safetySettings: [],
+              imageConfig: {
+                aspectRatio,
+                imageSize: requestedImageSize,
+              },
               generationConfig: {
                 responseMimeType: 'image/png',
                 aspectRatio,
@@ -542,7 +547,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       buffer = Buffer.from(maybeWatermarkedImage, 'base64');
     }
-    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${isFreePlan ? 'jpg' : 'png'}`;
+    const fileExtension = contentType === 'image/jpeg' ? 'jpg' : 'png';
+    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
     const file = bucket.file(fileName);
 
     await file.save(buffer, {

@@ -165,6 +165,10 @@ export async function generateImageWithGemini({
         config: {
             responseModalities: [Modality.IMAGE],
             safetySettings: [],
+            imageConfig: {
+                aspectRatio,
+                imageSize: '2K',
+            },
             generationConfig: {
                 responseMimeType: "image/png",
                 aspectRatio,
