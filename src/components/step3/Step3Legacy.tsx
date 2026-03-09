@@ -3178,6 +3178,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const applyVisualStyle = (mode: string) => {
                               productStore.setVisualStyle(mode);
                               markSectionTouched('product-setup');
+                              scrollToPhotoModeSettings();
                             };
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode | VisualStyle, string>> = {
@@ -3510,6 +3511,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             )}
                             {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
                               <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
+                                <div>
+                                  <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
+                                    Visual Style Settings
+                                  </p>
+                                  <p className="text-[11px] text-gray-500">
+                                    Adjust the selected visual style atmosphere and constraints.
+                                  </p>
+                                </div>
                                 <PhotoModeSettings
                                   schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
                                   productStore={productStore}
