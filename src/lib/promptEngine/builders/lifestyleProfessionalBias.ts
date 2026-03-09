@@ -1,19 +1,17 @@
 import type { PromptOptions } from '../types';
 
 const ACTIVATION_SCENE_TYPE = 'lifestyle-real';
-const ACTIVATION_CREATION_MODE = 'aesthetic';
-const ACTIVATION_CONTENT_STYLE = 'brand';
 
 function isLifestyleProBiasActive(options: PromptOptions): boolean {
   const sceneType = String((options as any).sceneType || '').trim().toLowerCase();
   const creationMode = String(options.creationMode || '').trim().toLowerCase();
   const contentStyle = String((options as any).contentStyle || '').trim().toLowerCase();
   const ugcActive = Boolean(options.ugcRealModeActive);
+  const advertisingProfile = String((options as any).lifestyleAdvertisingProfile || '').trim();
 
   return (
     sceneType === ACTIVATION_SCENE_TYPE &&
-    creationMode === ACTIVATION_CREATION_MODE &&
-    contentStyle === ACTIVATION_CONTENT_STYLE &&
+    (advertisingProfile.length > 0 || ((creationMode === 'aesthetic' || creationMode === 'lifestyle') && contentStyle === 'brand')) &&
     !ugcActive
   );
 }
@@ -38,6 +36,8 @@ export class LifestyleProfessionalBiasBuilder {
       'Background depth: subtle cinematic blur with controlled falloff and stabilized framing.',
       'Camera reinforcement: set-lit enhancement even under natural light, commercial dynamic range, precision framing, and brand-safe compositional control.',
       'Signal suppression: remove user-generated framing drift, domestic storytelling tone, handheld instability, and phone-capture aesthetics.',
+      'Grooming discipline: hair must read clean, dry, styled, and campaign-ready. No wet hair, greasy roots, damp strands on the face, post-shower texture, accidental flyaway clumps, or sweaty grooming cues.',
+      'Styling discipline: appearance must feel polished advertising/editorial, never bathroom realism, never domestic cleanup moment, never after-workout, and never just-woke-up.',
     ];
 
     if (skinRealism.includes('raw / real') || skinRealism.includes('raw') || skinRealism.includes('real')) {
@@ -55,4 +55,3 @@ export class LifestyleProfessionalBiasBuilder {
     return parts.join(' ');
   }
 }
-
