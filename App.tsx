@@ -7038,7 +7038,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 >
 
                   <GeneratedImage
-                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
+                    imageUrl={generatedImageUrl}
                     targetAspectRatio={selectedOutputAspectRatio}
                     fourKVariant={fourKVariant}
                     twoKVariant={twoKVariant}
