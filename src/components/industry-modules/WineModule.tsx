@@ -212,7 +212,7 @@ export function WineModule({
                       setWineUiState({
                         wineGlassMode: 'filled',
                         wineServeAmount: 'standard',
-                        wineBottleState: 'open',
+                        wineBottleState: 'opened-with-cork-nearby',
                       });
                     }}
                     title={option.description}

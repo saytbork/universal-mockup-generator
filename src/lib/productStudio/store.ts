@@ -1904,6 +1904,25 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 resolvedPlacement = 'held';
             }
 
+            const servedWineModes: PhotoMode[] = [
+                'Bottle + Glass',
+                'Bottle + Glass Pour',
+                'Hands Pouring Wine',
+                'Rose Tasting Table',
+            ];
+            const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine'];
+            const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
+            const normalizedIndustryProfile = String(state.industryProfile || '').trim().toLowerCase();
+            const normalizedVisualProfile = String(state.visualProfile || '').trim().toLowerCase();
+            const isWineState =
+                normalizedIndustryProfile === 'wine' ||
+                normalizedVisualProfile === 'wine' ||
+                isWinePrestigeMode(state);
+            const isWinePhotoMode = allowed.includes(effectiveMode as PhotoMode) && isWineState;
+            const isServedWineMode = servedWineModes.includes(effectiveMode);
+            const isPourWineMode = pourWineModes.includes(effectiveMode);
+            const isWineSceneOwnedMode = wineSceneOwnedModes.includes(effectiveMode);
+
             const common: Partial<ProductStudioState> = {
                 photoMode: effectiveMode,
                 visualStyle: undefined,
@@ -1917,6 +1936,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 interaction: resolvedInteraction,
                 // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
                 ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
+                ...(isWinePhotoMode
+                    ? {
+                        wineGlassMode: isServedWineMode ? 'filled' : isWineSceneOwnedMode ? 'none' : state.wineGlassMode,
+                        wineBottleState: isServedWineMode
+                            ? 'opened-with-cork-nearby'
+                            : isWineSceneOwnedMode
+                                ? 'sealed'
+                                : state.wineBottleState,
+                        wineAction: isPourWineMode ? 'controlled-pour' : 'static-presentation',
+                    }
+                    : {}),
                 ...notes,
             };
 
