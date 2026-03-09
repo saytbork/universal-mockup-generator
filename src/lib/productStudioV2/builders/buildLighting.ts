@@ -41,6 +41,8 @@ function supportsAccentGelRig(lightingDescriptor: string): boolean {
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const lightingState = state as LightingState | undefined;
   const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
+  const visualStyle = String(state?.visualStyle || '').trim().toLowerCase();
+  const isDarkPremiumStudio = visualStyle === 'dark premium studio';
   if (state?.visualProfile === 'coffee') {
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
     if (mood === 'coffee-cinematic-luxury') {
@@ -160,6 +162,15 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   if (isSupplementIndustry) {
     parts.push(
       'SUPPLEMENT_AD_LIGHTING_REALISM: Hyper-real commercial lighting with disciplined specular control, true lens behavior, natural highlight roll-off, and optical depth that feels captured in-camera. No fake composite look.'
+    );
+  }
+
+  if (isDarkPremiumStudio) {
+    parts.push(
+      'DARK_PREMIUM_STUDIO_LIGHTING: Low-key premium studio lighting with off-camera key, fill, and rim sources only. Use sculpted shadow geometry, controlled edge separation, readable contour highlights, and disciplined black levels. No muddy shadow noise, no crushed detail, and no ambient wash that flattens the product.'
+    );
+    parts.push(
+      'DARK_PREMIUM_SPECULAR_CONTROL: Specular highlights must stay narrow, premium, and physically coherent. Use controlled roll-off on hard surfaces, preserve material separation, and forbid broad plastic shine or fake HDR blooming.'
     );
   }
 

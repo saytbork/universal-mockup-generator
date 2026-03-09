@@ -19,6 +19,8 @@ const PLACEMENT_SURFACE_MAP: Record<string, string> = {
 
 export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
+  const visualStyle = String(state?.visualStyle || '').trim().toLowerCase();
+  const isDarkPremiumStudio = visualStyle === 'dark premium studio';
   if (state?.visualProfile === 'coffee') {
     return [
       'STUDIO_MATERIAL_PROFILE: coffee-ceramic-priority.',
@@ -54,6 +56,15 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
   if (isSupplementIndustry) {
     parts.push(
       'SUPPLEMENT_MATERIAL_REALISM: Commercial-grade packaging materials with controlled specular highlights, believable micro-surface variation, true contact shadows, and no fake composite sheen. Optical behavior must read as photographed, not rendered.'
+    );
+  }
+
+  if (isDarkPremiumStudio) {
+    parts.push(
+      'DARK_PREMIUM_MATERIALS: Use matte, stone, velvet, metal, acrylic, concrete, or coated industrial surfaces with believable microtexture and restrained reflectance. Preserve crisp edge readability against dark backgrounds.'
+    );
+    parts.push(
+      'DARK_PREMIUM_SURFACE_GUARD: No muddy black floors, no smeared reflections, no procedural noise wash, and no soft plastic render look. Surface contact must feel physically grounded with premium commercial finish quality.'
     );
   }
 

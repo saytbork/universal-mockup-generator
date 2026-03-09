@@ -35,6 +35,9 @@ describe('Visual Style injection', () => {
     expect(prompt).toContain('VISUAL_STYLE_CATEGORY: studio.');
     expect(prompt).toContain('VISUAL_STYLE_NAME: dark-premium-studio.');
     expect(prompt).toContain('VISUAL_STYLE_SCENE:');
+    expect(prompt).toContain('DARK_PREMIUM_STUDIO_ATMOSPHERE:');
+    expect(prompt).toContain('No crushed blacks.');
+    expect(prompt).toContain('DARK_PREMIUM_RENDER_GUARD:');
   });
 
   it('Brand Campaign normalizes to brand category', () => {

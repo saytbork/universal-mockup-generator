@@ -89,4 +89,14 @@ describe('buildLighting priority + alias normalization regression', () => {
     expect(out).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
     expect(out).not.toContain('ACCENT LIGHT GEL:');
   });
+
+  it('adds dark premium studio lighting discipline when that visual style is active', () => {
+    const out = buildLighting(authority, state({
+      visualStyle: 'Dark Premium Studio',
+      visualStyleCategory: 'studio',
+    }));
+    expect(out).toContain('DARK_PREMIUM_STUDIO_LIGHTING:');
+    expect(out).toContain('No muddy shadow noise, no crushed detail');
+    expect(out).toContain('DARK_PREMIUM_SPECULAR_CONTROL:');
+  });
 });

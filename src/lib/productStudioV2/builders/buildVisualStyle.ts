@@ -8,6 +8,24 @@ type VisualStyleDefinition = {
   scene: string;
 };
 
+function resolveDarkPremiumDefaults(state?: StudioUIState): {
+  darknessLevel: 'deep' | 'balanced';
+  rimLightIntensity: 'subtle' | 'strong';
+  backgroundMaterial: 'matte' | 'stone' | 'velvet';
+} {
+  const settings = state?.photoModeDynamicSettings || {};
+  const darknessRaw = String(settings.darknessLevel || '').trim().toLowerCase();
+  const rimRaw = String(settings.rimLightIntensity || '').trim().toLowerCase();
+  const bgRaw = String(settings.backgroundMaterial || '').trim().toLowerCase();
+
+  return {
+    darknessLevel: darknessRaw === 'balanced' ? 'balanced' : 'deep',
+    rimLightIntensity: rimRaw === 'strong' ? 'strong' : 'subtle',
+    backgroundMaterial:
+      bgRaw === 'stone' || bgRaw === 'velvet' ? (bgRaw as 'stone' | 'velvet') : 'matte',
+  };
+}
+
 const GOLDEN_SUNSET_BG_VARIANTS: Array<{ name: string; scene: string }> = [
   {
     name: 'sea-horizon-glow',
@@ -57,7 +75,7 @@ const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
     name: 'dark-premium-studio',
     category: 'studio',
     scene:
-      'dark premium studio environment, deep charcoal tonal field, luxury product separation, controlled high-end reflections, cinematic shadow architecture, premium advertising polish',
+      'low-key premium advertising studio, deep charcoal tonal field, controlled hero-product separation, sculpted shadow architecture, disciplined rim definition, premium commercial realism, off-camera lighting hardware only, and zero CGI showroom gloss',
   },
   'Tech Clean Studio': {
     name: 'tech-clean-studio',
@@ -165,14 +183,23 @@ export function buildVisualStyle(state?: StudioUIState): string {
   if (!definition) return '';
 
   const isGoldenSunset = definition.name === 'golden-sunset-backlit';
+  const isDarkPremium = definition.name === 'dark-premium-studio';
   const goldenVariant = isGoldenSunset ? pickRandom(GOLDEN_SUNSET_BG_VARIANTS) : null;
   const sceneText = goldenVariant ? `${definition.scene}, ${goldenVariant.scene}` : definition.scene;
+  const darkPremiumDefaults = isDarkPremium ? resolveDarkPremiumDefaults(state) : null;
 
   return [
     'VISUAL_STYLE_MODE: active.',
     `VISUAL_STYLE_CATEGORY: ${definition.category}.`,
     `VISUAL_STYLE_NAME: ${definition.name}.`,
     `VISUAL_STYLE_SCENE: ${sceneText}`,
+    ...(darkPremiumDefaults
+      ? [
+          `DARK_PREMIUM_STUDIO_ATMOSPHERE: low-key premium advertising studio with controlled highlights. Darkness level=${darkPremiumDefaults.darknessLevel}. Rim light intensity=${darkPremiumDefaults.rimLightIntensity}. Background material=${darkPremiumDefaults.backgroundMaterial}.`,
+          'DARK_PREMIUM_STUDIO_CONSTRAINTS: No crushed blacks. Edges must remain readable. Label contrast must be preserved. Use rigid premium materials only: glass, metal, acrylic, stone, concrete, or matte architectural surfaces.',
+          'DARK_PREMIUM_RENDER_GUARD: Real photographic falloff only. No hazy bloom wash, no fake fog, no plastic CGI sheen, no showroom render glow, and no muddy shadow noise.',
+        ]
+      : []),
     ...(goldenVariant
       ? [
           'GOLDEN_SUNSET_BACKLIT_ATMOSPHERE: active.',
