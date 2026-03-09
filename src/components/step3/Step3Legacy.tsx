@@ -188,8 +188,6 @@ const PHOTO_MODES_WITH_VISIBLE_SETTINGS = new Set<PhotoMode>([
   ...(Object.keys(PHOTO_MODE_SCHEMAS) as PhotoMode[]),
 ]);
 
-const ENTRY_MODE_TUTORIAL_STORAGE_KEY = 'pmg-entry-mode-tutorial-dismissed-v1';
-
 const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
 const LUXURY_UI_ALLOWED_SHOT_TYPES = ['Close', 'Medium'] as const;
 const LUXURY_UI_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
@@ -1212,7 +1210,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
-    sceneType: 'studio-branding',
     visualMode: 'default',
     visualIntent: initialSceneIntent === 'ecommerce' ? undefined : 'editorial',
     // Creator/Person
@@ -1436,7 +1433,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [productEnvironmentAdvancedOpen, setProductEnvironmentAdvancedOpen] = useState(false);
   const [productEnvironmentShowAllMacros, setProductEnvironmentShowAllMacros] = useState(false);
   const [placementCorrectionMessage, setPlacementCorrectionMessage] = useState<string | null>(null);
-  const [showEntryModeTutorial, setShowEntryModeTutorial] = useState(false);
 
   // ============================================================================
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
@@ -1568,13 +1564,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     ...(productStore as ProductStudioState),
     placement: placementResolution.resolvedPlacement,
   });
-
-  const dismissEntryModeTutorial = useCallback(() => {
-    setShowEntryModeTutorial(false);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(ENTRY_MODE_TUTORIAL_STORAGE_KEY, '1');
-    }
-  }, []);
   const cameraAngleLabelFromState = (angle: ProductStudioState['angle']): string => {
     if (angle === 'detail_closeup') return 'Detail close-up';
     if (angle === 'top_down') return 'Top-down flat lay';
@@ -1641,19 +1630,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const timer = window.setTimeout(() => setPlacementCorrectionMessage(null), 3500);
     return () => window.clearTimeout(timer);
   }, [placementCorrectionMessage]);
-
-  useEffect(() => {
-    if (isProductMode) return;
-    if (typeof window === 'undefined') return;
-    const dismissed = window.localStorage.getItem(ENTRY_MODE_TUTORIAL_STORAGE_KEY) === '1';
-    setShowEntryModeTutorial(!dismissed);
-  }, [isProductMode]);
-
-  useEffect(() => {
-    if (isProductMode) return;
-    if (values.sceneType) return;
-    setValues(prev => ({ ...prev, sceneType: 'studio-branding' }));
-  }, [isProductMode, values.sceneType]);
 
   useEffect(() => {
     if (!isProductMode) return;
@@ -2233,13 +2209,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
     // ENGINE ISOLATION: sceneType is derived EXCLUSIVELY from values.sceneType.
     // productStore.sceneType is NEVER consulted here — it belongs to the V2 studio engine only.
-    // Default: 'studio-branding' when values.sceneType is absent.
+    // Default: 'lifestyle-real' (never 'studio-branding') when values.sceneType is absent.
     console.log('[STEP3 EMIT SOURCE]', {
       fromValues: values.sceneType,
       fromStore: productStore.sceneType,
     });
     const sceneType: 'studio-branding' | 'lifestyle-real' =
-      values.sceneType === 'lifestyle-real' ? 'lifestyle-real' : 'studio-branding';
+      values.sceneType === 'studio-branding' ? 'studio-branding' : 'lifestyle-real';
     console.log('[PHASE3 sceneType RESOLUTION]', {
       resolvedSceneType: sceneType,
       source: 'values.sceneType only',
@@ -2408,8 +2384,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isLuxuryIntent = visualIntentMode === 'luxury';
   const isEditorialIntent = visualIntentMode === 'editorial' && !isUGCMode;
   const isBrandIntent = visualIntentMode === 'brand' && !isUGCMode;
+  const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType: 'studio-branding' | 'lifestyle-real' =
-    values.sceneType === 'lifestyle-real'
+    uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
       ? 'lifestyle-real'
       : 'studio-branding';
   const uiContentStyle: 'ugc' | 'product' | 'brand' =
@@ -3071,56 +3048,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {!isProductMode && (
                       <div className={SECTION_GROUP_CLASS}>
                         <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
-                        {showEntryModeTutorial && (
-                          <div className="mb-3 rounded-2xl border border-indigo-200 bg-indigo-50/70 px-4 py-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="space-y-1">
-                                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-indigo-700">
-                                  Start Here
-                                </p>
-                                <p className="text-sm font-semibold text-gray-900">
-                                  Studio is the default.
-                                </p>
-                                <p className="text-xs text-gray-600">
-                                  Use <span className="font-semibold text-gray-900">Studio</span> for clean product-first advertising. Use <span className="font-semibold text-gray-900">Lifestyle Real</span> when you want a real environment around the product.
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={dismissEntryModeTutorial}
-                                className="shrink-0 rounded-full border border-indigo-200 bg-white px-3 py-1 text-[11px] font-semibold text-indigo-700 transition hover:bg-indigo-100"
-                              >
-                                Dismiss
-                              </button>
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  productStore.setSceneType('studio-branding');
-                                  updateValue('sceneType', 'studio-branding');
-                                  markSectionTouched('product-setup');
-                                  dismissEntryModeTutorial();
-                                }}
-                                className="rounded-full bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
-                              >
-                                Keep Studio
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  productStore.setSceneType('lifestyle-real');
-                                  updateValue('sceneType', 'lifestyle-real');
-                                  markSectionTouched('product-setup');
-                                  dismissEntryModeTutorial();
-                                }}
-                                className="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-700 transition hover:bg-indigo-100"
-                              >
-                                Switch to Lifestyle
-                              </button>
-                            </div>
-                          </div>
-                        )}
                         <div className="flex flex-wrap gap-2">
                           {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
                             <Chip
