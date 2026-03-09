@@ -2241,16 +2241,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
     // ENGINE ISOLATION: sceneType is derived EXCLUSIVELY from values.sceneType.
     // productStore.sceneType is NEVER consulted here — it belongs to the V2 studio engine only.
-    // Default: 'studio-branding' when values.sceneType is absent, matching the store default and UI expectation.
+    // If values.sceneType is absent, infer from the active creation flow instead of falling back to studio.
     console.log('[STEP3 EMIT SOURCE]', {
       fromValues: values.sceneType,
       fromStore: productStore.sceneType,
     });
+    const inferredLifestyleScene =
+      normalizedCreationMode === 'aesthetic' ||
+      normalizedCreationMode === 'lifestyle' ||
+      normalizedCreationMode === 'ugc';
     const sceneType: 'studio-branding' | 'lifestyle-real' =
-      values.sceneType === 'lifestyle-real' ? 'lifestyle-real' : 'studio-branding';
+      values.sceneType === 'studio-branding' || values.sceneType === 'lifestyle-real'
+        ? values.sceneType
+        : inferredLifestyleScene
+          ? 'lifestyle-real'
+          : 'studio-branding';
     console.log('[PHASE3 sceneType RESOLUTION]', {
       resolvedSceneType: sceneType,
-      source: 'values.sceneType only',
+      source:
+        values.sceneType === 'studio-branding' || values.sceneType === 'lifestyle-real'
+          ? 'values.sceneType only'
+          : 'inferred from normalizedCreationMode',
     });
     const contentStyle: 'ugc' | 'product' | 'brand' =
       values.visualMode === 'ugc'
