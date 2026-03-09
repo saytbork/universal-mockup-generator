@@ -99,6 +99,8 @@ function inferSubjectOrientation(state: ProductStudioState): StudioUIState['subj
 function inferLightingOverride(state: ProductStudioState): string | undefined {
   // lightingModelOverride is PRO-MODE ONLY — matches V1 behavior.
   // Basic lighting selector (natural-light / overcast / etc.) is handled via basicLighting field.
+  // Do not merge the ambient/basic selector into the rig override or we end up with
+  // contradictory prompts like "Prism Spotlight Duo; cozy-indoors".
   const isProMode =
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
   if (!isProMode) return undefined;
@@ -108,9 +110,6 @@ function inferLightingOverride(state: ProductStudioState): string | undefined {
   const DEFAULT_LIGHTING_RIGS = new Set(['Softbox Wrap', '']);
   if (!rig || DEFAULT_LIGHTING_RIGS.has(rig)) return undefined;
 
-  // style (lighting) is a different field than rig — only used in PRO mode here
-  const style = String((state as any).lighting || '').trim();
-  if (rig && style) return `${rig}; ${style}`;
   if (rig) return rig;
   return undefined;
 }

@@ -46,4 +46,20 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).not.toContain('STUDIO_CAMERA_ROTATION:');
     expect(prompt).not.toContain('STUDIO_FRAMING_GUIDE:');
   });
+
+  test('uses only the manual lens authority when advanced lens override is active', () => {
+    const prompt = generateStudioPromptV2({
+      ...baseState,
+      advancedControls: true,
+      cameraSystem: 'DSLR / mirrorless',
+      cameraAngle: '45° hero',
+      cameraDistance: 'Standard',
+      cameraRotation: '0°',
+      framingGuide: 'Centered hero',
+      lensOverride: '100mm Macro Prime',
+    });
+
+    expect(prompt).toContain('LENS_PROFILE: 100mm Macro Prime.');
+    expect(prompt).not.toContain('LENS_PROFILE: 50mm equivalent.');
+  });
 });

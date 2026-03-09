@@ -132,7 +132,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   const intensity = Number(lightingState?.accentLightIntensity ?? 50);
   if (customColor && customColor !== '#FFFFFF' && /^#[0-9A-F]{6}$/.test(customColor)) {
     const intensityDesc = intensity <= 20 ? 'subtle' : intensity <= 40 ? 'moderate' : intensity <= 60 ? 'strong' : intensity <= 80 ? 'dramatic' : 'intense';
-    parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Add colored edge/rim lighting with this gel color on the product edges and contours, creating ${intensityDesc} colored highlights and atmospheric glow.`);
+    parts.push(`ACCENT LIGHT GEL: ${customColor} at ${intensity}% intensity (${intensityDesc}). Use restrained colored edge/rim separation only. Keep the glow localized to contour highlights. No colored haze, no diffuse bloom, no noisy spill across the background, and no label contamination.`);
   }
 
   if (splashAdMode) {

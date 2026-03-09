@@ -182,6 +182,11 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Routine Carousel',
 ]);
 
+const PHOTO_MODES_WITH_VISIBLE_SETTINGS = new Set<PhotoMode>([
+  ...PHOTO_MODE_WITH_MANUAL_SETTINGS,
+  ...(Object.keys(PHOTO_MODE_SCHEMAS) as PhotoMode[]),
+]);
+
 const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
 const LUXURY_UI_ALLOWED_SHOT_TYPES = ['Close', 'Medium'] as const;
 const LUXURY_UI_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
@@ -1157,6 +1162,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const photoModeHintTimerRef = useRef<number | null>(null);
   const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
   const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
+  const hasVisiblePhotoModeSettings = useCallback(
+    (mode?: PhotoMode | null) => Boolean(mode && PHOTO_MODES_WITH_VISIBLE_SETTINGS.has(mode)),
+    []
+  );
   const markSectionTouched = useCallback((section: string) => {
     setTouchedSections(prev => {
       const newSet = new Set(prev);
@@ -1174,6 +1183,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   const showPhotoModeSettingsHint = useCallback((mode: PhotoMode) => {
     if (typeof window === 'undefined') return;
+    if (!hasVisiblePhotoModeSettings(mode)) {
+      setPhotoModeHintMode(null);
+      setPhotoModeHintVisible(false);
+      if (photoModeHintTimerRef.current != null) {
+        window.clearTimeout(photoModeHintTimerRef.current);
+      }
+      return;
+    }
     setPhotoModeHintMode(mode);
     setPhotoModeHintVisible(true);
     if (photoModeHintTimerRef.current != null) {
@@ -1182,7 +1199,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     photoModeHintTimerRef.current = window.setTimeout(() => {
       setPhotoModeHintVisible(false);
     }, 2600);
-  }, []);
+  }, [hasVisiblePhotoModeSettings]);
   useEffect(() => {
     return () => {
       if (photoModeHintTimerRef.current != null && typeof window !== 'undefined') {
@@ -3484,7 +3501,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                           <div className="mt-8 space-y-5">
                             <div ref={photoModeSettingsRef} />
-                            {photoModeHintVisible && (
+                            {photoModeHintVisible && hasVisiblePhotoModeSettings(photoModeHintMode || productStore.photoMode) && (
                               <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
                                 <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
                                 <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>

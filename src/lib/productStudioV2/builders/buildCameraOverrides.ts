@@ -100,6 +100,8 @@ export function buildCameraOverrides(state?: StudioUIState): string {
   const rotation = String(state?.cameraRotation || state?.rotationOverride || '').trim();
   const framingGuide = String(state?.framingGuide || state?.framingGuideOverride || '').trim();
   const viewpoint = String(state?.viewpoint || '').trim().toLowerCase();
+  const lensOverride = String(state?.lensOverride || '').trim();
+  const deferLensProfileToAdvancedOverride = Boolean(state?.advancedControls && lensOverride);
 
   if (!cameraSystem || !angle || !distance || !rotation || !framingGuide) return '';
 
@@ -112,7 +114,7 @@ export function buildCameraOverrides(state?: StudioUIState): string {
     'CAMERA_STABILITY_LOCK: Camera roll must remain exactly 0 degrees. The horizon must remain level. Do not apply Dutch angle. Do not simulate camera tilt. The camera optical axis must remain perpendicular to the ground plane.',
     `STUDIO_CAMERA_ANGLE: ${angle}.`,
     `STUDIO_CAMERA_DISTANCE: ${distance}.`,
-    `LENS_PROFILE: ${lensProfile}.`,
+    ...(deferLensProfileToAdvancedOverride ? [] : [`LENS_PROFILE: ${lensProfile}.`]),
     `DISTORTION: ${distortion}.`,
     // V1 depth realism — natural photographic depth, no flat CGI rendering
     'DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.',

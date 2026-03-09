@@ -68,4 +68,14 @@ describe('buildLighting priority + alias normalization regression', () => {
     const out = buildLighting(authority, state({ lighting: alias }));
     expect(out).toContain(expected);
   });
+
+  it('keeps accent gel constrained to rim separation without atmospheric glow language', () => {
+    const out = buildLighting(authority, state({
+      customLightColor: '#9966FF',
+      accentLightIntensity: 69,
+    }));
+    expect(out).toContain('Use restrained colored edge/rim separation only.');
+    expect(out).toContain('No colored haze, no diffuse bloom, no noisy spill across the background, and no label contamination.');
+    expect(out).not.toContain('atmospheric glow');
+  });
 });
