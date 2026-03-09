@@ -25,7 +25,11 @@ CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited phot
 `.trim().replace(/\s+/g, ' ');
 
 const BRAND_EDITORIAL_GUARD = `
-BRAND_EDITORIAL_STANDARD: Polished grooming. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe. Real human skin texture with natural micro-variation. Preserve pores, subtle asymmetry, fine lines, and realistic tonal variation. Avoid plastic smoothing, porcelain finish, CGI skin, or mannequin-like rendering. NO porcelain skin. NO plastic skin. NO beauty-filter smoothing. NO mannequin symmetry. NO CGI facial rendering. Maintain real optical skin response to natural light.
+BRAND_EDITORIAL_STANDARD: Polished grooming. Confident controlled posture. Natural but camera-ready presence. Creative advertising realism, never beauty-doll rendering. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe. Real human skin texture with natural micro-variation. Preserve pores, subtle asymmetry, fine lines, under-eye transitions, lip texture, real eyelid folds, and realistic tonal variation. Eyes must have natural sclera detail and realistic catchlights, never glassy doll eyes. Teeth, if visible, must retain natural enamel texture and slight imperfection, never uniform CGI white blocks. Avoid plastic smoothing, porcelain finish, waxy highlights, CGI skin, or mannequin-like rendering. NO porcelain skin. NO plastic skin. NO beauty-filter smoothing. NO mannequin symmetry. NO CGI facial rendering. NO doll eyes. NO fake veneers look. Maintain real optical skin response to natural light.
+`.trim().replace(/\s+/g, ' ');
+
+const BRAND_EDITORIAL_FACIAL_REALISM = `
+ADVERTISING HUMAN REALISM (NON-NEGOTIABLE): This is polished commercial advertising with a real human subject, not a beauty doll, mannequin, CGI avatar, or synthetic influencer face. Maintain natural facial asymmetry, believable eyelids, real tear line, textured lips, authentic teeth if visible, subtle under-eye structure, and skin pore continuity from forehead to jaw. Preserve a real nose bridge, real nostril shape, real ear anatomy, and natural smile mechanics. Reject glassy eyes, frozen smile, waxy skin, over-whitened teeth, airbrushed cheeks, plastic lips, or symmetry so perfect that the face reads fake.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -192,6 +196,7 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             `.trim().replace(/\s+/g, ' '));
         } else if (brandEditorialStyle) {
             parts.push(BRAND_EDITORIAL_GUARD);
+            parts.push(BRAND_EDITORIAL_FACIAL_REALISM);
         }
 
         // ====================================================================

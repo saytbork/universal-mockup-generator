@@ -73,11 +73,11 @@ const formatEnvironmentPhrase = (environmentText?: string): string => {
 };
 
 const HUMAN_REALISM_GUARD =
-    'The person looks like a real human, candid and imperfect, with natural skin texture, subtle asymmetry, and a lived-in environment. Nothing looks 3D, CGI, rendered, or studio-polished.';
+    'Human realism guard (non-negotiable): real human face and skin only. Preserve pores, micro-texture, natural asymmetry, realistic eyelids, believable lip texture, and authentic facial structure. No doll face, no mannequin features, no porcelain skin, no waxy highlights, no CGI facial rendering, and no beauty-filter smoothing.';
 
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
+    return isNonUGC && options.personIncluded === true && (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic' || Boolean(options.formulationExpertEnabled));
 };
 
 export class SceneNarrativeBuilder {
@@ -131,11 +131,19 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                parts.push(
-                    'Expert-led product narrative.',
-                    'Scientific credibility and formulation trust.',
-                    'The expert remains the primary subject.'
-                );
+                if (options.formulationExpertEnabled === true) {
+                    parts.push(
+                        'Expert-led product narrative.',
+                        'Scientific credibility and formulation trust.',
+                        'The expert remains the primary subject.'
+                    );
+                } else {
+                    parts.push(
+                        'Brand-led product narrative.',
+                        'Commercial credibility with real human presence.',
+                        'The product remains the primary commercial subject.'
+                    );
+                }
                 break;
         default:
             if (isProductMode) {
