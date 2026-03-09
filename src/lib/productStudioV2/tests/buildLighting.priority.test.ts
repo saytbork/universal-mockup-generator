@@ -80,13 +80,23 @@ describe('buildLighting priority + alias normalization regression', () => {
     expect(out).not.toContain('atmospheric glow');
   });
 
-  it('does not inject accent gel text for non-gel lighting rigs', () => {
+  it('injects accent gel text for pro studio rigs like 3-point beauty dish', () => {
     const out = buildLighting(authority, state({
       lightingModelOverride: '3-Point Beauty Dish',
       customLightColor: '#9966FF',
       accentLightIntensity: 69,
     }));
     expect(out).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
+    expect(out).toContain('ACCENT LIGHT GEL: #9966FF at 69% intensity (dramatic).');
+  });
+
+  it('still blocks accent gel text for natural/ambient lighting presets', () => {
+    const out = buildLighting(authority, state({
+      lightingModelOverride: 'natural light',
+      customLightColor: '#9966FF',
+      accentLightIntensity: 69,
+    }));
+    expect(out).toContain('STUDIO_LIGHTING_PROFILE: natural light.');
     expect(out).not.toContain('ACCENT LIGHT GEL:');
   });
 

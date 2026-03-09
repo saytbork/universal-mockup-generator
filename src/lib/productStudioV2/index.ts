@@ -103,11 +103,17 @@ const FORBIDDEN_TERMS = ['body', 'face'];
 function supportsAccentGelRig(lightingDescriptor: string): boolean {
   const normalized = String(lightingDescriptor || '').trim().toLowerCase();
   if (!normalized) return false;
-  return (
-    normalized.includes('gel') ||
-    normalized.includes('prism') ||
-    normalized.includes('acrylic')
-  );
+  if (
+    normalized.includes('natural') ||
+    normalized.includes('overcast') ||
+    normalized.includes('sunny day') ||
+    normalized.includes('golden hour') ||
+    normalized.includes('cozy-indoors') ||
+    normalized.includes('clinical-softbox')
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUIState): string[] {
