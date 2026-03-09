@@ -1241,7 +1241,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
-    sceneType: isProductMode ? 'studio-branding' : 'lifestyle-real',
+    sceneType: 'studio-branding',
     visualMode: 'default',
     visualIntent: initialSceneIntent === 'ecommerce' ? undefined : 'editorial',
     // Creator/Person
@@ -2241,15 +2241,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
     // ENGINE ISOLATION: sceneType is derived EXCLUSIVELY from values.sceneType.
     // productStore.sceneType is NEVER consulted here — it belongs to the V2 studio engine only.
-    // Default follows the active builder mode: studio for product mode, lifestyle for lifestyle mode.
+    // Default: 'studio-branding' when values.sceneType is absent, matching the store default and UI expectation.
     console.log('[STEP3 EMIT SOURCE]', {
       fromValues: values.sceneType,
       fromStore: productStore.sceneType,
     });
     const sceneType: 'studio-branding' | 'lifestyle-real' =
-      values.sceneType
-        ? values.sceneType
-        : (isProductMode ? 'studio-branding' : 'lifestyle-real');
+      values.sceneType === 'lifestyle-real' ? 'lifestyle-real' : 'studio-branding';
     console.log('[PHASE3 sceneType RESOLUTION]', {
       resolvedSceneType: sceneType,
       source: 'values.sceneType only',
