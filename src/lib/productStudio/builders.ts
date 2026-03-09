@@ -1274,8 +1274,10 @@ function buildLabelLock(): string {
     return [
         'LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen.',
         'Do not rewrite, invent, complete, or retype label text.',
+        'Do not replace, omit, transpose, or autocorrect letters, numbers, symbols, or punctuation.',
         'Do not redraw label artwork; do not change typography, font weight, spacing, or alignment.',
         'Do not warp, curve, stretch, distort, or texture-map the label.',
+        'Treat the label as locked photographic content, not editable generated text.',
         'If the bottle rotates, the label rotates rigidly with it and preserves original proportions.',
         'Natural perspective from camera angle is allowed, but avoid extreme oblique views that reduce readability.',
     ].join(' ');
@@ -2321,6 +2323,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
         // Label integrity
         'redrawn label', 'rewritten label', 'invented label text', 'altered typography',
+        'misspelled label text', 'wrong text', 'changed text', 'substituted text', 'omitted text',
+        'extra text', 'hallucinated text', 'nonsense text', 'gibberish text',
+        'wrong letters', 'wrong numbers', 'transposed letters', 'autocorrected text',
         'warped label', 'curved label', 'stretched label', 'crooked label', 'misaligned label', 'mismatched label proportions',
         'label as texture', 'label texture', 'label distortion', 'label perspective warp',
         // Packaging / design integrity
