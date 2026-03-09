@@ -18,6 +18,7 @@ const PLACEMENT_SURFACE_MAP: Record<string, string> = {
 };
 
 export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
   if (state?.visualProfile === 'coffee') {
     return [
       'STUDIO_MATERIAL_PROFILE: coffee-ceramic-priority.',
@@ -31,6 +32,7 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
     return 'STUDIO_MATERIAL_MODEL: premium wine materials with controlled reflections and strict geometry-preserving integration.';
   }
 
+  const isSupplementIndustry = industryProfile === 'supplements' || industryProfile === 'supplement';
   const materialModel = (() => {
     if (authority.world === 'beach-daylight') {
       return 'natural Caribbean shoreline materials: clean white sand grain, turquoise shallows, sea-foam edge behavior, and physically coherent wet contact zones';
@@ -48,6 +50,12 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
   })();
 
   const parts: string[] = [`STUDIO_MATERIAL_PROFILE: ${materialModel}.`];
+
+  if (isSupplementIndustry) {
+    parts.push(
+      'SUPPLEMENT_MATERIAL_REALISM: Commercial-grade packaging materials with controlled specular highlights, believable micro-surface variation, true contact shadows, and no fake composite sheen. Optical behavior must read as photographed, not rendered.'
+    );
+  }
 
   // Physical Presence — container material override (last-selection-wins)
   const productMaterial = String(state?.productMaterial || '').trim().toLowerCase();

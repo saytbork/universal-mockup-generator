@@ -15,6 +15,8 @@ describe('supplement and coffee advertising realism baseline', () => {
 
     expect(prompt).toContain('SCENE_STYLE: hyper-real professional supplement advertising photography.');
     expect(prompt).toContain('PRODUCT_CHARACTER_PROFILE: hyper-real professional supplement advertising');
+    expect(prompt).toContain('SUPPLEMENT_AD_LIGHTING_REALISM: Hyper-real commercial lighting with disciplined specular control');
+    expect(prompt).toContain('SUPPLEMENT_MATERIAL_REALISM: Commercial-grade packaging materials with controlled specular highlights');
   });
 
   it('coffee pipeline injects hyper-real professional advertising realism target', () => {

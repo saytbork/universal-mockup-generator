@@ -30,6 +30,7 @@ const PRESET_ALIAS_MAP: Record<string, string> = {
 
 export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const lightingState = state as LightingState | undefined;
+  const industryProfile = String(state?.industryProfile || '').trim().toLowerCase();
   if (state?.visualProfile === 'coffee') {
     const mood = state.coffeeMoodProfile || 'ritual-editorial';
     if (mood === 'coffee-cinematic-luxury') {
@@ -55,6 +56,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
     return `STUDIO_LIGHTING_MODEL: wine-${mood}.`;
   }
 
+  const isSupplementIndustry = industryProfile === 'supplements' || industryProfile === 'supplement';
   const override = String(state?.lightingModelOverride || '').trim();
   const basicLighting = String(state?.basicLighting || '').trim().toLowerCase();
   const rawPresetLighting = String(
@@ -136,6 +138,12 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   if (splashAdMode) {
     parts.push(
       'SPLASH_AD_LIGHTING: slightly elevated contrast ratio, crisp specular highlights, and micro edge highlights on droplets. Preserve product geometry lock and reference integrity.'
+    );
+  }
+
+  if (isSupplementIndustry) {
+    parts.push(
+      'SUPPLEMENT_AD_LIGHTING_REALISM: Hyper-real commercial lighting with disciplined specular control, true lens behavior, natural highlight roll-off, and optical depth that feels captured in-camera. No fake composite look.'
     );
   }
 
