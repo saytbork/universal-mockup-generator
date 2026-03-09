@@ -22,8 +22,10 @@ describe('wine concept modes', () => {
     const prompt = generateStudioPromptV2(mapped);
 
     expect(mapped.wineGlassMode).toBe('filled');
+    expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
     expect(prompt).toContain('bottleState=open; serveState=served;');
     expect(prompt).toContain('COMPOSITION: BOTTLE_AND_GLASS. Opened service bottle and filled wine glass.');
+    expect(prompt).toContain('PHOTO_MODE: Bottle + Glass.');
     expect(prompt).not.toContain('Sealed bottle and filled wine glass.');
   });
 

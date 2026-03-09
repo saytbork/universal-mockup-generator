@@ -202,6 +202,11 @@ export const winePipeline = {
         type: 'guardrail',
         content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback.',
       });
+    } else if (bottleAndGlassMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle + Glass. Premium served-bottle presentation with one filled wine glass beside the bottle. Opened service state only. No pour-in-progress. Label remains fully legible and dominant.',
+      });
     } else if (bottleAndGlassPourMode) {
       segments.push({
         type: 'guardrail',

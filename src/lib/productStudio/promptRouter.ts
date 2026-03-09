@@ -1124,12 +1124,22 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
       resolvedPhotoMode === 'Rose Tasting Table');
+  const isWineServedPresentationMode =
+    industryProfile === 'wine' &&
+    (resolvedPhotoMode === 'Bottle + Glass' ||
+      resolvedPhotoMode === 'Bottle + Glass Pour' ||
+      resolvedPhotoMode === 'Hands Pouring Wine' ||
+      resolvedPhotoMode === 'Rose Tasting Table');
   const resolvedWineAction =
     isWinePourMode ? 'controlled-pour' : 'static-presentation';
   const resolvedWineGlassMode =
     isWineHeroLanding ? 'none' : isWineGlassMode ? 'filled' : state.wineGlassMode;
   const resolvedWineBottleState =
-    isWineHeroLanding ? 'sealed' : isWinePourMode ? 'opened-with-cork-nearby' : state.wineBottleState;
+    isWineHeroLanding
+      ? 'sealed'
+      : isWineServedPresentationMode
+        ? 'opened-with-cork-nearby'
+        : state.wineBottleState;
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
