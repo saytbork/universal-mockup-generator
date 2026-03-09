@@ -25,8 +25,26 @@ CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited phot
 `.trim().replace(/\s+/g, ' ');
 
 const BRAND_EDITORIAL_GUARD = `
-BRAND_EDITORIAL_STANDARD: Polished grooming. Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe. Real human skin texture with natural micro-variation. Preserve pores, subtle asymmetry, fine lines, and realistic tonal variation. Avoid plastic smoothing, porcelain finish, CGI skin, or mannequin-like rendering. NO porcelain skin. NO plastic skin. NO beauty-filter smoothing. NO mannequin symmetry. NO CGI facial rendering. Maintain real optical skin response to natural light.
+BRAND_EDITORIAL_STANDARD: Polished grooming. Confident controlled posture. Natural but camera-ready presence. Creative advertising realism, never beauty-doll rendering. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe. Real human skin texture with natural micro-variation. Preserve pores, subtle asymmetry, fine lines, under-eye transitions, lip texture, real eyelid folds, and realistic tonal variation. Eyes must have natural sclera detail and realistic catchlights, never glassy doll eyes. Teeth, if visible, must retain natural enamel texture and slight imperfection, never uniform CGI white blocks. Avoid plastic smoothing, porcelain finish, waxy highlights, CGI skin, or mannequin-like rendering. NO porcelain skin. NO plastic skin. NO beauty-filter smoothing. NO mannequin symmetry. NO CGI facial rendering. NO doll eyes. NO fake veneers look. Maintain real optical skin response to natural light.
 `.trim().replace(/\s+/g, ' ');
+
+const BRAND_EDITORIAL_FACIAL_REALISM = `
+ADVERTISING HUMAN REALISM (NON-NEGOTIABLE): This is polished commercial advertising with a real human subject, not a beauty doll, mannequin, CGI avatar, or synthetic influencer face. Maintain natural facial asymmetry, believable eyelids, real tear line, textured lips, authentic teeth if visible, subtle under-eye structure, and skin pore continuity from forehead to jaw. Preserve a real nose bridge, real nostril shape, real ear anatomy, and natural smile mechanics. Reject glassy eyes, frozen smile, waxy skin, over-whitened teeth, airbrushed cheeks, plastic lips, or symmetry so perfect that the face reads fake.
+`.trim().replace(/\s+/g, ' ');
+
+const ADVERTISING_SKIN_TEXTURE_VARIATIONS = [
+    'natural pore detail across forehead, nose, and cheeks with clean commercial finish',
+    'subtle under-eye structure and believable tonal transitions, never airbrushed flatness',
+    'real skin micro-texture with soft natural highlights and no waxy smoothing',
+    'light facial asymmetry and authentic skin texture continuity across face and neck',
+];
+
+const ADVERTISING_HAIR_STYLING = [
+    'clean natural styling with believable flyaways and non-uniform strands',
+    'soft controlled styling with real hair separation and natural edge texture',
+    'camera-ready grooming with slight irregularity, never salon-perfect helmet hair',
+    'polished everyday styling with natural strand variation and believable volume',
+];
 
 // ============================================================================
 // BLOCKED TERMS (CGI/Doll prevention)
@@ -151,6 +169,16 @@ export class IdentityBuilder implements PromptBuilder {
         return parts.join(', ');
     }
 
+    private buildAdvertisingSkinTexture(seedKey: string): string {
+        const seed = this.hashToken(seedKey);
+        return this.pick(ADVERTISING_SKIN_TEXTURE_VARIATIONS, seed, 21);
+    }
+
+    private buildAdvertisingHairStyling(seedKey: string): string {
+        const seed = this.hashToken(seedKey);
+        return this.pick(ADVERTISING_HAIR_STYLING, seed, 22);
+    }
+
     build(options: PromptOptions): string {
         const {
             personIncluded,
@@ -170,7 +198,13 @@ export class IdentityBuilder implements PromptBuilder {
         // CRITICAL: Use centralized helper to check UGC mode
         // Automatically excludes UGC if Ritual Mode or Formulation Story are active
         const isUgcMode = isUgcModeActive(options);
-        const brandEditorialStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
+        const normalizedContentStyle = String(contentStyle || '').trim().toLowerCase();
+        const normalizedCreationIntent = String(creationIntent || '').trim().toLowerCase();
+        const brandEditorialStyle =
+            normalizedContentStyle === 'brand' ||
+            normalizedCreationIntent === 'brand' ||
+            normalizedCreationIntent === 'editorial' ||
+            normalizedCreationIntent === 'luxury';
         const identityMode = ugcRealModeActive === true ? 'ugc-real' : 'brand-editorial';
         console.log('[IDENTITY MODE]', identityMode);
         
@@ -192,6 +226,7 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             `.trim().replace(/\s+/g, ' '));
         } else if (brandEditorialStyle) {
             parts.push(BRAND_EDITORIAL_GUARD);
+            parts.push(BRAND_EDITORIAL_FACIAL_REALISM);
         }
 
         // ====================================================================
@@ -651,13 +686,24 @@ Captured by smartphone so fine edges may appear soft or broken.
             }
 
             // ALWAYS randomize skin texture (prevents "porcelain doll" look)
-            const skinTexture = randomizer.getSkinTexture();
+            const identitySeedKey = String(
+                options.identityVariationToken ||
+                options.identityKey ||
+                options.seed ||
+                `${options.userId || 'user'}-${options.timestamp || Date.now()}`
+            );
+
+            const skinTexture = isUgcMode
+                ? randomizer.getSkinTexture()
+                : this.buildAdvertisingSkinTexture(identitySeedKey);
             if (skinTexture) {
                 parts.push(`SKIN TEXTURE: ${skinTexture}`);
             }
 
-            // ALWAYS randomize hair styling (prevents "salon perfect" hair)
-            const hairStyling = randomizer.getHairStyling();
+            // UGC gets messy randomization; advertising gets controlled real-world variation.
+            const hairStyling = isUgcMode
+                ? randomizer.getHairStyling()
+                : this.buildAdvertisingHairStyling(identitySeedKey);
             parts.push(`HAIR STYLING: ${hairStyling}`);
 
             // ALWAYS randomize overall appearance (authentically messy UGC vibe)
