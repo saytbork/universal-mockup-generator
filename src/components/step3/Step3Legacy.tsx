@@ -25,6 +25,7 @@ import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productSt
 import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceResolver';
 import { normalizeOption } from '../../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
+import { VISUAL_STYLE_SCHEMAS } from '@/lib/productStudio/visualStyleSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
 import {
   WINE_ENVIRONMENT_PRESETS,
@@ -3505,6 +3506,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
                                 <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
                                 <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
+                              </div>
+                            )}
+                            {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
+                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
+                                <PhotoModeSettings
+                                  schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
+                                  productStore={productStore}
+                                  markSectionTouched={markSectionTouched}
+                                />
                               </div>
                             )}
                             {productStore.photoMode === 'Hero Landing Page' && !productStore.visualStyle && (
