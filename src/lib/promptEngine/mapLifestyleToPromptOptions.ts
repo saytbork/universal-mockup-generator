@@ -1528,12 +1528,12 @@ export function mapLifestyleToPromptOptions(
     // CAMERA → Physical Composition Language
     // ========================================================================
 
-    if (isUGCMode) {
+    if (isUGCRealMode) {
         mapped.rawDomesticUgcActive = true;
         mapped.camera = 'Front-facing smartphone camera with tiny sensor limitations';
         mapped.cameraDeviceSemantic =
-            'Front-facing phone camera only. Flat focus across the entire frame. Single-plane casual capture. No deep depth-of-field. No professional optics. No background blur. No portrait mode. Limited dynamic range, clipped highlights, crushed shadows, and minor handheld geometry inconsistency.';
-        console.log('[MAP] camera: ugc front camera enforced');
+            'Front-facing phone camera with tiny sensor, flat focus across the entire frame, no background blur, no portrait mode, limited dynamic range, clipped highlights, crushed shadows, wobbling handheld geometry.';
+        console.log('[MAP] camera: raw domestic front camera enforced');
     } else {
         const isUgcIntent =
             mapped.creationIntent === 'ugc' ||

@@ -100,16 +100,4 @@ describe('UGC identity variation', () => {
     expect(mapped.personDetails?.personPose).toContain('leaning forward');
     expect(mapped.personDetails?.personAppearance).toContain('running-late');
   });
-
-  it('forces front-facing flat-focus smartphone camera for ugc even when ui still carries pro camera selection', () => {
-    const mapped = mapLifestyleToPromptOptions(makeUgcState(), {}, false) as any;
-
-    expect(mapped.camera).toBe('Front-facing smartphone camera with tiny sensor limitations');
-    expect(mapped.cameraDeviceSemantic).toContain('Front-facing phone camera only');
-    expect(mapped.cameraDeviceSemantic).toContain('Single-plane casual capture');
-    expect(mapped.cameraDeviceSemantic).toContain('No deep depth-of-field');
-    expect(mapped.cameraDeviceSemantic).not.toContain('DSLR');
-    expect(mapped.cameraDeviceSemantic).not.toContain('mirrorless');
-    expect(mapped.cameraDeviceSemantic).not.toContain('premium glass');
-  });
 });
