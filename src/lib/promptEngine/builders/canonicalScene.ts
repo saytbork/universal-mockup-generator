@@ -77,16 +77,7 @@ const HUMAN_REALISM_GUARD =
 
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    const hasPerson = options.personIncluded !== false;
-    return (
-        isNonUGC &&
-        hasPerson &&
-        (
-            options.creationMode === 'lifestyle' ||
-            options.creationMode === 'aesthetic' ||
-            Boolean(options.formulationExpertEnabled)
-        )
-    );
+    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
 };
 
 export class SceneNarrativeBuilder {
@@ -140,19 +131,11 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                if (Boolean(options.formulationExpertEnabled)) {
-                    parts.push(
-                        'Expert-led product narrative.',
-                        'Scientific credibility and formulation trust.',
-                        'The expert remains the primary subject.'
-                    );
-                } else {
-                    parts.push(
-                        'Brand-led product narrative.',
-                        'Commercial credibility with real human presence.',
-                        'The product remains the primary commercial subject.'
-                    );
-                }
+                parts.push(
+                    'Expert-led product narrative.',
+                    'Scientific credibility and formulation trust.',
+                    'The expert remains the primary subject.'
+                );
                 break;
         default:
             if (isProductMode) {
@@ -749,12 +732,6 @@ export class SceneNarrativeBuilder {
                 options.elderlyRealismDescriptor?.trim() ||
                 'Elderly realism guard: advanced age must remain visually dominant with natural skin texture, posture, and lived-in cues.';
             narrativeParts.push(descriptor);
-        }
-
-        if (shouldApplyHumanRealismGuard(options)) {
-            narrativeParts.push(
-                'Human realism guard (non-negotiable): real human face and skin only. Preserve pores, micro-texture, natural asymmetry, realistic eyelids, believable lips, real tooth proportions, and naturally imperfect facial geometry. No doll face, no mannequin features, no porcelain skin, no waxy highlights, no CGI facial rendering, and no beauty-filter smoothing.'
-            );
         }
 
         if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
