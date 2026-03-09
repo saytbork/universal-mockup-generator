@@ -251,6 +251,111 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
+    'Caustic Light Ripples': {
+        id: 'caustic-light-ripples',
+        label: 'Caustic Light Ripples',
+        scope: 'studio',
+        description: 'Water-like caustic light ripples with premium optical movement and clean readability.',
+        basePrompt: 'controlled caustic light ripples across the scene, premium optical reflections, elegant water-light interplay, clean product readability',
+        subOptions: [
+            { key: 'rippleIntensity', label: 'Ripple Intensity', values: ['Subtle', 'Balanced'] },
+            { key: 'lightSpread', label: 'Light Spread', values: ['Focused', 'Wide'] },
+            { key: 'surfaceEnergy', label: 'Surface Energy', values: ['Calm', 'Lively'] },
+        ],
+        constraints: [
+            'Caustics must feel optical and realistic',
+            'Do not simulate pool-party chaos',
+            'Keep product edges readable',
+            'Label readability must remain intact'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Prism Rainbow Refractions': {
+        id: 'prism-rainbow-refractions',
+        label: 'Prism Rainbow Refractions',
+        scope: 'studio',
+        description: 'Controlled prism refractions with premium spectral highlights and clean readability.',
+        basePrompt: 'controlled prism refractions around the product, premium spectral highlights, elegant optical breakup, clean readability, luxury studio realism',
+        subOptions: [
+            { key: 'spectrumStrength', label: 'Spectrum Strength', values: ['Subtle', 'Balanced'] },
+            { key: 'refractionPlacement', label: 'Refraction Placement', values: ['Edge-only', 'Background + edge'] },
+            { key: 'highlightCleanliness', label: 'Highlight Cleanliness', values: ['Clean', 'Expressive'] },
+        ],
+        constraints: [
+            'Keep spectral effects controlled and premium',
+            'No rainbow wash over the full product',
+            'Label readability must remain intact',
+            'No cheap holographic CGI look'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Glass Refraction Panels': {
+        id: 'glass-refraction-panels',
+        label: 'Glass Refraction Panels',
+        scope: 'studio',
+        description: 'Elegant glass-panel refractions adding depth and optical distortion around the product.',
+        basePrompt: 'elegant glass refraction panels placed around the product, controlled distortion, premium optical depth, clean studio realism, hero readability preserved',
+        subOptions: [
+            { key: 'panelDensity', label: 'Panel Density', values: ['Single', 'Layered'] },
+            { key: 'distortionLevel', label: 'Distortion Level', values: ['Subtle', 'Balanced'] },
+            { key: 'glassTone', label: 'Glass Tone', values: ['Clear', 'Cool neutral'] },
+        ],
+        constraints: [
+            'Refraction panels must feel like real glass',
+            'No warped product geometry',
+            'Keep the hero product clearly readable',
+            'No plastic transparent prop look'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Micro Mist Halo': {
+        id: 'micro-mist-halo',
+        label: 'Micro Mist Halo',
+        scope: 'studio',
+        description: 'A fine premium mist halo adding atmospheric freshness without obscuring the product.',
+        basePrompt: 'fine premium mist halo around the product, controlled atmospheric freshness, subtle suspended moisture, clean studio realism, product readability preserved',
+        subOptions: [
+            { key: 'mistDensity', label: 'Mist Density', values: ['Light', 'Balanced'] },
+            { key: 'haloRadius', label: 'Halo Radius', values: ['Tight', 'Wide'] },
+            { key: 'backlightLevel', label: 'Backlight Level', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'Mist must remain subtle and premium',
+            'Do not fog out the product',
+            'No smoke-like dirty haze',
+            'Label readability must remain intact'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Shadow Pattern Projection': {
+        id: 'shadow-pattern-projection',
+        label: 'Shadow Pattern Projection',
+        scope: 'studio',
+        description: 'Projected shadow shapes adding modern editorial lighting and graphic depth.',
+        basePrompt: 'projected shadow pattern across the scene, editorial light shaping, graphic depth, premium studio realism, product remains clearly readable',
+        subOptions: [
+            { key: 'patternType', label: 'Pattern Type', values: ['Window', 'Palm', 'Geometric'] },
+            { key: 'shadowSharpness', label: 'Shadow Sharpness', values: ['Soft', 'Balanced'] },
+            { key: 'coverage', label: 'Coverage', values: ['Background only', 'Partial product edge'] },
+        ],
+        constraints: [
+            'Projected shadows must feel optical, not composited',
+            'Do not bury the product in darkness',
+            'Label readability must remain intact',
+            'No chaotic or messy shadow clutter'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
     'Fruit Garnish / Citrus Accents': {
         id: 'fruit-garnish-citrus-accents',
         label: 'Fruit Garnish / Citrus Accents',

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { __buildPromptForTest } from '../pipelines/genericPipeline';
 import type { StudioUIState } from '../types/studioTypes';
+import { PHOTO_MODE_SCHEMAS } from '../../productStudio/photoModeSchema';
 
 function base(overrides: Partial<StudioUIState> = {}): StudioUIState {
   return {
@@ -23,6 +24,13 @@ describe('new special effects modes', () => {
   ] as const;
 
   for (const mode of modes) {
+    it(`${mode} has visible schema settings for the Step3 panel`, () => {
+      const schema = PHOTO_MODE_SCHEMAS[mode];
+
+      expect(schema).toBeDefined();
+      expect(schema?.subOptions.length).toBeGreaterThan(0);
+    });
+
     it(`${mode} emits scene context without splash physics`, () => {
       const prompt = __buildPromptForTest(base({ photoMode: mode }));
 
