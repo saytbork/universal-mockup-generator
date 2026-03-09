@@ -36,6 +36,7 @@ export class LifestyleProfessionalBiasBuilder {
       'Background depth: subtle cinematic blur with controlled falloff and stabilized framing.',
       'Camera reinforcement: set-lit enhancement even under natural light, commercial dynamic range, precision framing, and brand-safe compositional control.',
       'Signal suppression: remove user-generated framing drift, domestic storytelling tone, handheld instability, and phone-capture aesthetics.',
+      'Skin discipline: real human skin only. Preserve pores, micro-texture, fine lines, slight asymmetry, and natural tonal shifts. No porcelain smoothing, no mannequin finish, no waxy highlights, no beauty-filter skin, and no CGI facial polish.',
       'Grooming discipline: hair must read clean, dry, styled, and campaign-ready. No wet hair, greasy roots, damp strands on the face, post-shower texture, accidental flyaway clumps, or sweaty grooming cues.',
       'Styling discipline: appearance must feel polished advertising/editorial, never bathroom realism, never domestic cleanup moment, never after-workout, and never just-woke-up.',
     ];

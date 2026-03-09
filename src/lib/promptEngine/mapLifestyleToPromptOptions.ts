@@ -1211,17 +1211,7 @@ export function mapLifestyleToPromptOptions(
             mapped.personDetails.personAppearance = appearanceDescriptor;
         }
 
-        const normalizedSkinRealism = normalizeKey(sceneState.skinRealism);
-        const nonUgcAdvertisingIntent = !isUGCMode && ['brand', 'editorial', 'luxury'].includes(String(sceneState.visualIntent || '').trim().toLowerCase());
-        const editorialSkinRealism =
-            // For older ages, avoid auto-upgrading to soft retouch (it collapses perceived age).
-            ((ugcStyleKey === 'optimized') || nonUgcAdvertisingIntent) &&
-                !isUGCMode &&
-                personAge < 60 &&
-                (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'real' || normalizedSkinRealism === 'raw-real' || normalizedSkinRealism === 'natural')
-                ? 'soft-retouch'
-                : sceneState.skinRealism;
-        const skinDescriptor = mapSkinRealism(editorialSkinRealism);
+        const skinDescriptor = mapSkinRealism(sceneState.skinRealism);
         if (skinDescriptor) {
             mapped.personDetails.skinRealism = skinDescriptor;
         }
