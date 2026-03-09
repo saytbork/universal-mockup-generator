@@ -2554,6 +2554,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const next: Step3Values = {
         ...prev,
+        sceneType: 'studio-branding',
         sceneIntent: 'ecommerce',
         creationIntent: 'product',
         ugcRealMode: false,
@@ -2614,6 +2615,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       if (prev.sceneIntent !== 'ecommerce') return prev;
       const next: Step3Values = {
         ...prev,
+        sceneType: 'lifestyle-real',
         sceneIntent: 'environment',
         creationIntent: 'ugc',
         ugcRealMode: false,
@@ -2647,6 +2649,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       exitEcommerceToEnvironment();
     }
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
+
+  useEffect(() => {
+    if (isProductMode || values.sceneIntent === 'ecommerce') {
+      if (values.sceneType !== 'studio-branding') {
+        updateValue('sceneType', 'studio-branding');
+      }
+      return;
+    }
+    if (values.sceneType !== 'lifestyle-real') {
+      updateValue('sceneType', 'lifestyle-real');
+    }
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
