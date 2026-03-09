@@ -125,6 +125,15 @@ export class SceneNarrativeBuilder {
             options.contentStyle === 'product' ||
             options.sceneIntent === 'ecommerce';
         const visualIntent = String(options.visualIntent || '').trim().toLowerCase();
+        const formulationSignals =
+            options.formulationExpertEnabled === true &&
+            (
+                String(options.creationMode || '').trim().toLowerCase() === 'formulation' ||
+                Boolean(options.formulationStory) ||
+                Boolean((options as any).formulationExpertRole) ||
+                Boolean((options as any).formulationExpertName) ||
+                Boolean((options as any).formulationExpertPreset)
+            );
 
         switch (options.creationIntent) {
             case 'product':
@@ -135,7 +144,7 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                if (options.formulationExpertEnabled === true) {
+                if (formulationSignals) {
                     parts.push(
                         'Expert-led product narrative.',
                         'Scientific credibility and formulation trust.',

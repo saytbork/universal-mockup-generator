@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { IdentityBuilder } from '../../promptEngine/builders/identity';
+import { mapLifestyleToPromptOptions } from '../../promptEngine/mapLifestyleToPromptOptions';
 import type { PromptOptions } from '../../promptEngine/types';
 
 const makeOptions = (overrides: Partial<PromptOptions> = {}): PromptOptions => ({
@@ -36,5 +37,52 @@ describe('IdentityBuilder group composition realism', () => {
     expect(output).toContain('Do NOT stage one dominant person close to camera with the others pushed far into the background.');
     expect(output).toContain('Do NOT create filler people behind the main subject.');
     expect(output).toContain('no sibling-like duplicates, no twin-looking repeats');
+  });
+
+  it('maps group product framing without collapsing into single-hero composition', () => {
+    const mapped = mapLifestyleToPromptOptions(
+      {
+        sceneType: 'lifestyle-real',
+        creationMode: 'aesthetic',
+        contentStyle: 'brand',
+        visualMode: 'default',
+        visualIntent: 'brand',
+        environmentContext: { macro: 'Kitchen', micro: 'Countertop' },
+        environment: 'Kitchen',
+        noPerson: false,
+        personCount: 'group',
+        age: 30,
+        gender: 'Female',
+        skinTone: 'Medium Neutral',
+        ethnicity: 'Non-specific',
+        bodyType: 'Average',
+        hair: 'Medium',
+        hairLength: 'Shoulder',
+        hairTexture: 'Wavy',
+        hairColor: 'Dark brown',
+        facialExpression: 'Calm & Serene',
+        eyeDirection: 'Looking at camera',
+        appearanceLevel: 'Regular',
+        pose: 'Relaxed Portrait',
+        skinRealism: 'Raw / Real',
+        timeOfDay: 'Afternoon',
+        lightingStyle: 'Natural',
+        shotType: 'Medium',
+        cameraType: 'DSLR / mirrorless camera',
+        cameraAngle: 'Eye level',
+        framing: 'Rule of thirds',
+        productProminence: 'product-first',
+        productInteraction: 'background',
+        productStructure: 'single',
+        aspectRatio: '1:1 (Square)',
+      } as any,
+      {
+        productAssets: [{ id: 'p1' } as any],
+      }
+    );
+
+    expect(mapped.personCount).toBe('group');
+    expect(mapped.compositionModeStructural).toMatch(/group/i);
+    expect(mapped.compositionModeStructural).toMatch(/no foreground hero plus background fillers/i);
   });
 });

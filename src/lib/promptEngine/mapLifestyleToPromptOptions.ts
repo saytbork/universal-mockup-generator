@@ -1341,19 +1341,37 @@ export function mapLifestyleToPromptOptions(
             : 'Ritual action-first composition: focus on the wellness activity; if product appears, it must be naturally integrated and incidental to the ritual scene.'
         : isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
-            ? ({
-                balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
-                'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
-                'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
-                'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
-            } as const)[productProminenceKey] ??
+            ? (
+                mapped.personCount === 'group'
+                    ? ({
+                        balanced: 'Balanced group composition. The group reads as one cohesive unit on a shared plane, with one active product holder and the rest supporting naturally. Keep the product readable without creating a single dominant hero person.',
+                        'product-first': 'Group-aware product composition. Keep the product clearly readable and important, but stage the people as one cohesive group with comparable scale and no foreground hero plus background fillers.',
+                        'model-first': 'Group-forward framing. The group reads as a single cohesive social unit with comparable subject scale; product remains clearly visible and readable within the group dynamic.',
+                        'fifty-fifty': 'Equal-emphasis group framing. Product and group share attention together without isolating one person as the sole hero or pushing others into the background.',
+                    } as const)[productProminenceKey]
+                    : ({
+                        balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
+                        'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
+                        'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
+                        'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
+                    } as const)[productProminenceKey]
+            ) ??
             'Product visible framing: keep product readable and present.'
-            : 'Balanced lifestyle composition with contextual surroundings.'
+            : mapped.personCount === 'group'
+                ? 'Balanced group lifestyle composition with cohesive social staging, comparable subject scale, and no single foreground hero. Keep the environment contextual and the group unified.'
+                : 'Balanced lifestyle composition with contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
             : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
     mapped.compositionMode = compositionModeKey;
     mapped.compositionModeStructural = compositionModeStructural;
+    if (
+        mapped.personCount === 'group' &&
+        /lifestyle showcase layout: balanced subject and environment/i.test(String(mapped.compositionModeStructural || ''))
+    ) {
+        mapped.compositionModeStructural =
+            'Balanced group lifestyle composition with cohesive social staging, comparable subject scale, and no foreground hero plus background fillers. Keep the environment contextual and the group unified.';
+    }
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
 
     if (isEnvironmentSceneIntent) {
