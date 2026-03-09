@@ -5122,21 +5122,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[9px] uppercase text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                        <p className="text-[9px] uppercase text-gray-400 mb-2">PRODUCT POSITION</p>
                         <div className="flex gap-2">
-                          {([0, 1, 2, 3] as const).map(level => (
+                          {([
+                            { key: 'center', label: 'Center' },
+                            { key: 'left', label: 'Left' },
+                            { key: 'right', label: 'Right' },
+                          ] as const).map(({ key, label }) => (
                             <Chip
-                              key={level}
+                              key={key}
                               onClick={() => {
-                                productStore.setCreativityLevel(level);
+                                productStore.setAlignment(key);
+                                if (key === 'center') {
+                                  productStore.setComposition('centered' as any);
+                                  productStore.setNegativeSpace('none' as any);
+                                } else {
+                                  productStore.setComposition('asymmetrical' as any);
+                                  productStore.setNegativeSpace('intentional' as any);
+                                }
                                 markSectionTouched('product-setup');
                               }}
-                              selected={productStore.creativityLevel === level}
+                              selected={productStore.alignment === key || (key === 'center' && productStore.alignment === 'centered')}
                             >
-                              {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                              {label}
                             </Chip>
                           ))}
                         </div>
+                        <p className="text-[11px] text-gray-500 mt-2">
+                          Controls where the product sits in the frame and how much copy-safe space remains beside it.
+                        </p>
                       </div>
 
                       <div>
