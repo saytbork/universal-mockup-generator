@@ -5097,18 +5097,22 @@ If the model attempts to create a scene or environment, override it and force a 
         sceneIntent: lifestyleStep3Values?.sceneIntent ?? options.sceneIntent,
         sourceFunction: 'App.handleGenerateClick.beforeIsStudioEngine',
       });
+      const isLifestyleScene = lifestyleStep3Values?.sceneType === 'lifestyle-real';
       const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
       const forceStudioByProductContent =
         options.contentStyle === 'product' ||
         lifestyleStep3Values?.contentStyle === 'product';
       const isStudioEngine =
-        forceStudioByProductContent ||
         isStudioBrandingScene ||
-        (isProductPlacement && lifestyleStep3Values?.sceneType !== 'lifestyle-real');
+        (!isLifestyleScene && (
+          forceStudioByProductContent ||
+          isProductPlacement
+        ));
       console.log('[APP isStudioEngine]', {
         'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
         'lifestyleStep3Values.contentStyle': lifestyleStep3Values?.contentStyle,
         'options.contentStyle': options.contentStyle,
+        isLifestyleScene,
         forceStudioByProductContent,
         isStudioBrandingScene,
         isProductPlacement,
