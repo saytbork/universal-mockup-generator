@@ -140,8 +140,10 @@ export class SceneNarrativeBuilder {
                 } else {
                     parts.push(
                         'Brand-led product narrative.',
+                        'Creative commercial campaign image with luxury advertising polish.',
                         'Commercial credibility with real human presence.',
-                        'The product remains the primary commercial subject.'
+                        'The product remains the primary commercial subject.',
+                        'This must feel like a super-pro brand campaign: art-directed, premium, high-conviction, and visually expensive.'
                     );
                 }
                 break;
@@ -165,12 +167,13 @@ export class SceneNarrativeBuilder {
                 if (isLifestyleCampaign) {
                     parts.push(
                         'Lifestyle advertising campaign photo with real models and curated luxury styling.',
+                        'Creative high-end commercial image with campaign-grade polish and premium art direction.',
                         options.lifestyleAdvertisingProfile ||
-                            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.',
+                            'The person must appear as a real advertising model with polished presentation, natural believable features, campaign-ready grooming, and luxury commercial styling; not casual, not domestic, not documentary.',
                         options.lifestyleWardrobeRules ||
                             'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must look new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear or sloppy knits; styling must resemble a luxury brand advertising campaign.',
                         options.lifestyleEnvironmentInterpretation ||
-                            'The environment feels like a curated editorial luxury interior with clean surfaces, intentional styling, and no clutter.',
+                            'The environment feels like a curated editorial luxury interior with clean surfaces, intentional styling, premium prop discipline, and no clutter.',
                         options.lifestyleHardRestrictions ||
                             'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, domestic realism, casual everyday appearance, or UGC/documentary visuals; any of these makes the generation invalid.'
                     );
@@ -184,9 +187,11 @@ export class SceneNarrativeBuilder {
                 } else {
                     parts.push(
                         'High-end lifestyle campaign photo.',
+                        'Creative commercial advertising image with super-pro editorial polish.',
                         'Professional advertising/editorial quality with clean, intentional styling.',
                         'Spotless environment: no crumbs, stains, dust, clutter, or random mess.',
-                        'Art-directed but natural: curated props only, brand-safe, premium look.'
+                        'Art-directed but natural: curated props only, brand-safe, premium look.',
+                        'Visual language should feel expensive, intentional, and campaign-ready rather than casual or generic.'
                     );
                 }
             }

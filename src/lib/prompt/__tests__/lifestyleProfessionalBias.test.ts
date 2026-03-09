@@ -29,7 +29,8 @@ describe('LifestyleProfessionalBiasBuilder', () => {
       })
     );
 
-    expect(output).toContain('Lifestyle editorial photography standard.');
+    expect(output).toContain('Lifestyle editorial photography standard with campaign-grade commercial polish.');
+    expect(output).toContain('Creative advertising direction: premium, art-directed, visually expensive');
     expect(output).not.toMatch(/\bcandid\b/i);
     expect(output).not.toMatch(/\binfluencer\b/i);
     expect(output).not.toMatch(/\bcasual\b/i);
