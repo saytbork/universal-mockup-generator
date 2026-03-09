@@ -1156,13 +1156,12 @@ export function mapLifestyleToPromptOptions(
         }
 
         const normalizedSkinRealism = normalizeKey(sceneState.skinRealism);
-        const nonUgcAdvertisingIntent = !isUGCMode && ['brand', 'editorial', 'luxury'].includes(String(sceneState.visualIntent || '').trim().toLowerCase());
         const editorialSkinRealism =
             // For older ages, avoid auto-upgrading to soft retouch (it collapses perceived age).
-            ((ugcStyleKey === 'optimized') || nonUgcAdvertisingIntent) &&
+            ugcStyleKey === 'optimized' &&
                 !isUGCMode &&
                 personAge < 60 &&
-                (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'real' || normalizedSkinRealism === 'raw-real' || normalizedSkinRealism === 'natural')
+                (normalizedSkinRealism === 'raw' || normalizedSkinRealism === 'natural')
                 ? 'soft-retouch'
                 : sceneState.skinRealism;
         const skinDescriptor = mapSkinRealism(editorialSkinRealism);
@@ -2018,15 +2017,8 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
-    const visualIntentKey = String(sceneState.visualIntent || '').trim().toLowerCase();
     const isLifestyleAdvertising =
-        !isUGCMode &&
-        personIncluded &&
-        (
-            sceneState.creationMode === 'lifestyle' ||
-            (sceneState.creationMode === 'Aesthetic Builder' && sceneState.contentStyle === 'brand') ||
-            ['brand', 'editorial', 'luxury'].includes(visualIntentKey)
-        );
+        sceneState.creationMode === 'lifestyle' && personIncluded;
     if (isLifestyleAdvertising) {
         const settingLabel = String(
             mapped.setting ||
@@ -2040,12 +2032,12 @@ export function mapLifestyleToPromptOptions(
             : 'The environment is styled as an editorial luxury set with premium finishes and curated geometry.';
 
         mapped.lifestyleAdvertisingProfile =
-            'The person must appear as a real advertising model with polished presentation, natural believable features, campaign-ready grooming, dry well-kept hair, and controlled styling; not casual, not domestic, not documentary.';
+            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.';
         mapped.lifestyleWardrobeRules =
             'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must appear new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear, sloppy knits, or everyday worn clothing; styling must resemble a luxury brand advertising campaign.';
         mapped.lifestyleEnvironmentInterpretation = settingPhrase;
         mapped.lifestyleHardRestrictions =
-            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals; do NOT show wet hair, greasy hair, damp strands stuck to the face, post-shower styling, sweaty grooming, or messy just-woke-up beauty cues. If any of these appear, the generation is invalid.';
+            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals. If any of these appear, the generation is invalid.';
         (mapped as any).disableUgcSemantics = true;
     }
 

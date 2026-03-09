@@ -1280,7 +1280,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     eyeColor: 'Brown', // NEW
     appearanceLevel: 'Regular', // NEW
     pose: 'Relaxed Portrait', // UGC Rule: natural pose
-    skinRealism: 'Natural', // Default away from UGC/raw bias for lifestyle editorial/brand flows
+    skinRealism: 'Raw / Real', // Simplified options
 
     // Creator Presets
     creatorPreset: null,
