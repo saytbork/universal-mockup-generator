@@ -16,6 +16,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildModifiers(modifiers, state),
     buildLighting(authority, state),
     buildMaterials(authority, state),
+    buildProductCharacter(state),
     buildPackaging(state),
     buildGeometry(authority, state),
     ...protectionLayer,
@@ -31,7 +32,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildPalette, buildCoffeeIndustryLayer, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildPalette, buildCoffeeIndustryLayer, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildProductCharacter, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const coffeePipeline = {
@@ -52,6 +53,7 @@ export const coffeePipeline = {
       buildModifiers(modifiers, state),
       buildLighting(authority, state),
       buildMaterials(authority, state),
+      buildProductCharacter(state),
       buildPackaging(state),
       buildGeometry(authority, state),
       ...protectionLayer,

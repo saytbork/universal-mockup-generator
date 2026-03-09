@@ -161,6 +161,7 @@ export function buildCoffeeIndustryLayer(
     'PRIORITY_LEVEL: ABSOLUTE',
     'PRECEDENCE: 0',
     'STRUCTURAL_DOMINANCE_REQUIRED: TRUE',
+    'COFFEE_REALISM_TARGET: Hyper-real professional coffee product advertising. Premium campaign polish with true photographic capture behavior. No CGI, no synthetic render finish, and no stock-cafe look.',
     buildCoffeeProductPriorityBlock(state),
     `COFFEE_INDUSTRY_VARIANT: ${variant}.`,
     'COFFEE_PHYSICS_PROFILE: enabled.',

@@ -35,6 +35,25 @@ const PHOTO_MODE_SCENE_STYLE_MAP: Record<string, string> = {
   'Underwater Split': 'SCENE_STYLE: sunlit split-waterline composition: product intersects the water surface with upper section in bright clean air and lower section submerged in clear luminous aqua water, realistic curved meniscus at waterline, visible underwater caustics and light rays, crisp micro-bubbles around submerged edges, premium hydration look with strong product readability',
 };
 
+function applyIndustryAdvertisingSceneStyle(sceneStyle: string, state?: StudioUIState): string {
+  const industry = String(state?.industryProfile || '').trim().toLowerCase();
+  const visualProfile = String(state?.visualProfile || '').trim().toLowerCase();
+
+  if (!sceneStyle.startsWith('SCENE_STYLE:')) return sceneStyle;
+
+  const sceneBody = sceneStyle.replace(/^SCENE_STYLE:\s*/i, '').trim();
+
+  if (visualProfile === 'coffee' || industry === 'coffee') {
+    return `SCENE_STYLE: hyper-real professional coffee advertising photography. ${sceneBody}`;
+  }
+
+  if (industry === 'supplements' || industry === 'supplement') {
+    return `SCENE_STYLE: hyper-real professional supplement advertising photography. ${sceneBody}`;
+  }
+
+  return sceneStyle;
+}
+
 function resolveMacroDewDropletMode(state?: StudioUIState): 'clean' | 'wet' | 'drops' {
   const configMode = String((state as any)?.photoModeConfig?.macroDewLabel?.dropletMode || '').trim().toLowerCase();
   if (configMode === 'clean' || configMode === 'wet' || configMode === 'drops') return configMode;
@@ -110,7 +129,7 @@ export function buildEditorialWorld(
 
   const sceneStyle = photoMode ? PHOTO_MODE_SCENE_STYLE_MAP[photoMode] : '';
   if (sceneStyle) {
-    return `PHOTO_MODE_SCENE: ${sceneStyle} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
+    return `PHOTO_MODE_SCENE: ${applyIndustryAdvertisingSceneStyle(sceneStyle, state)} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
   }
 
   return '';

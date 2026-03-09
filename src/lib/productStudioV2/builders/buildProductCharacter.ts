@@ -1,9 +1,9 @@
 import type { StudioUIState } from '../types/studioTypes';
 
 const INDUSTRY_CHARACTER: Record<string, string> = {
-  supplements: 'supplement product truth with packaging fidelity and conversion-grade clarity',
+  supplements: 'hyper-real professional supplement advertising with packaging fidelity, optical realism, and conversion-grade clarity',
   wine: 'wine bottle truth with closure integrity and liquid realism discipline',
-  coffee: 'coffee packaging truth with beverage-serving realism and aroma-driven cues',
+  coffee: 'hyper-real professional coffee advertising with packaging truth, beverage-serving realism, and aroma-driven cues',
 };
 
 export function buildProductCharacter(state?: StudioUIState): string {
