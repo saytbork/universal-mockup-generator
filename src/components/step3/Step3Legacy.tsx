@@ -188,6 +188,11 @@ const PHOTO_MODES_WITH_VISIBLE_SETTINGS = new Set<PhotoMode>([
   ...(Object.keys(PHOTO_MODE_SCHEMAS) as PhotoMode[]),
 ]);
 
+function hasRenderableSchemaSettings(schema?: EnvironmentPhotoModeSchema | null): boolean {
+  if (!schema) return false;
+  return schema.subOptions.length > 0 || schema.constraints.length > 0;
+}
+
 const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
 const LUXURY_UI_ALLOWED_SHOT_TYPES = ['Close', 'Medium'] as const;
 const LUXURY_UI_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
@@ -1165,6 +1170,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
   const hasVisiblePhotoModeSettings = useCallback(
     (mode?: PhotoMode | null) => Boolean(mode && PHOTO_MODES_WITH_VISIBLE_SETTINGS.has(mode)),
+    []
+  );
+  const hasVisibleVisualStyleSettings = useCallback(
+    (mode?: VisualStyle | null) => Boolean(mode && hasRenderableSchemaSettings(VISUAL_STYLE_SCHEMAS[mode])),
     []
   );
   const markSectionTouched = useCallback((section: string) => {
@@ -3178,7 +3187,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const applyVisualStyle = (mode: string) => {
                               productStore.setVisualStyle(mode);
                               markSectionTouched('product-setup');
-                              scrollToPhotoModeSettings();
+                              if (hasVisibleVisualStyleSettings(mode as VisualStyle)) {
+                                scrollToPhotoModeSettings();
+                              }
                             };
 
                             const CHIP_TOOLTIPS: Partial<Record<PhotoMode | VisualStyle, string>> = {

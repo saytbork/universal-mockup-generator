@@ -392,4 +392,12 @@ describe('Visual Style injection', () => {
     expect(source).toContain("label: 'Luxury / Editorial'");
     expect(source).toContain("label: 'Bold / Campaign'");
   });
+
+  it('visual style selection only auto-scrolls when renderable settings exist', () => {
+    const source = readFileSync(join(process.cwd(), 'src/components/step3/Step3Legacy.tsx'), 'utf8');
+
+    expect(source).toContain('function hasRenderableSchemaSettings');
+    expect(source).toContain('hasVisibleVisualStyleSettings');
+    expect(source).toContain('if (hasVisibleVisualStyleSettings(mode as VisualStyle))');
+  });
 });
