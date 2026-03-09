@@ -81,12 +81,6 @@ const UGC_VARIATION_EXPRESSIONS = [
     'Relieved / Recovered',
 ] as const;
 
-const UGC_VARIATION_EYE_DIRECTIONS = [
-    'Looking at camera',
-    'Looking at product',
-    'Looking away naturally',
-] as const;
-
 const UGC_VARIATION_APPEARANCE = [
     'Regular',
     'Well-groomed',
@@ -991,10 +985,7 @@ export function mapLifestyleToPromptOptions(
         (!sceneState.facialExpression || sceneState.facialExpression === 'Soft Smile' || sceneState.facialExpression === 'Calm & Serene')
             ? pickSeeded(UGC_VARIATION_EXPRESSIONS, ugcVariationSeed, 3)
             : sceneState.facialExpression;
-    const effectiveEyeDirectionLabel =
-        ugcAutoVariationActive && (!sceneState.eyeDirection || sceneState.eyeDirection === 'Looking at camera')
-            ? pickSeeded(UGC_VARIATION_EYE_DIRECTIONS, ugcVariationSeed, 4)
-            : sceneState.eyeDirection;
+    const effectiveEyeDirectionLabel = sceneState.eyeDirection;
 
     // Initialize Person Details
     if (!mapped.personDetails) mapped.personDetails = {};
