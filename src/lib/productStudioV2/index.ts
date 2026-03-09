@@ -270,7 +270,7 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
     console.log('[RESOLVED_LENS]', '');
     console.log('[RESOLVED_LIGHTING]', '');
     console.log('[RESOLVED_FINISH]', '');
-    return [];
+    return ['ADVANCED_CONTROLS: off.'];
   }
 
   let resolvedLens = '';
@@ -290,11 +290,16 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
   }
 
   const advancedParts: string[] = [];
+  advancedParts.push('ADVANCED_CONTROLS: on.');
+  advancedParts.push('ADVANCED_CONTROLS_AUTHORITY: Manual pro overrides are active. Treat selected lens, lighting rig, finish, and gel choices as authoritative user instructions.');
   if (resolvedLens) {
+    advancedParts.push(`LENS_OVERRIDE: ${resolvedLens}.`);
     advancedParts.push(`LENS_PROFILE: ${resolvedLens}.`);
   }
   if (resolvedLighting) {
+    advancedParts.push(`LIGHTING_RIG_OVERRIDE: ${resolvedLighting}.`);
     advancedParts.push(`STUDIO_LIGHTING_PROFILE: ${resolvedLighting}.`);
+    advancedParts.push('LIGHTING_EQUIPMENT_POLICY: Studio lights, spotlights, ring lights, softboxes, and all lighting hardware must remain off-camera and invisible. Only their lighting effects may appear in the frame.');
   }
   if (
     hasAccentGel &&
@@ -305,6 +310,7 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
     advancedParts.push(`ACCENT_LIGHT_GEL: ${gelColor} at ${gelIntensity}% attached to resolved lighting.`);
   }
   if (resolvedFinish) {
+    advancedParts.push(`FINISH_OVERRIDE: ${resolvedFinish}.`);
     advancedParts.push(`STUDIO_FINISH_PROFILE: ${resolvedFinish}.`);
   }
 

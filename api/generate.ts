@@ -547,6 +547,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       buffer = Buffer.from(maybeWatermarkedImage, 'base64');
     }
+    const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
+    const imageMeta = {
+      requestedImageSize,
+      width: Number(outputMetadata.width || 0),
+      height: Number(outputMetadata.height || 0),
+      bytes: buffer.length,
+      contentType,
+      isPreview,
+      isFreePlan,
+      model,
+    };
+    console.log('[GENERATE_IMAGE_META]', imageMeta);
     const fileExtension = contentType === 'image/jpeg' ? 'jpg' : 'png';
     const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
     const file = bucket.file(fileName);
@@ -571,6 +583,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
       imageUrl,
+      imageMeta,
     }, email);
 
     // imageBase64 is included in the response so the browser can render the image
@@ -605,6 +618,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ok: true,
         imageUrl,
         imageBase64: responseImageBase64,
+        imageMeta,
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -625,6 +639,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ok: true,
       imageUrl,
       imageBase64: responseImageBase64,
+      imageMeta,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,

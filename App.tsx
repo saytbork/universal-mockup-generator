@@ -5687,6 +5687,9 @@ If the model attempts to create a scene or environment, override it and force a 
         // imageUrl is still used for gallery persistence and sharing.
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
         const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+        if (data?.imageMeta && typeof data.imageMeta === 'object') {
+          console.log('[API IMAGE META]', data.imageMeta);
+        }
         const displayUrl = imageBase64
           ? `data:image/png;base64,${imageBase64}`
           : imageUrl;
@@ -6007,6 +6010,9 @@ If the model attempts to create a scene or environment, override it and force a 
         if (typeof responseData?.remaining_credits === 'number') {
           setRemoteCredits(responseData.remaining_credits);
         }
+        if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
+          console.log(`[ECOM SLOT IMAGE META:${slotKey}]`, responseData.imageMeta);
+        }
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (!encodedImage) {
           throw new Error(`Image generation failed for slot ${slotKey}.`);
@@ -6203,6 +6209,9 @@ If the model attempts to create a scene or environment, override it and force a 
         if (typeof responseData?.remaining_credits === 'number') {
           setRemoteCredits(responseData.remaining_credits);
         }
+        if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
+          console.log(`[ECOM SEQUENCE IMAGE META:${i + 1}]`, responseData.imageMeta);
+        }
 
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (encodedImage) {
@@ -6351,6 +6360,9 @@ If the model attempts to create a scene or environment, override it and force a 
       }
       if (typeof data?.remaining_credits === 'number') {
         setRemoteCredits(data.remaining_credits);
+      }
+      if (data?.imageMeta && typeof data.imageMeta === 'object') {
+        console.log('[IMAGE EDIT META]', data.imageMeta);
       }
       const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
       if (!encodedImage) {
