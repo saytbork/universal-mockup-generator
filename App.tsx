@@ -5697,8 +5697,8 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        // Use base64 data URL for immediate display (no CORS dependency on Firebase).
-        // Use Firebase URL for gallery persistence and hi-res pipeline.
+        // Use base64 data URL for immediate display and local hi-res prep.
+        // Keep the remote URL only for gallery persistence/sharing.
         setGeneratedImageUrl(displayUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         
@@ -5727,7 +5727,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         
         void reportGalleryEntry(imageUrl || displayUrl);
-        runHiResPipeline(imageUrl || displayUrl);
+        runHiResPipeline(displayUrl);
         
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
