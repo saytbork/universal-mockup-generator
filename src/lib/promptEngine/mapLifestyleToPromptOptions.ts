@@ -759,6 +759,7 @@ export function mapLifestyleToPromptOptions(
     const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
     const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
     const visualMode = (sceneState.visualMode || 'default') as NonNullable<Step3Values['visualMode']>;
+    const visualIntent = String((sceneState as any).visualIntent || '').trim().toLowerCase();
     const isUGCMode = visualMode === 'ugc';
     const isRitualMode = visualMode === 'ritual';
     const isHeroMode = visualMode === 'hero';
@@ -854,6 +855,7 @@ export function mapLifestyleToPromptOptions(
         hasModelReference,
         identitySeed,
         visualMode,
+        visualIntent: (visualIntent || (isUGCMode ? 'ugc' : 'editorial')) as any,
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
@@ -2020,6 +2022,7 @@ export function mapLifestyleToPromptOptions(
     const isLifestyleAdvertising =
         sceneState.creationMode === 'lifestyle' && personIncluded;
     if (isLifestyleAdvertising) {
+        const resolvedVisualIntent = String(mapped.visualIntent || 'editorial').toLowerCase();
         const settingLabel = String(
             mapped.setting ||
                 mapped.sceneEnvironment ||
@@ -2031,13 +2034,43 @@ export function mapLifestyleToPromptOptions(
             ? `The ${settingLabel} is styled as an editorial luxury interior or premium campaign set with clean surfaces, intentional styling, and no clutter.`
             : 'The environment is styled as an editorial luxury set with premium finishes and curated geometry.';
 
-        mapped.lifestyleAdvertisingProfile =
-            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.';
-        mapped.lifestyleWardrobeRules =
-            'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must appear new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear, sloppy knits, or everyday worn clothing; styling must resemble a luxury brand advertising campaign.';
-        mapped.lifestyleEnvironmentInterpretation = settingPhrase;
-        mapped.lifestyleHardRestrictions =
-            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals. If any of these appear, the generation is invalid.';
+        if (resolvedVisualIntent === 'luxury') {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real luxury advertising model with elevated, aspirational presence, polished believable features, premium grooming, and expensive campaign energy; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must feel luxury-fashion adjacent: premium tailoring, clean silhouettes, rich materials, refined structure, and immaculate finish; no cheap basics, no sloppy casualwear, no worn fabrics, no domestic styling.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing.`
+                    : 'The environment is styled as an expensive luxury campaign set with premium materials, controlled geometry, and aspirational styling.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Luxury Advertising): Do NOT depict cheap-looking materials, domestic realism, casual everyday styling, generic influencer aesthetics, messy environments, or documentary realism. If any of these appear, the generation is invalid.';
+            mapped.luxuryStyle = 'aspirational luxury campaign';
+        } else if (resolvedVisualIntent === 'brand') {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real brand-campaign model with polished believable features, premium grooming, and clean commercial presence; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must be premium, clean, intact, well-fitted, and commercially brand-safe; fabrics should look new, structured, and intentional; no sloppy basics, no worn garments, no domestic loungewear.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as a premium brand campaign set with clean surfaces, intentional composition, disciplined props, and conversion-friendly readability.`
+                    : 'The environment is styled as a premium brand campaign set with clean surfaces, disciplined props, and conversion-friendly readability.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Brand Advertising): Do NOT depict domestic realism, casual everyday styling, clutter, damaged wardrobe, cheap set dressing, or UGC/documentary vibes. If any of these appear, the generation is invalid.';
+            mapped.brandLook = 'clean premium campaign';
+        } else {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real editorial campaign model with polished presentation, natural believable features, and design-forward fashion/editorial presence; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must be elevated and editorial: refined silhouettes, clean structure, high-quality fabrics, and intentional styling; no sloppy basics, no worn casualwear, no domestic clothing language.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as a curated editorial campaign interior with clean surfaces, intentional styling, design-forward composition, and magazine-grade set discipline.`
+                    : 'The environment is styled as a curated editorial campaign set with design-forward composition and magazine-grade discipline.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Editorial Advertising): Do NOT depict domestic realism, sloppy wardrobe, generic ecommerce stiffness, messy clutter, or UGC/documentary visuals. If any of these appear, the generation is invalid.';
+            mapped.editorialStyle = 'design-forward editorial campaign';
+        }
         (mapped as any).disableUgcSemantics = true;
     }
 

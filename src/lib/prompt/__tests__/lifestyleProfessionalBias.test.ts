@@ -37,6 +37,49 @@ describe('LifestyleProfessionalBiasBuilder', () => {
     expect(output).not.toMatch(/raw handheld/i);
   });
 
+  it('separates editorial, brand, and luxury intent language', () => {
+    const builder = new LifestyleProfessionalBiasBuilder();
+
+    const editorial = builder.build(
+      makeOptions({
+        sceneType: 'lifestyle-real',
+        contentStyle: 'brand' as any,
+        creationMode: 'aesthetic',
+        visualIntent: 'editorial',
+      })
+    );
+
+    const brand = builder.build(
+      makeOptions({
+        sceneType: 'lifestyle-real',
+        contentStyle: 'brand' as any,
+        creationMode: 'aesthetic',
+        visualIntent: 'brand',
+      })
+    );
+
+    const luxury = builder.build(
+      makeOptions({
+        sceneType: 'lifestyle-real',
+        contentStyle: 'brand' as any,
+        creationMode: 'aesthetic',
+        visualIntent: 'luxury',
+      })
+    );
+
+    expect(editorial).toContain('Intent profile: editorial campaign.');
+    expect(editorial).toContain('Editorial direction: bolder composition');
+    expect(editorial).not.toContain('Luxury direction: dramatic premium lighting');
+
+    expect(brand).toContain('Intent profile: brand campaign.');
+    expect(brand).toContain('Brand direction: cleaner commercial hierarchy');
+    expect(brand).not.toContain('Editorial direction: bolder composition');
+
+    expect(luxury).toContain('Intent profile: luxury campaign.');
+    expect(luxury).toContain('Luxury direction: dramatic premium lighting');
+    expect(luxury).not.toContain('Brand direction: cleaner commercial hierarchy');
+  });
+
   it('does not activate in ugc real mode', () => {
     const builder = new LifestyleProfessionalBiasBuilder();
     const output = builder.build(

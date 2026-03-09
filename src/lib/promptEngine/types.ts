@@ -138,6 +138,7 @@ export type UGCImperfectionLevel = 'low' | 'medium' | 'high';
 export interface PromptOptions {
     // Core
     visualMode?: 'default' | 'ugc' | 'ritual' | 'hero' | 'formulation';
+    visualIntent?: 'ugc' | 'editorial' | 'brand' | 'luxury';
     sceneType?: 'studio-branding' | 'lifestyle-real' | string;
     contentStyle: 'ugc' | 'product' | '';
     creationIntent?: 'ugc' | 'product' | 'brand';
@@ -223,6 +224,9 @@ export interface PromptOptions {
     lifestyleWardrobeRules?: string;
     lifestyleEnvironmentInterpretation?: string;
     lifestyleHardRestrictions?: string;
+    brandLook?: string;
+    editorialStyle?: string;
+    luxuryStyle?: string;
 
     compositionMode?: string;
     productProminence?: 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';

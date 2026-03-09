@@ -121,6 +121,7 @@ export class SceneNarrativeBuilder {
             options.creationIntent === 'product' ||
             options.contentStyle === 'product' ||
             options.sceneIntent === 'ecommerce';
+        const visualIntent = String(options.visualIntent || '').trim().toLowerCase();
 
         switch (options.creationIntent) {
             case 'product':
@@ -138,13 +139,31 @@ export class SceneNarrativeBuilder {
                         'The expert remains the primary subject.'
                     );
                 } else {
-                    parts.push(
-                        'Brand-led product narrative.',
-                        'Creative commercial campaign image with luxury advertising polish.',
-                        'Commercial credibility with real human presence.',
-                        'The product remains the primary commercial subject.',
-                        'This must feel like a super-pro brand campaign: art-directed, premium, high-conviction, and visually expensive.'
-                    );
+                    if (visualIntent === 'luxury') {
+                        parts.push(
+                            'Luxury-led product narrative.',
+                            'Aspirational high-end commercial campaign image with expensive art direction and premium visual hierarchy.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro luxury campaign: sculpted, elevated, visually expensive, and unmistakably premium.'
+                        );
+                    } else if (visualIntent === 'editorial') {
+                        parts.push(
+                            'Editorial-led product narrative.',
+                            'Design-forward commercial campaign image with magazine-grade composition and art-directed styling.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro editorial campaign: creative, directional, polished, and visually intentional.'
+                        );
+                    } else {
+                        parts.push(
+                            'Brand-led product narrative.',
+                            'Creative commercial campaign image with luxury advertising polish.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro brand campaign: art-directed, premium, high-conviction, and visually expensive.'
+                        );
+                    }
                 }
                 break;
         default:
