@@ -24,7 +24,7 @@ export function buildCamera(params: any): string {
     "";
   const selfieActive = /\bselfie\b/i.test(String(selfieRaw)) || /\bfront\b/i.test(String(selfieRaw));
   const ugcVisualMode = String(params.visualMode || '').trim().toLowerCase() === 'ugc';
-  const ugcRealActive = ugcVisualMode;
+  const ugcRealActive = ugcVisualMode || Boolean(params.rawDomesticUgcActive);
   const ugcMode = ugcVisualMode || Boolean(params.ugcMode) || selfieActive;
   const hasProductAssets = Array.isArray(params.productAssets) && params.productAssets.length > 0;
 
@@ -38,13 +38,13 @@ export function buildCamera(params: any): string {
     ]);
   }
 
-  // Raw Domestic / UGC Real Mode: must never inject rear-camera language (selfieCapture will handle specifics).
+  // Any UGC mode: must never inject pro-camera language or multi-plane/depth wording.
   if (ugcRealActive) {
     delete params.camera;
     delete params.cameraType;
     delete params.placementCamera;
     return uniqueParts([
-      "smartphone capture, casual handheld framing, natural phone photo feel",
+      "front-facing smartphone capture, casual handheld framing, flat single-plane phone photo feel, no pro-camera depth effects",
     ]);
   }
 
