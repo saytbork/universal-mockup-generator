@@ -69,6 +69,30 @@ function InterpretationNote({ message }: { message: string }) {
   );
 }
 
+const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
+
+function PropertySettingsCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={SETTINGS_CARD_CLASS}>
+      <div>
+        <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
+          {title}
+        </p>
+        <p className="text-[11px] text-gray-500 mb-4">{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
   schema: EnvironmentPhotoModeSchema;
   productStore: any;
@@ -93,82 +117,80 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
       : schema.subOptions.filter(option => option.key !== 'customIngredients');
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
-        <div>
-          <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
-            {schema.label} Atmosphere
-          </p>
-          <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
-        </div>
-
-        {subOptions.map((option) => {
-          const currentSelection = dynamicConfig[option.key] || option.values[0];
-
-          return (
-            <div key={option.key} className="space-y-2">
-              <p className="text-xs text-gray-500 font-semibold">
-                {option.label}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {option.values.map((value) => (
-                  <Chip
-                    key={value}
-                    selected={currentSelection === value}
-                    onClick={() => {
-                      productStore.updatePhotoModeSubSetting(schema.label as PhotoMode, option.key, value);
-                      markSectionTouched('product-setup');
-                    }}
-                  >
-                    {value}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {supportsCustomIngredients && (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500 font-semibold">
-              Custom Ingredients
-            </p>
-            <input
-              type="text"
-              value={dynamicConfig.customIngredients || ''}
-              onChange={(e) => {
-                productStore.updatePhotoModeSubSetting(
-                  schema.label as PhotoMode,
-                  'customIngredients',
-                  e.target.value
-                );
-                markSectionTouched('product-setup');
-              }}
-              placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-100"
-            />
-            <p className="text-xs text-gray-500">
-              Adds optional custom ingredients/props on top of the mode defaults.
-            </p>
-          </div>
-        )}
-
-        {schema.constraints.length > 0 && (
-          <div className="mt-4 pt-4 ">
-            <p className="text-[9px] uppercase text-gray-400 mb-2">
-              AI Constraints
-            </p>
-            <ul className="space-y-1">
-              {schema.constraints.map((c, i) => (
-                <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
-                  <span className="text-gray-400 mt-0.5">•</span>
-                  {c}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+    <div className={SETTINGS_CARD_CLASS}>
+      <div>
+        <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
+          {schema.label} Atmosphere
+        </p>
+        <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
       </div>
+
+      {subOptions.map((option) => {
+        const currentSelection = dynamicConfig[option.key] || option.values[0];
+
+        return (
+          <div key={option.key} className="space-y-2">
+            <p className="text-xs text-gray-500 font-semibold">
+              {option.label}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {option.values.map((value) => (
+                <Chip
+                  key={value}
+                  selected={currentSelection === value}
+                  onClick={() => {
+                    productStore.updatePhotoModeSubSetting(schema.label as PhotoMode, option.key, value);
+                    markSectionTouched('product-setup');
+                  }}
+                >
+                  {value}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {supportsCustomIngredients && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 font-semibold">
+            Custom Ingredients
+          </p>
+          <input
+            type="text"
+            value={dynamicConfig.customIngredients || ''}
+            onChange={(e) => {
+              productStore.updatePhotoModeSubSetting(
+                schema.label as PhotoMode,
+                'customIngredients',
+                e.target.value
+              );
+              markSectionTouched('product-setup');
+            }}
+            placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-100"
+          />
+          <p className="text-xs text-gray-500">
+            Adds optional custom ingredients/props on top of the mode defaults.
+          </p>
+        </div>
+      )}
+
+      {schema.constraints.length > 0 && (
+        <div className="mt-4 pt-4 ">
+          <p className="text-[9px] uppercase text-gray-400 mb-2">
+            AI Constraints
+          </p>
+          <ul className="space-y-1">
+            {schema.constraints.map((c, i) => (
+              <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
+                <span className="text-gray-400 mt-0.5">•</span>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -3521,24 +3543,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               </div>
                             )}
                             {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
-                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
-                                <div>
-                                  <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
-                                    Visual Style Settings
-                                  </p>
-                                  <p className="text-[11px] text-gray-500">
-                                    Adjust the selected visual style atmosphere and constraints.
-                                  </p>
-                                </div>
-                                <PhotoModeSettings
-                                  schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
-                                  productStore={productStore}
-                                  markSectionTouched={markSectionTouched}
-                                />
-                              </div>
+                              <PhotoModeSettings
+                                schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
+                                productStore={productStore}
+                                markSectionTouched={markSectionTouched}
+                              />
                             )}
                             {productStore.photoMode === 'Hero Landing Page' && !productStore.visualStyle && (
-                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
+                              <PropertySettingsCard
+                                title="Hero Landing Page Atmosphere"
+                                description="Deterministic studio hero with copy-safe negative space and controlled background behavior."
+                              >
                                 {(() => {
                                   const heroCfg = productStore.photoModeConfig.heroLandingPage;
                                   const isGradient = heroCfg.backgroundType === 'Gradient';
@@ -3877,11 +3892,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </>
                                   );
                                 })()}
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {(productStore.photoMode === 'Ingredient Stack' || productStore.photoMode === 'Ingredient Flat Lay') && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title={`${productStore.photoMode} Atmosphere`}
+                                description="Ingredient-led composition with controlled product readability and optional background override."
+                              >
                                 {/* CUSTOM INGREDIENTS INPUT */}
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">
@@ -4115,11 +4133,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
                                   </>
                                 )}
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Acrylic Blocks' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Acrylic Blocks Atmosphere"
+                                description="Geometric acrylic support styling with controlled reflections and elevation."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Block Shape</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4188,11 +4209,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Splash Shot' && !wineIndustryActive && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Splash Shot Atmosphere"
+                                description="High-speed liquid impact control with readable hero product and deterministic splash timing."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Splash Medium</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4261,7 +4285,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {/* DYNAMIC SCHEMA SETTINGS */}
@@ -4274,7 +4298,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             )}
 
                             {productStore.photoMode === 'Foam & Texture' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Foam & Texture Atmosphere"
+                                description="Controlled texture accents with clean product readability and material-safe realism."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Texture Type</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4343,11 +4370,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Routine Carousel' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Routine Carousel Atmosphere"
+                                description="Multi-frame routine storytelling with consistent visual flow and hero-frame control."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Frame Count</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4416,11 +4446,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.visualStyle === 'Clinical Lab Counter' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Clinical Lab Counter Atmosphere"
+                                description="Clinical trust cues with clean lab surface behavior and controlled authority level."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Clinical Tone</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4489,11 +4522,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Golden Mist Aura' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Golden Mist Aura Atmosphere"
+                                description="Warm luminous mist with premium glow control and restrained contrast."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Glow Strength</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4562,11 +4598,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Candy Gradient Lab' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Candy Gradient Lab Atmosphere"
+                                description="Gradient-driven lab styling with color structure and controlled playfulness."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4635,7 +4674,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
                           </div>
                         </div>
