@@ -36,14 +36,14 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
-    expect(prompt).toContain('SCENE_STYLE: wine pouring editorial photography with controlled hospitality motion.');
+    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising photography with controlled hospitality pour motion.');
   });
 
   it('renders lineup comparison as wine-family comparison instead of hero fallback', () => {
     const mapped = toStudioV2State(makeWineState('Wine Lineup Comparison'));
     const prompt = generateStudioPromptV2(mapped);
 
-    expect(prompt).toContain('SCENE_STYLE: wine lineup comparison photography with clean varietal spacing and brand-family balance.');
+    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising lineup photography with clean varietal spacing and brand-family balance.');
     expect(prompt).toContain('PHOTO_MODE: Wine Lineup Comparison.');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
@@ -55,7 +55,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineEnvironmentVariation).toBe('dark-cellar');
     expect(prompt).toContain('WINE_ENVIRONMENT: dark-cellar.');
     expect(prompt).toContain('PHOTO_MODE: Winery Scene.');
-    expect(prompt).toContain('SCENE_STYLE: wine cellar editorial photography.');
+    expect(prompt).toContain('SCENE_STYLE: hyper-real luxury wine advertising photography in an authentic cellar environment.');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
   });
 
@@ -75,7 +75,7 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Bottle In Hand Cutout'));
     const prompt = generateStudioPromptV2(mapped);
 
-    expect(prompt).toContain('SCENE_STYLE: wine hand-held commercial cutout photography with minimal backdrop.');
+    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising cutout photography with minimal backdrop.');
     expect(prompt).toContain('PHOTO_MODE: Bottle In Hand Cutout.');
     expect(prompt).toContain('Single cropped hand or forearm only.');
     expect(prompt).toContain('No torso.');

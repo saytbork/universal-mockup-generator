@@ -518,14 +518,15 @@ function buildWineMinimalGuardrail(): string {
 export function buildWineRealismCore(): string {
   return [
     'REAL_WORLD_PHOTOGRAPHY_MODE: enabled.',
-    'CAMERA: Captured on professional full-frame camera. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
-    'LIGHT_SOURCE: Single directional warm key light. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
-    'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Clean premium glass presentation with natural material variation. No perfectly symmetrical highlight strips. No plastic-looking specular.',
+    'ADVERTISING_REALISM_TARGET: Hyper-real professional product advertising. Premium campaign polish without any CGI or synthetic render feel.',
+    'CAMERA: Captured on professional full-frame camera for luxury beverage advertising. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. High micro-contrast where needed for glass and label readability. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
+    'LIGHT_SOURCE: Premium commercial lighting with one dominant shaped key and subtle controlled fill. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
+    'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Clean premium glass presentation with natural material variation. Crisp believable specular roll-off. No perfectly symmetrical highlight strips. No plastic-looking specular.',
     'LABEL_MATERIAL: Microscopic paper texture visible under raking light. Slight edge lift or micro-shadow along label border. Very subtle print ink variation. Label surface preserved from reference — no material reinterpretation.',
-    'SURFACE_MATERIAL: Clean premium tabletop or set surface. Slight uneven wood grain or stone irregularity allowed when appropriate. Real texture, not procedural smoothness. No visible dust, salt, residue, or debris.',
-    'SHADOW_QUALITY: Soft irregular shadow edges. Natural penumbra variation. Not mathematically perfect falloff.',
-    'COLOR_GRADING: Subtle cinematic grade. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal contrast only.',
-    'BAN_LIST: No CGI plastic reflections. No hyper-polished render look. No perfectly uniform glass thickness. No symmetrical highlight strips. No noise-free shadow gradients. No render-engine precision. No Blender/Unreal/3D render aesthetic. No volumetric god rays. No gradient studio backdrop. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
+    'SURFACE_MATERIAL: Clean premium tabletop or set surface. Slight uneven wood grain or stone irregularity allowed when appropriate. Real tactile texture, not procedural smoothness. No visible dust, salt, residue, or debris.',
+    'SHADOW_QUALITY: Soft irregular shadow edges. Natural penumbra variation. Not mathematically perfect falloff. Shadows must feel optically captured, not composited.',
+    'COLOR_GRADING: Subtle premium commercial grade. Refined contrast. Controlled highlight retention. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal separation only.',
+    'BAN_LIST: No CGI plastic reflections. No hyper-polished render look. No perfectly uniform glass thickness. No symmetrical highlight strips. No noise-free shadow gradients. No render-engine precision. No Blender/Unreal/3D render aesthetic. No volumetric god rays. No fake ad-composite look. No gradient studio backdrop. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
   ].join(' ');
 }
 
