@@ -153,12 +153,12 @@ export const winePipeline = {
     } else if (bottleAndGlassPourMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle actively pours into a wine glass. Three-quarter camera angle. Elegant liquid ribbon. Controlled motion only. Label remains legible throughout.',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle actively pours into a wine glass. Three-quarter camera angle. Elegant liquid ribbon. Controlled motion only. The liquid stream must originate at the true bottle mouth and inner lip, connected continuously to the neck opening. Never emit liquid from below the bottle rim, sidewall, label area, or glass body. Label remains legible throughout.',
       });
     } else if (handsPouringMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. No visible identity cues. No torso. Bottle and glass remain primary subjects with premium service framing.',
+        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. No visible identity cues. No torso. Bottle and glass remain primary subjects with premium service framing. The wine stream must begin at the bottle mouth only, with continuous contact to the lip and neck opening.',
       });
     } else if (lineupMode) {
       segments.push({
@@ -210,12 +210,12 @@ export const winePipeline = {
     } else if (bottleAndGlassPourMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour. Elegant hospitality motion. Continuous liquid ribbon into glass. No explosive splash. Bottle label remains visible.',
+        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour. Elegant hospitality motion. Continuous liquid ribbon into glass. No explosive splash. The pour must originate from the bottle mouth and front lip exactly as real wine service behaves. Never start the stream below the rim or from the underside of the bottle opening. Bottle label remains visible.',
       });
     } else if (handsPouringMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. No visible identity cues. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects.',
+        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. No visible identity cues. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects. The pour must begin at the true bottle mouth with a gravity-coherent stream path into the glass.',
       });
     } else if (lineupMode) {
       segments.push({
