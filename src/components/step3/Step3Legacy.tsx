@@ -2091,32 +2091,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         });
       }
 
-      if (key === 'ugcRealMode' && value === true) {
-        newValues.visualMode = 'ugc';
-        newValues.visualIntent = 'ugc';
-        newValues.creationIntent = 'ugc';
-        newValues.creationMode = 'Lifestyle UGC';
-      }
-
-      if (key === 'visualIntent') {
-        const nextIntent = String(value || '').trim().toLowerCase();
-        if (nextIntent === 'ugc') {
-          newValues.visualMode = 'ugc';
-          newValues.ugcRealMode = true;
-          newValues.creationIntent = 'ugc';
-          newValues.creationMode = 'Lifestyle UGC';
-        } else if (['editorial', 'brand', 'luxury'].includes(nextIntent)) {
-          newValues.visualMode = 'default';
-          newValues.ugcRealMode = false;
-          if (newValues.creationIntent === 'ugc') {
-            newValues.creationIntent = 'brand';
-          }
-          if (newValues.creationMode === 'Lifestyle UGC') {
-            newValues.creationMode = 'Aesthetic Builder';
-          }
-        }
-      }
-
       // SAFETY RULE: If hasModelReference is true, force UGC off and clear creator
       if (hasModelReference) {
         newValues.ugcRealMode = false;
@@ -2162,7 +2136,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       };
 
       if (mode === 'ugc') {
-        next.visualIntent = 'ugc';
         next.creationIntent = 'ugc';
         next.creationMode = 'Lifestyle UGC';
         next.environment = 'none';
@@ -2181,9 +2154,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         (next as any).cinematicLook = false;
         (next as any).storytellingConsistency = false;
       } else {
-        if (next.visualIntent === 'ugc') {
-          next.visualIntent = 'editorial';
-        }
         if (prev.visualMode === 'ugc') {
           ALL_UGC_LAYER_FIELDS.forEach(layer => {
             (next as any)[layer] = [];
@@ -7562,8 +7532,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           updateValue('visualIntent', option.value);
                           if (option.value === 'ugc') {
                             setVisualMode('ugc');
-                          } else if (values.visualMode === 'ugc' || values.ugcRealMode === true) {
-                            setVisualMode('default');
                           }
                           markSectionTouched('creator');
                         }}
