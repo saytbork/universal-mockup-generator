@@ -138,4 +138,44 @@ describe('LifestyleProfessionalBiasBuilder', () => {
     expect(mapped.lifestyleEnvironmentInterpretation).toMatch(/never as a cg concept room|never as a 3d mockup|never like cgi/i);
     expect(mapped.lifestyleHardRestrictions).toMatch(/3d-rendered|cg concept interiors|synthetic/i);
   });
+
+  it('maps current lighting labels directly without depending on time of day', () => {
+    const mapped = mapLifestyleToPromptOptions({
+      sceneType: 'lifestyle-real',
+      creationMode: 'aesthetic',
+      contentStyle: 'brand',
+      visualMode: 'default',
+      visualIntent: 'brand',
+      environmentContext: { macro: 'Kitchen', micro: 'Countertop' },
+      environment: 'Kitchen',
+      noPerson: false,
+      age: 30,
+      gender: 'Female',
+      skinTone: 'Medium Neutral',
+      ethnicity: 'Non-specific',
+      bodyType: 'Average',
+      hair: 'Medium',
+      hairLength: 'Shoulder',
+      hairTexture: 'Wavy',
+      hairColor: 'Dark brown',
+      facialExpression: 'Calm & Serene',
+      eyeDirection: 'Looking at camera',
+      appearanceLevel: 'Regular',
+      pose: 'Relaxed Portrait',
+      skinRealism: 'Raw / Real',
+      timeOfDay: 'Morning',
+      lightingStyle: 'Cozy Indoors',
+      shotType: 'Medium',
+      cameraType: 'DSLR / mirrorless camera',
+      cameraAngle: 'Eye level',
+      framing: 'Rule of thirds',
+      productProminence: 'product-first',
+      productInteraction: 'background',
+      productStructure: 'single',
+      aspectRatio: '1:1 (Square)',
+    } as any);
+
+    expect(mapped.lighting).toMatch(/warm ambient indoor lighting/i);
+    expect(mapped.lighting).not.toMatch(/morning|midday|afternoon|evening/i);
+  });
 });

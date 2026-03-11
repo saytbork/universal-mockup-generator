@@ -1296,9 +1296,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // Neutral background + placement (Lifestyle-only) is optional and toggle-driven.
     ecommerceSidePlacementFlag: false,
 
-    // Time & Lighting - simplified
+    // Lighting - time of day kept only as legacy data, not active UI authority
     timeOfDay: 'Afternoon',
-    lightingStyle: 'Natural',
+    lightingStyle: 'Natural Light',
 
     // Camera
     shotType: 'Medium',
@@ -8652,26 +8652,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {/* TIME OF DAY */}
-                  <div className={SECTION_GROUP_CLASS}>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700">Time of day</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {TIME_OF_DAY_OPTIONS.map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          title={TIME_OF_DAY_TOOLTIPS[option] || option}
-                          onClick={() => { updateValue('timeOfDay', option); markSectionTouched('lighting'); }}
-                          className={getTogglePillClass(values.timeOfDay === option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* LIGHTING STYLE */}
                   <div className={SECTION_GROUP_CLASS}>
                     <div>
