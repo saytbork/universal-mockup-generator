@@ -379,7 +379,7 @@ export interface Step3Values {
   sceneOrderChaos: 'Clean' | 'Normal' | 'Messy' | 'Chaotic' | 'Randomized Chaos';
   ecommerceSidePlacementFlag: boolean;
 
-  // Time & Lighting
+  // Lighting
   timeOfDay: string;
   lightingStyle: string;
 
@@ -8641,14 +8641,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className="text-xs text-gray-500 dark:text-white/50">How the moment is filmed.</p>
               </header>
               <div className="mt-6 rounded-xl border border-gray-200/70 bg-white p-8 space-y-10 dark:bg-white/5 dark:border-white/10">
-            {/* Time & Lighting */}
+            {/* Lighting */}
               <div className="space-y-4">
                 <div className="space-y-4">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Time & Lighting</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Lighting</p>
                 </div>
               {values.visualMode === 'ugc' ? (
                 <div className="border-t border-gray-200/60 pt-3 text-sm text-gray-600 dark:border-white/10 dark:text-white/60">
-                  Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control time or lighting.
+                  Lighting is locked to indifferent domestic fixtures with mixed temperatures, clipped highlights, and crushed shadows. Turn Raw Domestic UGC off to control lighting.
                 </div>
               ) : (
                 <div className="space-y-3">

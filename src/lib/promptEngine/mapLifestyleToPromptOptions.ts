@@ -2175,7 +2175,7 @@ export function mapLifestyleToPromptOptions(
         })();
 
         let lightingSemantic =
-            LIGHTING_SEMANTIC_MAP[lightingStyleLabel] || LIGHTING_SEMANTIC_MAP['Natural window'];
+            LIGHTING_SEMANTIC_MAP[lightingStyleLabel] || LIGHTING_SEMANTIC_MAP['Natural Light'];
         if (looksOutdoor) {
             lightingSemantic = lightingSemantic
                 .replace(/natural window light/gi, 'natural sunlight')
