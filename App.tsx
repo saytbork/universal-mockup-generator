@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MockupOptions, OptionCategory, Option } from './types';
-import { Info, Moon, Sun } from 'lucide-react';
+import { Info, Moon, Plus, Sun } from 'lucide-react';
 import Logo from './src/components/Logo';
 import {
   CONTENT_STYLE_OPTIONS,
@@ -1526,6 +1526,7 @@ const App: React.FC = () => {
   const [modelReferencePreview, setModelReferencePreview] = useState<string | null>(null);
   const [modelReferenceNotes, setModelReferenceNotes] = useState('');
   const [modelReferenceLockAccessories, setModelReferenceLockAccessories] = useState(true);
+  const [isModelReferenceEnabled, setIsModelReferenceEnabled] = useState(false);
   const [personIdentityPackage, setPersonIdentityPackage] = useState<PersonIdentityPackage>(() =>
     createPersonIdentityPackage(createDefaultOptions())
   );
@@ -2030,6 +2031,11 @@ const App: React.FC = () => {
       setCompositionMode('balanced');
       setModelReferenceNotes('');
       setModelReferenceLockAccessories(true);
+    }
+  }, [hasModelReference]);
+  useEffect(() => {
+    if (hasModelReference) {
+      setIsModelReferenceEnabled(true);
     }
   }, [hasModelReference]);
   const primarySceneId = storyboardScenes[0]?.id ?? identitySourceSceneId;
@@ -6789,8 +6795,8 @@ If the model attempts to create a scene or environment, override it and force a 
                           }}
                           className="flex flex-col items-center gap-4 text-gray-500 group-hover:text-indigo-600 transition-colors dark:text-white/60 dark:group-hover:text-white"
                         >
-                          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl font-light border border-gray-200 shadow-inner dark:bg-white/5 dark:border-white/10 dark:text-white/70">
-                            +
+                          <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 shadow-inner dark:bg-white/5 dark:border-white/10">
+                            <Plus className="w-6 h-6 text-gray-600 dark:text-white/70" strokeWidth={2} />
                           </div>
                           <div className="flex flex-col gap-1">
                             <p className="text-xs font-bold tracking-[0.2em] text-gray-900 uppercase dark:text-white">Source Product</p>
@@ -6900,37 +6906,57 @@ If the model attempts to create a scene or environment, override it and force a 
                       )}
 
                       {!isProductPlacement && (
-                        <details className="border border-gray-200 pt-3 group bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
+                        <div className="border border-gray-200 bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10">
+                          <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
                               <span className="p-1.5 rounded-lg bg-gray-100 border border-gray-200 dark:bg-black/20 dark:border-white/10">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                               </span>
                               <div className="flex flex-col">
-                                <span className="uppercase flex items-center gap-2">
+                                <span className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase flex items-center gap-2">
                                   Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
                                 </span>
-                                <span className="text-[9px] font-medium lowercase tracking-normal text-gray-500 group-hover:text-indigo-600">Upload model for exact facial match</span>
+                                <span className="text-[10px] text-gray-500">Upload model for exact facial match</span>
                               </div>
                             </div>
-                            <span className="text-xs transition-transform group-open:rotate-180">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                            </span>
-                          </summary>
-                          <div className="mt-4 space-y-4">
-                            <ModelReferencePanel
-                              onFileSelect={handleModelReferenceUpload}
-                              previewUrl={modelReferencePreview}
-                              notes={modelReferenceNotes}
-                              onNotesChange={setModelReferenceNotes}
-                              onClear={handleClearModelReference}
-                              lockAccessories={modelReferenceLockAccessories}
-                              onLockAccessoriesChange={setModelReferenceLockAccessories}
-                              disabled={!hasUploadedProduct}
-                              lockedMessage="Upload a source product first to attach a model."
-                            />
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={isModelReferenceEnabled}
+                              aria-label="Enable model reference"
+                              disabled={!hasUploadedProduct && !hasModelReference}
+                              onClick={() => {
+                                if (!hasUploadedProduct && !hasModelReference) return;
+                                if (isModelReferenceEnabled) {
+                                  setIsModelReferenceEnabled(false);
+                                  if (hasModelReference) {
+                                    handleClearModelReference();
+                                  }
+                                  return;
+                                }
+                                setIsModelReferenceEnabled(true);
+                              }}
+                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${isModelReferenceEnabled ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200 border-gray-200'} ${(!hasUploadedProduct && !hasModelReference) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${isModelReferenceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></span>
+                            </button>
                           </div>
-                        </details>
+                          {isModelReferenceEnabled && (
+                            <div className="mt-4 space-y-4">
+                              <ModelReferencePanel
+                                onFileSelect={handleModelReferenceUpload}
+                                previewUrl={modelReferencePreview}
+                                notes={modelReferenceNotes}
+                                onNotesChange={setModelReferenceNotes}
+                                onClear={handleClearModelReference}
+                                lockAccessories={modelReferenceLockAccessories}
+                                onLockAccessoriesChange={setModelReferenceLockAccessories}
+                                disabled={!hasUploadedProduct}
+                                lockedMessage="Upload a source product first to attach a model."
+                              />
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

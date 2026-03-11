@@ -32,6 +32,47 @@ const BRAND_EDITORIAL_FACIAL_REALISM = `
 ADVERTISING HUMAN REALISM (NON-NEGOTIABLE): This is polished commercial advertising with a real human subject, not a beauty doll, mannequin, CGI avatar, or synthetic influencer face. Maintain natural facial asymmetry, believable eyelids, real tear line, textured lips, authentic teeth if visible, subtle under-eye structure, and skin pore continuity from forehead to jaw. Preserve a real nose bridge, real nostril shape, real ear anatomy, and natural smile mechanics. Reject glassy eyes, frozen smile, waxy skin, over-whitened teeth, airbrushed cheeks, plastic lips, or symmetry so perfect that the face reads fake.
 `.trim().replace(/\s+/g, ' ');
 
+const LUXURY_EDITORIAL_GUARD = `
+LUXURY_EDITORIAL_STANDARD: Elevated editorial presence. Sculpted directional lighting. Controlled minimal environment. Absolute styling discipline with no incidental artifacts. Subtle cinematic depth and refined posture authority. Controlled micro-expressions with quiet confidence. No UGC imperfection cues and no allowMessiness behavior. Premium polish with biologically believable skin texture.
+`.trim().replace(/\s+/g, ' ');
+
+const BRAND_STYLE_DISCIPLINE_LAYER = `
+BRAND_STYLE_DISCIPLINE_LAYER: Strict styling discipline. No messy incidental accessories. No elastic hair ties on wrist. No wet hair effect. No damp or freshly showered texture. No casual domestic randomness. No accidental grooming artifacts. Hair must appear intentionally styled and fully dry. Accessories must be minimal, deliberate, and compositionally justified. Wardrobe must feel commercially intentional and campaign-ready. No chaotic personal details.
+`.trim().replace(/\s+/g, ' ');
+
+const LUXURY_STYLE_REFINEMENT_LAYER = `
+LUXURY_STYLE_REFINEMENT_LAYER: Refined visual discipline. No wet hair texture. No elastic bands on wrist. No messy or incidental accessories. No visible clutter. No casual UGC styling cues. Hair must appear dry, dimensional, and intentionally shaped. Styling must feel curated, elevated, and magazine-appropriate. Every visible element must appear deliberately placed and aesthetically controlled.
+`.trim().replace(/\s+/g, ' ');
+
+const LUXURY_VISUAL_AUTHORITY_LAYER = `
+LUXURY_VISUAL_AUTHORITY_LAYER: Elevated luxury editorial discipline. Absolute styling control. No incidental randomness. No casual domestic artifacts. Lighting must feel sculpted and intentionally shaped. Controlled tonal separation. Subtle dramatic depth. Curated composition with refined spatial minimalism. Every visible element must appear deliberate, elevated, and magazine-grade.
+`.trim().replace(/\s+/g, ' ');
+
+const YOUTH_REALISM_GUARD = `
+YOUTH_REALISM_GUARD: Maintain natural human skin texture appropriate for a real 20-35 year old. Do NOT over-smooth skin. Avoid waxy, porcelain, doll-like, CGI-like rendering. Preserve subtle pores and natural tonal variation. Allow mild real-world skin variation. Avoid hyper-airbrushed cosmetic look. Skin must feel photographic, not synthetic.
+`.trim().replace(/\s+/g, ' ');
+
+function buildBrandEditorialIdentity(age: number, isUgcMode: boolean, isExpertOrFormulationMode: boolean): string[] {
+    const parts: string[] = [BRAND_EDITORIAL_GUARD, BRAND_STYLE_DISCIPLINE_LAYER];
+    if (
+        typeof age === 'number' &&
+        age < 40 &&
+        !isUgcMode &&
+        !isExpertOrFormulationMode
+    ) {
+        parts.push(YOUTH_REALISM_GUARD);
+    }
+    return parts;
+}
+
+function buildLuxuryEditorialIdentity(): string[] {
+    return [
+        LUXURY_EDITORIAL_GUARD,
+        LUXURY_STYLE_REFINEMENT_LAYER,
+        LUXURY_VISUAL_AUTHORITY_LAYER
+    ];
+}
+
 // ============================================================================
 // BLOCKED TERMS (CGI/Doll prevention)
 // ============================================================================
@@ -163,7 +204,9 @@ export class IdentityBuilder implements PromptBuilder {
             personDetails,
             contentStyle,
             creationIntent,
-            ugcRealModeActive
+            ugcRealModeActive,
+            visualIntent,
+            sceneType
         } = options;
 
         // Skip if no person or product-only mode
@@ -175,7 +218,27 @@ export class IdentityBuilder implements PromptBuilder {
         // Automatically excludes UGC if Ritual Mode or Formulation Story are active
         const isUgcMode = isUgcModeActive(options);
         const brandEditorialStyle = String(contentStyle || '').trim().toLowerCase() === 'brand';
-        const identityMode = ugcRealModeActive === true ? 'ugc-real' : 'brand-editorial';
+        const creationIntentLower = String(creationIntent || '').trim().toLowerCase();
+        const isExpertOrFormulationMode =
+            creationIntentLower.includes('expert') || creationIntentLower.includes('formulation');
+        const isLifestyleReal = String(sceneType || '').trim().toLowerCase() === 'lifestyle-real';
+        const isLuxuryVisualIntent = String(visualIntent || '').trim().toLowerCase() === 'luxury';
+        const isLuxuryEditorialMode =
+            ugcRealModeActive !== true &&
+            isLifestyleReal &&
+            isLuxuryVisualIntent;
+        const isBrandEditorialMode =
+            ugcRealModeActive !== true &&
+            isLifestyleReal &&
+            brandEditorialStyle &&
+            !isLuxuryEditorialMode;
+        const identityMode = ugcRealModeActive === true
+            ? 'ugc-real'
+            : isLuxuryEditorialMode
+                ? 'luxury-editorial'
+                : isBrandEditorialMode
+                    ? 'brand-editorial'
+                    : 'brand-editorial';
         console.log('[IDENTITY MODE]', identityMode);
         
         const parts: string[] = [];
@@ -194,8 +257,10 @@ export class IdentityBuilder implements PromptBuilder {
             parts.push(`
 SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with visible pores, natural surface variation, minor imperfections, uneven tone, natural shadows and highlights, subtle facial asymmetry, natural expression lines. MANDATORY: NO smoothing, NO beauty filter, NO retouching, NO porcelain finish, NO synthetic appearance, NO 3D render look, NO AI-generated perfection, NO doll-like skin, NO CGI smoothness, NO plastic appearance, NO wax figure look, NO video game character. This MUST look like a real person photographed naturally with a smartphone. REJECT any artificial skin perfection. The face must have natural human texture and imperfections visible at all times.
             `.trim().replace(/\s+/g, ' '));
-        } else if (brandEditorialStyle) {
-            parts.push(BRAND_EDITORIAL_GUARD);
+        } else if (identityMode === 'luxury-editorial') {
+            parts.push(...buildLuxuryEditorialIdentity());
+        } else if (identityMode === 'brand-editorial') {
+            parts.push(...buildBrandEditorialIdentity(age, isUgcMode, isExpertOrFormulationMode));
             parts.push(BRAND_EDITORIAL_FACIAL_REALISM);
         }
 

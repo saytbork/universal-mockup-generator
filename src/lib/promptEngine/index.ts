@@ -59,8 +59,9 @@ import { EcommerceNarrativeBuilder } from './builders/ecommerceSequence';
 import { buildStudioPrompt, PRODUCT_STUDIO_CANONICAL_PROMPT } from './studioPresets';
 import { buildQualityEnforcer, buildQualityNegatives } from './qualityEnforcer';
 import type { PromptOptions } from './types';
-import { buildMasterPrompt, MasterPromptSections } from './masterPrompt';
+import { buildMasterPrompt, type PromptSection } from './masterPrompt';
 import { buildDeterministicFoundation } from './deterministicSystemPrompt';
+import { applyVisualIntentLayer } from './layers/VisualIntentLayer';
 
 const STRICT_STATE_MODE = true;
 const ENABLE_PROTECTION_LIGHT = import.meta.env.VITE_PROMPT_PROTECTION_LIGHT === 'true';
@@ -256,6 +257,43 @@ If UGC or Raw Domestic UGC is enabled:
 - Depth of field must be implicit, neutral, uncontrolled, and never described.
 - Any conflicting camera or depth language must be ignored.
 `.trim();
+
+const OPTIMIZED_UGC_PROMPT = `
+UGC CAPTURE:
+- Casual smartphone photo.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
+`.trim();
+
+const NATURAL_UGC_PROMPT = `
+UGC CAPTURE:
+- Casual smartphone photo in a real setting.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
+`.trim();
+
+const RAW_UGC_PROMPT = `
+UGC CAPTURE:
+- Casual smartphone photo.
+- Natural, unstyled, believable.
+- Product and label clearly visible and readable.
+`.trim();
+
+function resolveUgcContract(options: PromptOptions, intentText: string): string {
+    const ugcContracts: Record<'optimized' | 'natural' | 'raw', string> = {
+        optimized: OPTIMIZED_UGC_PROMPT,
+        natural: NATURAL_UGC_PROMPT,
+        raw: RAW_UGC_PROMPT,
+    };
+    const ugcStyle = (options.ugcStyle ?? 'optimized') as 'optimized' | 'natural' | 'raw';
+    const shouldApply =
+        /\bugc\b/i.test(intentText) ||
+        options.ugcSelfieDominant === true ||
+        options.ugcRealModeActive === true ||
+        options.rawDomesticUgcActive === true ||
+        options.visualMode === 'ugc';
+    return shouldApply ? ugcContracts[ugcStyle] || ugcContracts.optimized : '';
+}
 
 function prependModeResolutionGuardrail(prompt: string): string {
     if (prompt.trimStart().startsWith('MODE RESOLUTION (MANDATORY)')) return prompt.trim();
@@ -810,6 +848,13 @@ export class PromptEngine {
         });
         console.log('[PROMPT ENGINE] Step 4: Canonical Scene - built');
 
+        const sceneConfig = {
+            sceneType: options.sceneType,
+            visualIntent: options.visualIntent as 'ugc' | 'editorial' | 'brand' | 'luxury' | undefined,
+        };
+        console.log('[VISUAL_INTENT_ACTIVE]', sceneConfig.visualIntent);
+        let masterSections: PromptSection[] = [];
+
         // ====================================================================
         // STEP 5: Special Builders (Formulation, Ecommerce handled in narrativeBuilder)
         // ====================================================================
@@ -829,32 +874,85 @@ export class PromptEngine {
         // ASSEMBLE MASTER PROMPT (canonical order)
         // ====================================================================
         const negative = negativePrompt(options);
-	        const masterSections: MasterPromptSections = {
-	            sceneStructure: this.sceneStructureBuilder.build(options),
-	            visualGrammar: this.visualGrammarBuilder.build(options),
-	            creationIntent: narrativeSections.creationIntent,
-	            creationMode: narrativeSections.creationMode,
-	            ugcRealMode: ugcSection || narrativeSections.ugcRealMode,
-	            formulationStory: [narrativeSections.formulationStory, formulationStoryInjection].filter(Boolean).join(' '),
-	            ecommerceBuilder: narrativeSections.ecommerceBuilder,
-	            cameraFraming: narrativeSections.cameraFraming,
-	            environmentLightingMood: narrativeSections.environmentLightingMood,
-	            compositionDetails: compositionDetailsSection,
-	            selfieCapture: selfieCaptureSection,
-	            identity: narrativeSections.identity || identitySection,
-	            ecommerceSequence: this.ecommerceNarrativeBuilder.build(options),
-	            // Deterministic foundation is a Product Studio contract and must NEVER appear in lifestyle/ugc.
-	            deterministicFoundation: options.contentStyle === 'product' ? buildDeterministicFoundation() : '',
-	            finalize: finalizeSection
-	        };
+        const intentSectionCore = [narrativeSections.creationIntent, narrativeSections.creationMode, ugcSection || narrativeSections.ugcRealMode]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+        const ugcContractSection = resolveUgcContract(options, intentSectionCore);
+        const intentSection = [intentSectionCore, ugcContractSection].filter(Boolean).join('\n\n').trim();
+        const identityValue = (narrativeSections.identity || identitySection || '').trim();
+        const environmentSection = [
+            options.setting ? `Environment: ${options.setting}.` : '',
+            options.microLocation ? `Micro-location: ${options.microLocation}.` : '',
+            String((options as any).sceneEnvironmentDescriptor || '').trim(),
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+        const timeAndLightingSection = (narrativeSections.environmentLightingMood || '').trim();
+        const cameraAndFramingSection = (narrativeSections.cameraFraming || '').trim();
+        const compositionValue = [compositionDetailsSection, selfieCaptureSection].filter(Boolean).join(' ').trim();
+        const propsSection = [options.personProps, (options as any).editorialProps]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+        const ritualSection = options.ritualModeActive
+            ? [options.ritualPosture, ...(options.ritualActivities || []), options.ritualCustom]
+                .map((value) => String(value || '').trim())
+                .filter(Boolean)
+                .join(' ')
+                .trim()
+            : '';
+        const formulationValue = [narrativeSections.formulationStory, formulationStoryInjection]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+        const expertRoleRaw = String(
+            (options as any).expertRole ||
+            options.formulationStory?.expertRole ||
+            options.formulationExpertRole ||
+            ''
+        ).trim().toLowerCase();
+        const hasExpertOrFormulation =
+            (options as any).formulationStoryEnabled === true ||
+            options.formulationExpertEnabled === true ||
+            (expertRoleRaw !== '' && expertRoleRaw !== 'none');
+        const luxuryIntentActive = (options.visualIntent ?? 'editorial') === 'luxury';
+        const shouldInjectBrandSceneAuthority =
+            String(options.contentStyle || '').trim().toLowerCase() === 'brand' &&
+            options.sceneType === 'lifestyle-real' &&
+            !luxuryIntentActive &&
+            !hasExpertOrFormulation;
+        const brandSceneAuthorityLayer = shouldInjectBrandSceneAuthority
+            ? 'BRAND_SCENE_AUTHORITY_LAYER: Commercial campaign-grade scene direction. Strong visual hierarchy. Intentional product dominance. Controlled interior styling with disciplined background simplification. Clean spatial geometry. Balanced but deliberate light shaping. Subtle contrast control for professional brand clarity. The result must feel advertisement-ready and commercially intentional.'
+            : '';
+        const ecommerceSequenceValue = this.ecommerceNarrativeBuilder.build(options).trim();
+        const heroPlacementSection = (narrativeSections.ecommerceBuilder || '').trim();
+        const outputFormatSection = options.aspectRatio
+            ? `OUTPUT_FORMAT: ${options.aspectRatio}`
+            : '';
+        const deterministicFoundationSection =
+            options.contentStyle === 'product' ? buildDeterministicFoundation() : '';
 
-	        // Back-compat guard (in case any older callers set sceneType).
-	        if ((options as any).sceneType === 'lifestyle_product' || (options as any).sceneType === 'ugc_phone') {
-	            masterSections.deterministicFoundation = '';
-	        }
+        masterSections.push({ id: 'deterministicFoundation', content: deterministicFoundationSection });
+        masterSections.push({ id: 'intent', content: intentSection });
+        masterSections.push({ id: 'identity', content: identityValue });
+        masterSections.push({ id: 'brandSceneAuthority', content: brandSceneAuthorityLayer });
+        masterSections = applyVisualIntentLayer(sceneConfig, masterSections);
+        masterSections.push({ id: 'environment', content: environmentSection });
+        masterSections.push({ id: 'timeAndLighting', content: timeAndLightingSection });
+        masterSections.push({ id: 'cameraAndFraming', content: cameraAndFramingSection });
+        masterSections.push({ id: 'compositionDetails', content: compositionValue });
+        masterSections.push({ id: 'props', content: propsSection });
+        masterSections.push({ id: 'ritualMode', content: ritualSection });
+        masterSections.push({ id: 'formulationStory', content: formulationValue });
+        masterSections.push({ id: 'ecommerceSequence', content: ecommerceSequenceValue });
+        masterSections.push({ id: 'heroPlacement', content: heroPlacementSection });
+        masterSections.push({ id: 'outputFormat', content: outputFormatSection });
+        masterSections.push({ id: 'finalize', content: finalizeSection });
 
-        const resolvedUgcStyle = options.ugcStyle ?? 'optimized';
-        let finalPrompt = buildMasterPrompt(masterSections, negative, resolvedUgcStyle);
+        let finalPrompt = buildMasterPrompt(masterSections, `Negative prompt: ${negative}`);
 
         const bannedEnvironmentalTerms = /(luxury editorial|hero framing|cinema camera)/i;
         if (options.sceneIntent === 'environment' && options.visualMode === 'ugc' && bannedEnvironmentalTerms.test(finalPrompt)) {
@@ -880,7 +978,7 @@ export class PromptEngine {
         const isProductOnly = options.contentStyle === 'product';
         if (isProductOnly) {
             const forbidden = /\b(lifestyle|ugc|user-generated|selfie|phone|creator|person|people|human|identity|ethnicity|age|face)\b/i;
-            const negativeMarker = ' Negative prompt: ';
+            const negativeMarker = 'Negative prompt:';
             const negativeIndex = finalPrompt.indexOf(negativeMarker);
             const rawPositivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
             const negativePart = negativeIndex >= 0 ? finalPrompt.substring(negativeIndex) : '';

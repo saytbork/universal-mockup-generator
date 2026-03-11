@@ -87,6 +87,30 @@ export class SceneNarrativeBuilder {
     private productBuilder = new ProductBuilder();
     private clothingBuilder = new ClothingBuilder();
 
+    private resolveLifestyleIdentityMode(options: PromptOptions): 'ugc-real' | 'brand-editorial' | 'luxury-editorial' {
+        const sceneType = String(options.sceneType || '').trim().toLowerCase();
+        const contentStyle = String(options.contentStyle || '').trim().toLowerCase();
+        const visualIntent = String(options.visualIntent || '').trim().toLowerCase();
+        const isLuxuryEditorialMode =
+            sceneType === 'lifestyle-real' &&
+            visualIntent === 'luxury' &&
+            options.ugcRealModeActive !== true;
+        const isBrandEditorialMode =
+            sceneType === 'lifestyle-real' &&
+            contentStyle === 'brand' &&
+            !isLuxuryEditorialMode &&
+            options.ugcRealModeActive !== true;
+
+        if (options.ugcRealModeActive === true) return 'ugc-real';
+        if (isLuxuryEditorialMode) return 'luxury-editorial';
+        if (isBrandEditorialMode) return 'brand-editorial';
+        return 'brand-editorial';
+    }
+
+    private buildLuxuryLightingLayer(_options: PromptOptions): string {
+        return 'LUXURY_LIGHTING_PROFILE: Sculpted directional key light. Controlled soft fill with 1-1.5 stop difference from key. Subtle rim light or hair light separation. Gentle shadow gradients with controlled highlight rolloff. No flat window-wash lighting. No overexposed domestic sunlight look. Depth is created through light hierarchy, not blur.';
+    }
+
     build(
         options: PromptOptions,
         extras: SceneNarrativeExtras = {}
@@ -119,6 +143,17 @@ export class SceneNarrativeBuilder {
         const productCopy = this.productBuilder.build(options);
         const ritualCopy = this.buildRitualMode(options);
         const parts: string[] = [];
+        const expertRoleRaw = String(
+            (options as any).expertRole ||
+            options.formulationStory?.expertRole ||
+            options.formulationExpertRole ||
+            ''
+        ).trim().toLowerCase();
+        const hasExpertOrFormulation =
+            (options as any).formulationStoryEnabled === true ||
+            options.formulationExpertEnabled === true ||
+            (expertRoleRaw !== '' && expertRoleRaw !== 'none');
+        const lifestyleIdentityMode = this.resolveLifestyleIdentityMode(options);
 
         const isProductMode =
             options.creationIntent === 'product' ||
@@ -209,6 +244,11 @@ export class SceneNarrativeBuilder {
                         options.lifestyleHardRestrictions ||
                             'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, domestic realism, casual everyday appearance, or UGC/documentary visuals; any of these makes the generation invalid.'
                     );
+                    if (lifestyleIdentityMode === 'luxury-editorial' && !hasExpertOrFormulation) {
+                        parts.push(
+                            'LUXURY_ENVIRONMENT_DISCIPLINE_LAYER: Editorial interior with curated minimal set. Enforce background simplification and elevated tonal separation. No domestic clutter. No casual kitchen cues unless intentionally stylized. No visible everyday objects unless compositionally intentional. Build depth layering through light hierarchy, not blur tricks.'
+                        );
+                    }
                 } else if (wantsUgcLook) {
                     parts.push(
                         'UGC-style lifestyle scene.',
@@ -740,6 +780,12 @@ export class SceneNarrativeBuilder {
                 personDetails: options.personDetails,
                 ugcRealMode: options.ugcRealModeActive
             });
+        const lifestyleIdentityMode = this.resolveLifestyleIdentityMode(options);
+        const isLuxuryEditorialMode = lifestyleIdentityMode === 'luxury-editorial';
+        const luxuryLightingLayer =
+            isLuxuryEditorialMode && options.ugcRealModeActive !== true
+                ? this.buildLuxuryLightingLayer(options)
+                : '';
 
         // Inject structural rules from mapper
         const creationModeStructural = (options as any).creationModeStructural || '';
@@ -763,8 +809,9 @@ export class SceneNarrativeBuilder {
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
             backgroundLine,
             environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
+            luxuryLightingLayer,
             options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
-            lightingText ? `Lighting: ${lightingText}.` : ''
+            !isLuxuryEditorialMode && lightingText ? `Lighting: ${lightingText}.` : ''
         ].filter(Boolean);
 
         const ugcEnvironmentDescriptor = (options as any).sceneEnvironmentDescriptor;
