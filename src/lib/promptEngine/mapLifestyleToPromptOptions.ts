@@ -1022,7 +1022,6 @@ export function mapLifestyleToPromptOptions(
         ...existingOptions,
         hasModelReference,
         identitySeed,
-        visualIntent: sceneState.visualIntent,
         visualMode,
         visualIntent: (visualIntent || (isUGCMode ? 'ugc' : 'editorial')) as any,
         sceneType: resolvedSceneType,
