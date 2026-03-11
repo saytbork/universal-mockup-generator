@@ -22,6 +22,7 @@ export {
   buildComposition,
   buildMotion,
   buildPhysics,
+  buildInteraction,
   buildModifiers,
   buildMaterials,
   buildPackaging,
@@ -31,7 +32,15 @@ export {
   injectWineEngine,
   sanitizePromptParts,
   resolveStudioAuthority,
-  getAllowedStudioModifiers
+  getAllowedStudioModifiers,
+  buildPhotoModeDynamic,
+  buildProductCharacter,
+  buildPhysicalPresence,
+  buildProductPhysical,
+  buildIngredients,
+  buildStudioBackground,
+  buildProductOrientation,
+  buildPalette
 };
 // import removed: isWineStrictSimulation no longer exported from winePromptHelpers
 import { generateWineImage } from './generateWineImage';
@@ -45,12 +54,21 @@ import { buildComposition } from './builders/buildComposition.ts';
 import { buildCameraOverrides } from './builders/buildCameraOverrides.ts';
 import { buildMotion } from './builders/buildMotion.ts';
 import { buildPhysics } from './builders/buildPhysics.ts';
+import { buildInteraction } from './builders/buildInteraction.ts';
 import { buildModifiers } from './builders/buildModifiers.ts';
 import { buildLighting } from './builders/buildLighting.ts';
 import { buildMaterials } from './builders/buildMaterials.ts';
 import { buildPackaging } from './builders/buildPackaging.ts';
+import { buildPhotoModeDynamic } from './builders/buildPhotoModeDynamic.ts';
+import { buildProductCharacter } from './builders/buildProductCharacter.ts';
+import { buildPhysicalPresence } from './builders/buildPhysicalPresence.ts';
+import { buildProductPhysical } from './builders/buildProductPhysical.ts';
 import { buildUltraReal } from './builders/buildUltraReal.ts';
 import { buildGeometry } from './builders/buildGeometry.ts';
+import { buildIngredients } from './builders/buildIngredients.ts';
+import { buildStudioBackground } from './builders/buildStudioBackground.ts';
+import { buildProductOrientation } from './builders/buildProductOrientation.ts';
+import { buildPalette } from './builders/buildPalette.ts';
 import { assembleStudioPrompt } from './assembler/studioAssembler.ts';
 import { validateStudioPrompt } from './assembler/studioValidator.ts';
 import {
@@ -81,6 +99,22 @@ type PromptSegment = {
 };
 
 const FORBIDDEN_TERMS = ['body', 'face'];
+
+function supportsAccentGelRig(lightingDescriptor: string): boolean {
+  const normalized = String(lightingDescriptor || '').trim().toLowerCase();
+  if (!normalized) return false;
+  if (
+    normalized.includes('natural') ||
+    normalized.includes('overcast') ||
+    normalized.includes('sunny day') ||
+    normalized.includes('golden hour') ||
+    normalized.includes('cozy-indoors') ||
+    normalized.includes('clinical-softbox')
+  ) {
+    return false;
+  }
+  return true;
+}
 
 function buildProtectionLayer(authority: StudioAuthorityBundle, state?: StudioUIState): string[] {
   const isWineIndustry = String(state?.visualProfile || '').trim().toLowerCase() === 'wine';
@@ -173,8 +207,23 @@ function finalizePromptFromSegments(
   // DISABLED: Minimal physical prompt early-return for wine served mode
   // This was preventing wine environment and proper world/composition blocks from injecting
   // Wine now goes through normal pipeline flow to get complete prompt structure
-  
-  const contents = segments.map((segment) => segment.content).filter(Boolean);
+
+  // Deduplicate guardrail segments: if the exact same content string appears more than once
+  // in the segment list, keep only the first occurrence and log a warning for the rest.
+  const seen = new Set<string>();
+  const deduped = segments.filter((seg) => {
+    const content = seg.content.trim();
+    if (!content) return true; // keep empty/whitespace segments as-is
+    if (seen.has(content)) {
+      // eslint-disable-next-line no-console
+      console.warn('[DUPLICATE_GUARDRAIL_REMOVED]', content.slice(0, 80));
+      return false;
+    }
+    seen.add(content);
+    return true;
+  });
+
+  const contents = deduped.map((segment) => segment.content).filter(Boolean);
 
   const validationPrompt = assembleStudioPrompt(contents);
   const sanitizedValidationPrompt = sanitizeFinalPromptOutput(validationPrompt);
@@ -227,7 +276,7 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
     console.log('[RESOLVED_LENS]', '');
     console.log('[RESOLVED_LIGHTING]', '');
     console.log('[RESOLVED_FINISH]', '');
-    return [];
+    return ['ADVANCED_CONTROLS: off.'];
   }
 
   let resolvedLens = '';
@@ -247,16 +296,27 @@ function buildAdvancedOverrideParts(state: StudioUIState): string[] {
   }
 
   const advancedParts: string[] = [];
+  advancedParts.push('ADVANCED_CONTROLS: on.');
+  advancedParts.push('ADVANCED_CONTROLS_AUTHORITY: Manual pro overrides are active. Treat selected lens, lighting rig, finish, and gel choices as authoritative user instructions.');
   if (resolvedLens) {
+    advancedParts.push(`LENS_OVERRIDE: ${resolvedLens}.`);
     advancedParts.push(`LENS_PROFILE: ${resolvedLens}.`);
   }
   if (resolvedLighting) {
+    advancedParts.push(`LIGHTING_RIG_OVERRIDE: ${resolvedLighting}.`);
     advancedParts.push(`STUDIO_LIGHTING_PROFILE: ${resolvedLighting}.`);
+    advancedParts.push('LIGHTING_EQUIPMENT_POLICY: Studio lights, spotlights, ring lights, softboxes, and all lighting hardware must remain off-camera and invisible. Only their lighting effects may appear in the frame.');
   }
-  if (hasAccentGel && resolvedLighting && !/\bnatural-light\b/i.test(resolvedLighting)) {
+  if (
+    hasAccentGel &&
+    resolvedLighting &&
+    !/\bnatural-light\b/i.test(resolvedLighting) &&
+    supportsAccentGelRig(resolvedLighting)
+  ) {
     advancedParts.push(`ACCENT_LIGHT_GEL: ${gelColor} at ${gelIntensity}% attached to resolved lighting.`);
   }
   if (resolvedFinish) {
+    advancedParts.push(`FINISH_OVERRIDE: ${resolvedFinish}.`);
     advancedParts.push(`STUDIO_FINISH_PROFILE: ${resolvedFinish}.`);
   }
 
@@ -485,14 +545,15 @@ function buildWineMinimalGuardrail(): string {
 export function buildWineRealismCore(): string {
   return [
     'REAL_WORLD_PHOTOGRAPHY_MODE: enabled.',
-    'CAMERA: Captured on professional full-frame camera. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
-    'LIGHT_SOURCE: Single directional warm key light. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
-    'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Very subtle surface scuffs or cleaning marks. No perfectly symmetrical highlight strips. No plastic-looking specular.',
+    'ADVERTISING_REALISM_TARGET: Hyper-real professional product advertising. Premium campaign polish without any CGI or synthetic render feel.',
+    'CAMERA: Captured on professional full-frame camera for luxury beverage advertising. 85mm lens. f/2.8 aperture. Natural depth falloff. Slight edge softness. High micro-contrast where needed for glass and label readability. No hyper-digital clarity. No extreme depth manipulation. No artificial tilt.',
+    'LIGHT_SOURCE: Premium commercial lighting with one dominant shaped key and subtle controlled fill. Natural falloff — not perfectly smooth. Slight color temperature variance across the scene. Non-uniform highlight intensity. No artificial halo. No volumetric glow. No studio-grade evenness. No Unreal-style lighting.',
+    'GLASS_MATERIAL: Slight micro waviness in glass surface. Subtle refractive distortion at bottle edges. Non-uniform highlight intensity across glass body. Clean premium glass presentation with natural material variation. Crisp believable specular roll-off. No perfectly symmetrical highlight strips. No plastic-looking specular.',
     'LABEL_MATERIAL: Microscopic paper texture visible under raking light. Slight edge lift or micro-shadow along label border. Very subtle print ink variation. Label surface preserved from reference — no material reinterpretation.',
-    'SURFACE_MATERIAL: Tiny dust particles on table surface. Slight uneven wood grain or stone irregularity. Real texture, not procedural smoothness.',
-    'SHADOW_QUALITY: Soft irregular shadow edges. Natural penumbra variation. Not mathematically perfect falloff.',
-    'COLOR_GRADING: Subtle cinematic grade. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal contrast only.',
-    'BAN_LIST: No CGI plastic reflections. No hyper-polished render look. No perfectly uniform glass thickness. No symmetrical highlight strips. No noise-free shadow gradients. No render-engine precision. No Blender/Unreal/3D render aesthetic. No volumetric god rays. No gradient studio backdrop. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
+    'SURFACE_MATERIAL: Clean premium tabletop or set surface. Slight uneven wood grain or stone irregularity allowed when appropriate. Real tactile texture, not procedural smoothness. No visible dust, salt, residue, or debris.',
+    'SHADOW_QUALITY: Soft irregular shadow edges. Natural penumbra variation. Not mathematically perfect falloff. Shadows must feel optically captured, not composited.',
+    'COLOR_GRADING: Subtle premium commercial grade. Refined contrast. Controlled highlight retention. No oversaturation. No heavy vignette. No synthetic bloom. Natural tonal separation only.',
+    'BAN_LIST: No CGI plastic reflections. No hyper-polished render look. No perfectly uniform glass thickness. No symmetrical highlight strips. No noise-free shadow gradients. No render-engine precision. No Blender/Unreal/3D render aesthetic. No volumetric god rays. No fake ad-composite look. No gradient studio backdrop. No Film Grain filter. No Terroir Mood overlay. No Elegant Reflection Layer. No clinical-softbox bloom.',
   ].join(' ');
 }
 

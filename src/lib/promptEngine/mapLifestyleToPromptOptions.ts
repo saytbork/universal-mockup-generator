@@ -759,6 +759,7 @@ export function mapLifestyleToPromptOptions(
     const creationModeRaw = String(sceneState.creationMode || '').trim().toLowerCase();
     const contentStyleRaw = String((sceneState as any).contentStyle || '').trim().toLowerCase();
     const visualMode = (sceneState.visualMode || 'default') as NonNullable<Step3Values['visualMode']>;
+    const visualIntent = String((sceneState as any).visualIntent || '').trim().toLowerCase();
     const isUGCMode = visualMode === 'ugc';
     const isRitualMode = visualMode === 'ritual';
     const isHeroMode = visualMode === 'hero';
@@ -854,6 +855,7 @@ export function mapLifestyleToPromptOptions(
         hasModelReference,
         identitySeed,
         visualMode,
+        visualIntent: (visualIntent || (isUGCMode ? 'ugc' : 'editorial')) as any,
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
@@ -1339,19 +1341,37 @@ export function mapLifestyleToPromptOptions(
             : 'Ritual action-first composition: focus on the wellness activity; if product appears, it must be naturally integrated and incidental to the ritual scene.'
         : isEnvironmentSceneIntent
         ? hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested
-            ? ({
-                balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
-                'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
-                'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
-                'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
-            } as const)[productProminenceKey] ??
+            ? (
+                mapped.personCount === 'group'
+                    ? ({
+                        balanced: 'Balanced group composition. The group reads as one cohesive unit on a shared plane, with one active product holder and the rest supporting naturally. Keep the product readable without creating a single dominant hero person.',
+                        'product-first': 'Group-aware product composition. Keep the product clearly readable and important, but stage the people as one cohesive group with comparable scale and no foreground hero plus background fillers.',
+                        'model-first': 'Group-forward framing. The group reads as a single cohesive social unit with comparable subject scale; product remains clearly visible and readable within the group dynamic.',
+                        'fifty-fifty': 'Equal-emphasis group framing. Product and group share attention together without isolating one person as the sole hero or pushing others into the background.',
+                    } as const)[productProminenceKey]
+                    : ({
+                        balanced: 'Balanced composition. Product and person share attention with equivalent visual weight.',
+                        'product-first': 'Product-first composition. Product dominates foreground; person supports the story.',
+                        'model-first': 'Person-first framing: person in the foreground hero position; product remains clearly visible and readable but secondary.',
+                        'fifty-fifty': 'Equal emphasis framing: tight composition where face and product share prominence equally.',
+                    } as const)[productProminenceKey]
+            ) ??
             'Product visible framing: keep product readable and present.'
-            : 'Balanced lifestyle composition with contextual surroundings.'
+            : mapped.personCount === 'group'
+                ? 'Balanced group lifestyle composition with cohesive social staging, comparable subject scale, and no single foreground hero. Keep the environment contextual and the group unified.'
+                : 'Balanced lifestyle composition with contextual surroundings.'
         : isEcommerceBlankSpaceActive
             ? 'Ecommerce blank-space arrangement with white void for product and copy, no lifestyle embellishments.'
             : COMPOSITION_MODE_STRUCTURAL_MAP[rawCompositionModeKey] || '';
     mapped.compositionMode = compositionModeKey;
     mapped.compositionModeStructural = compositionModeStructural;
+    if (
+        mapped.personCount === 'group' &&
+        /lifestyle showcase layout: balanced subject and environment/i.test(String(mapped.compositionModeStructural || ''))
+    ) {
+        mapped.compositionModeStructural =
+            'Balanced group lifestyle composition with cohesive social staging, comparable subject scale, and no foreground hero plus background fillers. Keep the environment contextual and the group unified.';
+    }
     console.log('[MAP] compositionMode:', compositionModeKey, '→', compositionModeStructural);
 
     if (isEnvironmentSceneIntent) {
@@ -1998,6 +2018,10 @@ export function mapLifestyleToPromptOptions(
         mapped.lighting = enforceElderLightingProfile(mapped.lighting, personAge);
         (mapped as any).timeLightingContext = mapped.lighting;
     }
+    if (!isUGCMode && sceneState.contentStyle === 'brand' && mapped.lighting) {
+        mapped.lighting = `${mapped.lighting} SKIN LIGHT RESPONSE: Skin must react to light with subtle uneven reflectance. Micro-shadow variation must be visible across cheek, nose, and jaw. Do not flatten skin gradients.`;
+        (mapped as any).timeLightingContext = mapped.lighting;
+    }
 
     mapped.ecommerceBlankSpaceMode = isEcommerceBlankSpaceActive;
 
@@ -2014,8 +2038,10 @@ export function mapLifestyleToPromptOptions(
     }
 
     const isLifestyleAdvertising =
-        sceneState.creationMode === 'lifestyle' && personIncluded;
+        (sceneState.creationMode === 'lifestyle' || sceneState.creationMode === 'aesthetic') &&
+        personIncluded;
     if (isLifestyleAdvertising) {
+        const resolvedVisualIntent = String(mapped.visualIntent || 'editorial').toLowerCase();
         const settingLabel = String(
             mapped.setting ||
                 mapped.sceneEnvironment ||
@@ -2027,13 +2053,43 @@ export function mapLifestyleToPromptOptions(
             ? `The ${settingLabel} is styled as an editorial luxury interior or premium campaign set with clean surfaces, intentional styling, and no clutter.`
             : 'The environment is styled as an editorial luxury set with premium finishes and curated geometry.';
 
-        mapped.lifestyleAdvertisingProfile =
-            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.';
-        mapped.lifestyleWardrobeRules =
-            'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must appear new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear, sloppy knits, or everyday worn clothing; styling must resemble a luxury brand advertising campaign.';
-        mapped.lifestyleEnvironmentInterpretation = settingPhrase;
-        mapped.lifestyleHardRestrictions =
-            'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, or signs of wear; do NOT depict domestic realism, casual everyday appearance, or unstyled wardrobe; do NOT produce UGC-like or documentary visuals. If any of these appear, the generation is invalid.';
+        if (resolvedVisualIntent === 'luxury') {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real luxury advertising model with elevated, aspirational presence, polished believable features, premium grooming, and expensive campaign energy; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must feel luxury-fashion adjacent: premium tailoring, clean silhouettes, rich materials, refined structure, and immaculate finish; no cheap basics, no sloppy casualwear, no worn fabrics, no domestic styling.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing. It must read as a real photographed location with believable construction, lived material response, natural lens behavior, and true-to-life depth; never as a 3D render, CGI environment, glossy showroom mockup, or synthetic virtual set.`
+                    : 'The environment is styled as an expensive luxury campaign set with premium materials, controlled geometry, aspirational styling, and real-location photographic believability; never as a 3D render, CGI environment, or synthetic virtual set.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Luxury Advertising): Do NOT depict cheap-looking materials, domestic realism, casual everyday styling, generic influencer aesthetics, messy environments, documentary realism, 3D-rendered interiors, CGI surfaces, synthetic architecture, or virtual-set lighting. If any of these appear, the generation is invalid.';
+            mapped.luxuryStyle = 'aspirational luxury campaign';
+        } else if (resolvedVisualIntent === 'brand') {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real brand-campaign model with polished believable features, premium grooming, and clean commercial presence; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must be premium, clean, intact, well-fitted, and commercially brand-safe; fabrics should look new, structured, and intentional; no sloppy basics, no worn garments, no domestic loungewear.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as a premium brand campaign set with clean surfaces, intentional composition, disciplined props, and conversion-friendly readability. It must feel like a real photographed interior with believable materials, true room depth, natural imperfections, and physical lighting response; never like CGI, Unreal-style staging, or a 3D mockup.`
+                    : 'The environment is styled as a premium brand campaign set with clean surfaces, disciplined props, conversion-friendly readability, and real-location photographic believability; never like CGI or a 3D mockup.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Brand Advertising): Do NOT depict domestic realism, casual everyday styling, clutter, damaged wardrobe, cheap set dressing, UGC/documentary vibes, CGI interiors, synthetic surfaces, virtual-set lighting, or 3D-rendered room geometry. If any of these appear, the generation is invalid.';
+            mapped.brandLook = 'clean premium campaign';
+        } else {
+            mapped.lifestyleAdvertisingProfile =
+                'The person must appear as a real editorial campaign model with polished presentation, natural believable features, and design-forward fashion/editorial presence; not casual, not domestic, not documentary.';
+            mapped.lifestyleWardrobeRules =
+                'Wardrobe must be elevated and editorial: refined silhouettes, clean structure, high-quality fabrics, and intentional styling; no sloppy basics, no worn casualwear, no domestic clothing language.';
+            mapped.lifestyleEnvironmentInterpretation =
+                settingLabel
+                    ? `The ${settingLabel} is styled as a curated editorial campaign interior with clean surfaces, intentional styling, design-forward composition, and magazine-grade set discipline. It must still read as a real photographed place with believable architecture, true material texture, natural falloff, and optical depth; never as a CG concept room or synthetic render.`
+                    : 'The environment is styled as a curated editorial campaign set with design-forward composition, magazine-grade discipline, and real-location photographic believability; never as a CG concept room or synthetic render.';
+            mapped.lifestyleHardRestrictions =
+                'Hard restrictions (Editorial Advertising): Do NOT depict domestic realism, sloppy wardrobe, generic ecommerce stiffness, messy clutter, UGC/documentary visuals, CG concept interiors, synthetic architecture, 3D-rendered surfaces, or fake virtual-set lighting. If any of these appear, the generation is invalid.';
+            mapped.editorialStyle = 'design-forward editorial campaign';
+        }
         (mapped as any).disableUgcSemantics = true;
     }
 
@@ -2330,7 +2386,9 @@ export function mapLifestyleToPromptOptions(
 
     // ========================================================================
     // PRODUCT STUDIO FIELDS → Pass to PromptEngine
+    // Guard: studio fields must NEVER contaminate lifestyle-real scenes.
     // ========================================================================
+    if (sceneState.sceneType !== 'lifestyle-real') {
     if (sceneState.studioPhotoMode) {
         (mapped as any).photoMode = sceneState.studioPhotoMode;
         (mapped as any).studioPhotoMode = sceneState.studioPhotoMode;
@@ -2373,6 +2431,23 @@ export function mapLifestyleToPromptOptions(
     if (sceneState.studioAccentColor) {
         (mapped as any).paletteColor3 = sceneState.studioAccentColor;
     }
+    } // end sceneState.sceneType !== 'lifestyle-real'
+
+    // ========================================================================
+    // HARD ENGINE ISOLATION — final output guard
+    // The lifestyle path MUST NOT emit sceneType 'studio-branding'.
+    // If existingOptions injected a stale value, override it now.
+    // ========================================================================
+    if ((mapped as any).sceneType === 'studio-branding') {
+        console.warn('[ISOLATION] sceneType was studio-branding in lifestyle path — overriding to lifestyle-real');
+        (mapped as any).sceneType = 'lifestyle-real';
+    }
+    // The lifestyle path MUST NOT emit sceneIntent 'ecommerce'.
+    if ((mapped as any).sceneIntent === 'ecommerce') {
+        console.warn('[ISOLATION] sceneIntent was ecommerce in lifestyle path — clearing');
+        (mapped as any).sceneIntent = undefined;
+    }
+
     if (process.env.NODE_ENV === 'development') {
         console.log('[MAP] Product Studio fields injected:', {
             photoMode: sceneState.studioPhotoMode,

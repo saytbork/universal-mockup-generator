@@ -4,6 +4,7 @@ import { toStudioV2State } from '../../productStudio/promptRouter';
 
 function buildBaseState(overrides: Partial<ProductStudioState> = {}): ProductStudioState {
   return {
+    industryProfile: 'supplements',
     visualProfile: 'default',
     qualityProfile: 'ecommerce-conversion',
     visualIntent: 'conversion',
@@ -42,7 +43,7 @@ function buildBaseState(overrides: Partial<ProductStudioState> = {}): ProductStu
 
 describe('promptRouter industry isolation', () => {
   test('non-wine profile does not materialize wine fields in V2 state', () => {
-    const state = buildBaseState({ visualProfile: 'default' });
+    const state = buildBaseState({ visualProfile: 'default', industryProfile: 'supplements' });
 
     const v2State = toStudioV2State(state);
 
@@ -59,6 +60,7 @@ describe('promptRouter industry isolation', () => {
   test('wine profile assigns wine fields in V2 state', () => {
     const state = buildBaseState({
       visualProfile: 'wine',
+      industryProfile: 'wine',
       wineLightingTone: 'Golden Ambient',
     });
 

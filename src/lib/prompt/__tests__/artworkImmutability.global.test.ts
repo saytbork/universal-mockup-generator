@@ -63,6 +63,10 @@ describe('buildArtworkImmutability — block content', () => {
     expect(block).toMatch(/Do not regenerate characters/i);
   });
 
+  test('prohibits character-level text drift', () => {
+    expect(block).toMatch(/Do not invent, replace, omit, transpose, or complete letters, numbers, symbols, or punctuation/i);
+  });
+
   test('prohibits spelling correction', () => {
     expect(block).toMatch(/Do not correct spelling/i);
   });
@@ -103,9 +107,9 @@ describe('buildArtworkImmutability — block content', () => {
     expect(block).not.toMatch(/\bforce\b/i);
   });
 
-  test('is compact — under 80 words', () => {
+  test('is compact — under 110 words', () => {
     const words = block.trim().split(/\s+/).filter(Boolean).length;
-    expect(words).toBeLessThan(80);
+    expect(words).toBeLessThan(110);
   });
 });
 

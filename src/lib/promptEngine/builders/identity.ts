@@ -25,7 +25,11 @@ CRITICAL REALISM REQUIREMENT (NON-NEGOTIABLE): This MUST be a real unedited phot
 `.trim().replace(/\s+/g, ' ');
 
 const BRAND_EDITORIAL_GUARD = `
-BRAND_EDITORIAL_STANDARD: Professional talent. Polished grooming. Subtle commercial-grade skin retouching. Clean complexion (no exaggerated texture). Confident controlled posture. Natural but camera-ready presence. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe.
+BRAND_EDITORIAL_STANDARD: Polished grooming. Confident controlled posture. Natural but camera-ready presence. Creative advertising realism, never beauty-doll rendering. No amateur imperfection cues. No handheld aesthetic. No phone capture vibe. Real human skin texture with natural micro-variation. Preserve pores, subtle asymmetry, fine lines, under-eye transitions, lip texture, real eyelid folds, and realistic tonal variation. Eyes must have natural sclera detail and realistic catchlights, never glassy doll eyes. Teeth, if visible, must retain natural enamel texture and slight imperfection, never uniform CGI white blocks. Avoid plastic smoothing, porcelain finish, waxy highlights, CGI skin, or mannequin-like rendering. NO porcelain skin. NO plastic skin. NO beauty-filter smoothing. NO mannequin symmetry. NO CGI facial rendering. NO doll eyes. NO fake veneers look. Maintain real optical skin response to natural light.
+`.trim().replace(/\s+/g, ' ');
+
+const BRAND_EDITORIAL_FACIAL_REALISM = `
+ADVERTISING HUMAN REALISM (NON-NEGOTIABLE): This is polished commercial advertising with a real human subject, not a beauty doll, mannequin, CGI avatar, or synthetic influencer face. Maintain natural facial asymmetry, believable eyelids, real tear line, textured lips, authentic teeth if visible, subtle under-eye structure, and skin pore continuity from forehead to jaw. Preserve a real nose bridge, real nostril shape, real ear anatomy, and natural smile mechanics. Reject glassy eyes, frozen smile, waxy skin, over-whitened teeth, airbrushed cheeks, plastic lips, or symmetry so perfect that the face reads fake.
 `.trim().replace(/\s+/g, ' ');
 
 // ============================================================================
@@ -192,6 +196,7 @@ SKIN REALISM (CRITICAL - NON-NEGOTIABLE): REAL authentic human skin texture with
             `.trim().replace(/\s+/g, ' '));
         } else if (brandEditorialStyle) {
             parts.push(BRAND_EDITORIAL_GUARD);
+            parts.push(BRAND_EDITORIAL_FACIAL_REALISM);
         }
 
         // ====================================================================
@@ -878,7 +883,7 @@ Captured by smartphone so fine edges may appear soft or broken.
             if (personCount === 'group') {
                 parts.push(
                     sanitizePart(
-                        'GROUP MODE: 3–5 subjects in frame. Person A follows the selected identity controls. All additional people must be distinct real individuals (no cloned faces), derived automatically with coherent style and minor natural variation. All faces must be clearly visible and not blurred into the background. Only ONE person interacts actively with the product; others remain supportive and passive.',
+                        'GROUP MODE: 3–5 subjects in frame. Person A follows the selected identity controls. All additional people must be distinct real individuals (no cloned faces, no sibling-like duplicates, no twin-looking repeats), derived automatically with coherent style and minor natural variation. The group must read as a single cohesive social unit, not a hero subject plus background extras. Keep subjects on a shared visual plane or a shallow semicircle with comparable scale and equal importance. Do NOT stage one dominant person close to camera with the others pushed far into the background. Do NOT create filler people behind the main subject. All faces must be clearly visible and readable, with natural spacing and distinct identities. Only ONE person interacts actively with the product; others remain supportive and passive.',
                         isUgcMode
                     )
                 );
@@ -965,21 +970,21 @@ Captured by smartphone so fine edges may appear soft or broken.
                     if (eyeDirection === 'Looking at camera') {
                         parts.push(
                             sanitizePart(
-                                'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once.',
+                                'EYE DIRECTION (GROUP): Only one or two subjects may look at the camera. The others must look at the product or look away naturally. Avoid everyone staring at camera at once. Keep the group feeling cohesive and on the same social beat, not staggered like foreground hero plus background fillers.',
                                 isUgcMode
                             )
                         );
                     } else if (eyeDirection === 'Looking at product') {
                         parts.push(
                             sanitizePart(
-                                'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed.',
+                                'EYE DIRECTION (GROUP): Most subjects look at the product OR share attention naturally between the product and each other. Keep it candid, not posed, and avoid splitting the group into one front subject with detached background observers.',
                                 isUgcMode
                             )
                         );
                     } else if (eyeDirection === 'Looking away naturally') {
                         parts.push(
                             sanitizePart(
-                                'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction.',
+                                'EYE DIRECTION (GROUP): Most subjects look away casually with natural variation. Some may glance at the product. Avoid everyone synchronizing in the same direction, and avoid arranging the group as a deep front-to-back stack.',
                                 isUgcMode
                             )
                         );

@@ -1,4 +1,4 @@
-import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineEnvironment, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority } from '../index';
+import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, resolveWineEngineVersion, buildWineTruthLayerV4, buildWineTruthLayer, buildWineLighting, buildWorld, buildLighting, buildWineMaterials, buildWineModifiers, buildWineMinimalGuardrail, buildWineRealismCore, buildWineTextIntegrityConstraint, buildArtworkImmutability, sanitizeWineV4Prompt, dedupeWineStructuralTokens, sanitizePromptLexicalGuard, finalizePromptFromSegments, buildIntent, buildCameraOverrides, buildComposition, resolveStudioAuthority, buildPalette } from '../index';
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
@@ -6,9 +6,10 @@ import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineM
 // For structural testing only
 export function __buildSegmentsForTest(state: StudioUIState) {
   const wineEffectiveState = applyWineDeterministicStateMachine(state);
+  // Ensure resolvedPalette exists before any world builder path that can call buildStudioBackground.
+  buildPalette(wineEffectiveState);
   const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
   const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
-  const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
   const segments: any[] = [];
   segments.push({ type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) });
   segments.push({ type: 'guardrail', content: buildArtworkImmutability() });
@@ -17,9 +18,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     : buildWineTruthLayer(wineEffectiveState, resolvedWineConfig);
   segments.push({ type: 'physics', content: winePhysicsBlock });
   segments.push({ type: 'guardrail', content: buildWineRealismCore() });
-  if (hasWineEnvironment) {
-    segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
-  }
+  segments.push({ type: 'world', content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState) });
   segments.push({ type: 'guardrail', content: buildWineMaterials(resolvedWineConfig?.serveState) });
   segments.push({ type: 'guardrail', content: buildWineMinimalGuardrail() });
   return segments;
@@ -27,21 +26,33 @@ export function __buildSegmentsForTest(state: StudioUIState) {
 
 export const winePipeline = {
   build(state: StudioUIState): string {
-    const photoMode = String((state as any).photoMode || '').trim();
+    const photoMode = String(state.photoMode || '').trim();
 
     // RULE 3: Bottle + Glass forces serve state = served.
     // Pre-patch the state before the deterministic machine runs so that
     // resolveServeState() sees wineGlassMode='filled' and bottleState='open'.
     // This also prevents the Closed option from being effective when this mode is active.
-    const stateForMachine: StudioUIState =
-      photoMode === 'Bottle + Glass'
-        ? { ...state, wineGlassMode: 'filled', wineBottleState: 'open' } as StudioUIState
-        : state;
+    const servedGlassModes = new Set([
+      'Bottle + Glass',
+      'Bottle + Glass Pour',
+      'Hands Pouring Wine',
+      'Rose Tasting Table',
+    ]);
+    const activePourMode = photoMode === 'Bottle + Glass Pour' || photoMode === 'Hands Pouring Wine';
+    const stateForMachine: StudioUIState = servedGlassModes.has(photoMode)
+      ? {
+          ...state,
+          wineGlassMode: 'filled',
+          wineBottleState: activePourMode ? 'open' : state.wineBottleState || 'open',
+          wineAction: activePourMode ? 'controlled-pour' : state.wineAction,
+        } as StudioUIState
+      : state;
 
     const wineEffectiveState = applyWineDeterministicStateMachine(stateForMachine);
+    // Ensure resolvedPalette exists before any world builder path that can call buildStudioBackground.
+    buildPalette(wineEffectiveState);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
-    const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
 
     // ── WINE MACRO LABEL — Hard override path ─────────────────────────────
     // When Photo Mode === 'Wine Macro Label', the label region is the ONLY subject.
@@ -55,6 +66,7 @@ export const winePipeline = {
         { type: 'guardrail', content: buildIntent(resolveStudioAuthority(wineEffectiveState), state) },
         { type: 'guardrail', content: buildArtworkImmutability() },
         { type: 'physics', content: physicsBlock },
+        { type: 'world', content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState) },
         {
           type: 'guardrail',
           content: [
@@ -82,10 +94,20 @@ export const winePipeline = {
     // ── BOTTLE + GLASS — Served composition shortcut ──────────────────────
     // Routes to bottle-and-glass composition mode via winePipelineV4 composition logic.
     const bottleAndGlassMode = photoMode === 'Bottle + Glass';
+    const bottleAndGlassPourMode = photoMode === 'Bottle + Glass Pour';
+    const handsPouringMode = photoMode === 'Hands Pouring Wine';
+    const lineupMode = photoMode === 'Wine Lineup Comparison';
+    const editorialBottleTabletopMode = photoMode === 'Editorial Bottle Tabletop';
+    const bottleInHandCutoutMode = photoMode === 'Bottle In Hand Cutout';
+    const roseTastingTableMode = photoMode === 'Rose Tasting Table';
 
     // ── WINERY SCENE — Environment injection shortcut ─────────────────────
     // Forces stone-cellar environment if wineEnvironmentVariation not already set.
     const winerysceneActive = photoMode === 'Winery Scene';
+    const effectiveWineEnvironmentVariation = winerysceneActive
+      ? 'dark-cellar'
+      : String(state.wineEnvironmentVariation || '').trim();
+    const hasWineEnvironment = Boolean(effectiveWineEnvironmentVariation);
 
     // ── Strict hierarchy — one of each, no duplicates ─────────────────────
     // [0] Engine status / intent
@@ -126,7 +148,32 @@ export const winePipeline = {
     if (bottleAndGlassMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: BOTTLE_AND_GLASS. Sealed bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. No full pour-in-progress.',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS. Opened service bottle and filled wine glass. Three-quarter camera angle. Glass positioned at complementary angle. Label fully legible. Bottle fill level reflects poured service. No full pour-in-progress.',
+      });
+    } else if (bottleAndGlassPourMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle actively pours into a wine glass. Three-quarter camera angle. Elegant liquid ribbon. Controlled motion only. The liquid stream must originate at the true bottle mouth and inner lip, connected continuously to the neck opening. Never emit liquid from below the bottle rim, sidewall, label area, or glass body. Label remains legible throughout.',
+      });
+    } else if (handsPouringMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. No visible identity cues. No torso. Bottle and glass remain primary subjects with premium service framing. The wine stream must begin at the bottle mouth only, with continuous contact to the lip and neck opening.',
+      });
+    } else if (lineupMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: WINE_LINEUP_COMPARISON. Multiple bottles arranged upright with clean spacing, balanced family-of-products rhythm, and clear varietal separation.',
+      });
+    } else if (bottleInHandCutoutMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: BOTTLE_IN_HAND_CUTOUT. Single cropped hand holds the bottle against a clean backdrop. No visible identity cues. No torso. Label remains front-readable and dominant.',
+      });
+    } else if (roseTastingTableMode) {
+      segments.push({
+        type: 'composition',
+        content: 'COMPOSITION: ROSE_TASTING_TABLE. Bright table-led editorial service scene with poured wine, elegant glass highlights, and refined seasonal accents. No people in frame.',
       });
     } else {
       const compositionOverride = buildComposition(resolveStudioAuthority(wineEffectiveState), state);
@@ -135,15 +182,13 @@ export const winePipeline = {
       }
     }
 
-    // [5] Environment context (surface, depth-field only — no light source redefinition)
-    if (winerysceneActive && !hasWineEnvironment) {
-      // Winery Scene mode: inject cellar environment if none explicitly set
-      segments.push({
-        type: 'world',
-        content: 'WINE_ENVIRONMENT: Authentic stone wine cellar. Wooden barrels in background. Irregular stone wall texture. Natural ambient cellar light. No stylized fog. No fantasy atmosphere.',
-      });
-    } else if (hasWineEnvironment) {
-      segments.push({ type: 'world', content: buildWineEnvironment(wineEffectiveState) });
+    segments.push({
+      type: 'world',
+      content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState),
+    });
+
+    if (hasWineEnvironment) {
+      segments.push({ type: 'guardrail', content: `WINE_ENVIRONMENT: ${effectiveWineEnvironmentVariation}.` });
     }
 
     // [6] Photo Mode context block for Editorial Table
@@ -151,6 +196,46 @@ export const winePipeline = {
       segments.push({
         type: 'guardrail',
         content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth.',
+      });
+    } else if (winerysceneActive) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback.',
+      });
+    } else if (bottleAndGlassMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle + Glass. Premium served-bottle presentation with one filled wine glass beside the bottle. Opened service state only. No pour-in-progress. Label remains fully legible and dominant.',
+      });
+    } else if (bottleAndGlassPourMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour. Elegant hospitality motion. Continuous liquid ribbon into glass. No explosive splash. The pour must originate from the bottle mouth and front lip exactly as real wine service behaves. Never start the stream below the rim or from the underside of the bottle opening. Bottle label remains visible.',
+      });
+    } else if (handsPouringMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. No visible identity cues. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects. The pour must begin at the true bottle mouth with a gravity-coherent stream path into the glass.',
+      });
+    } else if (lineupMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Wine Lineup Comparison. Multiple bottles shown as a refined brand-family lineup. Clean spacing. Premium shadow geometry. Color variation across bottles is desirable.',
+      });
+    } else if (editorialBottleTabletopMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Bottle remains the hero subject.',
+      });
+    } else if (bottleInHandCutoutMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No visible identity cues. No torso. Minimal clean commercial backdrop. Bottle label remains fully visible and product-led.',
+      });
+    } else if (roseTastingTableMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Rose Tasting Table. Bright premium tasting-table scene for rose or white wine. Fresh glass highlights, refined floral or tasting accents, and no human subjects in frame.',
       });
     }
 

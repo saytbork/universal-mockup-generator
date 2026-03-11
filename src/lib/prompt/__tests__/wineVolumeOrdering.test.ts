@@ -12,7 +12,7 @@ function baseState(): StudioUIState {
 }
 
 describe('wine volume ordering and binary state', () => {
-  // New model: bottle always sealed/closed. Served adds WINE_GLASS only. No liquid level changes.
+  // Served model: bottle opens for service and the fill level drops because wine was poured.
 
   test('V3: serveState=served has BOTTLE_PRESERVATION_LOCK + WINE_GLASS, config comes first', () => {
     const state = baseState();
@@ -29,6 +29,7 @@ describe('wine volume ordering and binary state', () => {
     expect(idxPres).toBeGreaterThan(idxConfig);
 
     expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).toContain('bottleState=open');
     expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
     expect(prompt).not.toContain('Liquid line clearly at midpoint');
   });
@@ -44,11 +45,10 @@ describe('wine volume ordering and binary state', () => {
 
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).not.toContain('WINE_GLASS:');
-    // bottleFillState no longer in configBlock — bottle is always retail-full (sealed)
     expect(prompt).toContain('bottleState=sealed');
   });
 
-  test('V4: serveState=served has BOTTLE_PRESERVATION_LOCK + WINE_GLASS, no VOLUME_LOCK for half-empty', () => {
+  test('V4: serveState=served has BOTTLE_PRESERVATION_LOCK + WINE_GLASS with open bottle state', () => {
     const state = baseState();
     const prompt = buildWineTruthLayerV4(state, {
       closureType: 'from-reference',
@@ -60,6 +60,7 @@ describe('wine volume ordering and binary state', () => {
     expect(prompt.indexOf('WINE_CONFIG_RESOLVED:')).toBeGreaterThan(-1);
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).toContain('bottleState=open');
     expect(prompt).not.toContain('Bottle must appear clearly and visibly lower than standard retail fill height');
   });
 });

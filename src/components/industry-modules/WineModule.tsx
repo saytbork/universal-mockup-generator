@@ -7,7 +7,7 @@ import {
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
 } from '@/lib/productStudio/winePrestige';
-import type { WineAction, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
+import type { WineAction, WineGlassType, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI =
@@ -49,6 +49,13 @@ const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string; descripti
   { value: 'served', label: 'Served', description: 'Open bottle, half-full, cap on surface, glass with wine' },
 ];
 
+const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'red-bowl', label: 'Red Bowl' },
+  { value: 'white-stem', label: 'White Stem' },
+  { value: 'sparkling-flute', label: 'Flute / Champagne' },
+];
+
 type WineModuleProps = {
   wineAction: WineAction;
   winePourStyle: WinePourStyle;
@@ -79,6 +86,7 @@ export function WineModule({
   const wineClosureType = (useProductStudioStore((s) => (s as any).wineClosureType) || 'from-reference') as WineClosureTypeUI;
   const wineBottleState = (useProductStudioStore((s) => (s as any).wineBottleState) || 'opened-with-cork-nearby') as string;
   const wineGlassMode = (useProductStudioStore((s) => (s as any).wineGlassMode) || 'none') as string;
+  const wineGlassType = (useProductStudioStore((s) => (s as any).wineGlassType) || 'auto') as WineGlassType;
   const wineServeAmount = (useProductStudioStore((s) => (s as any).wineServeAmount) || 'standard') as string;
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
   const wineEngineVersion = Number(useProductStudioStore((s) => (s as any).wineEngineVersion) || 3);
@@ -204,7 +212,7 @@ export function WineModule({
                       setWineUiState({
                         wineGlassMode: 'filled',
                         wineServeAmount: 'standard',
-                        wineBottleState: 'open',
+                        wineBottleState: 'opened-with-cork-nearby',
                       });
                     }}
                     title={option.description}
@@ -224,6 +232,25 @@ export function WineModule({
                   : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
             </p>
           </div>
+          {currentServeState === 'served' && !isMacroLabelMode && (
+            <div>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Glass Type</p>
+              <div className="flex flex-wrap gap-2">
+                {WINE_GLASS_TYPE_OPTIONS.map((option) => (
+                  <Chip
+                    key={option.value}
+                    selected={wineGlassType === option.value}
+                    onClick={() => setWineUiState({ wineGlassType: option.value })}
+                  >
+                    {option.label}
+                  </Chip>
+                ))}
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                Auto derives the right glass from the wine type. Use Flute / Champagne for sparkling scenes.
+              </p>
+            </div>
+          )}
           {/* RULE 5: Sparkling only visible when wineType resolves to sparkling
                or closure implies champagne/sparkling physics */}
           {isSparklingRelevant && (

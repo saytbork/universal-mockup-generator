@@ -10,7 +10,7 @@ function baseState() {
 }
 
 describe('strict serveState prompt', () => {
-  test('served mode contains BOTTLE_PRESERVATION_LOCK + WINE_GLASS, no open-bottle tokens', () => {
+  test('served mode contains BOTTLE_PRESERVATION_LOCK + WINE_GLASS with open service bottle', () => {
     const state = baseState();
     const prompt = buildWineTruthLayer(state, {
       closureType: 'from-reference',
@@ -25,11 +25,11 @@ describe('strict serveState prompt', () => {
     expect(prompt).not.toContain('composition');
     expect(prompt).not.toContain('STUDIO_LIGHTING_PROFILE');
 
-    // New model: bottle is sealed, served adds WINE_GLASS only
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
+    expect(prompt).toContain('bottleState=open');
+    expect(prompt).toContain('opened for service');
 
-    // Old open-bottle tokens must NOT appear
     expect(prompt).not.toContain('SERVED_STATE_LOCK_V4:');
     expect(prompt).not.toContain('Liquid line clearly at midpoint');
     expect(prompt).not.toContain('glassFillLevel');

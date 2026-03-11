@@ -5,6 +5,7 @@ export const getTestStates = () => [
   {
     name: 'Wine V4',
     state: {
+      industryProfile: 'wine',
       creativeIntent: 'luxury',
       world: 'studio',
       motion: 'static',
@@ -18,6 +19,7 @@ export const getTestStates = () => [
   {
     name: 'Coffee',
     state: {
+      industryProfile: 'coffee',
       creativeIntent: 'luxury',
       world: 'studio',
       motion: 'static',
@@ -28,11 +30,12 @@ export const getTestStates = () => [
   {
     name: 'Generic',
     state: {
+      industryProfile: 'supplements',
       creativeIntent: 'luxury',
       world: 'studio',
       motion: 'static',
       composition: 'hero',
-      visualProfile: 'generic',
+      visualProfile: 'supplements',
     } as StudioUIState,
   },
 ];

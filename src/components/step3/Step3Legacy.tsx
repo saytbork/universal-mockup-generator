@@ -19,12 +19,13 @@ import { TogglePillButton, getTogglePillClass } from '../ui/TogglePillButton';
 import { SwitchToggle } from '../ui/SwitchToggle';
 import ChipSelectGroup from '../ChipSelectGroup';
 import { useProductStudioStore, PREBUILT_BUNDLES, BRAND_PRESETS } from '@/lib/productStudio/store';
-import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
+import type { ProductStudioState, CameraAngle, CameraDistance, CameraRotation, CameraFraming, CreativeTheme, PaletteSource, PropDensity, BlankSpaceSide, EnvironmentMacro, Lighting, ProductType, ProductPlacement, MicroPlace, CompositionMode, SurfaceBase, ProductScale, ProductSpacing, LightStyle, NegativeSpace, IngredientStackLayout, ProductStateMotion, PhotoMode, VisualStyle, OutputQualityProfile, IndustryProfile } from '@/lib/productStudio/types';
 import { validateProductStudioState } from '@/lib/productStudio/validator';
 import { getPlacementOptionsForContext, resolvePlacement } from '@/lib/productStudio/placementResolver';
 import { resolvePhysicsCoherence } from '@/lib/productStudio/physicsCoherenceResolver';
 import { normalizeOption } from '../../system/normalizeOptions';
 import { PHOTO_MODE_SCHEMAS } from '@/lib/productStudio/photoModeSchema';
+import { VISUAL_STYLE_SCHEMAS } from '@/lib/productStudio/visualStyleSchema';
 import type { EnvironmentPhotoModeSchema } from '@/lib/productStudio/types';
 import {
   WINE_ENVIRONMENT_PRESETS,
@@ -32,7 +33,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import { industryRules } from '@/lib/productStudio/industryRules';
 import { resolveCoffeeIndustryIntent } from '@/lib/productStudio/resolveCoffeeIntent';
-import { getPhotoModeCameraCapability, getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
+import { getResolvedAllowedInteractions, getResolvedAllowedMotions } from '@/lib/productStudio/capabilityResolver';
 import { applyIndustryProfileSoft } from '@/lib/productStudio/applyIndustryProfileSoft';
 import { industryModuleRegistry } from '@/components/industry-modules/industryModuleRegistry';
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
@@ -68,6 +69,30 @@ function InterpretationNote({ message }: { message: string }) {
   );
 }
 
+const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
+
+function PropertySettingsCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={SETTINGS_CARD_CLASS}>
+      <div>
+        <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
+          {title}
+        </p>
+        <p className="text-[11px] text-gray-500 mb-4">{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
   schema: EnvironmentPhotoModeSchema;
   productStore: any;
@@ -92,97 +117,103 @@ function PhotoModeSettings({ schema, productStore, markSectionTouched }: {
       : schema.subOptions.filter(option => option.key !== 'customIngredients');
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
-        <div>
-          <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
-            {schema.label} Atmosphere
-          </p>
-          <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
-        </div>
-
-        {subOptions.map((option) => {
-          const currentSelection = dynamicConfig[option.key] || option.values[0];
-
-          return (
-            <div key={option.key} className="space-y-2">
-              <p className="text-xs text-gray-500 font-semibold">
-                {option.label}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {option.values.map((value) => (
-                  <Chip
-                    key={value}
-                    selected={currentSelection === value}
-                    onClick={() => {
-                      productStore.updatePhotoModeSubSetting(schema.label as PhotoMode, option.key, value);
-                      markSectionTouched('product-setup');
-                    }}
-                  >
-                    {value}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {supportsCustomIngredients && (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500 font-semibold">
-              Custom Ingredients
-            </p>
-            <input
-              type="text"
-              value={dynamicConfig.customIngredients || ''}
-              onChange={(e) => {
-                productStore.updatePhotoModeSubSetting(
-                  schema.label as PhotoMode,
-                  'customIngredients',
-                  e.target.value
-                );
-                markSectionTouched('product-setup');
-              }}
-              placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
-              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-100"
-            />
-            <p className="text-xs text-gray-500">
-              Adds optional custom ingredients/props on top of the mode defaults.
-            </p>
-          </div>
-        )}
-
-        {schema.constraints.length > 0 && (
-          <div className="mt-4 pt-4 ">
-            <p className="text-[9px] uppercase text-gray-400 mb-2">
-              AI Constraints
-            </p>
-            <ul className="space-y-1">
-              {schema.constraints.map((c, i) => (
-                <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
-                  <span className="text-gray-400 mt-0.5">•</span>
-                  {c}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+    <div className={SETTINGS_CARD_CLASS}>
+      <div>
+        <p className="text-xs font-black text-[var(--lifestyle-accent)] uppercase mb-2">
+          {schema.label} Atmosphere
+        </p>
+        <p className="text-[11px] text-gray-500 mb-4">{schema.description}</p>
       </div>
+
+      {subOptions.map((option) => {
+        const currentSelection = dynamicConfig[option.key] || option.values[0];
+
+        return (
+          <div key={option.key} className="space-y-2">
+            <p className="text-xs text-gray-500 font-semibold">
+              {option.label}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {option.values.map((value) => (
+                <Chip
+                  key={value}
+                  selected={currentSelection === value}
+                  onClick={() => {
+                    productStore.updatePhotoModeSubSetting(schema.label as PhotoMode, option.key, value);
+                    markSectionTouched('product-setup');
+                  }}
+                >
+                  {value}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {supportsCustomIngredients && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 font-semibold">
+            Custom Ingredients
+          </p>
+          <input
+            type="text"
+            value={dynamicConfig.customIngredients || ''}
+            onChange={(e) => {
+              productStore.updatePhotoModeSubSetting(
+                schema.label as PhotoMode,
+                'customIngredients',
+                e.target.value
+              );
+              markSectionTouched('product-setup');
+            }}
+            placeholder="e.g., orange wedges, mint leaves, ice shards, coffee beans, sand + shells"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[12px] text-gray-700 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-100"
+          />
+          <p className="text-xs text-gray-500">
+            Adds optional custom ingredients/props on top of the mode defaults.
+          </p>
+        </div>
+      )}
+
+      {schema.constraints.length > 0 && (
+        <div className="mt-4 pt-4 ">
+          <p className="text-[9px] uppercase text-gray-400 mb-2">
+            AI Constraints
+          </p>
+          <ul className="space-y-1">
+            {schema.constraints.map((c, i) => (
+              <li key={i} className="text-xs text-gray-500 flex items-start gap-2">
+                <span className="text-gray-400 mt-0.5">•</span>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
 const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Hero Landing Page',
-  'Color Pop Hero',
   'Ingredient Stack',
   'Ingredient Flat Lay',
   'Acrylic Blocks',
   'Splash Shot',
   'Foam & Texture',
   'Routine Carousel',
-  'Clinical Lab Counter',
 ]);
+
+const PHOTO_MODES_WITH_VISIBLE_SETTINGS = new Set<PhotoMode>([
+  ...PHOTO_MODE_WITH_MANUAL_SETTINGS,
+  ...(Object.keys(PHOTO_MODE_SCHEMAS) as PhotoMode[]),
+]);
+
+function hasRenderableSchemaSettings(schema?: EnvironmentPhotoModeSchema | null): boolean {
+  if (!schema) return false;
+  return schema.subOptions.length > 0 || schema.constraints.length > 0;
+}
 
 const LUXURY_UI_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
 const LUXURY_UI_ALLOWED_SHOT_TYPES = ['Close', 'Medium'] as const;
@@ -694,6 +725,33 @@ const APPEARANCE_LEVEL_OPTIONS = [
   'Running Late'
 ];
 
+// Per-PhotoMode interaction allowlist for selective UI gating.
+// Returns the set of interaction values that are ENABLED for the given photo mode.
+// Returns null when no per-mode restriction applies (all options enabled).
+function getPhotoModeInteractionAllowlist(photoMode: string): string[] | null {
+  switch (photoMode) {
+    case 'Ingredient Stack':
+      // All interactions EXCEPT two-hand-hold
+      return [
+        'none',
+        'passive-presence',
+        'cropped-hand',
+        'supported-hold',
+        'holding',
+        'presenting',
+        'framed-presentation',
+        'applying-opening',
+        'capsule-display',
+        'resting-interaction',
+      ];
+    case 'Ingredient Flat Lay':
+      // Minimal set only
+      return ['none', 'passive-presence', 'cropped-hand', 'resting-interaction'];
+    default:
+      return null; // no restriction
+  }
+}
+
 // Product Interaction - universal-safe deterministic modes
 const INTERACTION_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'holding', label: 'Holding product' },
@@ -1132,6 +1190,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const photoModeHintTimerRef = useRef<number | null>(null);
   const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
   const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
+  const hasVisiblePhotoModeSettings = useCallback(
+    (mode?: PhotoMode | null) => Boolean(mode && PHOTO_MODES_WITH_VISIBLE_SETTINGS.has(mode)),
+    []
+  );
+  const hasVisibleVisualStyleSettings = useCallback(
+    (mode?: VisualStyle | null) => Boolean(mode && hasRenderableSchemaSettings(VISUAL_STYLE_SCHEMAS[mode])),
+    []
+  );
   const markSectionTouched = useCallback((section: string) => {
     setTouchedSections(prev => {
       const newSet = new Set(prev);
@@ -1149,6 +1215,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   const showPhotoModeSettingsHint = useCallback((mode: PhotoMode) => {
     if (typeof window === 'undefined') return;
+    if (!hasVisiblePhotoModeSettings(mode)) {
+      setPhotoModeHintMode(null);
+      setPhotoModeHintVisible(false);
+      if (photoModeHintTimerRef.current != null) {
+        window.clearTimeout(photoModeHintTimerRef.current);
+      }
+      return;
+    }
     setPhotoModeHintMode(mode);
     setPhotoModeHintVisible(true);
     if (photoModeHintTimerRef.current != null) {
@@ -1157,7 +1231,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     photoModeHintTimerRef.current = window.setTimeout(() => {
       setPhotoModeHintVisible(false);
     }, 2600);
-  }, []);
+  }, [hasVisiblePhotoModeSettings]);
   useEffect(() => {
     return () => {
       if (photoModeHintTimerRef.current != null && typeof window !== 'undefined') {
@@ -1167,6 +1241,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
+    sceneType: initialSceneIntent === 'ecommerce' ? 'studio-branding' : 'lifestyle-real',
     visualMode: 'default',
     visualIntent: initialSceneIntent === 'ecommerce' ? undefined : 'editorial',
     // Creator/Person
@@ -1395,13 +1470,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: PRODUCT STUDIO STORE (SINGLE SOURCE OF TRUTH FOR PRODUCT MODE)
   // ============================================================================
   const productStore = useProductStudioStore();
+  const industryProfile: IndustryProfile = productStore.industryProfile;
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
-  const industryProfile: IndustryProfile =
-    productStore.visualProfile === 'wine-prestige'
-      ? 'wine'
-      : productStore.visualProfile === 'default'
-        ? 'supplements'
-        : (productStore.visualProfile as IndustryProfile);
+  const wineIndustryActive = industryProfile === 'wine' || winePrestigeModeActive;
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
@@ -1441,16 +1512,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       }, 200);
     }
 
-    if (nextProfile === 'wine') {
-      productStore.setVisualProfile('wine-prestige');
-      resetIndustryFields(nextProfile, productStore);
-    } else if (nextProfile === 'coffee') {
-      productStore.setVisualProfile('coffee');
-      resetIndustryFields(nextProfile, productStore);
-    } else {
-      productStore.setVisualProfile('default');
-      resetIndustryFields(nextProfile, productStore);
-    }
+    productStore.setIndustryProfile(nextProfile);
+    resetIndustryFields(nextProfile, productStore);
 
     if (softState.visualIntent && softState.visualIntent !== productStore.visualIntent) {
       productStore.setVisualIntent(softState.visualIntent as ProductStudioState['visualIntent']);
@@ -1469,7 +1532,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     // ── Photo mode stale-mode guard on industry switch ─────────────────────
     // When switching TO wine: clear any supplement-only modes (Macro Dew Label, etc.)
     // When switching FROM wine: clear any wine-only modes (Wine Macro Label, Bottle+Glass, etc.)
-    const WINE_ONLY_MODES: PhotoMode[] = ['Wine Macro Label', 'Bottle + Glass', 'Editorial Table', 'Winery Scene'];
+    const WINE_ONLY_MODES: PhotoMode[] = [
+      'Wine Macro Label',
+      'Bottle + Glass',
+      'Bottle + Glass Pour',
+      'Hands Pouring Wine',
+      'Wine Lineup Comparison',
+      'Editorial Bottle Tabletop',
+      'Bottle In Hand Cutout',
+      'Rose Tasting Table',
+      'Editorial Table',
+      'Winery Scene',
+    ];
     const SUPPLEMENT_ONLY_MODES: PhotoMode[] = ['Macro Dew Label', 'Ingredient Stack', 'Ingredient Flat Lay'];
     const currentPhotoMode = productStore.photoMode as PhotoMode;
     if (nextProfile === 'wine' && SUPPLEMENT_ONLY_MODES.includes(currentPhotoMode)) {
@@ -1637,7 +1711,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const heroLandingBrandSwatches = (() => {
     const paletteSource = productStore.photoModeConfig?.heroLandingPage?.paletteSource;
     if (paletteSource === 'Neutral brand tones') {
-      return ['#FFFFFF', '#F3F4F6', '#E5E7EB'];
+      return ['#F9FAFB', '#F3F4F6', '#E5E7EB'];
     }
     if (paletteSource === 'Custom') {
       return [];
@@ -1935,6 +2009,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     setValues(prev => {
       const newValues = { ...prev, [key]: value };
+      if (key === 'sceneType') {
+        console.log('[SCENETYPE UPDATE]', {
+          sceneType: newValues.sceneType,
+          isStudioEngine: newValues.sceneType === 'studio-branding',
+          sceneIntent: newValues.sceneIntent,
+          sourceFunction: 'Step3Legacy.updateValue',
+        });
+      }
 
       const resolveDefaultMicroForEnvironment = (macro: string): string => {
         switch (macro) {
@@ -2157,12 +2239,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3: Emit sceneState on EVERY change
   useEffect(() => {
     const normalizedCreationMode = normalizeCreationModeForEmit(values.creationMode);
-    const sceneType: 'studio-branding' | 'lifestyle-real' =
+    // ENGINE ISOLATION: sceneType is derived EXCLUSIVELY from values.sceneType.
+    // productStore.sceneType is NEVER consulted here — it belongs to the V2 studio engine only.
+    // If values.sceneType is absent, infer from the active creation flow instead of falling back to studio.
+    console.log('[STEP3 EMIT SOURCE]', {
+      fromValues: values.sceneType,
+      fromStore: productStore.sceneType,
+    });
+    const inferredLifestyleScene =
       normalizedCreationMode === 'aesthetic' ||
-        normalizedCreationMode === 'lifestyle' ||
-        normalizedCreationMode === 'ugc'
-        ? 'lifestyle-real'
-        : 'studio-branding';
+      normalizedCreationMode === 'lifestyle' ||
+      normalizedCreationMode === 'ugc';
+    const sceneType: 'studio-branding' | 'lifestyle-real' =
+      values.sceneType === 'studio-branding' || values.sceneType === 'lifestyle-real'
+        ? values.sceneType
+        : inferredLifestyleScene
+          ? 'lifestyle-real'
+          : 'studio-branding';
+    console.log('[PHASE3 sceneType RESOLUTION]', {
+      resolvedSceneType: sceneType,
+      source:
+        values.sceneType === 'studio-branding' || values.sceneType === 'lifestyle-real'
+          ? 'values.sceneType only'
+          : 'inferred from normalizedCreationMode',
+    });
     const contentStyle: 'ugc' | 'product' | 'brand' =
       values.visualMode === 'ugc'
         ? 'ugc'
@@ -2179,7 +2279,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       sceneType === 'lifestyle-real' &&
       values.productInteraction === 'holding' &&
       values.ugcRealMode !== true;
-    const payload: Step3Values = {
+    const rawPayload: Step3Values = {
       ...values,
       creationMode: normalizedCreationMode,
       sceneType,
@@ -2189,6 +2289,27 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       handsHolding: forceHandsHolding ? true : values.handsHolding,
       personIncluded,
     };
+    let payload: Step3Values = rawPayload;
+
+    if (sceneType === 'lifestyle-real') {
+      const leakedStudioKeys = Object.keys(rawPayload).filter((key) => {
+        if (!key.startsWith('studio')) return false;
+        const value = (rawPayload as unknown as Record<string, unknown>)[key];
+        if (value === undefined || value === null) return false;
+        return String(value).trim().length > 0;
+      });
+      if (leakedStudioKeys.length > 0) {
+        console.warn('Studio state leak detected', {
+          sceneType,
+          leakedStudioKeys,
+          sourceFunction: 'Step3Legacy.emitPayload',
+        });
+      }
+      payload = {
+        ...Object.fromEntries(Object.entries(rawPayload).filter(([key]) => !key.startsWith('studio'))),
+        sceneType: 'lifestyle-real',
+      } as Step3Values;
+    }
 
     console.log('[STEP3 FINAL EMIT PAYLOAD]', JSON.stringify(payload, null, 2));
     console.log('[STEP3 FINAL EMIT FIELDS]', {
@@ -2201,7 +2322,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (onValuesChange) {
       onValuesChange(payload);
     }
-  }, [values, onValuesChange]);
+  }, [values, onValuesChange, isProductMode]);
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
@@ -2323,7 +2444,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
   const cameraSectionLockedByUgc = isUGCMode;
   const accentTextClass = 'text-[var(--lifestyle-accent)]';
-  const mode: 'studio' | 'lifestyle' = isEcommerceMode ? 'studio' : 'lifestyle';
+  // uiActiveEngine === 'studio' covers the isProductMode=false + studio-branding scene case,
+  // ensuring the studio UI block (and its photo mode chips) always renders when the V2 engine is active.
+  const mode: 'studio' | 'lifestyle' = (isEcommerceMode || uiActiveEngine === 'studio') ? 'studio' : 'lifestyle';
 
   useEffect(() => {
     if (hasUploadedProductAsset) return;
@@ -2431,6 +2554,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const next: Step3Values = {
         ...prev,
+        sceneType: 'studio-branding',
         sceneIntent: 'ecommerce',
         creationIntent: 'product',
         ugcRealMode: false,
@@ -2491,6 +2615,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       if (prev.sceneIntent !== 'ecommerce') return prev;
       const next: Step3Values = {
         ...prev,
+        sceneType: 'lifestyle-real',
         sceneIntent: 'environment',
         creationIntent: 'ugc',
         ugcRealMode: false,
@@ -2524,6 +2649,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       exitEcommerceToEnvironment();
     }
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
+
+  useEffect(() => {
+    if (isProductMode || values.sceneIntent === 'ecommerce') {
+      if (values.sceneType !== 'studio-branding') {
+        updateValue('sceneType', 'studio-branding');
+      }
+      return;
+    }
+    if (values.sceneType !== 'lifestyle-real') {
+      updateValue('sceneType', 'lifestyle-real');
+    }
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
@@ -2571,10 +2708,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   const isPhotoModeAllowedFromPlacement = useCallback((mode: string) => {
     const p = productStore.placement;
-    if (mode === 'Hero Landing Page' || mode === 'Minimal Bathroom Vanity') return p === 'surface';
+    if (mode === 'Hero Landing Page') return p === 'surface';
     if (mode === 'Acrylic Blocks') return p === 'supported';
     if (mode === 'Splash Shot') return p === 'surface';
-    if (mode === 'Underwater Split' || mode === 'Sky Float Minimal') return p === 'air';
+    if (mode === 'Underwater Split') return p === 'air';
     if (mode === 'Hands Application Clean') return p === 'held' || p === 'supported';
     return true;
   }, [productStore.placement]);
@@ -2745,133 +2882,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
             variant="primary"
           >
             <div className="space-y-6">
-              {/* PHOTO TYPE — Mutually exclusive modes to avoid prompt conflicts */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  <Chip
-                    onClick={() => {
-                      productStore.setEnvironmentContext(null);
-                      markSectionTouched('product-setup');
-                    }}
-                    selected={productStore.environmentContext == null}
-                  >
-                    Photo Studio
-                  </Chip>
-                  <Chip
-                    onClick={() => {
-                      productStore.setEnvironmentContext({
-                        macro: (productStore.environmentContext?.macro as any) ?? 'kitchen',
-                        micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
-                      });
-                      markSectionTouched('product-setup');
-                      setOpenAccordionId('product-environment');
-
-                      // Mobile: after expanding, force-scroll to the top of the accordion (not the end of its content).
-                      // Use 'auto' to avoid Safari/iOS smooth-scroll anchoring quirks during layout transitions.
-                      const pinToTop = () => {
-                        const container = document.getElementById('product-environment');
-                        if (!container) return;
-                        const top = container.getBoundingClientRect().top + window.scrollY - 12;
-                        window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
-                      };
-
-                      requestAnimationFrame(() => {
-                        pinToTop();
-                        requestAnimationFrame(pinToTop);
-                      });
-                    }}
-                    selected={productStore.environmentContext != null}
-                  >
-                    Environment
-                  </Chip>
-                </div>
-              </div>
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
-                <div className="flex flex-wrap gap-2">
-                  {([
-                    { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
-                    { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
-                    { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
-                  ] as const).map(opt => (
-                    <Chip
-                      key={opt.id}
-                      onClick={() => {
-                        productStore.setQualityProfile(opt.id as OutputQualityProfile);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={productStore.qualityProfile === opt.id}
-                      description={opt.desc}
-                    >
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                  Defines the global creative intent of the generated prompt.
-                </p>
-              </div>
-
-              {/* SCENE TYPE — Hidden in Product Studio (product-only mode) */}
-              {!isProductMode && (
-                <div className={SECTION_GROUP_CLASS}>
-                  <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
-                      <Chip
-                        key={type}
-                        onClick={() => {
-                          productStore.setSceneType(type);
-                          markSectionTouched('product-setup');
-                        }}
-                        selected={productStore.sceneType === type}
-                      >
-                        {type === 'studio-branding' ? 'Studio' :
-                          type === 'editorial-product' ? 'Editorial' :
-                            type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
-                      </Chip>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                    Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
-                  </p>
-                </div>
-              )}
-
-              {/* PHYSICAL PLACEMENT — Contextual to Photo Type + Photo Mode */}
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
-                <div className="flex flex-wrap gap-2">
-                  {placementOptions.map(opt => (
-                    <Chip
-                      key={opt.id}
-                      onClick={() => {
-                        if (!opt.enabled) return;
-                        productStore.setPlacement(opt.id as any);
-                        setPlacementCorrectionMessage(null);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={placementResolution.resolvedPlacement === opt.id}
-                      disabled={!opt.enabled}
-                      description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
-                    >
-                      {opt.label}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
-                  Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
-                </p>
-                {placementCorrectionMessage && (
-                  <InterpretationNote message={placementCorrectionMessage} />
-                )}
-              </div>
 
               {/* ============================================================
-                   PRODUCT STUDIO CONTROLS (Studio Mode Only)
-                   Basic/Pro Visibility System
+                   1. INDUSTRY PROFILE — Defines everything that follows
                    ============================================================ */}
               {(productStore.sceneType === 'studio-branding' ||
                 productStore.sceneType === 'editorial-product' ||
@@ -2889,7 +2902,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           }}
                           description="Supplements industry defaults"
                         >
-                          Supplements (Default)
+                          Supplements
                         </Chip>
                         <Chip
                           selected={industryProfile === 'wine'}
@@ -2914,74 +2927,213 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       </div>
                     </div>
 
-                    {industryProfile === 'wine' && industryModuleRegistry.wine && (
-                      <industryModuleRegistry.wine
-                        wineAction={productStore.wineAction}
-                        winePourStyle={productStore.winePourStyle}
-                        contextPreset={productStore.contextPreset}
-                        wineLightingTone={productStore.wineLightingTone}
-                        wineMoodModifier={productStore.wineMoodModifier}
-                        onWineActionChange={(action) => {
-                          productStore.setWineAction(action);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWinePourStyleChange={(style) => {
-                          productStore.setWinePourStyle(style);
-                          markSectionTouched('product-setup');
-                        }}
-                        onContextPresetChange={(preset) => {
-                          productStore.setContextPreset(preset);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWineLightingToneChange={(tone) => {
-                          productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
-                          markSectionTouched('product-setup');
-                        }}
-                        onWineMoodModifierChange={(modifier) => {
-                          productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
-                          markSectionTouched('product-setup');
-                        }}
-                      />
-                    )}
+                    {(() => {
+                      const industryModules = industryModuleRegistry as Partial<
+                        Record<IndustryProfile, React.ComponentType<any>>
+                      >;
+                      const ActiveIndustryModule = industryModules[industryProfile];
+                      if (!ActiveIndustryModule) return null;
 
-                    {industryProfile === 'coffee' && industryModuleRegistry.coffee && (
-                      <industryModuleRegistry.coffee
-                        coffeeAction={productStore.coffeeAction}
-                        contextPreset={productStore.contextPreset}
-                        coffeeLightingTone={productStore.coffeeLightingTone}
-                        coffeeMoodModifier={productStore.coffeeMoodModifier}
-                        coffeeSteamLevel={productStore.coffeeSteamLevel}
-                        coffeeLiquidPhysics={productStore.coffeeLiquidPhysics}
-                        propsValue={productStore.props}
-                        onCoffeeActionChange={(action) => {
-                          productStore.setCoffeeAction(action);
-                          markSectionTouched('product-setup');
-                        }}
-                        onContextPresetChange={(preset) => {
-                          productStore.setContextPreset(preset);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeLightingToneChange={(tone) => {
-                          productStore.setCoffeeLightingTone(tone);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeMoodModifierChange={(modifier) => {
-                          productStore.setCoffeeMoodModifier(modifier);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeSteamLevelChange={(level) => {
-                          productStore.setCoffeeSteamLevel(level);
-                          markSectionTouched('product-setup');
-                        }}
-                        onCoffeeLiquidPhysicsChange={(enabled) => {
-                          productStore.setCoffeeLiquidPhysics(enabled);
-                          markSectionTouched('product-setup');
-                        }}
-                        onPropsValueChange={(next) => {
-                          productStore.setProps(next);
-                          markSectionTouched('product-setup');
-                        }}
-                      />
+                      const modulePropsByIndustry: Record<IndustryProfile, Record<string, unknown>> = {
+                        supplements: {},
+                        wine: {
+                          wineAction: productStore.wineAction,
+                          winePourStyle: productStore.winePourStyle,
+                          contextPreset: productStore.contextPreset,
+                          wineLightingTone: productStore.wineLightingTone,
+                          wineMoodModifier: productStore.wineMoodModifier,
+                          onWineActionChange: (action: ProductStudioState['wineAction']) => {
+                            productStore.setWineAction(action);
+                            markSectionTouched('product-setup');
+                          },
+                          onWinePourStyleChange: (style: ProductStudioState['winePourStyle']) => {
+                            productStore.setWinePourStyle(style);
+                            markSectionTouched('product-setup');
+                          },
+                          onContextPresetChange: (preset: string) => {
+                            productStore.setContextPreset(preset);
+                            markSectionTouched('product-setup');
+                          },
+                          onWineLightingToneChange: (tone: string) => {
+                            productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
+                            markSectionTouched('product-setup');
+                          },
+                          onWineMoodModifierChange: (modifier: string) => {
+                            productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
+                            markSectionTouched('product-setup');
+                          },
+                        },
+                        coffee: {
+                          coffeeAction: productStore.coffeeAction,
+                          contextPreset: productStore.contextPreset,
+                          coffeeLightingTone: productStore.coffeeLightingTone,
+                          coffeeMoodModifier: productStore.coffeeMoodModifier,
+                          coffeeSteamLevel: productStore.coffeeSteamLevel,
+                          coffeeLiquidPhysics: productStore.coffeeLiquidPhysics,
+                          propsValue: productStore.props,
+                          onCoffeeActionChange: (action: ProductStudioState['coffeeAction']) => {
+                            productStore.setCoffeeAction(action);
+                            markSectionTouched('product-setup');
+                          },
+                          onContextPresetChange: (preset: string) => {
+                            productStore.setContextPreset(preset);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeLightingToneChange: (tone: ProductStudioState['coffeeLightingTone']) => {
+                            productStore.setCoffeeLightingTone(tone);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeMoodModifierChange: (modifier: ProductStudioState['coffeeMoodModifier']) => {
+                            productStore.setCoffeeMoodModifier(modifier);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeSteamLevelChange: (level: ProductStudioState['coffeeSteamLevel']) => {
+                            productStore.setCoffeeSteamLevel(level);
+                            markSectionTouched('product-setup');
+                          },
+                          onCoffeeLiquidPhysicsChange: (enabled: boolean) => {
+                            productStore.setCoffeeLiquidPhysics(enabled);
+                            markSectionTouched('product-setup');
+                          },
+                          onPropsValueChange: (next: string) => {
+                            productStore.setProps(next);
+                            markSectionTouched('product-setup');
+                          },
+                        },
+                      };
+
+                      return <ActiveIndustryModule {...modulePropsByIndustry[industryProfile]} />;
+                    })()}
+
+                    {/* ─── 2. PHOTO MODE ─────────────────────────── */}
+                    {/* ─── 3. OUTPUT PROFILE ──────────────────────── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
+                          { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
+                          { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
+                        ] as const).map(opt => (
+                          <Chip
+                            key={opt.id}
+                            onClick={() => {
+                              productStore.setQualityProfile(opt.id as OutputQualityProfile);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={productStore.qualityProfile === opt.id}
+                            description={opt.desc}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                        Defines the global creative intent of the generated prompt.
+                      </p>
+                    </div>
+
+                    {/* ─── 4. PHYSICAL PLACEMENT ──────────────────── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
+                      <div className="flex flex-wrap gap-2">
+                        {placementOptions.map(opt => (
+                          <Chip
+                            key={opt.id}
+                            onClick={() => {
+                              if (!opt.enabled) return;
+                              productStore.setPlacement(opt.id as any);
+                              setPlacementCorrectionMessage(null);
+                              markSectionTouched('product-setup');
+                            }}
+                            selected={placementResolution.resolvedPlacement === opt.id}
+                            disabled={!opt.enabled}
+                            description={opt.enabled ? opt.description : `${opt.description} ${opt.disabledReason || ''}`.trim()}
+                          >
+                            {opt.label}
+                          </Chip>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
+                        Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
+                      </p>
+                      {placementCorrectionMessage && (
+                        <InterpretationNote message={placementCorrectionMessage} />
+                      )}
+                    </div>
+
+                    {/* ─── 5. PHOTO TYPE (technical — Studio vs Environment) ── */}
+                    <div className={SECTION_GROUP_CLASS}>
+                      <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Chip
+                          onClick={() => {
+                            productStore.setEnvironmentContext(null);
+                            markSectionTouched('product-setup');
+                          }}
+                          selected={productStore.environmentContext == null}
+                        >
+                          Photo Studio
+                        </Chip>
+                        <Chip
+                          onClick={() => {
+                            productStore.setEnvironmentContext({
+                              macro: (productStore.environmentContext?.macro as any) ?? 'kitchen',
+                              micro: (productStore.environmentContext?.micro as any) ?? 'countertop',
+                            });
+                            markSectionTouched('product-setup');
+                            setOpenAccordionId('product-environment');
+                            const pinToTop = () => {
+                              const container = document.getElementById('product-environment');
+                              if (!container) return;
+                              const top = container.getBoundingClientRect().top + window.scrollY - 12;
+                              window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+                            };
+                            requestAnimationFrame(() => {
+                              pinToTop();
+                              requestAnimationFrame(pinToTop);
+                            });
+                          }}
+                          selected={productStore.environmentContext != null}
+                        >
+                          Environment
+                        </Chip>
+                      </div>
+                    </div>
+
+                    {/* ─── SCENE TYPE — Hidden in Product Studio ──── */}
+                    {!isProductMode && (
+                      <div className={SECTION_GROUP_CLASS}>
+                        <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
+                            <Chip
+                              key={type}
+                              onClick={() => {
+                                productStore.setSceneType(type);
+                                if (type === 'studio-branding' || type === 'lifestyle-real') {
+                                  updateValue('sceneType', type);
+                                  console.log('[SCENETYPE UPDATE]', {
+                                    sceneType: type,
+                                    isStudioEngine: type === 'studio-branding',
+                                    sceneIntent: values.sceneIntent,
+                                    sourceFunction: 'Step3Legacy.sceneTypeChip.onClick',
+                                  });
+                                }
+                                markSectionTouched('product-setup');
+                              }}
+                              selected={productStore.sceneType === type}
+                            >
+                              {type === 'studio-branding' ? 'Studio' :
+                                type === 'editorial-product' ? 'Editorial' :
+                                  type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
+                            </Chip>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                          Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
+                        </p>
+                      </div>
                     )}
 
                     {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
@@ -3001,33 +3153,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
                               { label: 'Wine Macro Label', mode: 'Wine Macro Label' },
                               { label: 'Bottle + Glass', mode: 'Bottle + Glass' },
+                              { label: 'Bottle + Glass Pour', mode: 'Bottle + Glass Pour' },
+                              { label: 'Hands Pouring Wine', mode: 'Hands Pouring Wine' },
+                              { label: 'Wine Lineup Comparison', mode: 'Wine Lineup Comparison' },
+                              { label: 'Editorial Bottle Tabletop', mode: 'Editorial Bottle Tabletop' },
+                              { label: 'Bottle In Hand Cutout', mode: 'Bottle In Hand Cutout' },
+                              { label: 'Rose Tasting Table', mode: 'Rose Tasting Table' },
                               { label: 'Editorial Table', mode: 'Editorial Table' },
                               { label: 'Winery Scene', mode: 'Winery Scene' },
                             ];
 
                             // ── SUPPLEMENT/GENERIC COMPOSITION OPTIONS ───────────────────────
                             // Macro Dew Label is supplement-only — never shown in wine mode.
-                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = winePrestigeModeActive
+                            const compositionOptions: Array<{ label: string; mode: PhotoMode }> = wineIndustryActive
                               ? wineCompositionOptions
                               : [
                                   { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
-                                  { label: 'Color Pop Hero', mode: 'Color Pop Hero' },
                                   { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
                                   { label: 'Ingredient Flat Lay', mode: 'Ingredient Flat Lay' },
                                   { label: 'Routine Carousel', mode: 'Routine Carousel' },
                                   { label: 'Macro Dew Label', mode: 'Macro Dew Label' },
                                 ];
 
-                            const visualStyleOptions: Array<{ label: string; mode: PhotoMode }> = [
+                            const visualStyleOptions: Array<{ label: string; mode: VisualStyle }> = [
                               { label: 'Clinical Lab Counter', mode: 'Clinical Lab Counter' },
                               { label: 'Minimal Bathroom Vanity', mode: 'Minimal Bathroom Vanity' },
                               { label: 'Dark Premium Studio', mode: 'Dark Premium Studio' },
-                              { label: 'Monochrome Brand', mode: 'Monochrome Brand' },
                               { label: 'Brand Campaign', mode: 'Brand Campaign' },
                               { label: 'Creator Premium Simulation', mode: 'Creator Premium Simulation' },
                               { label: 'Tech Clean Studio', mode: 'Tech Clean Studio' },
-                              { label: 'Soft Wellness Morning', mode: 'Soft Wellness Morning' },
-                              { label: 'Outdoor Energy Boost', mode: 'Outdoor Energy Boost' },
                               { label: 'Sunlit Stone Editorial', mode: 'Sunlit Stone Editorial' },
                               { label: 'Golden Sunset Backlit', mode: 'Golden Sunset Backlit' },
                               { label: 'Bathroom Daylight Clean', mode: 'Bathroom Daylight Clean' },
@@ -3067,6 +3221,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             };
 
                             const applyPhotoMode = (mode: PhotoMode) => {
+                              if (productStore.visualStyle) {
+                                productStore.setVisualStyle(undefined);
+                              }
                               productStore.setPhotoMode(mode);
                               const cleaned = stripLegacyEffectSegments(productStore.props);
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
@@ -3075,9 +3232,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               showPhotoModeSettingsHint(mode);
                             };
 
-                            const CHIP_TOOLTIPS: Partial<Record<PhotoMode, string>> = {
+                            const applyVisualStyle = (mode: string) => {
+                              productStore.setVisualStyle(mode);
+                              markSectionTouched('product-setup');
+                              if (hasVisibleVisualStyleSettings(mode as VisualStyle)) {
+                                scrollToPhotoModeSettings();
+                              }
+                            };
+
+                            const CHIP_TOOLTIPS: Partial<Record<PhotoMode | VisualStyle, string>> = {
                               'Hero Landing Page': 'Deterministic studio hero with copy-safe negative space (no props).',
-                              'Color Pop Hero': 'Bold studio hero driven by brand color.',
                               'Ingredient Stack': 'Ingredients arranged around the product on a surface.',
                               'Ingredient Flat Lay': 'Top-down flat lay with controlled spacing.',
                               'Routine Carousel': 'Carousel-friendly product sequence styling.',
@@ -3085,12 +3249,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Clinical Lab Counter': 'Clinical countertop with lab-grade cleanliness.',
                               'Minimal Bathroom Vanity': 'Clean bathroom counter vibe (minimal context).',
                               'Dark Premium Studio': 'Premium dark studio mood and contrast.',
-                              'Monochrome Brand': 'Monochrome brand-first studio look.',
                               'Brand Campaign': 'Campaign-grade studio polish and drama.',
                               'Creator Premium Simulation': 'Premium UGC-style realism with controlled capture.',
                               'Tech Clean Studio': 'Techy clean studio surfaces and clarity.',
-                              'Soft Wellness Morning': 'Soft wellness lifestyle mood and light.',
-                              'Outdoor Energy Boost': 'Outdoor energetic lifestyle context.',
                               'Sunlit Stone Editorial': 'Sunlit editorial realism on stone textures.',
                               'Golden Sunset Backlit': 'Golden backlight with controlled flare.',
                               'Bathroom Daylight Clean': 'Daylight bathroom realism, clean and minimal.',
@@ -3110,11 +3271,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Fruit Garnish / Citrus Accents': 'Fruit/citrus accents as secondary styling props.',
                               'Textured Bed / Scatter Base': 'Controlled scatter/bed around the base.',
                               'Floating Particles': 'Subtle atmosphere particles (premium, controlled).',
+                              'Caustic Light Ripples': 'Premium refracted light ripples and caustic reflections around the product.',
+                              'Prism Rainbow Refractions': 'Controlled prism refractions with premium spectral highlights and clean readability.',
+                              'Glass Refraction Panels': 'Elegant glass-panel refractions adding depth and optical distortion around the product.',
+                              'Micro Mist Halo': 'Fine controlled mist halo for freshness, hydration, and cinematic depth separation.',
+                              'Shadow Pattern Projection': 'Projected shadow shapes adding modern editorial lighting and graphic depth.',
                               'Gel Smear Editorial': 'Editorial gel smear accents (controlled).',
                               'Underwater Split': 'Split-style underwater look with clean physics.',
                               // Wine-exclusive tooltips
                               'Wine Macro Label': 'Extreme close-up of label region only. No full bottle. 100mm macro lens.',
                               'Bottle + Glass': 'Sealed bottle with filled wine glass at 3/4 angle.',
+                              'Bottle + Glass Pour': 'Controlled premium pour from bottle into glass with elegant liquid motion.',
+                              'Hands Pouring Wine': 'Hands-only hospitality pour. No faces, no full person.',
+                              'Wine Lineup Comparison': 'Multiple wine bottles arranged as a clean brand or varietal lineup.',
+                              'Editorial Bottle Tabletop': 'Premium still-life tabletop with restrained wine props and editorial balance.',
+                              'Bottle In Hand Cutout': 'Single cropped hand holding the bottle against a clean commercial backdrop.',
+                              'Rose Tasting Table': 'Bright tasting-table scene for rose/white wine without people.',
                               'Editorial Table': 'Premium tabletop editorial with controlled wine-appropriate props.',
                               'Winery Scene': 'Bottle in authentic cellar or barrel room environment.',
                             };
@@ -3131,12 +3303,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Fruit Garnish / Citrus Accents', mode: 'Fruit Garnish / Citrus Accents' },
                               { label: 'Textured Bed / Scatter Base', mode: 'Textured Bed / Scatter Base' },
                               { label: 'Floating Particles', mode: 'Floating Particles' },
+                              { label: 'Caustic Light Ripples', mode: 'Caustic Light Ripples' },
+                              { label: 'Prism Rainbow Refractions', mode: 'Prism Rainbow Refractions' },
+                              { label: 'Glass Refraction Panels', mode: 'Glass Refraction Panels' },
+                              { label: 'Micro Mist Halo', mode: 'Micro Mist Halo' },
+                              { label: 'Shadow Pattern Projection', mode: 'Shadow Pattern Projection' },
                               { label: 'Gel Smear Editorial', mode: 'Gel Smear Editorial' },
                               { label: 'Underwater Split', mode: 'Underwater Split' },
-                              { label: 'Wet Rock Ripples', mode: 'Wet Rock Ripples' },
-                              // REMOVED: 'Botanical Water Garden' - already in Visual Style group (line 2439)
                             ];
-                            const filteredSpecialEffectsOptions = winePrestigeModeActive
+                            const filteredSpecialEffectsOptions = wineIndustryActive
                               // In wine mode, only wine-appropriate special effects are shown
                               ? specialEffectsOptions.filter(({ mode }) =>
                                   mode === 'Cheers (Hands Clink)' ||
@@ -3149,11 +3324,47 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             const filteredCompositionOptions = compositionOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedPhotoModes || activeIndustryRules.allowedPhotoModes.includes(mode)
                             );
-                            const isAllowedVisualStyle = (mode: PhotoMode) =>
+                            const isAllowedVisualStyle = (mode: VisualStyle) =>
                               !activeIndustryRules?.allowedVisualStyles || activeIndustryRules.allowedVisualStyles.includes(mode);
                             const filteredIndustrySpecialEffectsOptions = filteredSpecialEffectsOptions.filter(({ mode }) =>
                               !activeIndustryRules?.allowedSpecialEffects || activeIndustryRules.allowedSpecialEffects.includes(mode)
                             );
+                            const specialEffectsGroups: Array<{ label: string; modes: PhotoMode[] }> = [
+                              {
+                                label: 'Fresh / Hydration',
+                                modes: [
+                                  'Pool Water',
+                                  'Ice Cubes',
+                                  'Condensation Droplets',
+                                  'Caustic Light Ripples',
+                                  'Micro Mist Halo',
+                                  'Underwater Split',
+                                ],
+                              },
+                              {
+                                label: 'Luxury / Editorial',
+                                modes: [
+                                  'Acrylic Blocks',
+                                  'Glass Refraction Panels',
+                                  'Prism Rainbow Refractions',
+                                  'Floating Particles',
+                                  'Gel Smear Editorial',
+                                  'Shadow Pattern Projection',
+                                ],
+                              },
+                              {
+                                label: 'Bold / Campaign',
+                                modes: [
+                                  'Splash Shot',
+                                  'Beach Foam Splash',
+                                  'Cheers (Hands Clink)',
+                                  'Foam & Texture',
+                                  'Fruit Garnish / Citrus Accents',
+                                  'Textured Bed / Scatter Base',
+                                ],
+                              },
+                            ];
+                            const visualStyleOverridesCoreSelection = Boolean(productStore.visualStyle);
 
                             return (
                               <div className="p-5 space-y-7">
@@ -3162,24 +3373,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     <p className={GROUP_LABEL_CLASS}>COMPOSITION</p>
                                     <p className="text-[11px] text-gray-500 mt-1">Choose how the product is framed and presented.</p>
                                   </div>
-                                  <div className="space-y-5">
-                                    <div className="space-y-3">
-                                      <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Core</p>
-                                      <div className="flex flex-wrap gap-3">
-                                        {filteredCompositionOptions.map(({ label, mode }) => (
-                                          <Chip
-                                            key={label}
-                                            selected={productStore.photoMode === mode}
-                                            description={CHIP_TOOLTIPS[mode] || label}
-                                            onClick={() => {
-                                              applyPhotoMode(mode);
-                                            }}
-                                          >
-                                            <span className="truncate max-w-full">{label}</span>
-                                          </Chip>
-                                        ))}
-                                      </div>
-                                    </div>
+                                  <div className="flex flex-wrap gap-3">
+                                    {filteredCompositionOptions.map(({ label, mode }) => (
+                                      <Chip
+                                        key={label}
+                                        selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
+                                        description={CHIP_TOOLTIPS[mode] || label}
+                                        onClick={() => {
+                                          applyPhotoMode(mode);
+                                        }}
+                                      >
+                                        <span className="truncate max-w-full">{label}</span>
+                                      </Chip>
+                                    ))}
                                   </div>
                                 </div>
 
@@ -3201,10 +3407,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3217,37 +3423,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                         <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Brand Worlds</p>
                                         <div className="flex flex-wrap gap-3">
                                           {visualStyleOptions.filter(x =>
-                                            x.mode === 'Monochrome Brand' ||
                                             x.mode === 'Brand Campaign' ||
                                             x.mode === 'Creator Premium Simulation'
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
-                                              }}
-                                            >
-                                              <span className="truncate max-w-full">{label}</span>
-                                            </Chip>
-                                          ))}
-                                        </div>
-                                      </div>
-
-                                      <div className="space-y-3">
-                                        <p className="text-xs font-semibold text-gray-400 dark:text-white/40">Lifestyle Worlds</p>
-                                        <div className="flex flex-wrap gap-3">
-                                          {visualStyleOptions.filter(x =>
-                                            x.mode === 'Soft Wellness Morning' ||
-                                            x.mode === 'Outdoor Energy Boost'
-                                          ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
-                                            <Chip
-                                              key={label}
-                                              selected={productStore.photoMode === mode}
-                                              description={CHIP_TOOLTIPS[mode] || label}
-                                              onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3267,10 +3451,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3290,10 +3474,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ).filter(({ mode }) => isAllowedVisualStyle(mode)).map(({ label, mode }) => (
                                             <Chip
                                               key={label}
-                                              selected={productStore.photoMode === mode}
+                                              selected={productStore.visualStyle === mode}
                                               description={CHIP_TOOLTIPS[mode] || label}
                                               onClick={() => {
-                                                applyPhotoMode(mode);
+                                                applyVisualStyle(mode);
                                               }}
                                             >
                                               <span className="truncate max-w-full">{label}</span>
@@ -3341,19 +3525,34 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       <p className={GROUP_LABEL_CLASS}>SPECIAL EFFECTS</p>
                                       <p className="text-[11px] text-gray-500 mt-1">Optional visual enhancements.</p>
                                     </div>
-                                    <div className="flex flex-wrap gap-3">
-                                      {filteredIndustrySpecialEffectsOptions.map(({ label, mode }) => (
-                                        <Chip
-                                          key={label}
-                                          selected={productStore.photoMode === mode}
-                                          description={CHIP_TOOLTIPS[mode] || label}
-                                          onClick={() => {
-                                            applyPhotoMode(mode);
-                                          }}
-                                        >
-                                          <span className="truncate max-w-full">{label}</span>
-                                        </Chip>
-                                      ))}
+                                    <div className="space-y-5">
+                                      {specialEffectsGroups.map((group) => {
+                                        const options = filteredIndustrySpecialEffectsOptions.filter(({ mode }) =>
+                                          group.modes.includes(mode)
+                                        );
+
+                                        if (options.length === 0) return null;
+
+                                        return (
+                                          <div key={group.label} className="space-y-3">
+                                            <p className="text-xs font-semibold text-gray-400 dark:text-white/40">{group.label}</p>
+                                            <div className="flex flex-wrap gap-3">
+                                              {options.map(({ label, mode }) => (
+                                                <Chip
+                                                  key={label}
+                                                  selected={productStore.photoMode === mode && !visualStyleOverridesCoreSelection}
+                                                  description={CHIP_TOOLTIPS[mode] || label}
+                                                  onClick={() => {
+                                                    applyPhotoMode(mode);
+                                                  }}
+                                                >
+                                                  <span className="truncate max-w-full">{label}</span>
+                                                </Chip>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   </div>
                                 )}
@@ -3363,432 +3562,370 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                           <div className="mt-8 space-y-5">
                             <div ref={photoModeSettingsRef} />
-                            {photoModeHintVisible && (
+                            {photoModeHintVisible && hasVisiblePhotoModeSettings(photoModeHintMode || productStore.photoMode) && (
                               <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
                                 <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
                                 <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
                               </div>
                             )}
-                            {productStore.photoMode === 'Hero Landing Page' && (
-                              <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-5">
+                            {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
+                              <PhotoModeSettings
+                                schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
+                                productStore={productStore}
+                                markSectionTouched={markSectionTouched}
+                              />
+                            )}
+                            {productStore.photoMode === 'Hero Landing Page' && !productStore.visualStyle && (
+                              <PropertySettingsCard
+                                title="Hero Landing Page Atmosphere"
+                                description="Deterministic studio hero with copy-safe negative space and controlled background behavior."
+                              >
                                 {(() => {
                                   const heroCfg = productStore.photoModeConfig.heroLandingPage;
-                                  const bgType = heroCfg.backgroundType;
-                                  const isGradient = bgType === 'Gradient';
+                                  const isGradient = heroCfg.backgroundType === 'Gradient';
+                                  const paletteSource = heroCfg.paletteSource;
+                                  const isCustom = paletteSource === 'Custom';
 
-                                  const dotBase = COLOR_PICKER_BUTTON_CLASS;
-                                  const dotBorder = (isSelected: boolean) =>
-                                    isSelected ? 'border-[var(--lifestyle-accent)]' : 'border-gray-200 hover:border-gray-300';
+                                  // ── Resolve active colors from store ──────────────────────
+                                  const solidColor = normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
+                                  const startColor = normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
+                                  const endColor = normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
+                                  const midColor = normalizeHex(productStore.gradientMid) ?? '';
+                                  const hasMid = Boolean(midColor);
 
-                                  const getActiveTargetColor = (): string => {
-                                    if (!isGradient) return normalizeHex(productStore.backgroundColor) ?? '#FFFFFF';
-                                    if (heroGradientAssignTarget === 'start') return normalizeHex(productStore.gradientStart) ?? '#FFFFFF';
-                                    if (heroGradientAssignTarget === 'end') return normalizeHex(productStore.gradientEnd) ?? '#FFFFFF';
-                                    return normalizeHex(productStore.gradientMid) ?? '#FFFFFF';
-                                  };
+                                  // ── Brand palette colors (store.palette.* system colors) ──
+                                  const brandSystemSwatches = uniqHexes([
+                                    (productStore as any)?.palette?.primaryColor,
+                                    (productStore as any)?.palette?.secondaryColor,
+                                    (productStore as any)?.palette?.accentColor,
+                                  ]);
 
-                                  const applyHeroColor = (hex: string) => {
-                                    if (!isGradient) {
-                                      productStore.setBackgroundColor(hex);
-                                      markSectionTouched('product-setup');
-                                      return;
+                                  // ── Auto-fill from palette source ─────────────────────────
+                                  const applyColorSourceDefaults = (src: typeof paletteSource) => {
+                                    if (src === 'Product label colors') {
+                                      const swatches = heroLandingBrandSwatches;
+                                      if (swatches.length > 0) {
+                                        productStore.setBackgroundColor(swatches[0]);
+                                        if (isGradient && swatches[1]) productStore.setGradientStart(swatches[0]);
+                                        if (isGradient && swatches[1]) productStore.setGradientEnd(swatches[1]);
+                                      }
+                                    } else if (src === 'Neutral brand tones') {
+                                      // Fill from brand system palette; fall back to neutral whites if none configured.
+                                      const swatches = brandSystemSwatches.length > 0
+                                        ? brandSystemSwatches
+                                        : ['#F9FAFB', '#F3F4F6', '#E5E7EB'];
+                                      productStore.setBackgroundColor(swatches[0]);
+                                      if (isGradient) {
+                                        productStore.setGradientStart(swatches[0]);
+                                        productStore.setGradientEnd(swatches[1] ?? swatches[0]);
+                                      }
                                     }
-                                    if (heroGradientAssignTarget === 'start') productStore.setGradientStart(hex);
-                                    if (heroGradientAssignTarget === 'end') productStore.setGradientEnd(hex);
-                                    if (heroGradientAssignTarget === 'mid') productStore.setGradientMid(hex);
-                                    markSectionTouched('product-setup');
+                                    // Custom: user controls colors directly — no auto-fill
                                   };
 
-                                  const brandDots = heroLandingBrandSwatches.slice(0, 3);
-                                  const hasThird = Boolean(normalizeHex(productStore.gradientMid));
-                                  const thirdSmallBase = COLOR_PICKER_BUTTON_CLASS;
+                                  // ── Inline color row component ────────────────────────────
+                                  const ColorRow = ({
+                                    label,
+                                    value,
+                                    onChange,
+                                    readOnly,
+                                  }: {
+                                    label: string;
+                                    value: string;
+                                    onChange: (hex: string) => void;
+                                    readOnly?: boolean;
+                                  }) => {
+                                    const [draft, setDraft] = React.useState<string | null>(null);
+                                    const safeValue = normalizeHex(value) ?? '#FFFFFF';
+                                    const displayDraft = draft ?? safeValue;
+
+                                    const commitDraft = (raw: string) => {
+                                      const hex = normalizeHex(raw);
+                                      if (hex) { onChange(hex); }
+                                      setDraft(null);
+                                    };
+
+                                    return (
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-[11px] font-medium text-gray-500 w-16 shrink-0">{label}</span>
+                                        <div className="flex items-center gap-2 flex-1">
+                                          {/* Color swatch — rectangular, clickable */}
+                                          <label
+                                            className={[
+                                              'relative flex h-8 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md border transition-colors',
+                                              readOnly
+                                                ? 'cursor-default border-gray-200'
+                                                : 'border-gray-300 hover:border-gray-400',
+                                            ].join(' ')}
+                                            style={{ backgroundColor: safeValue }}
+                                            aria-label={`${label} color picker`}
+                                          >
+                                            {!readOnly && (
+                                              <input
+                                                type="color"
+                                                value={safeValue}
+                                                onChange={(e) => {
+                                                  const hex = normalizeHex(e.target.value);
+                                                  if (hex) { onChange(hex); setDraft(hex); }
+                                                }}
+                                                onBlur={() => setDraft(null)}
+                                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                              />
+                                            )}
+                                          </label>
+                                          {/* Hex input */}
+                                          <input
+                                            type="text"
+                                            value={displayDraft}
+                                            readOnly={readOnly}
+                                            onChange={(e) => setDraft(e.target.value)}
+                                            onBlur={(e) => commitDraft(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') commitDraft((e.target as HTMLInputElement).value);
+                                              if (e.key === 'Escape') setDraft(null);
+                                            }}
+                                            maxLength={7}
+                                            placeholder="#FFFFFF"
+                                            className={[
+                                              'h-8 flex-1 rounded-md border px-2 font-mono text-[11px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1',
+                                              readOnly
+                                                ? 'cursor-default select-none border-gray-100 bg-gray-50 text-gray-400'
+                                                : 'border-gray-200 bg-white focus:border-indigo-400 focus:ring-indigo-200',
+                                            ].join(' ')}
+                                            aria-label={`${label} hex value`}
+                                          />
+                                        </div>
+                                      </div>
+                                    );
+                                  };
 
                                   return (
                                     <>
-                                      <div className="space-y-5">
-                                        <div className="space-y-5">
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Background</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {(['Solid', 'Gradient'] as const).map(v => (
-                                                <Chip
-                                                  key={v}
-                                                  selected={heroCfg.backgroundType === v}
-                                                  onClick={() => {
-                                                    productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
-                                                    markSectionTouched('product-setup');
-                                                  }}
-                                                >
-                                                  {v}
-                                                </Chip>
-                                              ))}
-                                            </div>
-                                          </div>
+                                      {/* ── 1. BACKGROUND TYPE ───────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Background Type</p>
+                                        <div className="flex gap-2">
+                                          {(['Solid', 'Gradient'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.backgroundType === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { backgroundType: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
 
-                                          {isGradient && (
-                                            <div>
-                                              <p className="text-xs text-gray-500 font-semibold mb-2">Colors</p>
-                                              <div className="flex items-center gap-4">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setHeroGradientAssignTarget('start')}
-                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'start')}`}
-                                                  style={{ background: normalizeHex(productStore.gradientStart) ?? '#FFFFFF' }}
-                                                  aria-label="Select Start gradient color"
-                                                />
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setHeroGradientAssignTarget('end')}
-                                                  className={`${dotBase} ${dotBorder(heroGradientAssignTarget === 'end')}`}
-                                                  style={{ background: normalizeHex(productStore.gradientEnd) ?? '#FFFFFF' }}
-                                                  aria-label="Select End gradient color"
-                                                />
+                                      {/* ── 2. COLOR SOURCE ───────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Color Source</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {([
+                                            { value: 'Product label colors', label: 'Product palette' },
+                                            { value: 'Neutral brand tones', label: 'Brand palette' },
+                                            { value: 'Custom', label: 'Custom' },
+                                          ] as const).map(({ value, label }) => (
+                                            <Chip
+                                              key={value}
+                                              selected={paletteSource === value}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: value } });
+                                                applyColorSourceDefaults(value);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {label}
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                        {paletteSource === 'Product label colors' && heroLandingBrandSwatches.length === 0 && (
+                                          <p className="text-[11px] text-amber-600">
+                                            No label colors detected yet. Upload a product image to auto-fill.
+                                          </p>
+                                        )}
+                                        {paletteSource === 'Neutral brand tones' && brandSystemSwatches.length === 0 && (
+                                          <p className="text-[11px] text-gray-500">
+                                            Brand palette not found. Using neutral fallback tones.
+                                          </p>
+                                        )}
+                                      </div>
 
-                                                {hasThird ? (
-                                                  <div className="relative">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => setHeroGradientAssignTarget('mid')}
-                                                      className={`${thirdSmallBase} ${dotBorder(heroGradientAssignTarget === 'mid')}`}
-                                                      style={{ background: normalizeHex(productStore.gradientMid) ?? '#FFFFFF' }}
-                                                      aria-label="Select Third gradient color"
-                                                    />
+                                      {/* ── 3. COLOR CONTROLS ─────────────────────────────── */}
+                                      <div className="space-y-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                          Color Controls
+                                        </p>
+
+                                        {!isGradient ? (
+                                          // Solid: single color row
+                                          <ColorRow
+                                            label="Color"
+                                            value={solidColor}
+                                            readOnly={!isCustom}
+                                            onChange={(hex) => {
+                                              productStore.setBackgroundColor(hex);
+                                              markSectionTouched('product-setup');
+                                            }}
+                                          />
+                                        ) : (
+                                          // Gradient: two (or three) color rows
+                                          <div className="space-y-2">
+                                            <ColorRow
+                                              label="Start color"
+                                              value={startColor}
+                                              readOnly={!isCustom}
+                                              onChange={(hex) => {
+                                                productStore.setGradientStart(hex);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            />
+                                            <ColorRow
+                                              label="End color"
+                                              value={endColor}
+                                              readOnly={!isCustom}
+                                              onChange={(hex) => {
+                                                productStore.setGradientEnd(hex);
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            />
+
+                                            {hasMid && (
+                                              <div className="flex items-center gap-3">
+                                                <div className="w-16 shrink-0" />
+                                                <div className="flex flex-1 items-center gap-2">
+                                                  <ColorRow
+                                                    label="Mid color"
+                                                    value={midColor}
+                                                    readOnly={!isCustom}
+                                                    onChange={(hex) => {
+                                                      productStore.setGradientMid(hex);
+                                                      markSectionTouched('product-setup');
+                                                    }}
+                                                  />
+                                                  {isCustom && (
                                                     <button
                                                       type="button"
                                                       onClick={() => {
                                                         productStore.setGradientMid('');
                                                         markSectionTouched('product-setup');
-                                                        if (heroGradientAssignTarget === 'mid') setHeroGradientAssignTarget('end');
                                                       }}
-                                                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 text-xs leading-none text-gray-600 hover:border-gray-300"
-                                                      aria-label="Remove third gradient color"
+                                                      className="ml-auto shrink-0 text-[10px] text-gray-400 hover:text-gray-600 underline"
+                                                      aria-label="Remove third color"
                                                     >
-                                                      ×
+                                                      Remove
                                                     </button>
-                                                  </div>
-                                                ) : (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
-                                                      const suggested =
-                                                        heroLandingBrandSwatches[2] ||
-                                                        heroLandingBrandSwatches[1] ||
-                                                        heroLandingBrandSwatches[0] ||
-                                                        '#FFFFFF';
-                                                      productStore.setGradientMid(suggested);
-                                                      setHeroGradientAssignTarget('mid');
-                                                      markSectionTouched('product-setup');
-                                                    }}
-                                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[12px] font-semibold leading-none text-gray-600 hover:border-gray-300"
-                                                    aria-label="Add third gradient color"
-                                                  >
-                                                    +
-                                                  </button>
-                                                )}
+                                                  )}
+                                                </div>
                                               </div>
-                                            </div>
-                                          )}
+                                            )}
 
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Brand Colors</p>
-                                            <div className="flex flex-wrap gap-2">
-                                              {brandDots.length > 0 ? (
-                                                brandDots.map(hex => {
-                                                  const isSelected = isGradient
-                                                    ? getActiveTargetColor() === hex
-                                                    : normalizeHex(productStore.backgroundColor) === hex;
-                                                  return (
-                                                    <button
-                                                      key={hex}
-                                                      type="button"
-                                                      onClick={() => {
-                                                        productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Brand Colors' } });
-                                                        applyHeroColor(hex);
-                                                      }}
-                                                      className={`${dotBase} ${dotBorder(isSelected)}`}
-                                                      style={{ background: hex }}
-                                                      aria-label={`Use brand color ${hex}`}
-                                                    />
-                                                  );
-                                                })
-                                              ) : (
-                                                <p className="text-[11px] text-gray-500">No brand colors available.</p>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <p className="text-xs text-gray-500 font-semibold mb-2">Custom Color</p>
-                                            <div className="flex flex-wrap items-center gap-3">
+                                            {!hasMid && isCustom && (
                                               <button
                                                 type="button"
                                                 onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
-                                                  applyHeroColor('#FFFFFF');
+                                                  const suggested =
+                                                    heroLandingBrandSwatches[2] ||
+                                                    heroLandingBrandSwatches[1] ||
+                                                    '#E5E7EB';
+                                                  productStore.setGradientMid(suggested);
+                                                  markSectionTouched('product-setup');
                                                 }}
-                                                className={`${dotBase} ${dotBorder(getActiveTargetColor() === '#FFFFFF')}`}
-                                                style={{ background: '#FFFFFF' }}
-                                                aria-label="Set to white"
-                                              />
-                                              <label
-                                                className={`relative inline-block ${dotBase} ${dotBorder(false)}`}
-                                                style={{ background: getActiveTargetColor() }}
-                                                aria-label="Pick a custom color"
+                                                className="ml-[4.5rem] text-[11px] font-medium text-indigo-500 hover:text-indigo-700"
                                               >
-                                                <input
-                                                  type="color"
-                                                  value={getActiveTargetColor()}
-                                                  onClick={() => {
-                                                    const target = isGradient ? heroGradientAssignTarget : 'solid';
-                                                    setHeroHexEditingTarget(target);
-                                                    setHeroHexDraft(getActiveTargetColor());
-                                                  }}
-                                                  onChange={(e) => {
-                                                    productStore.setPhotoModeConfig({ heroLandingPage: { colorSource: 'Custom Color' } });
-                                                    applyHeroColor(e.target.value);
-                                                    setHeroHexDraft(normalizeHex(e.target.value) ?? e.target.value);
-                                                  }}
-                                                  className={COLOR_PICKER_HIDDEN_INPUT_CLASS}
-                                                  aria-label="Custom color picker"
-                                                />
-                                              </label>
-                                              {isGradient && (
-                                                <p className="text-[11px] text-gray-500">
-                                                  Applies to: {heroGradientAssignTarget === 'start' ? 'Start' : heroGradientAssignTarget === 'end' ? 'End' : 'Third'}
-                                                </p>
-                                              )}
-                                            </div>
-
-                                            {heroHexEditingTarget && (
-                                              <div className="mt-4 flex items-center gap-2">
-                                                <input
-                                                  type="text"
-                                                  value={heroHexDraft}
-                                                  onChange={(e) => setHeroHexDraft(e.target.value)}
-                                                  onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                      applyHeroHexToTarget();
-                                                      setHeroHexEditingTarget(null);
-                                                    }
-                                                    if (e.key === 'Escape') {
-                                                      setHeroHexEditingTarget(null);
-                                                    }
-                                                  }}
-                                                  onBlur={() => {
-                                                    applyHeroHexToTarget();
-                                                    setHeroHexEditingTarget(null);
-                                                  }}
-                                                  placeholder="#FFFFFF"
-                                                  className="h-9 w-36 rounded-lg border border-gray-200 bg-white px-2 text-[11px] font-mono text-gray-900 placeholder:text-gray-400 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
-                                                  aria-label="Hex color"
-                                                  autoFocus
-                                                />
-                                              </div>
+                                                + Add third color
+                                              </button>
                                             )}
                                           </div>
+                                        )}
 
-                                          {isGradient && (
-                                            <div>
-                                              <p className="text-xs text-gray-500 font-semibold mb-2">Gradient Style</p>
-                                              <div className="flex flex-wrap gap-2">
-                                                {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
-                                                  <Chip
-                                                    key={v}
-                                                    selected={heroCfg.gradientStyle === v}
-                                                    onClick={() => {
-                                                      productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
-                                                      markSectionTouched('product-setup');
-                                                    }}
-                                                  >
-                                                    {v}
-                                                  </Chip>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )}
+                                        {/* Inline hint when palette source drives colors */}
+                                        {paletteSource === 'Product label colors' && (
+                                          <p className="text-[10px] text-gray-400 italic">
+                                            Colors derived from product label palette.{' '}
+                                            Switch to <strong>Custom</strong> to edit manually.
+                                          </p>
+                                        )}
+                                        {paletteSource === 'Neutral brand tones' && (
+                                          <p className="text-[10px] text-gray-400 italic">
+                                            Using brand palette colors.{' '}
+                                            Switch to <strong>Custom</strong> to edit manually.
+                                          </p>
+                                        )}
+                                      </div>
+
+                                      {/* ── 4. GRADIENT STYLE (gradient only) ─────────────── */}
+                                      {isGradient && (
+                                        <div className="space-y-2">
+                                          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Gradient Style</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
+                                              <Chip
+                                                key={v}
+                                                selected={heroCfg.gradientStyle === v}
+                                                onClick={() => {
+                                                  productStore.setPhotoModeConfig({ heroLandingPage: { gradientStyle: v } });
+                                                  markSectionTouched('product-setup');
+                                                }}
+                                              >
+                                                {v}
+                                              </Chip>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* ── 5. NEGATIVE SPACE ─────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Negative Space</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.negativeSpace === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
                                         </div>
                                       </div>
 
-                                      <div className="h-px bg-gray-200 my-6" />
-
-                                      <div className="space-y-5">
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Palette Source</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {(['Product label colors', 'Neutral brand tones', 'Custom'] as const).map(v => (
-                                              <Chip
-                                                key={v}
-                                                selected={heroCfg.paletteSource === v}
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { paletteSource: v } });
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                              >
-                                                {v}
-                                              </Chip>
-                                            ))}
-                                          </div>
-                                        </div>
-
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Negative Space</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-                                              <Chip
-                                                key={v}
-                                                selected={heroCfg.negativeSpace === v}
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { negativeSpace: v } });
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                              >
-                                                {v}
-                                              </Chip>
-                                            ))}
-                                          </div>
-                                        </div>
-
-                                        <div>
-                                          <p className="text-xs text-gray-500 font-semibold mb-2">Contrast Level</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {(['Soft', 'High'] as const).map(v => (
-                                              <Chip
-                                                key={v}
-                                                selected={heroCfg.contrastLevel === v}
-                                                onClick={() => {
-                                                  productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: v } });
-                                                  markSectionTouched('product-setup');
-                                                }}
-                                              >
-                                                {v}
-                                              </Chip>
-                                            ))}
-                                          </div>
+                                      {/* ── 6. CONTRAST ───────────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Contrast</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {(['Soft', 'High'] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.contrastLevel === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { contrastLevel: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
                                         </div>
                                       </div>
                                     </>
                                   );
                                 })()}
-                              </div>
-                            )}
-
-                            {productStore.photoMode === 'Color Pop Hero' && (
-                              <div className="space-y-3">
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Background Type</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Solid', 'Gradient'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.backgroundType === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { backgroundType: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {productStore.photoModeConfig.colorPopHero.backgroundType === 'Gradient' && (
-                                  <div>
-                                    <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
-                                    <div className="flex flex-wrap gap-2">
-                                      {(['Soft', 'Radial', 'Vertical'] as const).map(v => (
-                                        <Chip
-                                          key={v}
-                                          selected={productStore.photoModeConfig.colorPopHero.gradientStyle === v}
-                                          onClick={() => {
-                                            productStore.setPhotoModeConfig({ colorPopHero: { gradientStyle: v } });
-                                            markSectionTouched('product-setup');
-                                          }}
-                                        >
-                                          {v}
-                                        </Chip>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Color Source</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Brand Colors', 'Product Label Colors', 'Custom Color'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.colorSource === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { colorSource: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Saturation Level</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Moderate', 'High'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.saturationLevel === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { saturationLevel: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Contrast Strategy</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Soft', 'High'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.contrastStrategy === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { contrastStrategy: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <p className="text-xs text-gray-500 font-semibold mb-1">Negative Space</p>
-                                  <div className="flex flex-wrap gap-2">
-                                    {(['Tight', 'Balanced', 'Spacious'] as const).map(v => (
-                                      <Chip
-                                        key={v}
-                                        selected={productStore.photoModeConfig.colorPopHero.negativeSpace === v}
-                                        onClick={() => {
-                                          productStore.setPhotoModeConfig({ colorPopHero: { negativeSpace: v } });
-                                          markSectionTouched('product-setup');
-                                        }}
-                                      >
-                                        {v}
-                                      </Chip>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {(productStore.photoMode === 'Ingredient Stack' || productStore.photoMode === 'Ingredient Flat Lay') && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title={`${productStore.photoMode} Atmosphere`}
+                                description="Ingredient-led composition with controlled product readability and optional background override."
+                              >
                                 {/* CUSTOM INGREDIENTS INPUT */}
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">
@@ -4022,11 +4159,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     </div>
                                   </>
                                 )}
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Acrylic Blocks' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Acrylic Blocks Atmosphere"
+                                description="Geometric acrylic support styling with controlled reflections and elevation."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Block Shape</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4095,11 +4235,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
-                            {productStore.photoMode === 'Splash Shot' && !winePrestigeModeActive && (
-                              <div className="space-y-3">
+                            {productStore.photoMode === 'Splash Shot' && !wineIndustryActive && (
+                              <PropertySettingsCard
+                                title="Splash Shot Atmosphere"
+                                description="High-speed liquid impact control with readable hero product and deterministic splash timing."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Splash Medium</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4168,7 +4311,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {/* DYNAMIC SCHEMA SETTINGS */}
@@ -4181,7 +4324,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             )}
 
                             {productStore.photoMode === 'Foam & Texture' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Foam & Texture Atmosphere"
+                                description="Controlled texture accents with clean product readability and material-safe realism."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Texture Type</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4250,11 +4396,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Routine Carousel' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Routine Carousel Atmosphere"
+                                description="Multi-frame routine storytelling with consistent visual flow and hero-frame control."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Frame Count</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4323,11 +4472,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
-                            {productStore.photoMode === 'Clinical Lab Counter' && (
-                              <div className="space-y-3">
+                            {productStore.visualStyle === 'Clinical Lab Counter' && (
+                              <PropertySettingsCard
+                                title="Clinical Lab Counter Atmosphere"
+                                description="Clinical trust cues with clean lab surface behavior and controlled authority level."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Clinical Tone</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4396,11 +4548,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Golden Mist Aura' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Golden Mist Aura Atmosphere"
+                                description="Warm luminous mist with premium glow control and restrained contrast."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Glow Strength</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4469,11 +4624,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
 
                             {productStore.photoMode === 'Candy Gradient Lab' && (
-                              <div className="space-y-3">
+                              <PropertySettingsCard
+                                title="Candy Gradient Lab Atmosphere"
+                                description="Gradient-driven lab styling with color structure and controlled playfulness."
+                              >
                                 <div>
                                   <p className="text-xs text-gray-500 font-semibold mb-1">Gradient Style</p>
                                   <div className="flex flex-wrap gap-2">
@@ -4542,7 +4700,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </PropertySettingsCard>
                             )}
                           </div>
                         </div>
@@ -4610,32 +4768,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
                     placeholder="Describe the product category (min 3 words)"
                   />
-                )}
-              </div>
-
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PACKAGING</p>
-                <div className="flex gap-2">
-                  {(['Without box', 'With box'] as const).map(option => (
-                    <Chip
-                      key={option}
-                      onClick={() => {
-                        updateValue('productPackaging', option);
-                        productStore.setPackagingMode(option === 'With box' ? 'with-box' : 'without-box');
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={
-                        option === 'With box'
-                          ? productStore.packagingMode === 'with-box'
-                          : productStore.packagingMode === 'without-box'
-                      }
-                    >
-                      {option}
-                    </Chip>
-                  ))}
-                </div>
-                {getInterpretationNote('shadow') && (
-                  <InterpretationNote message={getInterpretationNote('shadow')!} />
                 )}
               </div>
 
@@ -5015,21 +5147,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <p className={GROUP_LABEL_CLASS}>CREATIVE DIRECTION</p>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-[9px] uppercase text-gray-400 mb-2">CREATIVITY LEVEL</p>
+                        <p className="text-[9px] uppercase text-gray-400 mb-2">PRODUCT POSITION</p>
                         <div className="flex gap-2">
-                          {([0, 1, 2, 3] as const).map(level => (
+                          {([
+                            { key: 'center', label: 'Center' },
+                            { key: 'left', label: 'Left' },
+                            { key: 'right', label: 'Right' },
+                          ] as const).map(({ key, label }) => (
                             <Chip
-                              key={level}
+                              key={key}
                               onClick={() => {
-                                productStore.setCreativityLevel(level);
+                                productStore.setAlignment(key);
+                                if (key === 'center') {
+                                  productStore.setComposition('centered' as any);
+                                  productStore.setNegativeSpace('none' as any);
+                                } else {
+                                  productStore.setComposition('asymmetrical' as any);
+                                  productStore.setNegativeSpace('intentional' as any);
+                                }
                                 markSectionTouched('product-setup');
                               }}
-                              selected={productStore.creativityLevel === level}
+                              selected={productStore.alignment === key || (key === 'center' && productStore.alignment === 'centered')}
                             >
-                              {level === 0 ? 'Locked' : level === 1 ? 'Low' : level === 2 ? 'Medium' : 'High'}
+                              {label}
                             </Chip>
                           ))}
                         </div>
+                        <p className="text-[11px] text-gray-500 mt-2">
+                          Controls where the product sits in the frame and how much copy-safe space remains beside it.
+                        </p>
                       </div>
 
                       <div>
@@ -5728,7 +5874,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </PhysicalPresenceBlock>
       )}
 
-      {mode === 'studio' && (
+      {(mode === 'studio' || uiActiveEngine === 'studio') && (
       <MotionInteractionBlock
         icon={Activity}
         description="What the product is doing."
@@ -5814,7 +5960,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 	            </p>
 	          </div>
 
-              {industryProfile !== 'wine' && (
+              {(industryProfile === 'supplements' || industryProfile === 'coffee') && (
                 <div className={SECTION_GROUP_CLASS}>
                   <p className={GROUP_LABEL_CLASS}>PRODUCT INTERACTION</p>
                   <p className="text-xs text-gray-500 dark:text-white/50 mb-2">
@@ -5842,15 +5988,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         detail: 'No hands. No skin. No human shadows.',
                         stateValue: 'none',
                       },
-                      'capsule-display': {
-                        label: 'Capsule Display',
-                        detail: '2–4 capsules in palm + bottle visible. No pouring.',
-                        stateValue: 'capsule-display',
+                      'passive-presence': {
+                        label: 'Passive Presence',
+                        detail: 'Product rests passively. Limbs may be present in background but don\'t touch product.',
+                        stateValue: 'passive-presence',
                       },
-                      'applying-opening': {
-                        label: 'Applying / Opening',
-                        detail: 'One clear action: twist/open. No consumption.',
-                        stateValue: 'applying-opening',
+                      'cropped-hand': {
+                        label: 'Cropped Hand',
+                        detail: 'Partially cropped hand enters frame from edge — only fingers or wrist visible.',
+                        stateValue: 'cropped-hand',
+                      },
+                      'supported-hold': {
+                        label: 'Supported Hold',
+                        detail: 'Open palm supports product from below. Relaxed, no tight grip.',
+                        stateValue: 'supported-hold',
                       },
                       holding: {
                         label: 'Holding',
@@ -5858,7 +6009,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         stateValue: 'holding',
                       },
                       'two-hand-hold': {
-                        label: 'Two-hand Hold',
+                        label: 'Two-Hand Hold',
                         detail: 'Stable two-hand support with controlled framing.',
                         stateValue: 'two-hand-hold',
                       },
@@ -5872,11 +6023,33 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         detail: 'Hands frame the product edges without blocking label.',
                         stateValue: 'framed-presentation',
                       },
+                      'applying-opening': {
+                        label: 'Applying / Opening',
+                        detail: 'One clear action: twist/open. No consumption.',
+                        stateValue: 'applying-opening',
+                      },
+                      'capsule-display': {
+                        label: 'Capsule Display',
+                        detail: '2–4 capsules in open palm. Only available for Capsules.',
+                        stateValue: 'capsule-display',
+                      },
+                      'resting-interaction': {
+                        label: 'Resting Interaction',
+                        detail: 'Product on surface. Hand rests nearby without gripping.',
+                        stateValue: 'resting-interaction',
+                      },
                     };
-                    const visibleInteractionOptions = resolvedInteractionOptions.flatMap((value) => {
-                      const option = interactionOptionMap[value];
-                      return option ? [{ value, ...option }] : [];
-                    });
+                    const photoModeAllowlist = getPhotoModeInteractionAllowlist(productStore.photoMode);
+                    const visibleInteractionOptions = photoModeAllowlist !== null
+                      ? (Object.entries(interactionOptionMap).map(([value, option]) => ({
+                          value,
+                          ...option,
+                          gatedDisabled: false,
+                        })))
+                      : resolvedInteractionOptions.flatMap((value) => {
+                          const option = interactionOptionMap[value];
+                          return option ? [{ value, ...option, gatedDisabled: false }] : [];
+                        });
                     const selectedInteractionValue = (productStore.interaction || 'none') as string;
 
                     return (
@@ -5885,6 +6058,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           {visibleInteractionOptions.map((option) => (
                             <Chip
                               key={option.value}
+                              disabled={false}
                               onClick={() => {
                                 productStore.setInteraction(option.stateValue);
                                 productStore.setHandsHolding(option.stateValue !== 'none');
@@ -5900,7 +6074,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ))}
                         </div>
                         <SelectedOptionFooter
-                          options={visibleInteractionOptions.map((option) => ({
+                          options={visibleInteractionOptions.filter(o => !o.gatedDisabled).map((option) => ({
                             value: option.value,
                             label: option.label,
                             description: option.detail,
@@ -6679,21 +6853,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 stateValue: 'two-hand-hold',
               },
             };
-            const visibleInteractionOptions = resolvedAllowedInteractions
-              .map((interactionId) => {
-                const option = interactionOptionMap[interactionId];
-                if (!option) return null;
-                return {
-                  value: interactionId,
+            const photoModeAllowlist2 = getPhotoModeInteractionAllowlist(productStore.photoMode);
+            const visibleInteractionOptions = photoModeAllowlist2 !== null
+              // Per-mode gating: show ALL entries from interactionOptionMap, mark disallowed as disabled
+              ? (Object.entries(interactionOptionMap).map(([value, option]) => ({
+                  value,
                   ...option,
-                };
-              })
-              .filter(Boolean) as Array<{
-                value: string;
-                label: string;
-                detail: string;
-                stateValue: ProductStudioState['interaction'];
-              }>;
+                  gatedDisabled: !(photoModeAllowlist2 as string[]).includes(value),
+                })))
+              : resolvedAllowedInteractions
+                  .map((interactionId) => {
+                    const option = interactionOptionMap[interactionId];
+                    if (!option) return null;
+                    return {
+                      value: interactionId,
+                      ...option,
+                      gatedDisabled: false,
+                    };
+                  })
+                  .filter(Boolean) as Array<{
+                    value: string;
+                    label: string;
+                    detail: string;
+                    stateValue: ProductStudioState['interaction'];
+                    gatedDisabled: boolean;
+                  }>;
             const selectedInteractionValue =
               visibleInteractionOptions.find((option) => option.stateValue === productStore.interaction)?.value || 'none';
 
@@ -6706,6 +6890,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 return (
                   <Chip
                     key={option.value}
+                    disabled={option.gatedDisabled}
                     onClick={() => {
                       // Auto-switch to 'held' if selecting a holding interaction
                       if (option.stateValue !== 'none') {
@@ -6727,7 +6912,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               })}
             </div>
             <SelectedOptionFooter
-              options={visibleInteractionOptions.map((option) => ({
+              options={visibleInteractionOptions.filter(o => !o.gatedDisabled).map((option) => ({
                 value: option.value,
                 label: option.label,
                 description: option.detail,
@@ -6806,8 +6991,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-6">
           {(() => {
-            const cameraCapability = getPhotoModeCameraCapability(productStore.photoMode);
-            const isRestrictedCamera = cameraCapability === 'restricted';
 	            return (
 	              <>
 	          <p className="text-xs text-gray-500 dark:text-white/50">Professional photography controls.</p>
@@ -6822,7 +7005,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         productStore.setViewpoint(vp);
                         markSectionTouched('product-camera');
                       }}
-                      disabled={!productStore.placement}
+                      disabled={false}
                     >
                       {vp.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                     </Chip>
@@ -6875,9 +7058,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 ).map(option => (
                   <Chip
                     key={option}
-                    disabled={isRestrictedCamera}
+                    disabled={false}
                     onClick={() => {
-                      if (isRestrictedCamera) return;
                       // Auto-switch to surface for flat lays
                       if (option === 'Top-down flat lay') {
                         productStore.setPlacement('surface');
@@ -6914,9 +7096,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 {(['Wide', 'Standard', 'Tight', 'Macro'] as const).map(option => (
                   <Chip
                     key={option}
-                    disabled={isRestrictedCamera}
+                    disabled={false}
                     onClick={() => {
-                      if (isRestrictedCamera) return;
                       updateValue('productCameraDistance', option);
                       const distanceMap: Record<string, ProductStudioState['distance']> = {
                         Wide: 'wide',

@@ -73,11 +73,14 @@ const formatEnvironmentPhrase = (environmentText?: string): string => {
 };
 
 const HUMAN_REALISM_GUARD =
-    'The person looks like a real human, candid and imperfect, with natural skin texture, subtle asymmetry, and a lived-in environment. Nothing looks 3D, CGI, rendered, or studio-polished.';
+    'Human realism guard (non-negotiable): real human face and skin only. Preserve pores, micro-texture, natural asymmetry, realistic eyelids, believable lip texture, and authentic facial structure. No doll face, no mannequin features, no porcelain skin, no waxy highlights, no CGI facial rendering, and no beauty-filter smoothing.';
+
+const ENVIRONMENT_REALISM_GUARD =
+    'Environment realism guard (non-negotiable): the location must look like a real photographed place with believable architecture, true material texture, natural lens depth, physical light falloff, and real-world wear patterns. No CGI room, no 3D render, no virtual set, no synthetic surfaces, no fake showroom gloss, and no unreal geometry.';
 
 const shouldApplyHumanRealismGuard = (options: PromptOptions): boolean => {
     const isNonUGC = !options.ugcRealModeActive && options.contentStyle !== 'ugc';
-    return isNonUGC && (options.creationMode === 'lifestyle' || Boolean(options.formulationExpertEnabled));
+    return isNonUGC && options.personIncluded === true && (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic' || Boolean(options.formulationExpertEnabled));
 };
 
 export class SceneNarrativeBuilder {
@@ -121,6 +124,16 @@ export class SceneNarrativeBuilder {
             options.creationIntent === 'product' ||
             options.contentStyle === 'product' ||
             options.sceneIntent === 'ecommerce';
+        const visualIntent = String(options.visualIntent || '').trim().toLowerCase();
+        const formulationSignals =
+            options.formulationExpertEnabled === true &&
+            (
+                String(options.creationMode || '').trim().toLowerCase() === 'formulation' ||
+                Boolean(options.formulationStory) ||
+                Boolean((options as any).formulationExpertRole) ||
+                Boolean((options as any).formulationExpertName) ||
+                Boolean((options as any).formulationExpertPreset)
+            );
 
         switch (options.creationIntent) {
             case 'product':
@@ -131,11 +144,39 @@ export class SceneNarrativeBuilder {
                 );
                 break;
             case 'brand':
-                parts.push(
-                    'Expert-led product narrative.',
-                    'Scientific credibility and formulation trust.',
-                    'The expert remains the primary subject.'
-                );
+                if (formulationSignals) {
+                    parts.push(
+                        'Expert-led product narrative.',
+                        'Scientific credibility and formulation trust.',
+                        'The expert remains the primary subject.'
+                    );
+                } else {
+                    if (visualIntent === 'luxury') {
+                        parts.push(
+                            'Luxury-led product narrative.',
+                            'Aspirational high-end commercial campaign image with expensive art direction and premium visual hierarchy.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro luxury campaign: sculpted, elevated, visually expensive, and unmistakably premium.'
+                        );
+                    } else if (visualIntent === 'editorial') {
+                        parts.push(
+                            'Editorial-led product narrative.',
+                            'Design-forward commercial campaign image with magazine-grade composition and art-directed styling.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro editorial campaign: creative, directional, polished, and visually intentional.'
+                        );
+                    } else {
+                        parts.push(
+                            'Brand-led product narrative.',
+                            'Creative commercial campaign image with luxury advertising polish.',
+                            'Commercial credibility with real human presence.',
+                            'The product remains the primary commercial subject.',
+                            'This must feel like a super-pro brand campaign: art-directed, premium, high-conviction, and visually expensive.'
+                        );
+                    }
+                }
                 break;
         default:
             if (isProductMode) {
@@ -152,17 +193,19 @@ export class SceneNarrativeBuilder {
                     Boolean(options.rawDomesticUgcActive);
                 const wantsUgcLook = isUgcReal || ugcStyle === 'raw' || ugcStyle === 'natural';
                 const isLifestyleCampaign =
-                    options.creationMode === 'lifestyle' && Boolean(options.personIncluded);
+                    (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic') &&
+                    Boolean(options.personIncluded);
 
                 if (isLifestyleCampaign) {
                     parts.push(
                         'Lifestyle advertising campaign photo with real models and curated luxury styling.',
+                        'Creative high-end commercial image with campaign-grade polish and premium art direction.',
                         options.lifestyleAdvertisingProfile ||
-                            'The person must appear as a real advertising model with polished presentation, natural believable features, and campaign-ready grooming; not casual, not domestic, not documentary.',
+                            'The person must appear as a real advertising model with polished presentation, natural believable features, campaign-ready grooming, and luxury commercial styling; not casual, not domestic, not documentary.',
                         options.lifestyleWardrobeRules ||
                             'Wardrobe must be premium, clean, intact, and well-fitted; fabrics must look new, structured, and high-quality; no torn, worn, distressed, frayed, stretched, damaged, or aged garments; no casual homewear or sloppy knits; styling must resemble a luxury brand advertising campaign.',
                         options.lifestyleEnvironmentInterpretation ||
-                            'The environment feels like a curated editorial luxury interior with clean surfaces, intentional styling, and no clutter.',
+                            'The environment feels like a curated editorial luxury interior with clean surfaces, intentional styling, premium prop discipline, and no clutter.',
                         options.lifestyleHardRestrictions ||
                             'Hard restrictions (Lifestyle Advertising): Do NOT depict damaged clothing, distressed fabrics, domestic realism, casual everyday appearance, or UGC/documentary visuals; any of these makes the generation invalid.'
                     );
@@ -176,9 +219,11 @@ export class SceneNarrativeBuilder {
                 } else {
                     parts.push(
                         'High-end lifestyle campaign photo.',
+                        'Creative commercial advertising image with super-pro editorial polish.',
                         'Professional advertising/editorial quality with clean, intentional styling.',
                         'Spotless environment: no crumbs, stains, dust, clutter, or random mess.',
-                        'Art-directed but natural: curated props only, brand-safe, premium look.'
+                        'Art-directed but natural: curated props only, brand-safe, premium look.',
+                        'Visual language should feel expensive, intentional, and campaign-ready rather than casual or generic.'
                     );
                 }
             }
@@ -740,6 +785,10 @@ export class SceneNarrativeBuilder {
             );
         }
 
+        if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
+            narrativeParts.push(ENVIRONMENT_REALISM_GUARD);
+        }
+
 
         if (!isProductMode && options.contentStyle !== 'ugc' && !options.ugcRealModeActive) {
             narrativeParts.push(
@@ -751,7 +800,7 @@ export class SceneNarrativeBuilder {
         const shouldInjectLifestyleRealism =
             !options.ugcRealModeActive &&
             options.contentStyle !== 'ugc' &&
-            options.creationMode === 'lifestyle';
+            (options.creationMode === 'lifestyle' || options.creationMode === 'aesthetic');
 
         if (shouldInjectLifestyleRealism) {
             narrativeParts.push(

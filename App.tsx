@@ -58,6 +58,7 @@ import {
   type EcommercePdpSafeZone,
 } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
+import { isStudioV2Enabled } from '@/lib/productStudio/promptRouter';
 
 
 
@@ -3690,6 +3691,12 @@ const App: React.FC = () => {
 
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);
+    console.log('[SCENETYPE UPDATE]', {
+      sceneType: values.sceneType,
+      isStudioEngine: values.sceneType === 'studio-branding',
+      sceneIntent: values.sceneIntent,
+      sourceFunction: 'App.handleLifestyleStep3Change',
+    });
   }, []);
 
 
@@ -5079,8 +5086,41 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError("Please upload a product image first.");
         return;
       }
-      const personIncluded = !isProductPlacement && (options.ageGroup !== 'no person' || !!modelReferenceFile);
-      const realModeActive = ugcRealSettings.isEnabled && !isProductPlacement && personIncluded;
+
+      // ENGINE ROUTING: canonical flag — true for any studio-branding generation.
+      // isProductPlacement = options.contentStyle === 'product' (set via the V1 toggle)
+      // isStudioBrandingScene = sceneType emitted by Step3 is 'studio-branding' (V2 panel, isProductMode=false)
+      // Both cases must use V2 generateProductJobs + ProductStudioStore as source of truth.
+      console.log('[ENGINE TRACE]', {
+        sceneType: lifestyleStep3Values?.sceneType,
+        isStudioEngine: null,
+        sceneIntent: lifestyleStep3Values?.sceneIntent ?? options.sceneIntent,
+        sourceFunction: 'App.handleGenerateClick.beforeIsStudioEngine',
+      });
+      const isLifestyleScene = lifestyleStep3Values?.sceneType === 'lifestyle-real';
+      const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
+      const forceStudioByProductContent =
+        options.contentStyle === 'product' ||
+        lifestyleStep3Values?.contentStyle === 'product';
+      const isStudioEngine =
+        isStudioBrandingScene ||
+        (!isLifestyleScene && (
+          forceStudioByProductContent ||
+          isProductPlacement
+        ));
+      console.log('[APP isStudioEngine]', {
+        'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
+        'lifestyleStep3Values.contentStyle': lifestyleStep3Values?.contentStyle,
+        'options.contentStyle': options.contentStyle,
+        isLifestyleScene,
+        forceStudioByProductContent,
+        isStudioBrandingScene,
+        isProductPlacement,
+        isStudioEngine,
+      });
+
+      const personIncluded = !isStudioEngine && (options.ageGroup !== 'no person' || !!modelReferenceFile);
+      const realModeActive = ugcRealSettings.isEnabled && !isStudioEngine && personIncluded;
 
       const creditCost = getImageCreditCost(options);
       if (!isTrialBypassActive && creditCost > remainingCredits) {
@@ -5100,7 +5140,7 @@ If the model attempts to create a scene or environment, override it and force a 
       try {
         // Build PromptOptions from current state
         const shouldReuseIdentityKey =
-          !isProductPlacement &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true &&
@@ -5112,17 +5152,29 @@ If the model attempts to create a scene or environment, override it and force a 
             ? options.creationMode
             : 'studio';
 
+        // ENGINE ISOLATION: sceneType and sceneIntent must be locked to the active engine.
+        // When isStudioEngine=false, never allow stale 'studio-branding' or 'ecommerce' to leak
+        // from a prior studio session into the lifestyle/UGC pipeline.
+        const resolvedBaseSceneType: string = isStudioEngine
+          ? 'studio-branding'
+          : (lifestyleStep3Values?.sceneType && lifestyleStep3Values.sceneType !== 'studio-branding'
+              ? lifestyleStep3Values.sceneType
+              : 'lifestyle-real');
+        const resolvedBaseSceneIntent: string | undefined = isStudioEngine
+          ? 'ecommerce'
+          : (options.sceneIntent === 'ecommerce' ? undefined : options.sceneIntent);
+
         const basePromptOptions: any = {
           ...options,
-          sceneType: lifestyleStep3Values?.sceneType || (options as any).sceneType || (isProductPlacement ? 'studio-branding' : 'lifestyle-real'),
+          sceneType: resolvedBaseSceneType,
           modelReferenceLockAccessories,
-          contentStyle: isProductPlacement ? 'product' : 'ugc',
-          creationIntent: isProductPlacement ? 'product' : options.creationIntent,
-          sceneIntent: isProductPlacement ? 'ecommerce' : options.sceneIntent,
-          creationMode: isProductPlacement
+          contentStyle: isStudioEngine ? 'product' : 'ugc',
+          creationIntent: isStudioEngine ? 'product' : options.creationIntent,
+          sceneIntent: resolvedBaseSceneIntent,
+          creationMode: isStudioEngine
             ? safeProductCreationMode
             : (options.creationMode || 'lifestyle'),
-          ...(isProductPlacement
+          ...(isStudioEngine
             ? {
               cameraType:
                 options.cameraType &&
@@ -5155,11 +5207,15 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
         };
+        if (basePromptOptions.contentStyle === 'product') {
+          basePromptOptions.sceneType = 'studio-branding';
+          basePromptOptions.sceneIntent = 'ecommerce';
+        }
 
         // Ensure every render produces a different person by default (while keeping age/gender/etc),
         // unless the user explicitly enables "Same character" OR uses a Model Reference (which must lock identity).
         const shouldForceRandomIdentity =
-          !isProductPlacement &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes !== true &&
           personIncluded === true;
@@ -5206,7 +5262,8 @@ If the model attempts to create a scene or environment, override it and force a 
         let finalPrompt: string;
 
         // PHASE 2: PRODUCT MODE - Use ProductStudioStore directly, bypass legacy mapper
-        if (isProductPlacement) {
+        // Route to V2 via the canonical isStudioEngine flag (hoisted at top of callback).
+        if (isStudioEngine) {
           // Read directly from ProductStudioStore - SINGLE SOURCE OF TRUTH
           const productStateRaw = useProductStudioStore.getState();
           const productState = {
@@ -5214,8 +5271,15 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio: (resolveOutputAspectRatio() || productStateRaw.aspectRatio || PRODUCT_DEFAULT_ASPECT_RATIO) as any
           };
           console.log('[PRODUCT STUDIO STATE]', productState);
+          console.log('[ROUTE] studio-branding → V2 engine. isStudioEngine=', isStudioEngine, '(isProductPlacement=', isProductPlacement, ', isStudioBrandingScene=', isStudioBrandingScene, ')');
 
           // Generate jobs using Product-only builders
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((lifestyleStep3Values as any)?.sceneType || (options as any).sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((lifestyleStep3Values as any)?.sceneIntent || (options as any).sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforeGenerateProductJobs',
+          });
           const jobs = generateProductJobs(productState);
 
           if (jobs.length === 0) {
@@ -5228,13 +5292,18 @@ If the model attempts to create a scene or environment, override it and force a 
           finalPrompt = jobs[0].prompt;
 
           // PHASE 7: HARDBLOCK VALIDATION - Check forbidden terms
-          try {
-            validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
-          } catch (validationError) {
-            console.error('[PROMPT BLOCKED]', validationError);
-            setImageError(`Generation blocked: ${(validationError as Error).message}`);
-            setIsImageLoading(false);
-            return;
+          // Skip when V2 engine is active — V2 has its own internal validation policy
+          // that correctly handles hands/interaction. Running V1 forbidden-terms check
+          // on a V2 prompt incorrectly blocks hands even when interaction is active.
+          if (!isStudioV2Enabled()) {
+            try {
+              validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
+            } catch (validationError) {
+              console.error('[PROMPT BLOCKED]', validationError);
+              setImageError(`Generation blocked: ${(validationError as Error).message}`);
+              setIsImageLoading(false);
+              return;
+            }
           }
 
           console.log('[FINAL PRODUCT PROMPT]', finalPrompt);
@@ -5252,13 +5321,25 @@ If the model attempts to create a scene or environment, override it and force a 
         } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((promptOptions as any)?.sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforePromptEngineBuild.mapped',
+          });
           finalPrompt = promptEngine.build(promptOptions);
         } else {
+          console.log('[ENGINE TRACE]', {
+            sceneType: String((promptOptions as any)?.sceneType || ''),
+            isStudioEngine,
+            sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
+            sourceFunction: 'App.handleGenerateClick.beforePromptEngineBuild.base',
+          });
           finalPrompt = promptEngine.build(promptOptions);
         }
 
         const keepSamePersonAcrossRenders =
-          !isProductPlacement &&
+          !isStudioEngine &&
           !hasModelReference &&
           lifestyleStep3Values?.sameCreatorAcrossScenes === true &&
           personIncluded === true;
@@ -5276,7 +5357,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         // Product mode safety: force the model to keep the referenced product visible.
-        if (isProductPlacement) {
+        if (isStudioEngine) {
           finalPrompt = [
             finalPrompt,
             'CRITICAL: The product shown in the reference image(s) MUST appear in the final image, clearly visible and not cropped out.',
@@ -5299,14 +5380,14 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
 
-        if (!isProductPlacement && personIncluded) {
+        if (!isStudioEngine && personIncluded) {
           finalPrompt = [
             finalPrompt,
             'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
           ].join(' ');
         }
 
-        if (!isProductPlacement && hasModelReference) {
+        if (!isStudioEngine && hasModelReference) {
           finalPrompt = [
             finalPrompt,
             'MODEL REFERENCE PRIORITY (HIGHEST): Use the uploaded model reference as immutable identity ground truth.',
@@ -5335,7 +5416,7 @@ If the model attempts to create a scene or environment, override it and force a 
         console.log('[FINAL PROMPT STRING]', finalPrompt);
 
         const aspectRatio =
-          isProductPlacement
+          isStudioEngine
             ? resolveOutputAspectRatio()
             : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
         lastAspectRatioRef.current = aspectRatio;
@@ -5352,13 +5433,13 @@ If the model attempts to create a scene or environment, override it and force a 
         // WINE SERVED MODE: Detect wine in served state for special handling
         // For Product Studio mode: read from ProductStudioStore
         // For Lifestyle mode: read from lifestyleStep3Values
-        const productStateForWine = isProductPlacement ? useProductStudioStore.getState() : null;
-        const wineVisualProfile = isProductPlacement 
+        const productStateForWine = isStudioEngine ? useProductStudioStore.getState() : null;
+        const wineVisualProfile = isStudioEngine 
           ? (productStateForWine as any)?.visualProfile 
           : (lifestyleStep3Values as any)?.visualProfile;
         // In Product Studio: serveState is derived from wineGlassMode='filled'
         // In Lifestyle: serveState is explicit
-        const wineServeState = isProductPlacement
+        const wineServeState = isStudioEngine
           ? ((productStateForWine as any)?.wineGlassMode === 'filled' ? 'served' : 'none')
           : (lifestyleStep3Values as any)?.serveState;
         const isWineServedMode = Boolean(
@@ -5443,7 +5524,7 @@ If the model attempts to create a scene or environment, override it and force a 
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
-          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
+          const totalReferenceBudget = isStudioEngine ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
@@ -5482,7 +5563,7 @@ If the model attempts to create a scene or environment, override it and force a 
               aspectRatio,
               relativeHeight,
               {
-                maxLongEdge: isProductPlacement
+                maxLongEdge: isStudioEngine
                   ? (isMultiProductRequest ? 1440 : 2048)
                   : (isMultiProductRequest ? 1024 : 1536),
                 mimeType: 'image/jpeg', // JPEG with light background
@@ -5495,8 +5576,8 @@ If the model attempts to create a scene or environment, override it and force a 
             // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {
               finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-                maxLongEdge: isProductPlacement ? 1200 : 960,
-                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
+                maxLongEdge: isStudioEngine ? 1200 : 960,
+                maxBase64Length: isStudioEngine ? 450_000 : 320_000,
                 quality: 0.86,
               });
             }
@@ -5610,6 +5691,9 @@ If the model attempts to create a scene or environment, override it and force a 
         // imageUrl is still used for gallery persistence and sharing.
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
         const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
+        if (data?.imageMeta && typeof data.imageMeta === 'object') {
+          console.log('[API IMAGE META]', data.imageMeta);
+        }
         const displayUrl = imageBase64
           ? `data:image/png;base64,${imageBase64}`
           : imageUrl;
@@ -5620,8 +5704,8 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        // Use base64 data URL for immediate display (no CORS dependency on Firebase).
-        // Use Firebase URL for gallery persistence and hi-res pipeline.
+        // Use base64 data URL for immediate display and local hi-res prep.
+        // Keep the remote URL only for gallery persistence/sharing.
         setGeneratedImageUrl(displayUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         
@@ -5650,7 +5734,7 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         
         void reportGalleryEntry(imageUrl || displayUrl);
-        runHiResPipeline(imageUrl || displayUrl);
+        runHiResPipeline(displayUrl);
         
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
@@ -5830,6 +5914,12 @@ If the model attempts to create a scene or environment, override it and force a 
           },
         };
 
+        console.log('[ENGINE TRACE]', {
+          sceneType: String((slotProductState as any)?.sceneType || ''),
+          isStudioEngine: true,
+          sceneIntent: 'ecommerce',
+          sourceFunction: 'App.handleGenerateEcommerceClick.beforeGenerateProductJobs',
+        });
         const jobs = generateProductJobs(slotProductState);
         if (!jobs.length) {
           throw new Error(`No Product Studio jobs generated for slot ${slotKey}.`);
@@ -5923,6 +6013,9 @@ If the model attempts to create a scene or environment, override it and force a 
         }
         if (typeof responseData?.remaining_credits === 'number') {
           setRemoteCredits(responseData.remaining_credits);
+        }
+        if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
+          console.log(`[ECOM SLOT IMAGE META:${slotKey}]`, responseData.imageMeta);
         }
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (!encodedImage) {
@@ -6080,6 +6173,12 @@ If the model attempts to create a scene or environment, override it and force a 
         });
 
         const state = useProductStudioStore.getState();
+        console.log('[ENGINE TRACE]', {
+          sceneType: String((state as any)?.sceneType || ''),
+          isStudioEngine: true,
+          sceneIntent: 'ecommerce',
+          sourceFunction: 'App.handleGenerateNarrativeSequenceClick.beforeGenerateProductJobs',
+        });
         const jobs = generateProductJobs(state as any);
         const finalPrompt = jobs[0].prompt;
 
@@ -6113,6 +6212,9 @@ If the model attempts to create a scene or environment, override it and force a 
 
         if (typeof responseData?.remaining_credits === 'number') {
           setRemoteCredits(responseData.remaining_credits);
+        }
+        if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
+          console.log(`[ECOM SEQUENCE IMAGE META:${i + 1}]`, responseData.imageMeta);
         }
 
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
@@ -6262,6 +6364,9 @@ If the model attempts to create a scene or environment, override it and force a 
       }
       if (typeof data?.remaining_credits === 'number') {
         setRemoteCredits(data.remaining_credits);
+      }
+      if (data?.imageMeta && typeof data.imageMeta === 'object') {
+        console.log('[IMAGE EDIT META]', data.imageMeta);
       }
       const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
       if (!encodedImage) {
@@ -6949,7 +7054,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 >
 
                   <GeneratedImage
-                    imageUrl={twoKVariant?.url ?? generatedImageUrl}
+                    imageUrl={generatedImageUrl}
                     targetAspectRatio={selectedOutputAspectRatio}
                     fourKVariant={fourKVariant}
                     twoKVariant={twoKVariant}

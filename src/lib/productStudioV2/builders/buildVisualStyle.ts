@@ -1,0 +1,212 @@
+import type { StudioUIState } from '../types/studioTypes';
+
+type VisualStyleCategory = NonNullable<StudioUIState['visualStyleCategory']>;
+
+type VisualStyleDefinition = {
+  name: string;
+  category: VisualStyleCategory;
+  scene: string;
+};
+
+function resolveDarkPremiumDefaults(state?: StudioUIState): {
+  darknessLevel: 'deep' | 'balanced';
+  rimLightIntensity: 'subtle' | 'strong';
+  backgroundMaterial: 'matte' | 'stone' | 'velvet';
+} {
+  const settings = state?.photoModeDynamicSettings || {};
+  const darknessRaw = String(settings.darknessLevel || '').trim().toLowerCase();
+  const rimRaw = String(settings.rimLightIntensity || '').trim().toLowerCase();
+  const bgRaw = String(settings.backgroundMaterial || '').trim().toLowerCase();
+
+  return {
+    darknessLevel: darknessRaw === 'balanced' ? 'balanced' : 'deep',
+    rimLightIntensity: rimRaw === 'strong' ? 'strong' : 'subtle',
+    backgroundMaterial:
+      bgRaw === 'stone' || bgRaw === 'velvet' ? (bgRaw as 'stone' | 'velvet') : 'matte',
+  };
+}
+
+const GOLDEN_SUNSET_BG_VARIANTS: Array<{ name: string; scene: string }> = [
+  {
+    name: 'sea-horizon-glow',
+    scene:
+      'sunset sea horizon background with intense amber sky gradient, low sun bloom, and soft reflective water bokeh',
+  },
+  {
+    name: 'desert-heat-haze',
+    scene:
+      'sunset desert background with warm orange haze, subtle heat shimmer, and smooth distant dune silhouette',
+  },
+  {
+    name: 'city-rooftop-sunset',
+    scene:
+      'urban sunset skyline background with golden haze, distant soft high-rise silhouettes, and atmospheric backlight diffusion',
+  },
+  {
+    name: 'coastal-rock-sunset',
+    scene:
+      'coastal rock sunset background with warm flare bloom, glowing horizon band, and soft foreground bokeh rolloff',
+  },
+  {
+    name: 'open-sky-sunset-wash',
+    scene:
+      'open sunset sky background with strong golden wash, radial light falloff, and minimal horizon depth separation',
+  },
+];
+
+function pickRandom<T>(values: T[]): T {
+  return values[Math.floor(Math.random() * values.length)];
+}
+
+const VISUAL_STYLE_DEFINITIONS: Record<string, VisualStyleDefinition> = {
+  'Clinical Lab Counter': {
+    name: 'clinical-lab-counter',
+    category: 'studio',
+    scene:
+      'clean clinical counter environment, medical-grade surface styling, restrained sterile realism, neutral laboratory discipline, precise surface cleanliness, premium supplement photography with scientific credibility',
+  },
+  'Minimal Bathroom Vanity': {
+    name: 'minimal-bathroom-vanity',
+    category: 'studio',
+    scene:
+      'minimal bathroom vanity styling, premium self-care countertop, soft architectural surfaces, refined cosmetic realism, clean upscale residential bathroom atmosphere, elegant minimal object staging',
+  },
+  'Dark Premium Studio': {
+    name: 'dark-premium-studio',
+    category: 'studio',
+    scene:
+      'low-key premium advertising studio, deep charcoal tonal field, controlled hero-product separation, sculpted shadow architecture, disciplined rim definition, premium commercial realism, off-camera lighting hardware only, and zero CGI showroom gloss',
+  },
+  'Tech Clean Studio': {
+    name: 'tech-clean-studio',
+    category: 'studio',
+    scene:
+      'clean technology studio aesthetic, precise neutral background, sleek commercial lighting, high-clarity industrial polish, minimal modern tech presentation, controlled reflection design',
+  },
+  'Brand Campaign': {
+    name: 'brand-campaign',
+    category: 'brand',
+    scene:
+      'campaign-grade branded environment, premium commercial storytelling, polished hero presentation, branded tonal coherence, conversion-aware art direction, elevated ad aesthetic',
+  },
+  'Creator Premium Simulation': {
+    name: 'creator-premium-simulation',
+    category: 'brand',
+    scene:
+      'premium creator-style branded set, polished social-commercial hybrid aesthetic, aspirational creator environment, soft premium realism, high-end UGC-meets-brand look',
+  },
+  'Soft Wellness Morning': {
+    name: 'soft-wellness-morning',
+    category: 'lifestyle',
+    scene:
+      'soft wellness morning atmosphere, airy natural calm, gentle premium light, healthy lifestyle realism, quiet editorial warmth, subtle freshness and morning ritual tone',
+  },
+  'Outdoor Energy Boost': {
+    name: 'outdoor-energy-boost',
+    category: 'lifestyle',
+    scene:
+      'outdoor energy atmosphere, bright active lifestyle tone, clean dynamic freshness, uplifting natural environment cues, vitality-oriented product presentation, energetic premium realism',
+  },
+  'Sunlit Stone Editorial': {
+    name: 'sunlit-stone-editorial',
+    category: 'lifestyle',
+    scene:
+      'sunlit stone editorial atmosphere, architectural hard-light shadows, premium warm-neutral tonal control, product-first composition with tactile mineral surfaces',
+  },
+  'Golden Sunset Backlit': {
+    name: 'golden-sunset-backlit',
+    category: 'lifestyle',
+    scene:
+      'golden sunset backlit mood, warm edge glow, controlled flare behavior, premium aspirational energy, readable product silhouette',
+  },
+  'Bathroom Daylight Clean': {
+    name: 'bathroom-daylight-clean',
+    category: 'lifestyle',
+    scene:
+      'bathroom daylight clean aesthetic, soft natural window illumination, minimal self-care styling, premium cleanliness and restrained context',
+  },
+  'Warm Window Wood': {
+    name: 'warm-window-wood',
+    category: 'lifestyle',
+    scene:
+      'warm window wood lifestyle mood, natural sunlight warmth, soft interior shadowing, premium domestic realism with controlled product focus',
+  },
+  'Sky Float Minimal': {
+    name: 'sky-float-minimal',
+    category: 'lifestyle',
+    scene:
+      'minimal sky-float atmosphere with airy daylight, soft horizon depth, clean uplifted mood, and strict product readability',
+  },
+  'Wet Rock Ripples': {
+    name: 'wet-rock-ripples',
+    category: 'lifestyle',
+    scene:
+      'wet rock ripple atmosphere with shallow reflective water movement, tactile stone realism, premium highlight control, and grounded product presence',
+  },
+  'Sand Palm Shadows': {
+    name: 'sand-palm-shadows',
+    category: 'lifestyle',
+    scene:
+      'sunlit sand atmosphere with soft palm-shadow patterns, warm premium beach tonality, controlled realism, and clean product-first composition',
+  },
+  'Botanical Water Garden': {
+    name: 'botanical-water-garden',
+    category: 'lifestyle',
+    scene:
+      'botanical water-garden atmosphere with natural foliage depth cues, calm reflective moisture, premium outdoor realism, and clear product hierarchy',
+  },
+};
+
+const VISUAL_STYLE_ALIASES: Record<string, string> = {
+  'Golden Sunset Backlit Atmosphere': 'Golden Sunset Backlit',
+  'Wet Rock Ripples Atmosphere': 'Wet Rock Ripples',
+  'Wrt Rock Ripples': 'Wet Rock Ripples',
+  'WRT Rock Ripples': 'Wet Rock Ripples',
+};
+
+function resolveVisualStyle(state?: StudioUIState): VisualStyleDefinition | null {
+  const rawStyle = String(state?.visualStyle || '').trim();
+  const style = VISUAL_STYLE_ALIASES[rawStyle] || rawStyle;
+  if (!style) return null;
+  const definition = VISUAL_STYLE_DEFINITIONS[style];
+  if (!definition) return null;
+
+  const category = (state?.visualStyleCategory || definition.category) as VisualStyleCategory;
+  return {
+    ...definition,
+    category,
+  };
+}
+
+export function buildVisualStyle(state?: StudioUIState): string {
+  const definition = resolveVisualStyle(state);
+  if (!definition) return '';
+
+  const isGoldenSunset = definition.name === 'golden-sunset-backlit';
+  const isDarkPremium = definition.name === 'dark-premium-studio';
+  const goldenVariant = isGoldenSunset ? pickRandom(GOLDEN_SUNSET_BG_VARIANTS) : null;
+  const sceneText = goldenVariant ? `${definition.scene}, ${goldenVariant.scene}` : definition.scene;
+  const darkPremiumDefaults = isDarkPremium ? resolveDarkPremiumDefaults(state) : null;
+
+  return [
+    'VISUAL_STYLE_MODE: active.',
+    `VISUAL_STYLE_CATEGORY: ${definition.category}.`,
+    `VISUAL_STYLE_NAME: ${definition.name}.`,
+    `VISUAL_STYLE_SCENE: ${sceneText}`,
+    ...(darkPremiumDefaults
+      ? [
+          `DARK_PREMIUM_STUDIO_ATMOSPHERE: low-key premium advertising studio with controlled highlights. Darkness level=${darkPremiumDefaults.darknessLevel}. Rim light intensity=${darkPremiumDefaults.rimLightIntensity}. Background material=${darkPremiumDefaults.backgroundMaterial}.`,
+          'DARK_PREMIUM_STUDIO_CONSTRAINTS: No crushed blacks. Edges must remain readable. Label contrast must be preserved. Use rigid premium materials only: glass, metal, acrylic, stone, concrete, or matte architectural surfaces.',
+          'DARK_PREMIUM_RENDER_GUARD: Real photographic falloff only. No hazy bloom wash, no fake fog, no plastic CGI sheen, no showroom render glow, and no muddy shadow noise.',
+        ]
+      : []),
+    ...(goldenVariant
+      ? [
+          'GOLDEN_SUNSET_BACKLIT_ATMOSPHERE: active.',
+          'GOLDEN_SUNSET_BG_RANDOMIZATION: always-on.',
+          `GOLDEN_SUNSET_BG_VARIANT: ${goldenVariant.name}.`,
+        ]
+      : []),
+    'VISUAL_STYLE_AUTHORITY: Visual Style defines aesthetic world mood, surface language, tonal identity, and styling bias. It does not override product geometry, artwork fidelity, or physical truth constraints.',
+  ].join(' ');
+}

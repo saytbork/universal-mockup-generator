@@ -85,25 +85,14 @@ export function buildHeroNeutralScene({ randomizer, backgroundColor, gradientEna
   ].join(' ');
 }
 
-export function buildColorPopHeroScene({ randomizer, palette }: SceneBuildInput): string {
-  const structures = [
-    'color-blocked alcove with layered planes',
-    'bold architectural set with intersecting panels',
-    'sculptural color field with dimensional depth',
-  ];
-  const amplifiers = [
-    'reflections and gradients amplify the palette',
-    'materials carry the palette through soft reflections',
-    'color separation comes from layered materials and light',
-  ];
-
+export function buildColorPopHeroScene({ backgroundColor }: SceneBuildInput): string {
+  const color = backgroundColor || '#FFFFFF';
   return [
-    'Vibrant environment derived from the product color palette.',
-    'High contrast but controlled, premium and refined.',
-    `Set built as a ${randomizer.pick(structures)} ${paletteDescriptor(palette)}.`,
-    randomizer.pick(amplifiers),
-    'Background amplifies color through materials, reflections, or gradients.',
-    'No flat solid backgrounds.'
+    `Vivid color-field studio background in ${color}.`,
+    'High-contrast product silhouette against the brand color background.',
+    'Bold, clean, product fully centered.',
+    'No random palette guessing. No vibrant heuristics. Color derived from brand palette only.',
+    'Flat solid brand color background with subtle depth from lighting only.',
   ].join(' ');
 }
 

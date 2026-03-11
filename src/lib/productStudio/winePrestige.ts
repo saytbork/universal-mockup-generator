@@ -91,6 +91,7 @@ export const WINE_STYLE_ARCHETYPES: WineStyleArchetype[] = [
   'Macro Label Branding',
   'Action Pour Photography',
   'Cinematic Vineyard',
+  'Warm Tasting Room',
 ];
 
 /**
@@ -210,6 +211,19 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'shallow depth of field preserving bottle sharpness against blurred landscape. ' +
       'Terroir-driven cinematic wine photography — place, warmth, provenance.',
   },
+  'Warm Tasting Room': {
+    contextPreset: 'Fine Dining Table',
+    wineLightingTone: 'Golden Ambient',
+    wineMoodModifier: 'None',
+    composition: 'thirds',
+    lightStyle: 'soft',
+    negativeSpace: 'subtle',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Warm Tasting Room. ' +
+      'Refined winery tasting room with warm wood cabinetry, back-bar shelving filled with wine bottles, ' +
+      'soft hospitality lighting, subtle architectural depth, and elegant commercial balance. ' +
+      'Bottle remains hero in the foreground while the tasting-room wall and bottle library stay recognizable but softly secondary.',
+  },
 };
 
 /**
@@ -222,6 +236,7 @@ const PHYSICS_PROTECTED_FIELDS = new Set([
   'wineType',
   'wineBottleState',
   'wineGlassMode',
+  'wineGlassType',
   'wineServeAmount',
   'serveVolumeMode',
   'wineEngineVersion',
@@ -382,6 +397,16 @@ const ARCHETYPE_AESTHETIC_PROFILES: Record<WineStyleArchetype, WineAestheticProf
     shadowRollOff: 'soft',
     highlightSharpness: 0.3,
     vignetteBias: 0.4,
+  },
+  'Warm Tasting Room': {
+    reflectionIntensity: 0.45,
+    microContrast: 0.55,
+    labelTextureBoost: 0.45,
+    liquidGlowBias: 0.25,
+    depthOfFieldBias: 0.55,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.35,
+    vignetteBias: 0.2,
   },
 };
 

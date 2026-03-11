@@ -621,7 +621,7 @@ function resolveSplashShotConfig(state: ProductStudioState): ProductStudioState[
 }
 
 function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<string, string> | undefined {
-  const mode = state.photoMode as PhotoMode;
+  const mode = String(state.photoMode || '').trim();
   const cfg = state.photoModeConfig;
   const dynamic: Record<string, string> = {};
 
@@ -1000,7 +1000,7 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   const isBundleMacroGuardActive = Boolean(state.bundle?.enabled);
   const effectivePhotoModeForPrompt: PhotoMode =
     isBundleMacroGuardActive && state.photoMode === 'Macro Dew Label'
-      ? ('Brand Campaign' as PhotoMode)
+      ? 'Hero Landing Page'
       : (state.photoMode as PhotoMode);
 
   const photoModeResult = buildPhotoModePrompt(effectivePhotoModeForPrompt, {
@@ -1012,19 +1012,143 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
     ...(ingredientStackBgOptions ?? {}),
   });
 
+  // ── Shared deterministic background resolver ──────────────────────────────
+  function resolveStudioBackgroundColor(photoMode: string, s: typeof state): {
+    backgroundColor: string;
+    gradientEnabled: boolean;
+    gradientStart: string;
+    gradientEnd: string;
+    gradientMid: string;
+  } {
+    const isHero = photoMode === 'Hero Landing Page';
+    const isColorPop = photoMode === 'Color Pop Hero';
+    if (!isHero && !isColorPop) {
+      return {
+        backgroundColor: s.backgroundColor,
+        gradientEnabled: s.gradientEnabled,
+        gradientStart: s.gradientStart,
+        gradientEnd: s.gradientEnd,
+        gradientMid: s.gradientMid,
+      };
+    }
+
+    const heroCfg = s.photoModeConfig?.heroLandingPage;
+    const paletteSource = heroCfg?.paletteSource ?? 'Brand Colors';
+
+    // ── Custom override — deterministic, no brand extraction ──────────────
+    if (paletteSource === 'Custom') {
+      const result = {
+        backgroundColor: s.backgroundColor || '#FFFFFF',
+        gradientEnabled: isHero ? (heroCfg?.backgroundType === 'Gradient') : false,
+        gradientStart: s.gradientStart || s.backgroundColor || '#FFFFFF',
+        gradientEnd: s.gradientEnd || s.backgroundColor || '#FFFFFF',
+        gradientMid: s.gradientMid || '',
+      };
+      // eslint-disable-next-line no-console
+      console.log('[DEBUG][STUDIO_BG_RESOLVER] finalColorSource=Custom photoMode=', photoMode, 'resolved=', JSON.stringify(result));
+      return result;
+    }
+
+    // ── Brand palette extraction (primary first) ─────────────────────────
+    const activeProduct = s.products?.find((p: any) => p.id === s.activeProductId) ?? s.products?.[0] ?? null;
+    const labelColors: string[] = [
+      activeProduct?.palette?.dominant,
+      activeProduct?.palette?.secondary,
+      activeProduct?.palette?.accent,
+    ].filter((c): c is string => Boolean(c && String(c).trim()));
+    const brandSystemColors: string[] = [
+      s.palette?.primaryColor,
+      s.palette?.secondaryColor,
+      s.palette?.accentColor,
+    ].filter((c): c is string => Boolean(c && String(c).trim()));
+
+    // Priority: label extracted > brand system
+    const colorSource = labelColors.length > 0 ? 'label' : brandSystemColors.length > 0 ? 'brand' : 'none';
+    const colors = labelColors.length > 0 ? labelColors : brandSystemColors;
+    const primary = colors[0] || '#FFFFFF';
+    const secondary = colors[1] || primary;
+    const tertiary = colors[2] || '';
+
+    let result: ReturnType<typeof resolveStudioBackgroundColor>;
+
+    if (isColorPop) {
+      // Color Pop Hero: always solid, primary brand color only
+      result = {
+        backgroundColor: primary,
+        gradientEnabled: false,
+        gradientStart: primary,
+        gradientEnd: primary,
+        gradientMid: '',
+      };
+    } else {
+      // Hero Landing Page: backgroundType from config
+      const backgroundType = heroCfg?.backgroundType ?? (colors.length >= 2 ? 'Gradient' : 'Solid');
+      if (backgroundType === 'Gradient') {
+        result = {
+          backgroundColor: primary,
+          gradientEnabled: true,
+          gradientStart: primary,
+          gradientEnd: secondary,
+          gradientMid: tertiary,
+        };
+      } else {
+        result = {
+          backgroundColor: primary,
+          gradientEnabled: false,
+          gradientStart: primary,
+          gradientEnd: primary,
+          gradientMid: '',
+        };
+      }
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][STUDIO_BG_RESOLVER] finalColorSource=', colorSource, 'photoMode=', photoMode, 'resolved=', JSON.stringify(result));
+    return result;
+  }
+
+  const resolvedBg = resolveStudioBackgroundColor(state.photoMode, state);
+  const isHeroOrColorPop = state.photoMode === 'Hero Landing Page' || state.photoMode === 'Color Pop Hero';
+
   const sceneInput: SceneBuildInput = {
     randomizer,
     palette,
     suggestedProps: effectiveSuggestedProps,
     ingredientLayout: state.ingredientLayout,
+    backgroundColor: isHeroOrColorPop ? resolvedBg.backgroundColor : state.backgroundColor,
+    gradientEnabled: isHeroOrColorPop ? resolvedBg.gradientEnabled : state.gradientEnabled,
+    gradientStart: isHeroOrColorPop ? resolvedBg.gradientStart : state.gradientStart,
+    gradientEnd: isHeroOrColorPop ? resolvedBg.gradientEnd : state.gradientEnd,
+    gradientMid: isHeroOrColorPop ? resolvedBg.gradientMid : state.gradientMid,
+    heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
+    heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
+  };
+
+  // eslint-disable-next-line no-console
+  console.log('[DEBUG][mapSceneToPrompt] PRE-buildWorld state snapshot:', JSON.stringify({
+    photoMode: state.photoMode,
+    photoModeConfig: state.photoModeConfig,
+    heroLandingPage: state.photoModeConfig?.heroLandingPage,
     backgroundColor: state.backgroundColor,
     gradientEnabled: state.gradientEnabled,
     gradientStart: state.gradientStart,
     gradientEnd: state.gradientEnd,
     gradientMid: state.gradientMid,
-    heroGradientStyle: state.photoModeConfig.heroLandingPage.gradientStyle,
-    heroNegativeSpace: state.photoModeConfig.heroLandingPage.negativeSpace,
-  };
+    gradientAngle: state.gradientAngle,
+    brandPalette: (state as any).brandPalette,
+    extractedProductColors: (state as any).extractedProductColors,
+  }));
+  // eslint-disable-next-line no-console
+  console.log('[DEBUG][mapSceneToPrompt] sceneInput before scene build:', JSON.stringify({
+    backgroundColor: sceneInput.backgroundColor,
+    gradientEnabled: sceneInput.gradientEnabled,
+    gradientStart: sceneInput.gradientStart,
+    gradientEnd: sceneInput.gradientEnd,
+    gradientMid: sceneInput.gradientMid,
+    heroGradientStyle: sceneInput.heroGradientStyle,
+    heroNegativeSpace: sceneInput.heroNegativeSpace,
+    palette: sceneInput.palette,
+  }));
 
   let scene = '';
   let splashMode: string | undefined;
@@ -1033,6 +1157,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // No random camera/lighting/materials. No props. No environment. No creative randomization rules.
   if (heroStudioLocked) {
     scene = buildStudioHeroScene(sceneInput);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][mapSceneToPrompt] HERO LOCKED path — buildStudioHeroScene output:', JSON.stringify(scene));
     const profileLine =
       state.qualityProfile === 'ecommerce-conversion'
         ? 'OUTPUT PROFILE: Ecommerce Conversion. Prioritize label readability and clean conversion-focused hierarchy.'
@@ -1050,6 +1176,8 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
       'Label remains fully readable and centered toward the camera.',
       'No texture noise, no patterns, no scenery, no staging objects.',
     ].filter(Boolean);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][mapSceneToPrompt] HERO LOCKED final background parts:', JSON.stringify(parts));
 
     return {
       prompt: normalizePromptText(parts.join(' ')),
@@ -1062,15 +1190,24 @@ export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAss
   // CRITICAL: Hero Landing Page uses exclusive studio-hero scene builder
   if (environmentModeActive) {
     scene = buildEnvironmentScene(state, randomizer);
+  } else if (state.photoMode === 'Color Pop Hero') {
+    // Color Pop Hero always uses the deterministic brand-color builder — never photoModeResult.basePrompt
+    scene = buildColorPopHeroScene(sceneInput);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG][mapSceneToPrompt] COLOR_POP_HERO scene built (deterministic):', JSON.stringify(scene));
   } else if (photoModeResult.isValid && photoModeResult.basePrompt) {
     scene = photoModeResult.basePrompt;
   } else {
     switch (mode) {
       case 'HERO_NEUTRAL':
         scene = buildHeroNeutralScene(sceneInput);
+        // eslint-disable-next-line no-console
+        console.log('[DEBUG][mapSceneToPrompt] HERO_NEUTRAL scene built:', JSON.stringify(scene));
         break;
       case 'COLOR_POP_HERO':
         scene = buildColorPopHeroScene(sceneInput);
+        // eslint-disable-next-line no-console
+        console.log('[DEBUG][mapSceneToPrompt] COLOR_POP_HERO scene built:', JSON.stringify(scene));
         break;
       case 'BRAND_CAMPAIGN':
         scene = buildBrandCampaignScene(sceneInput);

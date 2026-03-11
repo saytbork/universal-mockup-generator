@@ -456,59 +456,88 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
+  const requestedImageSizes = isPreview ? ['4K', '2K', '1K'] : ['1K'];
 
   // ─────────────────────────────────────────────────────────────────────────
 
   try {
-    const generateWithRetry = async () => {
-      const maxAttempts = 4;
-      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-        try {
-          // Restore model usage from 7695e35 (no safeModel)
-          return await ai.models.generateContent({
-            model,
-            contents: { parts },
-            config: {
-              responseModalities: [Modality.IMAGE],
-              safetySettings: [],
-              generationConfig: {
-                responseMimeType: 'image/png',
-                aspectRatio,
-                preserveReferenceImage: effectivePreserveReferenceImage,
-                ...(imageStrength !== undefined ? { imageStrength } : {}),
-                ...(guidanceScale !== undefined ? { guidanceScale } : {}),
-                ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-                temperature: 0.25,
-                topP: 0.9,
-                seed: crypto.randomUUID(),
-              },
-            } as any,
-          });
-        } catch (error) {
-          const message = String((error as any)?.message ?? error);
-          const normalized = message.toLowerCase();
-          const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
-          const shouldRetry =
-            attempt < maxAttempts &&
-            (message.includes('Failed to fetch') ||
-              message.includes('ERR_CONNECTION_CLOSED') ||
-              message.includes('NetworkError') ||
-              normalized.includes('internal error encountered') ||
-              normalized.includes('"status":"internal"') ||
-              normalized.includes('"code":500') ||
-              normalized.includes('service unavailable') ||
-              normalized.includes('deadline exceeded') ||
-              statusCode === 500 ||
-              statusCode === 503 ||
-              statusCode === 504);
-          if (!shouldRetry) throw error;
-          await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
-        }
-      }
-      throw new Error('Image generation failed after retries.');
+    const supportsFallbackImageSize = (message: string) => {
+      const normalized = message.toLowerCase();
+      return (
+        normalized.includes('imagesize') ||
+        normalized.includes('image size') ||
+        normalized.includes('invalid enum') ||
+        normalized.includes('unsupported') ||
+        normalized.includes('bad request') ||
+        normalized.includes('400')
+      );
     };
 
-    const response = await generateWithRetry();
+    const generateWithRetry = async () => {
+      const maxAttempts = 4;
+      let lastError: unknown = null;
+
+      for (const requestedImageSize of requestedImageSizes) {
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          try {
+            const response = await ai.models.generateContent({
+              model,
+              contents: { parts },
+              config: {
+                responseModalities: [Modality.IMAGE],
+                safetySettings: [],
+                imageConfig: {
+                  aspectRatio,
+                  imageSize: requestedImageSize,
+                },
+                generationConfig: {
+                  responseMimeType: 'image/png',
+                  aspectRatio,
+                  preserveReferenceImage: effectivePreserveReferenceImage,
+                  ...(imageStrength !== undefined ? { imageStrength } : {}),
+                  ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+                  ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+                  temperature: 0.25,
+                  topP: 0.9,
+                  seed: crypto.randomUUID(),
+                },
+              } as any,
+            });
+            return { response, requestedImageSize };
+          } catch (error) {
+            lastError = error;
+            const message = String((error as any)?.message ?? error);
+            const normalized = message.toLowerCase();
+            const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
+            const shouldRetry =
+              attempt < maxAttempts &&
+              (message.includes('Failed to fetch') ||
+                message.includes('ERR_CONNECTION_CLOSED') ||
+                message.includes('NetworkError') ||
+                normalized.includes('internal error encountered') ||
+                normalized.includes('"status":"internal"') ||
+                normalized.includes('"code":500') ||
+                normalized.includes('service unavailable') ||
+                normalized.includes('deadline exceeded') ||
+                statusCode === 500 ||
+                statusCode === 503 ||
+                statusCode === 504);
+            if (shouldRetry) {
+              await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
+              continue;
+            }
+            if (supportsFallbackImageSize(message) && requestedImageSize !== requestedImageSizes[requestedImageSizes.length - 1]) {
+              console.warn('[IMAGE_SIZE_FALLBACK]', { requestedImageSize, reason: message });
+              break;
+            }
+            throw error;
+          }
+        }
+      }
+      throw lastError ?? new Error('Image generation failed after retries.');
+    };
+
+    const { response, requestedImageSize } = await generateWithRetry();
     const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
     const inlineImage = responseParts.find((part: any) => part?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
     const encodedImage = inlineImage?.inlineData?.data;
@@ -542,7 +571,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       buffer = Buffer.from(maybeWatermarkedImage, 'base64');
     }
-    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${isFreePlan ? 'jpg' : 'png'}`;
+    const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
+    const imageMeta = {
+      requestedImageSize,
+      width: Number(outputMetadata.width || 0),
+      height: Number(outputMetadata.height || 0),
+      bytes: buffer.length,
+      contentType,
+      isPreview,
+      isFreePlan,
+      model,
+    };
+    console.log('[GENERATE_IMAGE_META]', imageMeta);
+    const fileExtension = contentType === 'image/jpeg' ? 'jpg' : 'png';
+    const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
     const file = bucket.file(fileName);
 
     await file.save(buffer, {
@@ -565,6 +607,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mode: debugMeta?.mode,
       sceneType: debugMeta?.sceneType,
       imageUrl,
+      imageMeta,
     }, email);
 
     // imageBase64 is included in the response so the browser can render the image
@@ -599,6 +642,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ok: true,
         imageUrl,
         imageBase64: responseImageBase64,
+        imageMeta,
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -619,6 +663,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ok: true,
       imageUrl,
       imageBase64: responseImageBase64,
+      imageMeta,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,

@@ -24,7 +24,7 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).toContain('STUDIO_CAMERA_DISTANCE: Tight.');
     expect(prompt).toContain('LENS_PROFILE: 85mm equivalent.');
     expect(prompt).toContain('DISTORTION: minimal distortion with telephoto compression.');
-    expect(prompt).toContain('DEPTH_STYLE: compressed depth with cinematic optical falloff.');
+    expect(prompt).toContain('DEPTH_STYLE: natural photographic depth. Subtle background tonal separation allowed. Soft atmospheric falloff allowed. Gradual luminance transition across the background. No CGI-style flat gradient fields.');
     expect(prompt).toContain('STUDIO_CAMERA_ROTATION: 10°.');
     expect(prompt).toContain('ROTATION: 10°.');
     expect(prompt).toContain('STUDIO_FRAMING_GUIDE: Rule of thirds.');
@@ -45,5 +45,39 @@ describe('Studio V2 camera overrides', () => {
     expect(prompt).not.toContain('STUDIO_CAMERA_DISTANCE:');
     expect(prompt).not.toContain('STUDIO_CAMERA_ROTATION:');
     expect(prompt).not.toContain('STUDIO_FRAMING_GUIDE:');
+  });
+
+  test('uses only the manual lens authority when advanced lens override is active', () => {
+    const prompt = generateStudioPromptV2({
+      ...baseState,
+      advancedControls: true,
+      cameraSystem: 'DSLR / mirrorless',
+      cameraAngle: '45° hero',
+      cameraDistance: 'Standard',
+      cameraRotation: '0°',
+      framingGuide: 'Centered hero',
+      lensOverride: '100mm Macro Prime',
+    });
+
+    expect(prompt).toContain('LENS_PROFILE: 100mm Macro Prime.');
+    expect(prompt).not.toContain('LENS_PROFILE: 50mm equivalent.');
+  });
+
+  test('keeps accent gel active for gel-compatible pro rigs like 3-Point Beauty Dish', () => {
+    const prompt = generateStudioPromptV2({
+      ...baseState,
+      advancedControls: true,
+      cameraSystem: 'DSLR / mirrorless',
+      cameraAngle: '45° hero',
+      cameraDistance: 'Standard',
+      cameraRotation: '0°',
+      framingGuide: 'Centered hero',
+      lightingModelOverride: '3-Point Beauty Dish',
+      customLightColor: '#9966FF',
+      accentLightIntensity: 69,
+    });
+
+    expect(prompt).toContain('STUDIO_LIGHTING_PROFILE: 3-Point Beauty Dish.');
+    expect(prompt).toContain('ACCENT LIGHT GEL: #9966FF at 69% intensity');
   });
 });

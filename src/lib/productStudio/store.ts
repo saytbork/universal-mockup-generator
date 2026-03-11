@@ -49,6 +49,7 @@ import type {
     PhotoMode,
     PhotoModeConfig,
     ProductPlacement,
+    IndustryProfile,
     VisualProfile,
     WineAction,
     WineLightingTone,
@@ -67,7 +68,26 @@ import type {
 } from './types';
 import { validateAndCorrectCapabilities } from './productCapabilities';
 import { isWinePrestigeMode, WINE_ACTION_OPTIONS, WINE_POUR_STYLE_OPTIONS, getWineArchetypePatch, isActionPourCompatible } from './winePrestige';
+import { resolveIndustryProfileModule } from '../productStudioV2/industryProfiles/registry';
 
+const VISUAL_STYLE_SELECTIONS = new Set([
+    'Clinical Lab Counter',
+    'Minimal Bathroom Vanity',
+    'Dark Premium Studio',
+    'Tech Clean Studio',
+    'Brand Campaign',
+    'Creator Premium Simulation',
+    'Soft Wellness Morning',
+    'Outdoor Energy Boost',
+    'Sunlit Stone Editorial',
+    'Golden Sunset Backlit',
+    'Bathroom Daylight Clean',
+    'Sky Float Minimal',
+    'Wet Rock Ripples',
+    'Sand Palm Shadows',
+    'Botanical Water Garden',
+    'Warm Window Wood',
+]);
 
 // ============================================================================
 // DEFAULT PHYSICAL BY TYPE
@@ -349,14 +369,13 @@ function reinterpretMacroInteraction(state: ProductStudioState): ProductStudioSt
 }
 
 function getAllowedMotionsForPhotoMode(photoMode: PhotoMode): ProductStateMotion[] | null {
-    // Keep this aligned with promptEngine/photoModeResolver.ts compatibility map.
-    if (photoMode === 'Hero Landing Page') return ['static', 'opened'];
-    if (photoMode === 'Splash Shot') return ['dispensed', 'pouring'];
-    if (photoMode === 'Foam & Texture') return ['static', 'opened'];
-    if (photoMode === 'Dark Premium Studio') return ['static', 'opened'];
-    if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
-    if (photoMode === 'Pool Water') return ['static', 'opened'];
-    if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
+  // Keep this aligned with promptEngine/photoModeResolver.ts compatibility map.
+  if (photoMode === 'Hero Landing Page') return ['static', 'opened'];
+  if (photoMode === 'Splash Shot') return ['dispensed', 'pouring'];
+  if (photoMode === 'Foam & Texture') return ['static', 'opened'];
+  if (photoMode === 'Beach Foam Splash') return ['static', 'opened'];
+  if (photoMode === 'Pool Water') return ['static', 'opened'];
+  if (photoMode === 'Textured Bed / Scatter Base') return ['static'];
     return null;
 }
 
@@ -433,7 +452,8 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'clinical',
             paletteSource: 'brand',
             propDensity: 'none',
-            photoMode: 'Clinical Lab Counter',
+            photoMode: 'Hero Landing Page',
+            visualStyle: 'Clinical Lab Counter',
             proMode: true,
             lens: '50mm Product Prime',
             lightingRig: 'Softbox Wrap',
@@ -452,7 +472,8 @@ export const BRAND_PRESETS: BrandPreset[] = [
             lightStyle: 'soft',
             paletteSource: 'brand',
             propDensity: 'low',
-            photoMode: 'Sunlit Stone Editorial',
+            photoMode: 'Hero Landing Page',
+            visualStyle: 'Sunlit Stone Editorial',
             gradientEnabled: true,
             gradientAngle: 180,
             proMode: true,
@@ -472,7 +493,7 @@ export const BRAND_PRESETS: BrandPreset[] = [
             creativityLevel: 2,
             lightStyle: 'contrast',
             propDensity: 'medium',
-            photoMode: 'Color Pop Hero',
+            photoMode: 'Hero Landing Page',
             gradientEnabled: true,
             gradientAngle: 135,
             proMode: true,
@@ -587,6 +608,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         productStability: 'Slight interaction',
     },
     foamAndTexture: {
+        materialState: 'foam',
         textureType: 'Foam',
         textureDensity: 'Light',
         focusDistance: 'Macro',
@@ -664,11 +686,14 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     // 5️⃣ CREATIVE DIRECTION
     category: '',
     contextPreset: '',
+    visualStyle: undefined,
     visualProfile: 'default',
+    industryProfile: 'supplements',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
     winePourStyle: 'mid-flow-elegance',
+    wineGlassType: 'auto',
     wineStyleArchetype: null,
     coffeeMode: 'studio',
     coffeeAction: 'static',
@@ -831,6 +856,8 @@ type ProductStudioActions = {
     // Creativity
     setCategory: (category: string) => void;
     setContextPreset: (preset: string) => void;
+    setVisualStyle: (visualStyle: string | undefined) => void;
+    setIndustryProfile: (profile: IndustryProfile) => void;
     setVisualProfile: (profile: VisualProfile) => void;
     setWineAction: (action: WineAction) => void;
     setWinePourStyle: (style: WinePourStyle) => void;
@@ -1007,6 +1034,8 @@ function resolveHeroLandingBrandColors(state: ProductStudioState): { colors: str
     return { colors: [], source: 'none' };
 }
 
+// Background color resolution moved to resolveStudioBackgroundColor (mapSceneToPrompt.ts)
+// Do not reintroduce automatic background mutation here.
 function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<ProductStudioState> {
     if (state.photoMode !== 'Hero Landing Page') return {};
 
@@ -1016,60 +1045,10 @@ function applyHeroLandingBackgroundDefaults(state: ProductStudioState): Partial<
         return {};
     }
 
-    const heroCfg = state.photoModeConfig.heroLandingPage;
-    if (heroCfg.paletteSource === 'Custom') {
-        // User is explicitly driving background colors; keep Hero mode constraints but do not override colors or background type.
-        return {
-            gradientEnabled: heroCfg.backgroundType === 'Gradient',
-        };
-    }
-
-    const { colors } = resolveHeroLandingBrandColors(state);
-    const distinct = uniqHexes(colors);
-
-    const primary = distinct[0] ?? '#FFFFFF';
-    const secondary = distinct[1] ?? primary;
-    const tertiary = distinct[2] ?? '';
-
-    const next: Partial<ProductStudioState> = {};
-
-    // Auto background type selection (unless user explicitly chose it).
-    if (state.heroLandingAuto?.backgroundType !== false) {
-        const autoType = distinct.length >= 2 ? 'Gradient' : 'Solid';
-        next.photoModeConfig = {
-            ...state.photoModeConfig,
-            heroLandingPage: {
-                ...state.photoModeConfig.heroLandingPage,
-                backgroundType: autoType,
-            },
-        };
-        next.gradientEnabled = autoType === 'Gradient';
-    } else {
-        // Keep user selection, but ensure internal gradientEnabled matches it.
-        next.gradientEnabled = state.photoModeConfig.heroLandingPage.backgroundType === 'Gradient';
-    }
-
-    // Auto colors (do not override user-locked fields).
-    const wantsGradient = (next.gradientEnabled ?? state.gradientEnabled) === true;
-    if (wantsGradient) {
-        if (!state.colorLocks.gradientStart) next.gradientStart = primary;
-        if (!state.colorLocks.gradientEnd) next.gradientEnd = secondary;
-        if (!state.colorLocks.gradientMid) next.gradientMid = tertiary;
-    } else {
-        if (!state.colorLocks.background) next.backgroundColor = primary;
-        if (!state.colorLocks.gradientMid) next.gradientMid = '';
-    }
-
-    // Gradient style influences internal angle defaults (prompt builder also uses style text).
-    if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Vertical') {
-        next.gradientAngle = 180;
-    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Soft') {
-        next.gradientAngle = 180;
-    } else if (state.photoModeConfig.heroLandingPage.gradientStyle === 'Radial') {
-        next.gradientAngle = 180;
-    }
-
-    return next;
+    // Only preserve structural config — no background field mutations.
+    // backgroundColor, gradientEnabled, gradientStart, gradientEnd, gradientMid, gradientAngle
+    // are resolved exclusively by resolveStudioBackgroundColor in mapSceneToPrompt.ts.
+    return {};
 }
 
 // ============================================================================
@@ -1293,6 +1272,30 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     // Creativity
     setCategory: (category) => set({ category: String(category || '').trim() }),
     setContextPreset: (preset) => set({ contextPreset: String(preset || '').trim() }),
+    setVisualStyle: (visualStyle) =>
+        set((state) => {
+            const nextVisualStyle = (String(visualStyle || '').trim() || undefined) as ProductStudioState['visualStyle'];
+            const shouldClearPhotoMode = !!nextVisualStyle && !!state.photoMode;
+
+            return {
+                visualStyle: nextVisualStyle,
+                ...(shouldClearPhotoMode ? { photoMode: undefined } : {}),
+                specialEffects: [],
+            };
+        }),
+    setIndustryProfile: (profile) =>
+        set((state) => {
+            if (state.industryProfile === profile) {
+                return { industryProfile: profile };
+            }
+            const previousProfileModule = resolveIndustryProfileModule(state.industryProfile);
+            const nextProfileModule = resolveIndustryProfileModule(profile);
+            return {
+                ...(previousProfileModule.resetState?.() || {}),
+                ...(nextProfileModule.resetState?.() || {}),
+                industryProfile: profile,
+            };
+        }),
     setVisualProfile: (profile) =>
         set((state) => {
             const normalizedProfile = (
@@ -1307,6 +1310,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (normalizedProfile === 'supplements') {
                 return {
                     visualProfile: 'default',
+                    industryProfile: 'supplements',
                     category: '',
                     contextPreset: '',
                     wineAction: 'static-presentation',
@@ -1318,6 +1322,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (normalizedProfile === 'coffee') {
                 return {
                     visualProfile: 'coffee',
+                    industryProfile: 'coffee',
                     coffeeMode: state.coffeeMode || 'studio',
                     coffeeAction: state.coffeeAction || 'static',
                     coffeeMoodModifier: state.coffeeMoodModifier || 'coffee-cinematic-luxury',
@@ -1325,6 +1330,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             }
             return {
                 visualProfile: 'wine-prestige',
+                industryProfile: 'wine',
                 category: state.category || 'Wine',
                 contextPreset: state.contextPreset || '',
                 wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)
@@ -1360,6 +1366,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             if (!patch) return { wineStyleArchetype: null };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { _archetypeNarrative, ambientLighting: _al, ...visualFields } = patch;
+            const sceneOwnedWineEnvironmentModes: PhotoMode[] = ['Winery Scene'];
+            const preserveManualContextPreset =
+                Boolean(String(state.contextPreset || '').trim()) ||
+                sceneOwnedWineEnvironmentModes.includes(state.photoMode as PhotoMode);
+            if (preserveManualContextPreset) {
+                delete (visualFields as Record<string, unknown>).contextPreset;
+            }
             // For Action Pour Photography: only apply wineAction if physics allow it
             if (archetype === 'Action Pour Photography') {
                 const pourOk = isActionPourCompatible({
@@ -1764,40 +1777,37 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setUltraRealStrict: (enabled) => set({ ultraRealStrict: Boolean(enabled) }),
     setPhotoMode: (mode) =>
         set((state) => {
+            console.log('[SET PHOTO MODE]', mode);
             const rawMode = String(mode ?? '').trim();
-            const nextMode = (rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode) as PhotoMode;
+            const nextMode = rawMode === 'UGC Premium Simulation' ? 'Creator Premium Simulation' : rawMode;
+
+            if (VISUAL_STYLE_SELECTIONS.has(nextMode)) {
+                return {
+                    visualStyle: nextMode as ProductStudioState['visualStyle'],
+                };
+            }
 
             // Phase 1 (locked): Photo Mode is the primary creative selector.
             // It maps to existing internal sceneType values and fully replaces Brand Look System.
+            // NOTE: Keep this list in sync with PhotoMode union in types.ts and industryRules allowedPhotoModes.
+            // Missing modes here cause setPhotoMode to silently coerce to 'Hero Landing Page'.
             const allowed: PhotoMode[] = [
                 'Hero Landing Page',
-                'Color Pop Hero',
                 'Ingredient Stack',
                 'Ingredient Flat Lay',
                 'Acrylic Blocks',
+                'Glass Pedestal Studio',
                 'Splash Shot',
                 'Foam & Texture',
                 'Routine Carousel',
-                'Clinical Lab Counter',
-                'Minimal Bathroom Vanity',
-                'Dark Premium Studio',
-                'Monochrome Brand',
-                'Brand Campaign',
-                'Creator Premium Simulation',
-                'Tech Clean Studio',
-                'Soft Wellness Morning',
-                'Outdoor Energy Boost',
-                'Sunlit Stone Editorial',
-                'Golden Sunset Backlit',
-                'Bathroom Daylight Clean',
-                'Sky Float Minimal',
-                'Wet Rock Ripples',
+                'Luxury Editorial Tabletop',
+                'Candy Gradient Lab',
+                'Golden Mist Aura',
+                'Golden Hour Lifestyle',
+                'Pastel Picnic',
                 'Hands Application Clean',
                 'Underwater Split',
-                'Sand Palm Shadows',
-                'Botanical Water Garden',
                 'Macro Dew Label',
-                'Warm Window Wood',
                 'Gel Smear Editorial',
                 'Citrus Fresh Flat Lay',
                 'Stones & Crystals Flat Lay',
@@ -1810,14 +1820,25 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Fruit Garnish / Citrus Accents',
                 'Textured Bed / Scatter Base',
                 'Floating Particles',
+                'Caustic Light Ripples',
+                'Prism Rainbow Refractions',
+                'Glass Refraction Panels',
+                'Micro Mist Halo',
+                'Shadow Pattern Projection',
                 // Wine-exclusive photo modes
                 'Wine Macro Label',
                 'Bottle + Glass',
+                'Bottle + Glass Pour',
+                'Hands Pouring Wine',
+                'Wine Lineup Comparison',
+                'Editorial Bottle Tabletop',
+                'Bottle In Hand Cutout',
+                'Rose Tasting Table',
                 'Editorial Table',
                 'Winery Scene',
             ];
 
-            const resolvedMode: PhotoMode = allowed.includes(nextMode) ? nextMode : 'Hero Landing Page';
+            const resolvedMode: PhotoMode = allowed.includes(nextMode as PhotoMode) ? (nextMode as PhotoMode) : 'Hero Landing Page';
             const wineModeActive = isWinePrestigeMode(state);
             const splashBlockedInWineMode =
                 wineModeActive &&
@@ -1883,8 +1904,29 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 resolvedPlacement = 'held';
             }
 
+            const servedWineModes: PhotoMode[] = [
+                'Bottle + Glass',
+                'Bottle + Glass Pour',
+                'Hands Pouring Wine',
+                'Rose Tasting Table',
+            ];
+            const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine'];
+            const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
+            const normalizedIndustryProfile = String(state.industryProfile || '').trim().toLowerCase();
+            const normalizedVisualProfile = String(state.visualProfile || '').trim().toLowerCase();
+            const isWineState =
+                normalizedIndustryProfile === 'wine' ||
+                normalizedVisualProfile === 'wine' ||
+                isWinePrestigeMode(state);
+            const isWinePhotoMode = allowed.includes(effectiveMode as PhotoMode) && isWineState;
+            const isServedWineMode = servedWineModes.includes(effectiveMode);
+            const isPourWineMode = pourWineModes.includes(effectiveMode);
+            const isWineSceneOwnedMode = wineSceneOwnedModes.includes(effectiveMode);
+
             const common: Partial<ProductStudioState> = {
                 photoMode: effectiveMode,
+                visualStyle: undefined,
+                specialEffects: [],
                 placement: resolvedPlacement,
                 // Preserve environment once user enables it from PHOTO TYPE.
                 environmentContext: shouldUseEnvironment
@@ -1894,6 +1936,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 interaction: resolvedInteraction,
                 // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
                 ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
+                ...(isWinePhotoMode
+                    ? {
+                        wineGlassMode: isServedWineMode ? 'filled' : isWineSceneOwnedMode ? 'none' : state.wineGlassMode,
+                        wineBottleState: isServedWineMode
+                            ? 'opened-with-cork-nearby'
+                            : isWineSceneOwnedMode
+                                ? 'sealed'
+                                : state.wineBottleState,
+                        wineAction: isPourWineMode ? 'controlled-pour' : 'static-presentation',
+                    }
+                    : {}),
                 ...notes,
             };
 
@@ -1925,7 +1978,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 return {
                     ...common,
                     ...(splashBlockedInWineMode
-                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                        ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Hero Landing Page while preserving visual style controls.')
                         : {}),
                 };
             }
@@ -1933,7 +1986,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             return {
                 ...common,
                 ...(splashBlockedInWineMode
-                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Dark Premium Studio.')
+                    ? withInterpretationNote(state, 'photoMode', 'Wine Prestige mode blocks Splash modes. Switched to Hero Landing Page while preserving visual style controls.')
                     : {}),
             };
         }),
@@ -1980,8 +2033,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     ...(patch.splashShot ?? {}),
                 }),
                 foamAndTexture: {
-                    ...state.photoModeConfig.foamAndTexture,
-                    ...(patch.foamAndTexture ?? {}),
+                    ...(() => {
+                        const base = state.photoModeConfig.foamAndTexture;
+                        const incoming = patch.foamAndTexture ?? {};
+                        const next = { ...base, ...incoming } as typeof base;
+                        const textureType = String(next.textureType || '').trim().toLowerCase();
+                        if (textureType === 'foam') next.materialState = 'foam';
+                        else if (textureType === 'cream') next.materialState = 'cream';
+                        else if (textureType === 'gel') next.materialState = 'gel';
+                        else if (textureType === 'powder') next.materialState = 'powder';
+                        return next;
+                    })(),
                 },
                 routineCarousel: {
                     ...state.photoModeConfig.routineCarousel,
@@ -2017,11 +2079,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             // Apply derived hero background defaults when hero settings change (palette source, background type, etc).
             const heroDerived = applyHeroLandingBackgroundDefaults(withAuto);
-
-            // Ensure internal gradientEnabled matches Background Type when user changed it.
-            if (withAuto.photoMode === 'Hero Landing Page' && patch.heroLandingPage?.backgroundType) {
-                heroDerived.gradientEnabled = patch.heroLandingPage.backgroundType === 'Gradient';
-            }
 
             return {
                 ...withAuto,
@@ -2087,8 +2144,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const isCapsules = state.definition.type === 'capsules';
             let effectiveInteraction: ProductStudioState['interaction'] =
                 interaction === 'capsule-display' && !isCapsules ? 'none' : interaction;
-            const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
-            const allowedInteractions = getPhotoModeAllowedInteractions(state.photoMode);
 
             // Rule 1: Macro framing cannot support active/gestural holds.
             if (isMacroFraming(state) && isInteractionIncompatibleWithMacro(effectiveInteraction)) {
@@ -2109,14 +2164,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     definition: applyCanonicalPhysicalForMotion(state.definition, state.stateMotion),
                     ...withInterpretationNote(state, 'interaction', INTERPRETATION_MESSAGES.interactionSimplified),
                 };
-            }
-
-            if (schema?.allowsPersonPresence === false && effectiveInteraction !== 'none') {
-                effectiveInteraction = 'none';
-            }
-
-            if (allowedInteractions && !allowedInteractions.includes(effectiveInteraction)) {
-                effectiveInteraction = getFallbackInteraction(allowedInteractions);
             }
 
             const updates: Partial<ProductStudioState> = {

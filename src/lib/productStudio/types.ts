@@ -295,6 +295,25 @@ export type EcommercePdpConfig = {
 // PHOTO MODE SYSTEM (PHASE 1 — LOCKED)
 // =============================================================================
 
+export type VisualStyle =
+    | 'Clinical Lab Counter'
+    | 'Minimal Bathroom Vanity'
+    | 'Dark Premium Studio'
+    | 'Tech Clean Studio'
+    | 'Monochrome Brand' // legacy only
+    | 'Brand Campaign'
+    | 'Creator Premium Simulation'
+    | 'Soft Wellness Morning'
+    | 'Outdoor Energy Boost'
+    | 'Sunlit Stone Editorial'
+    | 'Golden Sunset Backlit'
+    | 'Bathroom Daylight Clean'
+    | 'Sky Float Minimal'
+    | 'Wet Rock Ripples'
+    | 'Sand Palm Shadows'
+    | 'Botanical Water Garden'
+    | 'Warm Window Wood';
+
 export type PhotoMode =
     // Studio modes
     | 'Hero Landing Page'
@@ -306,34 +325,15 @@ export type PhotoMode =
     | 'Splash Shot'
     | 'Foam & Texture'
     | 'Routine Carousel'
-    | 'Clinical Lab Counter'
-    | 'Minimal Bathroom Vanity'
-    | 'Dark Premium Studio'
-    | 'Monochrome Brand'
-    | 'Brand Campaign'
-    | 'Creator Premium Simulation'
-    | 'UGC Premium Simulation' // deprecated alias (backward compatibility)
-    | 'Tech Clean Studio'
-    // Lifestyle modes
+    // Lifestyle / interaction modes
     | 'Luxury Editorial Tabletop'
-    | 'Soft Wellness Morning'
     | 'Golden Hour Lifestyle'
-    | 'Outdoor Energy Boost'
     | 'Pastel Picnic'
     | 'Candy Gradient Lab'
     | 'Golden Mist Aura'
-    // v2.1 realism modes
-    | 'Sunlit Stone Editorial'
-    | 'Golden Sunset Backlit'
-    | 'Bathroom Daylight Clean'
-    | 'Sky Float Minimal'
-    | 'Wet Rock Ripples'
     | 'Hands Application Clean'
     | 'Underwater Split'
-    | 'Sand Palm Shadows'
-    | 'Botanical Water Garden'
     | 'Macro Dew Label'
-    | 'Warm Window Wood'
     | 'Gel Smear Editorial'
     | 'Citrus Fresh Flat Lay'
     | 'Stones & Crystals Flat Lay'
@@ -347,9 +347,20 @@ export type PhotoMode =
     | 'Fruit Garnish / Citrus Accents'
     | 'Textured Bed / Scatter Base'
     | 'Floating Particles'
+    | 'Caustic Light Ripples'
+    | 'Prism Rainbow Refractions'
+    | 'Glass Refraction Panels'
+    | 'Micro Mist Halo'
+    | 'Shadow Pattern Projection'
     // ── Wine-exclusive Photo Modes (wine engine only) ──────────────────────
     | 'Wine Macro Label'
     | 'Bottle + Glass'
+    | 'Bottle + Glass Pour'
+    | 'Hands Pouring Wine'
+    | 'Wine Lineup Comparison'
+    | 'Editorial Bottle Tabletop'
+    | 'Bottle In Hand Cutout'
+    | 'Rose Tasting Table'
     | 'Editorial Table'
     | 'Winery Scene';
 
@@ -423,6 +434,7 @@ export type SplashShotFreezeMoment = 'Early' | 'Mid-splash' | 'Peak';
 export type SplashShotProductStability = 'Fully grounded' | 'Slight interaction';
 
 export type FoamAndTextureTextureType = 'Foam' | 'Cream' | 'Gel' | 'Powder';
+export type FoamAndTextureMaterialState = 'foam' | 'cream' | 'gel' | 'powder';
 export type FoamAndTextureTextureDensity = 'Light' | 'Rich' | 'Dense';
 export type FoamAndTextureFocusDistance = 'Macro' | 'Close';
 export type FoamAndTextureCleanliness = 'Pristine' | 'Natural imperfections';
@@ -488,6 +500,7 @@ export type PhotoModeConfig = {
         productStability: SplashShotProductStability;
     };
     foamAndTexture: {
+        materialState: FoamAndTextureMaterialState;
         textureType: FoamAndTextureTextureType;
         textureDensity: FoamAndTextureTextureDensity;
         focusDistance: FoamAndTextureFocusDistance;
@@ -619,11 +632,7 @@ export type ControlTier = 'basic' | 'pro';
 export type IndustryProfile =
     | 'supplements'
     | 'wine'
-    | 'beauty'
-    | 'coffee'
-    | 'luxury'
-    | 'tech'
-    | 'general';
+    | 'coffee';
 export type VisualProfile = 'default' | 'wine-prestige' | IndustryProfile;
 export type WineEnvironmentPreset =
     | 'Vineyard Golden Hour'
@@ -641,6 +650,7 @@ export type WineMoodModifier =
     | 'Elegant Reflection Layer';
 export type WineAction = 'static-presentation' | 'controlled-pour';
 export type WinePourStyle = 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+export type WineGlassType = 'auto' | 'red-bowl' | 'white-stem' | 'sparkling-flute';
 export type WineStyleArchetype =
     | 'Minimal Editorial Studio'
     | 'Ultra Minimal Black Luxury'
@@ -648,7 +658,8 @@ export type WineStyleArchetype =
     | 'Moody Wood Editorial'
     | 'Macro Label Branding'
     | 'Action Pour Photography'
-    | 'Cinematic Vineyard';
+    | 'Cinematic Vineyard'
+    | 'Warm Tasting Room';
 
 // ============================================================================
 // WINE ARCHETYPE SYSTEM v4 — ENTERPRISE TYPES
@@ -851,7 +862,9 @@ export type ProductStudioState = {
     // ========================================================================
     category: string;
     contextPreset: string;
+    visualStyle?: VisualStyle;
     visualProfile: VisualProfile;
+    industryProfile: IndustryProfile;
     wineLightingTone: WineLightingTone;
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
@@ -860,6 +873,7 @@ export type ProductStudioState = {
     carbonationLevel?: string;
     wineBottleState?: string;
     wineGlassMode?: string;
+    wineGlassType?: WineGlassType;
     wineClosureType?: string;
     wineServeAmount?: string;
     serveVolumeMode?: string;

@@ -30,7 +30,7 @@ import type {
     CameraFraming,
 } from './types';
 
-import { routeStudioScenePrompt } from './promptRouter';
+import { routeStudioScenePrompt, isStudioV2Enabled } from './promptRouter';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
@@ -719,7 +719,11 @@ function buildStateMotion(state: ProductStudioState): string {
                 : placement === 'supported'
                     ? 'Container is open and resting on a visible stand or tray support.'
                     : 'Container is open and resting on a surface.',
-            'Cap removed and NOT visible anywhere in frame.',
+            'OPENED_CAP_RULE: forceRemoveAttachedCap = true.',
+            'OPENED_CAP_RULE: forceSingleDetachedCap = true.',
+            'Exactly one cap is visible, detached from the bottle, resting nearby on the surface.',
+            'Cap must NOT appear attached to bottle.',
+            'No duplicate cap/closure elements.',
             'Contents remain contained (no mid-air, no spilling).',
             'No motion.',
         ].join(' ');
@@ -1270,8 +1274,10 @@ function buildLabelLock(): string {
     return [
         'LABEL LOCK (CRITICAL): The product label is a real photographic label from the reference image and must be reproduced exactly as seen.',
         'Do not rewrite, invent, complete, or retype label text.',
+        'Do not replace, omit, transpose, or autocorrect letters, numbers, symbols, or punctuation.',
         'Do not redraw label artwork; do not change typography, font weight, spacing, or alignment.',
         'Do not warp, curve, stretch, distort, or texture-map the label.',
+        'Treat the label as locked photographic content, not editable generated text.',
         'If the bottle rotates, the label rotates rigidly with it and preserves original proportions.',
         'Natural perspective from camera angle is allowed, but avoid extreme oblique views that reduce readability.',
     ].join(' ');
@@ -2008,6 +2014,28 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // - otherwise           -> legacy mapSceneToPrompt
     const sceneResult = routeStudioScenePrompt(state, product);
 
+    // V2 BYPASS: When V2 is active, sceneResult is already a complete structured prompt.
+    // Do NOT run buildCoreSceneLayer — it appends V1 metadata blocks (backgroundEnabled=false,
+    // backgroundType=Solid, gradientStyle=Soft, PHYSICAL_PLACEMENT, PHOTO_MODE, LIGHTING:clinical-softbox,
+    // etc.) that directly contradict the V2 structured output and cause gray stripe backgrounds.
+    if (isStudioV2Enabled()) {
+        let finalPrompt = sceneResult.prompt;
+        const terminalParts = normalizePromptSegments([
+            ...buildProtectionLightLayer(),
+            ...buildStrictPackagingLayer(),
+        ]);
+        if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
+        finalPrompt = appendClosingPhrase(finalPrompt);
+        if (hasReferenceProductImage(state)) {
+            finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
+            finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+        }
+        console.log('2. Generated Prompt Parts (V2):', [finalPrompt]);
+        console.log('3. FINAL PROMPT (V2):', finalPrompt);
+        console.groupEnd();
+        return finalPrompt;
+    }
+
     if (STRICT_STATE_PROMPT) {
         const finalParts = normalizePromptSegments([
             ...buildCoreSceneLayer(state, sceneResult.prompt),
@@ -2068,6 +2096,48 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // - USE_STUDIO_V2=true  -> ProductStudioV2
     // - otherwise           -> legacy mapSceneToPrompt
     const sceneResult = routeStudioScenePrompt(state, primary ?? undefined);
+
+    // V2 BYPASS: When V2 is active, sceneResult is already a complete structured prompt.
+    // Do NOT run buildCoreSceneLayer — same reason as assembleSingleProductPrompt.
+    if (isStudioV2Enabled()) {
+        const bundleInfo = state.bundle.enabled ? (() => {
+            const productCount = 1 + (state.bundle.secondaryProductIds?.length || 0);
+            const allProducts = [
+                state.products.find(p => p.id === state.bundle.primaryProductId),
+                ...((state.bundle.secondaryProductIds || []).map(id => state.products.find(p => p.id === id)).filter(Boolean))
+            ].filter(Boolean);
+            const productLabels = allProducts.map(p => (p as any)?.name || (p as any)?.productName || 'supplement bottle').join(', ');
+            const productsWithHeight = allProducts
+                .map((p) => {
+                    const raw = (p as any)?.heightValue as number | null | undefined;
+                    const unit = ((p as any)?.heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
+                    if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return null;
+                    const cm = unit === 'in' ? raw * 2.54 : raw;
+                    const rounded = Math.round(cm * 10) / 10;
+                    return `${(p as any)?.name || (p as any)?.productName || 'product'} ~${rounded}cm`;
+                })
+                .filter((v): v is string => Boolean(v));
+            const scaleInstruction = productsWithHeight.length > 0
+                ? ` CRITICAL SCALE REQUIREMENT: Preserve exact real-world height proportions between all products. ${productsWithHeight.join('; ')}. Products MUST appear proportionally sized according to their specified heights. DO NOT render all products at equal size.`
+                : '';
+            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
+        })() : '';
+        const terminalParts = normalizePromptSegments([
+            bundleInfo,
+            ...buildProtectionLightLayer(),
+            ...buildStrictPackagingLayer(),
+        ]);
+        let finalPrompt = sceneResult.prompt;
+        if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
+        finalPrompt = appendClosingPhrase(finalPrompt);
+        if (hasReferenceProductImage(state)) {
+            finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
+            finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+        }
+        console.log('2. Generated Prompt Parts (V2 Bundle):', [finalPrompt]);
+        console.log('3. FINAL PROMPT (V2 Bundle):', finalPrompt);
+        return finalPrompt;
+    }
 
     if (STRICT_STATE_PROMPT) {
         // Build bundle info string with product count and details
@@ -2253,6 +2323,9 @@ function buildNegativePrompt(state: ProductStudioState): string {
         'blurry', 'low quality', 'distorted', 'warped', 'deformed', 'melted', 'glitched',
         // Label integrity
         'redrawn label', 'rewritten label', 'invented label text', 'altered typography',
+        'misspelled label text', 'wrong text', 'changed text', 'substituted text', 'omitted text',
+        'extra text', 'hallucinated text', 'nonsense text', 'gibberish text',
+        'wrong letters', 'wrong numbers', 'transposed letters', 'autocorrected text',
         'warped label', 'curved label', 'stretched label', 'crooked label', 'misaligned label', 'mismatched label proportions',
         'label as texture', 'label texture', 'label distortion', 'label perspective warp',
         // Packaging / design integrity
@@ -2340,7 +2413,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
 
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
 
         console.log(`[FINAL PRODUCT PROMPT] Bundle:`, prompt);
 
@@ -2361,7 +2437,10 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
     for (const product of normalizedState.products) {
         let prompt = assembleSingleProductPrompt(normalizedState, product);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
 
         console.log(`[FINAL PRODUCT PROMPT] ${product.name}:`, prompt);
 
@@ -2528,7 +2607,9 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
     if (normalizedState.bundle.enabled) {
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        if (!isStudioV2Enabled()) {
+            validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+        }
         return prompt;
     }
 
@@ -2537,7 +2618,9 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
 
     let prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
     prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-    validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+    if (!isStudioV2Enabled()) {
+        validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
+    }
 
     return prompt;
 }

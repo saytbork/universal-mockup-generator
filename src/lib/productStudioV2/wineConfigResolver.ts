@@ -10,6 +10,26 @@ export type ResolvedWineConfig = {
   bottleFillState?: BottleFillState;
 };
 
+function resolveWineGlassDescriptor(state: StudioUIState): string {
+  const requested = String((state as any).wineGlassType || 'auto').trim().toLowerCase();
+  const wineType = String(state.wineType || 'auto').trim().toLowerCase();
+  const closureType = String(state.wineClosureType || '').trim().toLowerCase();
+  const isSparkling =
+    wineType === 'sparkling-white' ||
+    wineType === 'sparkling-rosé' ||
+    wineType === 'sparkling-rose' ||
+    closureType === 'cork-with-cage';
+
+  if (requested === 'red-bowl') return 'a wide-bowl red wine glass';
+  if (requested === 'white-stem') return 'a taller narrow white wine glass';
+  if (requested === 'sparkling-flute') return 'a slender sparkling flute';
+  if (isSparkling) return 'a slender sparkling flute';
+  if (wineType === 'white' || wineType === 'rosé' || wineType === 'rose') {
+    return 'a taller narrow white-wine style glass';
+  }
+  return 'a classic wine glass appropriate to the varietal';
+}
+
 /**
  * WINE TRUTH LAYER — simplified model
  *
@@ -17,10 +37,9 @@ export type ResolvedWineConfig = {
  *   Bottle sealed, retail-full, exactly as reference. No glass, no detached closure.
  *
  * SERVED (serveState=served):
- *   Bottle sealed and closed, exactly as reference (same as closed).
+ *   Bottle is opened for service and visibly below retail-full level.
  *   A wine glass filled with wine appears next to the bottle.
- *   The bottle is NOT opened, NOT half-empty, NO detached closure.
- *   The "served" state is communicated only by the glass — never by modifying the bottle.
+ *   The removed closure may appear on the surface when appropriate.
  */
 export function buildWineTruthLayer(
   state: StudioUIState,
@@ -42,19 +61,31 @@ export function buildWineTruthLayer(
     wineType === 'sparkling-rose';
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
-  const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=sealed; serveState=${serveState}; carbonationLevel=${carbonationLevel};`;
+  const resolvedBottleState = serveState === 'served' ? 'open' : 'sealed';
+  const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${resolvedBottleState}; serveState=${serveState}; carbonationLevel=${carbonationLevel};`;
 
-  // BOTTLE PRESERVATION — applies to both closed and served
-  const bottlePreservationBlock = [
-    'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
-    'The bottle is sealed and closed. The closure is fully attached to the bottle neck.',
-    'The bottle is filled to retail-full level.',
-    'Do NOT open the bottle. Do NOT remove or detach the closure.',
-    'Do NOT alter the liquid level. Do NOT add a half-empty appearance.',
-    'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
-    'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
-    'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt.',
-  ].join(' ');
+  // BOTTLE PRESERVATION — geometry and label remain locked, while service state may change opening/fill level.
+  const bottlePreservationBlock = serveState === 'served'
+    ? [
+        'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
+        'The bottle is opened for service.',
+        'The bottle remains visibly below retail-full level because wine has been poured into the glass.',
+        'A removed closure or cork may rest on the surface when appropriate to the closure type.',
+        'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
+        'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
+        'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
+        'BOTTLE_ORIENTATION: Bottle stands perfectly upright unless an explicit pour action is active.',
+      ].join(' ')
+    : [
+        'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
+        'The bottle is sealed and closed. The closure is fully attached to the bottle neck.',
+        'The bottle is filled to retail-full level.',
+        'Do NOT open the bottle. Do NOT remove or detach the closure.',
+        'Do NOT alter the liquid level. Do NOT add a half-empty appearance.',
+        'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
+        'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
+        'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt.',
+      ].join(' ');
 
   // LABEL LOCK — separate block, placed independently for maximum model weight.
   // Gemini tends to re-generate or hallucinate label text when scene/environment changes.
@@ -76,7 +107,7 @@ export function buildWineTruthLayer(
 
   // GLASS — only for served mode
   const glassBlock = serveState === 'served'
-    ? 'WINE_GLASS: A wine glass filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.'
+    ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.`
     : 'NO_GLASS: No wine glass in the scene. No poured liquid. No extra props.';
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);

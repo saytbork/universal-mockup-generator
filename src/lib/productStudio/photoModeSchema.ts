@@ -1,4 +1,5 @@
 import { EnvironmentPhotoModeSchema, PhotoMode } from './types';
+import { VISUAL_STYLE_SCHEMAS } from './visualStyleSchema';
 
 export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeSchema>> = {
     'Hero Landing Page': {
@@ -61,8 +62,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid studio surfaces only: acrylic and coated metal.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'supported-hold', 'holding', 'presenting', 'framed-presentation', 'applying-opening', 'capsule-display', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Ingredient Flat Lay': {
         id: 'ingredient-flat-lay',
@@ -83,8 +84,8 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
         ],
         requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'resting-interaction'],
+        allowsPersonPresence: true
     },
     'Acrylic Blocks': {
         id: 'acrylic-blocks',
@@ -250,6 +251,111 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
+    'Caustic Light Ripples': {
+        id: 'caustic-light-ripples',
+        label: 'Caustic Light Ripples',
+        scope: 'studio',
+        description: 'Water-like caustic light ripples with premium optical movement and clean readability.',
+        basePrompt: 'controlled caustic light ripples across the scene, premium optical reflections, elegant water-light interplay, clean product readability',
+        subOptions: [
+            { key: 'rippleIntensity', label: 'Ripple Intensity', values: ['Subtle', 'Balanced'] },
+            { key: 'lightSpread', label: 'Light Spread', values: ['Focused', 'Wide'] },
+            { key: 'surfaceEnergy', label: 'Surface Energy', values: ['Calm', 'Lively'] },
+        ],
+        constraints: [
+            'Caustics must feel optical and realistic',
+            'Do not simulate pool-party chaos',
+            'Keep product edges readable',
+            'Label readability must remain intact'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Prism Rainbow Refractions': {
+        id: 'prism-rainbow-refractions',
+        label: 'Prism Rainbow Refractions',
+        scope: 'studio',
+        description: 'Controlled prism refractions with premium spectral highlights and clean readability.',
+        basePrompt: 'controlled prism refractions around the product, premium spectral highlights, elegant optical breakup, clean readability, luxury studio realism',
+        subOptions: [
+            { key: 'spectrumStrength', label: 'Spectrum Strength', values: ['Subtle', 'Balanced'] },
+            { key: 'refractionPlacement', label: 'Refraction Placement', values: ['Edge-only', 'Background + edge'] },
+            { key: 'highlightCleanliness', label: 'Highlight Cleanliness', values: ['Clean', 'Expressive'] },
+        ],
+        constraints: [
+            'Keep spectral effects controlled and premium',
+            'No rainbow wash over the full product',
+            'Label readability must remain intact',
+            'No cheap holographic CGI look'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Glass Refraction Panels': {
+        id: 'glass-refraction-panels',
+        label: 'Glass Refraction Panels',
+        scope: 'studio',
+        description: 'Elegant glass-panel refractions adding depth and optical distortion around the product.',
+        basePrompt: 'elegant glass refraction panels placed around the product, controlled distortion, premium optical depth, clean studio realism, hero readability preserved',
+        subOptions: [
+            { key: 'panelDensity', label: 'Panel Density', values: ['Single', 'Layered'] },
+            { key: 'distortionLevel', label: 'Distortion Level', values: ['Subtle', 'Balanced'] },
+            { key: 'glassTone', label: 'Glass Tone', values: ['Clear', 'Cool neutral'] },
+        ],
+        constraints: [
+            'Refraction panels must feel like real glass',
+            'No warped product geometry',
+            'Keep the hero product clearly readable',
+            'No plastic transparent prop look'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Micro Mist Halo': {
+        id: 'micro-mist-halo',
+        label: 'Micro Mist Halo',
+        scope: 'studio',
+        description: 'A fine premium mist halo adding atmospheric freshness without obscuring the product.',
+        basePrompt: 'fine premium mist halo around the product, controlled atmospheric freshness, subtle suspended moisture, clean studio realism, product readability preserved',
+        subOptions: [
+            { key: 'mistDensity', label: 'Mist Density', values: ['Light', 'Balanced'] },
+            { key: 'haloRadius', label: 'Halo Radius', values: ['Tight', 'Wide'] },
+            { key: 'backlightLevel', label: 'Backlight Level', values: ['Soft', 'Balanced'] },
+        ],
+        constraints: [
+            'Mist must remain subtle and premium',
+            'Do not fog out the product',
+            'No smoke-like dirty haze',
+            'Label readability must remain intact'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+    'Shadow Pattern Projection': {
+        id: 'shadow-pattern-projection',
+        label: 'Shadow Pattern Projection',
+        scope: 'studio',
+        description: 'Projected shadow shapes adding modern editorial lighting and graphic depth.',
+        basePrompt: 'projected shadow pattern across the scene, editorial light shaping, graphic depth, premium studio realism, product remains clearly readable',
+        subOptions: [
+            { key: 'patternType', label: 'Pattern Type', values: ['Window', 'Palm', 'Geometric'] },
+            { key: 'shadowSharpness', label: 'Shadow Sharpness', values: ['Soft', 'Balanced'] },
+            { key: 'coverage', label: 'Coverage', values: ['Background only', 'Partial product edge'] },
+        ],
+        constraints: [
+            'Projected shadows must feel optical, not composited',
+            'Do not bury the product in darkness',
+            'Label readability must remain intact',
+            'No chaotic or messy shadow clutter'
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
     'Fruit Garnish / Citrus Accents': {
         id: 'fruit-garnish-citrus-accents',
         label: 'Fruit Garnish / Citrus Accents',
@@ -346,90 +452,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
-    'Clinical Lab Counter': {
-        id: 'clinical-lab-counter',
-        label: 'Clinical Lab Counter',
-        scope: 'studio',
-        description: 'Clinical laboratory-inspired advertising environment.',
-        basePrompt: 'clinical laboratory-inspired advertising environment, sterile counter surface with subtle scientific cues, trust-driven clean precise composition',
-        subOptions: [
-            { key: 'surfaceMaterial', label: 'Surface Material', values: ['Stainless steel', 'White lab', 'Neutral lab'] },
-            { key: 'propDensity', label: 'Prop Density', values: ['Minimal', 'Standard'] },
-            { key: 'lightingTemperature', label: 'Lighting Temperature', values: ['Cool', 'Neutral'] },
-        ],
-        constraints: [
-            'Lab equipment must be subtle and clean',
-            'No dramatic lighting',
-            'Authentic scientific feel',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Dark Premium Studio': {
-        id: 'dark-premium-studio',
-        label: 'Dark Premium Studio',
-        scope: 'studio',
-        description: 'Low-key premium advertising studio with controlled highlights.',
-        basePrompt: 'low-key premium advertising studio with dark background and controlled highlights, product edges remain clearly defined',
-        subOptions: [
-            { key: 'darknessLevel', label: 'Darkness Level', values: ['Deep', 'Balanced'] },
-            { key: 'rimLightIntensity', label: 'Rim Light Intensity', values: ['Subtle', 'Strong'] },
-            { key: 'backgroundMaterial', label: 'Background Material', values: ['Matte', 'Stone', 'Velvet'] },
-        ],
-        constraints: [
-            'No crushed blacks',
-            'Edges must remain readable',
-            'Label contrast must be preserved',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Monochrome Brand': {
-        id: 'monochrome-brand-world',
-        label: 'Monochrome Brand',
-        scope: 'studio',
-        description: 'Single-color brand advertising environment.',
-        basePrompt: 'single-color brand world advertising composition, all elements remain within one color family, graphic minimal brand-driven abstraction',
-        subOptions: [
-            { key: 'monoColor', label: 'Mono Color', values: ['Brand color', 'Neutral', 'Custom'] },
-            { key: 'gradientPresence', label: 'Gradient Presence', values: ['None', 'Subtle'] },
-            { key: 'contrastLevel', label: 'Contrast Level', values: ['Soft', 'High'] },
-        ],
-        constraints: [
-            'Only one color family allowed',
-            'No texture noise',
-            'Product silhouette must stay dominant',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Tech Clean Studio': {
-        id: 'tech-clean-studio',
-        label: 'Tech Clean Studio',
-        scope: 'studio',
-        description: 'Technology-driven advertising studio with precision surfaces.',
-        basePrompt: 'technology-driven advertising studio, precision surfaces, clean geometry, cool neutral tones, modern minimal performance-oriented atmosphere',
-        subOptions: [
-            { key: 'backgroundColor', label: 'Background Color', values: ['White', 'Light gray', 'Cool neutral'] },
-            { key: 'precisionLevel', label: 'Precision Level', values: ['High', 'Extreme'] },
-            { key: 'shadowPresence', label: 'Shadow Presence', values: ['Minimal', 'Soft'] },
-        ],
-        constraints: [
-            'No casual props',
-            'No shadow noise',
-            'Edges must be extremely sharp',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
     'Candy Gradient Lab': {
         id: 'candy-gradient-lab',
         label: 'Candy Gradient Lab',
@@ -472,47 +494,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
-    'Minimal Bathroom Vanity': {
-        id: 'minimal-bathroom-vanity',
-        label: 'Minimal Bathroom Vanity',
-        scope: 'studio',
-        description: 'Minimal clean studio surface with rigid materials and controlled reflections.',
-        basePrompt: 'minimal clean advertising studio surface, rigid materials like glass metal acrylic and stone, minimal elements, controlled reflections, product-first composition',
-        subOptions: [
-            { key: 'surfaceStyle', label: 'Surface Style', values: ['Modern', 'Minimal'] },
-            { key: 'materialTone', label: 'Material Tone', values: ['Cool', 'Neutral'] },
-            { key: 'lightingSource', label: 'Lighting Source', values: ['Soft studio', 'Neutral studio'] },
-        ],
-        constraints: [
-            'No cluttered backgrounds',
-            'No exaggerated reflections',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Brand Campaign': {
-        id: 'brand-campaign-world',
-        label: 'Brand Campaign',
-        scope: 'studio',
-        description: 'High-end brand campaign studio composition with architectural set design.',
-        basePrompt: 'high-end brand campaign advertising studio, architectural composition with premium rigid materials, controlled set design, product remains the focal point',
-        subOptions: [
-            { key: 'architecturalScale', label: 'Architectural Scale', values: ['Intimate', 'Grand'] },
-            { key: 'materialRichness', label: 'Material Richness', values: ['Refined', 'Opulent'] },
-            { key: 'lightingDrama', label: 'Lighting Drama', values: ['Soft', 'Dramatic'] },
-        ],
-        constraints: [
-            'No stock-photo look',
-            'Consistent brand tone',
-            'No clutter competing with product',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
     'Luxury Editorial Tabletop': {
         id: 'luxury-editorial-tabletop',
         label: 'Luxury Editorial Tabletop',
@@ -529,130 +510,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Natural shadows required',
             'Product must anchor the scene',
             'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Soft Wellness Morning': {
-        id: 'soft-wellness-morning',
-        label: 'Soft Wellness Morning',
-        scope: 'studio',
-        description: 'Soft diffused studio lighting with clean rigid materials and product-first composition.',
-        basePrompt: 'soft diffused advertising studio lighting, clean rigid materials, minimal set styling, product-first composition with controlled highlights',
-        subOptions: [
-            { key: 'warmthLevel', label: 'Warmth Level', values: ['Cool', 'Neutral', 'Warm'] },
-            { key: 'lightDiffusion', label: 'Light Diffusion', values: ['Soft', 'Very soft'] },
-            { key: 'colorPalette', label: 'Color Palette', values: ['Neutral', 'Pastel'] },
-        ],
-        constraints: [
-            'No harsh light',
-            'No saturated colors',
-            'Soft shadows only',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Sunlit Stone Editorial': {
-        id: 'sunlit-stone-editorial',
-        label: 'Sunlit Stone Editorial',
-        scope: 'studio',
-        description: 'Sunlit architectural stone set with premium editorial contrast.',
-        basePrompt: 'architectural stone blocks with sunlit editorial lighting, strong directional shadows, premium warm-neutral palette, clean product-first framing',
-        subOptions: [
-            { key: 'shadowLength', label: 'Shadow Length', values: ['Medium', 'Long'] },
-            { key: 'stoneTone', label: 'Stone Tone', values: ['Warm beige', 'Neutral sand'] },
-            { key: 'contrastLevel', label: 'Contrast Level', values: ['Balanced', 'High'] },
-        ],
-        constraints: [
-            'Architectural blocks must remain clean and premium',
-            'No cluttered props',
-            'Label readability remains mandatory',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Golden Sunset Backlit': {
-        id: 'golden-sunset-backlit',
-        label: 'Golden Sunset Backlit',
-        scope: 'environment',
-        description: 'Golden backlit hero scene with controlled glow and premium silhouettes.',
-        basePrompt: 'golden-hour backlit hero composition, warm sunset tonal range, controlled flare and edge glow, product remains readable and dominant',
-        subOptions: [
-            { key: 'glowStrength', label: 'Glow Strength', values: ['Soft', 'Balanced', 'Bold'] },
-            { key: 'horizonType', label: 'Horizon Type', values: ['Abstract', 'Natural'] },
-            { key: 'shadowDensity', label: 'Shadow Density', values: ['Soft', 'Balanced'] },
-        ],
-        constraints: [
-            'No overblown highlights',
-            'Product contour must stay crisp',
-            'Label must remain readable',
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Bathroom Daylight Clean': {
-        id: 'bathroom-daylight-clean',
-        label: 'Bathroom Daylight Clean',
-        scope: 'environment',
-        description: 'Clean bathroom daylight scene with premium everyday realism.',
-        basePrompt: 'clean bathroom daylight composition, soft window light, premium minimal surfaces, realistic skincare setting with no clutter',
-        subOptions: [
-            { key: 'surfaceType', label: 'Surface Type', values: ['Ceramic', 'Stone', 'Marble'] },
-            { key: 'lightSoftness', label: 'Light Softness', values: ['Soft', 'Very soft'] },
-            { key: 'propDensity', label: 'Prop Density', values: ['None', 'Minimal'] },
-        ],
-        constraints: [
-            'Bathroom setting must stay clean and believable',
-            'No random decorative noise',
-            'Product remains hero',
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Sky Float Minimal': {
-        id: 'sky-float-minimal',
-        label: 'Sky Float Minimal',
-        scope: 'environment',
-        description: 'Minimal floating composition against a real open-sky atmosphere.',
-        basePrompt: 'minimal floating product composition against a real open sky with natural atmospheric depth, subtle cloud variation, believable horizon haze, airy premium look, soft natural daylight and controlled product silhouette',
-        subOptions: [
-            { key: 'skyTone', label: 'Sky Tone', values: ['Light blue', 'Neutral blue'] },
-            { key: 'floatStability', label: 'Float Stability', values: ['Stable', 'Slight dynamic'] },
-            { key: 'edgeContrast', label: 'Edge Contrast', values: ['Soft', 'Balanced'] },
-        ],
-        constraints: [
-            'Floating illusion must remain physically plausible',
-            'Sky must read as real outdoor sky photography, never a flat studio backdrop',
-            'Natural atmospheric gradient and depth are mandatory',
-            'No chaotic background elements',
-            'Label stays readable',
-        ],
-        requiredPlacement: 'air',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Wet Rock Ripples': {
-        id: 'wet-rock-ripples',
-        label: 'Wet Rock Ripples',
-        scope: 'environment',
-        description: 'Product grounded on wet stone with controlled water ripple energy.',
-        basePrompt: 'wet stone surface with controlled shallow water ripples, premium reflective highlights, product grounded and physically coherent',
-        subOptions: [
-            { key: 'rippleIntensity', label: 'Ripple Intensity', values: ['Low', 'Balanced', 'High'] },
-            { key: 'stoneTexture', label: 'Stone Texture', values: ['Smooth', 'Natural'] },
-            { key: 'reflectionLevel', label: 'Reflection Level', values: ['Balanced', 'Glossy'] },
-        ],
-        constraints: [
-            'Water physics must look realistic',
-            'No messy splash chaos',
-            'Product must stay cleanly readable',
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -702,48 +559,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
-    'Sand Palm Shadows': {
-        id: 'sand-palm-shadows',
-        label: 'Sand Palm Shadows',
-        scope: 'environment',
-        description: 'Sunlit sand scene with palm shadow patterns and clean composition.',
-        basePrompt: 'sunlit real-beach sand composition with visible natural grain variation, micro-ridges, and subtle irregular footprints from wind shaping, soft palm shadow patterns, warm premium tones, grounded product placement and controlled negative space',
-        subOptions: [
-            { key: 'shadowPattern', label: 'Shadow Pattern', values: ['Soft palm', 'Defined palm'] },
-            { key: 'sandTexture', label: 'Sand Texture', values: ['Fine', 'Natural'] },
-            { key: 'warmthLevel', label: 'Warmth Level', values: ['Warm', 'Golden'] },
-        ],
-        constraints: [
-            'Shadows must look natural and directional',
-            'Sand must read as natural granular beach sand, not painted concrete or smooth studio floor',
-            'Visible micro-texture and uneven grain depth are mandatory near contact zones',
-            'No random tropical clutter',
-            'Product remains hero and readable',
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Botanical Water Garden': {
-        id: 'botanical-water-garden',
-        label: 'Botanical Water Garden',
-        scope: 'environment',
-        description: 'Natural botanical wet scene with controlled premium realism.',
-        basePrompt: 'botanical wet environment with shallow water and subtle natural foliage context, premium realistic lighting, clean product focus',
-        subOptions: [
-            { key: 'foliageDensity', label: 'Foliage Density', values: ['Low', 'Balanced'] },
-            { key: 'waterActivity', label: 'Water Activity', values: ['Still', 'Gentle ripples'] },
-            { key: 'lightDirection', label: 'Light Direction', values: ['Side', 'Back-side'] },
-        ],
-        constraints: [
-            'Botanical elements must remain secondary',
-            'No heavy clutter around label zone',
-            'Product remains dominant',
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
     'Macro Dew Label': {
         id: 'macro-dew-label',
         label: 'Macro Dew Label',
@@ -762,26 +577,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Label typography fidelity is critical',
             'No blur on key label text',
             'Droplets must be physically plausible',
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
-    'Warm Window Wood': {
-        id: 'warm-window-wood',
-        label: 'Warm Window Wood',
-        scope: 'environment',
-        description: 'Warm wooden window scene with natural sunlight realism.',
-        basePrompt: 'warm wooden window environment, natural sunlight and soft interior shadows, realistic lifestyle-adjacent premium product scene',
-        subOptions: [
-            { key: 'woodTone', label: 'Wood Tone', values: ['Light oak', 'Warm walnut'] },
-            { key: 'lightStrength', label: 'Light Strength', values: ['Soft', 'Balanced'] },
-            { key: 'dustMood', label: 'Ambient Particles', values: ['None', 'Subtle'] },
-        ],
-        constraints: [
-            'No messy room clutter',
-            'Window light direction must be coherent',
-            'Product remains crisp and readable',
         ],
         requiredPlacement: 'surface',
         allowedInteractions: ['none'],
@@ -890,28 +685,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
-    'Outdoor Energy Boost': {
-        id: 'outdoor-energy-boost',
-        label: 'Outdoor Energy Boost',
-        scope: 'studio',
-        description: 'Fresh, energetic studio lighting with crisp contrast and controlled set design.',
-        basePrompt: 'fresh energetic advertising studio lighting, bright highlights, crisp contrast, dynamic framing, controlled set with clean rigid surfaces',
-        subOptions: [
-            { key: 'materialType', label: 'Material Type', values: ['Stone', 'Concrete', 'Acrylic', 'Metal'] },
-            { key: 'energyMood', label: 'Energy Mood', values: ['Crisp', 'Bold', 'Active'] },
-            { key: 'lightQuality', label: 'Light Quality', values: ['Bright', 'Directional', 'Diffuse'] },
-            { key: 'backgroundBlurLevel', label: 'Background Blur Level', values: ['Low', 'Medium'] },
-        ],
-        constraints: [
-            'No motion blur',
-            'Product must remain sharp',
-            'Crisp scale realism enforced',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: ['none'],
-        allowsPersonPresence: false
-    },
     'Pastel Picnic': {
         id: 'pastel-picnic',
         label: 'Pastel Picnic',
@@ -932,77 +705,6 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none', 'holding', 'two-hand-hold', 'presenting'],
         allowsPersonPresence: true
     },
-    'Creator Premium Simulation': {
-        id: 'ugc-premium-simulation',
-        label: 'Creator Premium Simulation',
-        scope: 'studio',
-        description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
-        basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
-        subOptions: [
-            { key: 'realismLevel', label: 'Realism Level', values: ['Subtle', 'Balanced'] },
-            { key: 'imperfectionControl', label: 'Imperfection Control', values: ['Minimal', 'Controlled'] },
-            { key: 'lightQuality', label: 'Light Quality', values: ['Neutral studio', 'Soft studio'] },
-            { key: 'surfaceType', label: 'Surface Type', values: ['Abstract studio surface'] },
-        ],
-        constraints: [
-            'Controlled imperfections only',
-            'No personal context cues',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: [
-            'none',
-            'passive-presence',
-            'cropped-hand',
-            'supported-hold',
-            'holding',
-            'two-hand-hold',
-            'presenting',
-            'framed-presentation',
-            'applying-opening',
-            'capsule-display',
-            'resting-interaction',
-        ],
-        allowsPersonPresence: true
-    },
-    'UGC Premium Simulation': {
-        id: 'ugc-premium-simulation',
-        label: 'Creator Premium Simulation',
-        scope: 'studio',
-        description: 'Premium studio simulation with subtle realism and controlled imperfections (no UGC language).',
-        basePrompt: 'premium studio simulation with subtle realism, controlled advertising studio, clean purpose-built studio surfaces, brand-safe polish, controlled imperfections with studio-grade clarity',
-        subOptions: [
-            { key: 'realismLevel', label: 'Realism Level', values: ['Subtle', 'Balanced'] },
-            { key: 'imperfectionControl', label: 'Imperfection Control', values: ['Minimal', 'Controlled'] },
-            { key: 'lightQuality', label: 'Light Quality', values: ['Neutral studio', 'Soft studio'] },
-            { key: 'surfaceType', label: 'Surface Type', values: ['Abstract studio surface'] },
-        ],
-        constraints: [
-            'Controlled imperfections only',
-            'No personal context cues',
-            'Rigid materials only: glass, metal, acrylic, stone, concrete.'
-        ],
-        requiredPlacement: 'surface',
-        allowedInteractions: [
-            'none',
-            'passive-presence',
-            'cropped-hand',
-            'supported-hold',
-            'holding',
-            'two-hand-hold',
-            'presenting',
-            'framed-presentation',
-            'applying-opening',
-            'capsule-display',
-            'resting-interaction',
-        ],
-        allowsPersonPresence: true
-    },
-
-    // ── WINE-EXCLUSIVE PHOTO MODES ─────────────────────────────────────────
-    // These modes are ONLY available when industryProfile === 'wine'.
-    // They must never appear in supplement/generic pipelines.
-
     'Wine Macro Label': {
         id: 'wine-macro-label',
         label: 'Wine Macro Label',
@@ -1053,6 +755,138 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowsPersonPresence: false
     },
 
+    'Bottle + Glass Pour': {
+        id: 'bottle-and-glass-pour',
+        label: 'Bottle + Glass Pour',
+        scope: 'studio',
+        description: 'Bottle pours wine directly into a glass with controlled premium motion.',
+        basePrompt: 'wine bottle actively pouring into a wine glass, elegant continuous liquid ribbon, premium cellar-grade commercial photography, label preserved and readable, liquid color rendered authentically',
+        subOptions: [
+            { key: 'pourAngle', label: 'Pour Angle', values: ['Three-quarter', 'Side profile'] },
+            { key: 'streamShape', label: 'Stream Shape', values: ['Slow ribbon', 'Mid-flow elegance'] },
+            { key: 'glassFill', label: 'Glass Fill', values: ['One-third', 'Half'] },
+        ],
+        constraints: [
+            'Bottle must be visibly open during pour',
+            'Liquid stream must remain controlled and elegant',
+            'No explosive splash behavior',
+            'Label must remain readable on the bottle',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Hands Pouring Wine': {
+        id: 'hands-pouring-wine',
+        label: 'Hands Pouring Wine',
+        scope: 'studio',
+        description: 'Cropped hands-only service action pouring wine into a glass.',
+        basePrompt: 'cropped hands only pouring wine from bottle into wine glass, premium service ritual photography, bottle label remains visible, elegant hospitality framing, no faces, no full person',
+        subOptions: [
+            { key: 'handCrop', label: 'Hand Crop', values: ['Tight', 'Mid crop'] },
+            { key: 'serviceMood', label: 'Service Mood', values: ['Tasting room', 'Fine dining'] },
+            { key: 'glassFill', label: 'Glass Fill', values: ['One-third', 'Half'] },
+        ],
+        constraints: [
+            'Only hands or forearms may appear',
+            'No faces or full bodies',
+            'Bottle must be visibly open during pour',
+            'No chaotic splash behavior',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Wine Lineup Comparison': {
+        id: 'wine-lineup-comparison',
+        label: 'Wine Lineup Comparison',
+        scope: 'studio',
+        description: 'Multiple wine bottles arranged as a clean family lineup for brand or varietal comparison.',
+        basePrompt: 'multiple wine bottles arranged in a refined comparison lineup, clean spacing, premium studio shadows, varietal color contrast visible, family-of-products commercial photography',
+        subOptions: [
+            { key: 'lineupCount', label: 'Bottle Count', values: ['Three', 'Four'] },
+            { key: 'spacing', label: 'Spacing', values: ['Balanced', 'Wide'] },
+            { key: 'surfaceTone', label: 'Surface Tone', values: ['White', 'Stone'] },
+        ],
+        constraints: [
+            'Use product-family comparison framing',
+            'Bottles must remain upright and clearly separated',
+            'Clean shadow play is allowed',
+            'No human presence',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Editorial Bottle Tabletop': {
+        id: 'editorial-bottle-tabletop',
+        label: 'Editorial Bottle Tabletop',
+        scope: 'studio',
+        description: 'Editorial tabletop still life with bottle, optional glass, and minimal premium props.',
+        basePrompt: 'premium wine editorial tabletop still life, bottle hero on refined stone or marble surface, optional supporting glass, minimal premium props, soft luxury composition',
+        subOptions: [
+            { key: 'surfaceType', label: 'Surface Type', values: ['Stone', 'Marble', 'Warm wood'] },
+            { key: 'glassSupport', label: 'Glass Support', values: ['None', 'Single glass'] },
+            { key: 'propDensity', label: 'Prop Density', values: ['Minimal', 'Balanced'] },
+        ],
+        constraints: [
+            'Bottle remains the hero subject',
+            'Props must stay minimal and wine-appropriate',
+            'No fantasy styling',
+            'Label must remain readable',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
+    'Bottle In Hand Cutout': {
+        id: 'bottle-in-hand-cutout',
+        label: 'Bottle In Hand Cutout',
+        scope: 'studio',
+        description: 'Hand-only cutout hold against a clean premium backdrop.',
+        basePrompt: 'wine bottle held by a single cropped hand against a clean premium backdrop, hand-only commercial cutout style, label fully visible, no face, no body, minimal art-direction',
+        subOptions: [
+            { key: 'backgroundTone', label: 'Background Tone', values: ['Soft pink', 'Warm neutral', 'Brand color'] },
+            { key: 'holdAngle', label: 'Hold Angle', values: ['Diagonal', 'Straight'] },
+            { key: 'cropTightness', label: 'Crop Tightness', values: ['Tight', 'Balanced'] },
+        ],
+        constraints: [
+            'Only one cropped hand or forearm may appear',
+            'No face or torso',
+            'Backdrop must remain clean and minimal',
+            'Bottle label must remain visible',
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding'],
+        allowsPersonPresence: false
+    },
+
+    'Rose Tasting Table': {
+        id: 'rose-tasting-table',
+        label: 'Rose Tasting Table',
+        scope: 'studio',
+        description: 'Bright tasting-table editorial scene optimized for rose or white wine service.',
+        basePrompt: 'bright wine tasting table with poured rose or white wine, fresh glass highlights, light floral or picnic-adjacent accents, elegant social tasting atmosphere without people',
+        subOptions: [
+            { key: 'wineTone', label: 'Wine Tone', values: ['Rose', 'White'] },
+            { key: 'tableMood', label: 'Table Mood', values: ['Fresh floral', 'Minimal tasting'] },
+            { key: 'glassCount', label: 'Glass Count', values: ['One', 'Multiple'] },
+        ],
+        constraints: [
+            'No people in frame',
+            'Scene must feel bright and premium, not casual party',
+            'Bottle or poured glass must remain clearly readable',
+            'Props must remain refined and minimal',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none'],
+        allowsPersonPresence: false
+    },
+
     'Editorial Table': {
         id: 'editorial-table',
         label: 'Editorial Table',
@@ -1097,3 +931,13 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowsPersonPresence: false
     },
 };
+
+export function getSceneSchema(mode: string | undefined): EnvironmentPhotoModeSchema | undefined {
+    const normalized = String(mode || '').trim();
+    if (!normalized) return undefined;
+
+    return (
+        PHOTO_MODE_SCHEMAS[normalized as PhotoMode] ||
+        VISUAL_STYLE_SCHEMAS[normalized as keyof typeof VISUAL_STYLE_SCHEMAS]
+    );
+}

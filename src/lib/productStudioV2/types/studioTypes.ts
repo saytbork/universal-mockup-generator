@@ -1,3 +1,12 @@
+import type { IndustryProfile } from '@/lib/productStudio/types';
+
+export enum MaterialState {
+  FOAM = 'foam',
+  CREAM = 'cream',
+  GEL = 'gel',
+  POWDER = 'powder',
+}
+
 export type StudioCreativeIntent =
   | 'conversion'
   | 'luxury'
@@ -8,11 +17,13 @@ export type StudioWorld =
   | 'studio'
   | 'underwater'
   | 'splash-tank'
-  | 'beach-daylight';
+  | 'beach-daylight'
+  | 'water-surface';
 
 export type StudioMotion =
   | 'static'
   | 'opened'
+  | 'spilled'
   | 'dispensed'
   | 'pouring'
   | 'falling';
@@ -40,6 +51,7 @@ export interface StudioAuthorityBundle {
 }
 
 export interface StudioUIState {
+  industryProfile: IndustryProfile;
   creativeIntent?: StudioCreativeIntent;
   world?: StudioWorld;
   motion: StudioMotion;
@@ -104,6 +116,12 @@ export interface StudioUIState {
     | 'pure-white-pdp';
   coffeeTemperatureFeel?: 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
   coffeeServeStyle?: 'cup-only' | 'cup-and-bag' | 'espresso-machine';
+  environment?: string;
+  environmentPreset?: string;
+  environmentMode?: string;
+  lighting?: string;
+  lightingPreset?: string;
+  lightingMode?: string;
   productReferencePresent?: boolean;
   lightingModelOverride?: string;
   aspectRatio?: '1:1' | '4:5' | '9:16' | '16:9' | string;
@@ -141,6 +159,7 @@ export interface StudioUIState {
   carbonationLevel?: string;
   wineBottleState?: string;
   wineGlassMode?: string;
+  wineGlassType?: string;
   wineClosureType?: string;
   wineColor?: 'red' | 'white' | 'rose';
   wineStyle?: 'still' | 'sparkling';
@@ -162,10 +181,25 @@ export interface StudioUIState {
   lightingRigOverride?: string;
   finishOverride?: string;
   productType?: string;
+  packagingType?: string;
+  physicalPresence?: string;
+  placementContext?: string;
+  groundingMode?: string;
   interaction?: string;
+  interactionProfile?: string;
+  splashMedium?: string;
+  motionIntensity?: string;
+  freezeMoment?: string;
+  productStability?: string;
+  macroTightness?: string;
+  dropletMode?: string;
+  dropletDensity?: string;
+  highlightControl?: string;
   packagingBehavior?: string;
   specialEffect?: string;
   visualStyle?: string;
+  visualStyleCategory?: 'studio' | 'brand' | 'lifestyle';
+  atmosphereMode?: string;
   lightingTemperatureProfile?: string;
   shadowProfile?: string;
   contrastProfile?: string;
@@ -173,5 +207,93 @@ export interface StudioUIState {
   bundle?: {
     enabled: boolean;
     primaryProductId?: string;
+  };
+  // ── Menu option injections ──────────────────────────────────────────────────
+  /** Basic lighting selector: natural-light | overcast | cozy-indoors | ring-light */
+  basicLighting?: string;
+  /** Viewpoint: eye-level | top-down | human-pov | suspended | display-view */
+  viewpoint?: string;
+  /** Physical placement: surface | held | supported | air-suspended */
+  physicalPlacement?: string;
+  /** Physical Presence — container material: plastic | metal | glass | rubber | mixed */
+  productMaterial?: string;
+  /** Physical Presence — product color descriptor (free text) */
+  productColor?: string;
+  /** Physical Presence — product form scale: small | medium | large */
+  productFormScale?: string;
+  /** Photo Mode dynamic sub-settings from photoModeConfig.dynamic (key→value pairs) */
+  photoModeDynamicSettings?: Record<string, string>;
+  /** Foam & Texture root controls from UI store */
+  textureType?: string;
+  textureDensity?: string;
+  focusDistance?: string;
+  cleanliness?: string;
+  /** Canonical physical material state for material-driven photo modes (Foam/Cream/Gel/Powder). */
+  materialState?: MaterialState;
+  /** Full physical definition object from state.definition.physical — used by buildProductPhysical */
+  productPhysicalDef?: {
+    kind: string;
+    v: Record<string, unknown>;
+  };
+  /** contextPreset value — used by buildWorld for studio environment context */
+  contextPresetValue?: string;
+  /** Ingredient objects text for Ingredient Stack / Ingredient Flat Lay modes (from state.props) */
+  ingredientObjects?: string;
+  /** Ingredient layout mode: grounded | top-view | auto */
+  ingredientLayout?: string;
+
+  // ── Brand palette / background color injection ──────────────────────────────
+  /** Source of palette for background resolution: 'Use product label colors' | 'Brand Colors' | 'Custom' */
+  productPaletteSource?: 'Use product label colors' | 'Brand Colors' | 'Custom';
+  /** Primary extracted/brand color (hex) */
+  productPaletteA?: string;
+  /** Secondary extracted/brand color (hex) */
+  productPaletteB?: string;
+  /** Tertiary extracted/brand color (hex) */
+  productPaletteC?: string;
+  /** Brand system palette — used when productPaletteSource === 'Brand Colors' */
+  brandPalette?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+  };
+  /** Hero Landing Page config subset needed by V2 background resolver */
+  photoModeConfig?: {
+    heroLandingPage?: {
+      backgroundType?: 'Solid' | 'Gradient';
+      legacyColorPopHero?: boolean;
+    };
+  };
+  /**
+   * Product orientation control.
+   * When rotationEnabled is false (default), the product axis is locked upright.
+   * When rotationEnabled is true, rotationAngle (degrees) is applied as a tilt.
+   */
+  rotationEnabled?: boolean;
+  /** Explicit tilt angle in degrees. Only applied when rotationEnabled = true. */
+  rotationAngle?: number;
+  /**
+   * Product orientation mode.
+   * "upright" (default) — vertical axis locked to gravity; no tilt permitted.
+   * "free"              — orientation is unrestricted (used with rotationEnabled = true).
+   */
+  productOrientation?: 'upright' | 'free';
+
+  /**
+   * Resolved palette computed by buildPalette (runs first in the pipeline).
+   * All downstream builders (buildStudioBackground, buildWorld) should read from here
+   * instead of re-deriving from productPaletteA/B/C or brandPalette directly.
+   *
+   * source:
+   *   "product" — derived from productPaletteA/B/C (product label extraction)
+   *   "brand"   — derived from brandPalette.primaryColor/secondaryColor/accentColor
+   *   "custom"  — user-entered custom colors (productPaletteSource === 'Custom')
+   *   "neutral" — no palette data available; neutral light-gray fallback
+   */
+  resolvedPalette?: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+    source: 'product' | 'brand' | 'custom' | 'neutral';
   };
 }

@@ -21,10 +21,10 @@
 // TYPES
 // =============================================================================
 
-import { PHOTO_MODE_SCHEMAS } from '../productStudio/photoModeSchema';
-import type { PhotoMode as ProductStudioPhotoMode } from '../productStudio/types';
+import { getSceneSchema } from '../productStudio/photoModeSchema';
+import type { PhotoMode as ProductStudioPhotoMode, VisualStyle as ProductStudioVisualStyle } from '../productStudio/types';
 
-export type PhotoMode = ProductStudioPhotoMode;
+export type PhotoModeCompat = ProductStudioPhotoMode | ProductStudioVisualStyle | 'UGC Premium Simulation';
 
 const PHOTO_MODE_FORBIDDEN_TERMS = [
     'human',
@@ -579,7 +579,7 @@ const PHOTO_MODE_STATE_COMPATIBILITY: Record<string, {
 // =============================================================================
 
 function buildBackgroundModifier(
-    photoMode: PhotoMode,
+    photoMode: PhotoModeCompat,
     backgroundEnabled?: boolean,
     backgroundType?: 'solid' | 'gradient',
     paletteColors?: { primary?: string; secondary?: string; accent?: string },
@@ -608,7 +608,7 @@ function buildBackgroundModifier(
 }
 
 function buildIngredientModifier(
-    photoMode: PhotoMode,
+    photoMode: PhotoModeCompat,
     suggestedProps?: string,
     ingredientLayout?: 'auto' | 'grounded' | 'floating' | 'top-view'
 ): string {
@@ -647,7 +647,7 @@ function buildIngredientModifier(
 // =============================================================================
 
 function validatePhotoModeCompatibility(
-    photoMode: PhotoMode,
+    photoMode: PhotoModeCompat,
     options: PhotoModeOptions
 ): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
@@ -716,7 +716,7 @@ never like a digital illustration or mockup.
  * ```
  */
 export function buildPhotoModePrompt(
-    photoMode: PhotoMode,
+    photoMode: PhotoModeCompat,
     options: PhotoModeOptions = {}
 ): PhotoModeResult {
     // Step 1: Validate compatibility
@@ -741,7 +741,7 @@ export function buildPhotoModePrompt(
     }
 
     // Step 2: Get schema and base prompt
-    const schema = PHOTO_MODE_SCHEMAS[photoMode];
+    const schema = getSceneSchema(photoMode);
     let basePrompt = schema?.basePrompt || '';
 
     if (!basePrompt) {
@@ -1083,7 +1083,7 @@ export function buildPhotoModePrompt(
  * Get list of all available Photo Modes.
  * Useful for UI dropdowns and validation.
  */
-export function getAllPhotoModes(): PhotoMode[] {
+export function getAllPhotoModes(): PhotoModeCompat[] {
     return [
         // Studio modes
         'Hero Landing Page',
@@ -1094,15 +1094,6 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Splash Shot',
         'Foam & Texture',
         'Routine Carousel',
-        'Clinical Lab Counter',
-        'Minimal Bathroom Vanity',
-        'Dark Premium Studio',
-        'Monochrome Brand',
-        'Brand Campaign',
-        'Creator Premium Simulation',
-        'Tech Clean Studio',
-        'Soft Wellness Morning',
-        'Outdoor Energy Boost',
         'Beach Foam Splash',
         'Pool Water',
         'Cheers (Hands Clink)',
@@ -1111,18 +1102,9 @@ export function getAllPhotoModes(): PhotoMode[] {
         'Fruit Garnish / Citrus Accents',
         'Textured Bed / Scatter Base',
         'Floating Particles',
-        // v2.1 realism modes
-        'Sunlit Stone Editorial',
-        'Golden Sunset Backlit',
-        'Bathroom Daylight Clean',
-        'Sky Float Minimal',
-        'Wet Rock Ripples',
         'Hands Application Clean',
         'Underwater Split',
-        'Sand Palm Shadows',
-        'Botanical Water Garden',
         'Macro Dew Label',
-        'Warm Window Wood',
         'Gel Smear Editorial',
         'Citrus Fresh Flat Lay',
         'Stones & Crystals Flat Lay',
@@ -1133,6 +1115,6 @@ export function getAllPhotoModes(): PhotoMode[] {
 /**
  * Check if a Photo Mode is a Studio mode (vs Lifestyle mode).
  */
-export function isStudioMode(photoMode: PhotoMode): boolean {
-    return PHOTO_MODE_SCHEMAS[photoMode]?.scope === 'studio';
+export function isStudioMode(photoMode: PhotoModeCompat): boolean {
+    return getSceneSchema(photoMode)?.scope === 'studio';
 }

@@ -43,7 +43,7 @@ export function validateStudioPrompt(prompt: string, authority: StudioAuthorityB
     throw new Error('Invalid prompt: static and dynamic motion are mixed simultaneously.');
   }
 
-  const hasPhysics = blockCount(blocks, 'STUDIO_PHYSICS_MODEL:') > 0;
+  const hasPhysics = /STUDIO_PHYSICS_MODEL:/i.test(prompt);
   const hasSplashModifier = /STUDIO_MODIFIER_SPLASH:/i.test(prompt);
   const hasTexturedBedModifier = /STUDIO_MODIFIER_TEXTUREDBED:/i.test(prompt);
   const hasClinicalIntent = /STUDIO_VISUAL_INTENT:\s*clinical\./i.test(prompt);

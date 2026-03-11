@@ -1,5 +1,47 @@
 import type { StudioAuthorityBundle, StudioUIState } from '../types/studioTypes.ts';
 
+// ---------------------------------------------------------------------------
+// Final composition authority resolver.
+// Cinematography angle (when set) overrides the photo-mode base composition.
+// Pure function — no mutations, no side effects.
+// ---------------------------------------------------------------------------
+function resolveFinalComposition(
+  state: StudioUIState | undefined,
+  baseComposition: string
+): string {
+  const raw = String(state?.cameraAngle || state?.angleOverride || '').trim();
+  if (!raw) return baseComposition;
+
+  const a = raw.toLowerCase();
+
+  // flat-lay — checked first: "top-down", "top down", "flat lay", "flat-lay", "overhead"
+  if (a.includes('flat') || (a.includes('top') && a.includes('down')) || a.includes('overhead')) {
+    return 'flat-lay';
+  }
+
+  // hero-45 — "45", "hero"
+  if (a.includes('45') || a.includes('hero')) {
+    return 'hero-45';
+  }
+
+  // low-angle — requires 'low' + 'angle' to avoid firing on "slow", "glow", "below"
+  if (a.includes('low') && a.includes('angle')) {
+    return 'low-angle';
+  }
+
+  // high-angle — requires 'high' + 'angle' to avoid firing on "highlight", "high key"
+  if (a.includes('high') && a.includes('angle')) {
+    return 'high-angle';
+  }
+
+  // eye-level — "eye"
+  if (a.includes('eye')) {
+    return 'eye-level';
+  }
+
+  return baseComposition;
+}
+
 function buildInteractionCompositionBias(interaction?: string): string[] {
   const value = String(interaction || '').trim();
   if (!value) return [];
@@ -36,6 +78,27 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 }
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  if (String(state?.photoMode || '').trim() === 'Splash Shot') {
+    return [
+      'STUDIO_COMPOSITION_PROFILE: splash-impact-hero.',
+      'FRAME_CONSTRAINT: Directional splash hero framing with visible impact origin near product base.',
+      'NEGATIVE_SPACE_POLICY: controlled and minimal.',
+      'HORIZONTAL_BALANCE: directional splash spread allowed.',
+      'VERTICAL_BALANCE: impact-origin emphasis.',
+    ].join(' ');
+  }
+
+  if (String(state?.photoMode || '').trim() === 'Macro Dew Label') {
+    return [
+      'STUDIO_COMPOSITION_PROFILE: macro-label.',
+      'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins.',
+      'No medium composition.',
+      'No wide composition.',
+      'HORIZONTAL_BALANCE: controlled for macro framing.',
+      'VERTICAL_BALANCE: macro emphasis.',
+    ].join(' ');
+  }
+
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
   if (state?.winePrestigeMode) {
@@ -93,18 +156,22 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
 
   const heroMode = authority.composition === 'hero';
   const macroMode = authority.composition === 'macro';
-  const ingredientStackMode = authority.composition === 'ingredient-stack';
-  const flatLayMode = authority.composition === 'flat-lay';
+  // finalComposition is resolved here so structural mode flags reflect the
+  // cinematography-overridden profile — prevents PERSPECTIVE_LOCK / COMPOSITION_DIRECTIVE
+  // conflicts when cinematography overrides the photo-mode base.
+  const finalComposition = resolveFinalComposition(state, authority.composition);
+  const ingredientStackMode = finalComposition === 'ingredient-stack';
+  const flatLayMode = finalComposition === 'flat-lay';
   const splashMode =
     authority.world === 'splash-tank' ||
     authority.world === 'beach-daylight' ||
     authority.world === 'underwater';
   const splashAdMode = Boolean(state?.splashAdMode);
-  
+
   // BUNDLE MODE DETECTION: Check if bundle is enabled with product references
   // When bundle mode is active, use relaxed framing (not tight 85-92%)
   const hasBundleReference = Boolean(state?.bundle?.enabled && state.bundle.primaryProductId);
-  
+
   const spreadRule = splashMode
     ? 'SPLASH_SPATIAL_POLICY: Allow natural side propagation from the impact vector with coherent splash spread.'
     : authority.permissions.allowHorizontalSpread
@@ -123,7 +190,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : 'VERTICAL_BALANCE: neutral.';
 
   return [
-    `STUDIO_COMPOSITION_PROFILE: ${authority.composition}.`,
+    `STUDIO_COMPOSITION_PROFILE: ${finalComposition}.`,
     splashAdMode ? 'SPLASH_AD_COMPOSITION_OVERRIDE: Product First composition is mandatory.' : '',
     splashAdMode ? 'SYMMETRY_LOCK: Disabled. Do not force centered symmetry.' : '',
     splashAdMode && !heroMode
@@ -151,6 +218,12 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     heroMode
       ? 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
       : '',
+    // V1 hero composition discipline — single-object centered hero framing
+    heroMode && !splashMode
+      ? 'HERO_COMPOSITION_DISCIPLINE: Product must remain the dominant focal element. Single object only. Centered hero composition. Balanced negative space reserved for copy. No props. No secondary objects. No environmental clutter.'
+      : '',
+    // V1 gravity grounding — universal rule, all worlds
+    'GRAVITY_LOCK: Objects must obey gravity. Products must appear grounded on a surface. No levitation. No floating objects.',
     spreadRule,
     verticalRule,
     splashMode

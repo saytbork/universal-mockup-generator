@@ -1,3 +1,4 @@
+// Freeze guard: keep `\n\n` block boundaries stable for validator block scanning.
 const DEDUPE_KEYS = [
   'STUDIO_LIGHTING_PROFILE',
   'STUDIO_COMPOSITION_PROFILE',
@@ -8,6 +9,11 @@ const DEDUPE_KEYS = [
   'COFFEE_COMPOSITION_DOMINANCE',
   'COFFEE_PRODUCT_DOMINANCE_RATIO',
 ];
+
+// Keep block boundaries stable: normalize only inline horizontal whitespace.
+function normalizeInlineWhitespace(text: string): string {
+  return String(text || '').replace(/[ \t]{2,}/g, ' ').trim();
+}
 
 function dedupePromptKeySentences(prompt: string): string {
   let nextPrompt = prompt;
@@ -23,10 +29,11 @@ function dedupePromptKeySentences(prompt: string): string {
       return out;
     });
   }
-  return nextPrompt.replace(/\s{2,}/g, ' ').trim();
+  return normalizeInlineWhitespace(nextPrompt);
 }
 
 export function assembleStudioPrompt(blocks: string[]): string {
+  // Double-newline block contract is intentional for validator block scanning.
   const rawPrompt = blocks.filter((block) => block.trim().length > 0).join('\n\n');
   return dedupePromptKeySentences(rawPrompt);
 }

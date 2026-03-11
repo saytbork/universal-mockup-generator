@@ -354,11 +354,18 @@ function applyModeResolution(prompt: string, options: PromptOptions): string {
     return prependModeResolutionGuardrail(sanitized);
 }
 
-function assertSingleCameraBlock(prompt: string): string {
+function assertSingleCameraBlock(prompt: string, _options?: PromptOptions): string {
     const cameraPattern = /\bCamera:\s*[^.]*\./g;
     const matches = prompt.match(cameraPattern) || [];
     if (matches.length <= 1) return prompt;
-    throw new Error(`Camera injection conflict: expected exactly one Camera block, found ${matches.length}`);
+    // Multiple Camera: blocks can arise when lifestyle.ts and canonicalScene.ts
+    // both inject one. Keep the first occurrence and remove the rest.
+    console.warn(`[CAMERA DEDUP] found ${matches.length} Camera: blocks — keeping first`);
+    let seen = 0;
+    return prompt.replace(cameraPattern, (block) => {
+        seen += 1;
+        return seen === 1 ? block : '';
+    }).replace(/\s{2,}/g, ' ').trim();
 }
 
 const isSelfieActive = (options: PromptOptions): boolean => {
@@ -632,6 +639,12 @@ export class PromptEngine {
                 ? 'studio'
                 : 'lifestyle';
         console.log('[ENGINE ACTIVE]', activeEngine);
+        console.log('[ENGINE TRACE]', {
+            sceneType,
+            isStudioEngine: activeEngine === 'studio',
+            sceneIntent: (options as any).sceneIntent,
+            sourceFunction: 'PromptEngine.build.beforeStudioFastPath',
+        });
 
         // ====================================================================
         // STUDIO MODE FAST-PATH (MEGA PROMPT V2)
@@ -772,7 +785,7 @@ export class PromptEngine {
                 .trim();
             finalPrompt = `${finalPrompt} Negative prompt: ${negative}`.replace(/\s+/g, ' ').trim();
             finalPrompt = applyModeResolution(finalPrompt, options);
-            finalPrompt = assertSingleCameraBlock(finalPrompt);
+            finalPrompt = assertSingleCameraBlock(finalPrompt, options);
             console.log('[PROMPT ENGINE] Selfie-dominant pipeline ACTIVE');
             console.log('[FINAL PROMPT STRING]', finalPrompt);
             return finalPrompt;
@@ -857,10 +870,12 @@ export class PromptEngine {
         }
 
         finalPrompt = applyModeResolution(finalPrompt, options);
-        finalPrompt = assertSingleCameraBlock(finalPrompt);
+        finalPrompt = assertSingleCameraBlock(finalPrompt, options);
 
         // ====================================================================
-        // PRODUCT MODE HUMAN EXCLUSION (Legacy) -> Still valid
+        // PRODUCT MODE HUMAN EXCLUSION — sanitize, never throw
+        // Strip any sentence fragment containing a forbidden human-context term.
+        // Studio Product prompt must be purely object-focused.
         // ====================================================================
         const isProductOnly = options.contentStyle === 'product';
         if (isProductOnly) {
@@ -868,19 +883,18 @@ export class PromptEngine {
             const negativeMarker = ' Negative prompt: ';
             const negativeIndex = finalPrompt.indexOf(negativeMarker);
             const rawPositivePrompt = negativeIndex >= 0 ? finalPrompt.substring(0, negativeIndex) : finalPrompt;
+            const negativePart = negativeIndex >= 0 ? finalPrompt.substring(negativeIndex) : '';
             const positivePrompt = stripModeResolutionGuardrail(rawPositivePrompt);
-            const match = forbidden.exec(positivePrompt);
-            if (match) {
-                const matchIndex = match.index ?? 0;
-                const excerptStart = Math.max(0, matchIndex - 140);
-                const excerptEnd = Math.min(positivePrompt.length, matchIndex + 140);
-                console.error('[PRODUCT MODE BLOCK] Forbidden language detected in positive prompt', {
-                    match: match[0],
-                    excerpt: positivePrompt.slice(excerptStart, excerptEnd)
-                });
-                throw new InvalidSceneCombinationError(
-                    `Product Step 3 cannot include lifestyle, UGC, phone/selfie, or human identity language. Found: "${match[0]}".`
-                );
+            if (forbidden.test(positivePrompt)) {
+                // Strip every sentence/clause that contains a forbidden token.
+                const sanitized = positivePrompt
+                    .split(/(?<=[.!?])\s+/)
+                    .filter(sentence => !forbidden.test(sentence))
+                    .join(' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+                console.warn('[PRODUCT MODE SANITIZE] Stripped human-context sentences from product prompt');
+                finalPrompt = (sanitized + negativePart).trim();
             }
         }
 

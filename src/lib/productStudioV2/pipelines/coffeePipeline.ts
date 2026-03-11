@@ -1,5 +1,6 @@
 // Solo para testing estructural
 export function __buildSegmentsForTest(state: StudioUIState) {
+  buildPalette(state);                          // ← first: resolves state.resolvedPalette
   const authority = resolveStudioAuthority(state);
   const modifiers = getAllowedStudioModifiers(authority, state);
   const protectionLayer = buildProtectionLayer(authority, state);
@@ -15,6 +16,7 @@ export function __buildSegmentsForTest(state: StudioUIState) {
     buildModifiers(modifiers, state),
     buildLighting(authority, state),
     buildMaterials(authority, state),
+    buildProductCharacter(state),
     buildPackaging(state),
     buildGeometry(authority, state),
     ...protectionLayer,
@@ -30,11 +32,12 @@ export function __buildSegmentsForTest(state: StudioUIState) {
   }
   return segments;
 }
-import { buildCoffeeIndustryLayer, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
+import { buildPalette, buildCoffeeIndustryLayer, buildArtworkImmutability, buildIntent, buildWorld, buildCameraOverrides, buildComposition, buildMotion, buildPhysics, buildModifiers, buildLighting, buildMaterials, buildProductCharacter, buildPackaging, buildGeometry, buildAdvancedOverrideParts, buildProtectionLayer, injectWineEngine, sanitizePromptParts, finalizePromptFromSegments, resolveStudioAuthority, getAllowedStudioModifiers } from '../index';
 import type { StudioUIState } from '../index';
 
 export const coffeePipeline = {
   build(state: StudioUIState): string {
+    buildPalette(state);                        // ← first: resolves state.resolvedPalette
     const authority = resolveStudioAuthority(state);
     const modifiers = getAllowedStudioModifiers(authority, state);
     const protectionLayer = buildProtectionLayer(authority, state);
@@ -50,6 +53,7 @@ export const coffeePipeline = {
       buildModifiers(modifiers, state),
       buildLighting(authority, state),
       buildMaterials(authority, state),
+      buildProductCharacter(state),
       buildPackaging(state),
       buildGeometry(authority, state),
       ...protectionLayer,
