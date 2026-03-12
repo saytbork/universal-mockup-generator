@@ -269,6 +269,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ADMIN_EMAILS = ['juanamisano@gmail.com', 'boostugc@gmail.com'];
   const isAdminUser = authenticatedEmail ? ADMIN_EMAILS.includes(authenticatedEmail.toLowerCase().trim()) : false;
   const isAnonymousTrial = !authenticatedEmail;
+  const body = await parseBody(req);
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const requestHost = getHeaderString(req.headers.host).trim().toLowerCase();
   const isProjectsPreviewHost =
@@ -279,13 +280,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? req.headers['x-trial-bypass-code'][0]
     : req.headers['x-trial-bypass-code'];
   const headerBypassCode = String(headerBypassRaw || '').trim().toUpperCase();
+  const bodyBypassCode = typeof body.trialBypassCode === 'string' ? body.trialBypassCode.trim().toUpperCase() : '';
   const testerBypassCode = String(process.env.TESTER_UPGRADE_CODE || '8714').trim();
   const bypassCodes = new Set([
     '2999',
     '8714',
     testerBypassCode.toUpperCase(),
   ]);
-  const bypassByCode = Boolean(headerBypassCode && bypassCodes.has(headerBypassCode));
+  const bypassByCode = Boolean(
+    (headerBypassCode && bypassCodes.has(headerBypassCode)) ||
+    (bodyBypassCode && bypassCodes.has(bodyBypassCode))
+  );
   const bypassCreditLimits = isPreview || unlimitedEnv || bypassByCode;
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
@@ -339,7 +344,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const email = authenticatedEmail || guestId || undefined;
   const isUnlimited = authenticatedEmail ? isUnlimitedCreditsEmail(authenticatedEmail) : false;
 
-  const body = await parseBody(req);
   // Defensive validation: payload size
   const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10MB
   const MAX_INLINE_IMAGES = 6; // 1 human reference + up to 5 product images

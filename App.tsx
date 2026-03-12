@@ -5703,6 +5703,7 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             preserveReferenceImage,
             apiKey: resolvedApiKey,
+            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
             debugMeta: {
               promptHash,
               sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
@@ -6044,6 +6045,7 @@ If the model attempts to create a scene or environment, override it and force a 
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
             preserveReferenceImage: false,
             apiKey: resolvedApiKey,
+            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
 
@@ -6248,6 +6250,7 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             preserveReferenceImage: false,
             apiKey: resolvedApiKey,
+            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
 
@@ -6397,6 +6400,7 @@ If the model attempts to create a scene or environment, override it and force a 
           aspectRatio,
           preserveReferenceImage: isProductPlacement,
           apiKey: resolvedApiKey,
+          trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
         }),
       });
 
