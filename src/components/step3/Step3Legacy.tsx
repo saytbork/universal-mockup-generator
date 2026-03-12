@@ -8654,9 +8654,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div className="space-y-3">
                   {/* LIGHTING STYLE */}
                   <div className={SECTION_GROUP_CLASS}>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700">Lighting style</p>
-                    </div>
                     <div className="flex flex-wrap gap-2">
                       {LIGHTING_OPTIONS.map(option => (
                         <button
