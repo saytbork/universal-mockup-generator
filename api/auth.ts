@@ -12,7 +12,7 @@ import {
   tryConsumeTrialCouponRedemption,
 } from '../server/lib/trialCouponLimit.js';
 
-const DASHBOARD_REDIRECT_PATH = '/dashboard';
+const DASHBOARD_REDIRECT_PATH = '/app';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
@@ -34,11 +34,17 @@ const parseAction = (req: VercelRequest) => {
 };
 
 const getRequestOrigin = (req: VercelRequest): string => {
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
+  const normalizedHost = String(host || '').trim().toLowerCase();
+  const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
+  const isPreviewHost =
+    normalizedHost === 'projects.vercel.app' ||
+    normalizedHost.endsWith('.projects.vercel.app') ||
+    normalizedHost.endsWith('.vercel.app');
   const envBase = process.env.BASE_URL?.trim();
-  if (envBase) {
+  if (envBase && vercelEnv !== 'preview' && !isPreviewHost) {
     return envBase.replace(/\/+$/, '');
   }
-  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
   return `${proto}://${host}`.replace(/\/+$/, '');
 };
