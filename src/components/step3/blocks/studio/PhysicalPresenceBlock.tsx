@@ -31,7 +31,7 @@ const PhysicalPresenceBlock: React.FC<Props> = ({
   return (
     <AccordionSection
       icon={icon}
-      title="Physical Presence"
+      title="Product Details"
       description={description}
       isOpen={isOpen}
       onToggle={onToggle}

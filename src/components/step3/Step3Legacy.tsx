@@ -5202,10 +5202,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
       {/* PHYSICAL PROPERTIES - Contextual per Product Type */}
       {
-        mode === 'studio' && values.productType && (
+        mode === 'studio' && values.productType && !wineIndustryActive && (
           <PhysicalPresenceBlock
             icon={Layers}
-            description="How the product exists in space."
+            description="Physical product details and material options."
             isOpen={openAccordionId === 'physical-props'}
             onToggle={() => toggleSection('physical-props')}
             isTouched={touchedSections.has('physical-props')}
@@ -6556,7 +6556,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         mode === 'studio' && (
           <ProductCharacterBlock
             icon={MapPin}
-            description="What kind of object is this?"
+            description="Where the product is placed and lit."
             id="product-environment"
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -6982,7 +6982,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {mode === 'studio' && (
       <CinematographyBlock
         icon={Camera}
-        description="How the moment is filmed."
+        description="Camera system, angle, and framing."
         isOpen={openAccordionId === 'product-camera'}
         onToggle={() => toggleSection('product-camera')}
         isTouched={touchedSections.has('product-camera')}

@@ -31,7 +31,7 @@ const WorldAtmosphereBlock: React.FC<Props> = ({
   return (
     <AccordionSection
       icon={icon}
-      title="World & Atmosphere"
+      title="Grouping & Bundles"
       description={description}
       isOpen={isOpen}
       onToggle={onToggle}

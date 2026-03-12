@@ -31,7 +31,7 @@ const CinematographyBlock: React.FC<Props> = ({
   return (
     <AccordionSection
       icon={icon}
-      title="Cinematography"
+      title="Camera & Framing"
       description={description}
       isOpen={isOpen}
       onToggle={onToggle}

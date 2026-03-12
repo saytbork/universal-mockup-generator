@@ -31,7 +31,7 @@ const ProductCharacterBlock: React.FC<Props> = ({
   return (
     <AccordionSection
       icon={icon}
-      title="Product Character"
+      title="Scene & Environment"
       description={description}
       isOpen={isOpen}
       onToggle={onToggle}
