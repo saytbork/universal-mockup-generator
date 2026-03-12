@@ -13,12 +13,11 @@
     "check:videos": "node scripts/check-public-videos-size.mjs",
     "prebuild": "npm run check:tokens && npm run check:videos && node scripts/generate-sitemap.mjs && node scripts/generate-rss.mjs",
     "build": "vite build --config vite.config.ts",
-    "build:studio:legacy": "VITE_USE_STUDIO_V2=false vite build --config vite.config.ts",
     "build:studio:v2": "VITE_USE_STUDIO_V2=true vite build --config vite.config.ts",
     "postbuild": "node scripts/prerender.mjs",
     "preview": "vite preview --config vite.config.ts",
     "deploy:staging:studio-v2": "VITE_USE_STUDIO_V2=true npm run build",
-    "deploy:production:legacy": "VITE_USE_STUDIO_V2=false npm run build",
+    "deploy:production": "VITE_USE_STUDIO_V2=true npm run build",
     "deploy:vercel:nocache": "bash scripts/vercel-redeploy-no-cache.sh",
     "test": "vitest --coverage"
   },
