@@ -348,10 +348,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
-  const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
-  const bodyApiKeyLength = typeof body.apiKey === 'string' ? body.apiKey.trim().length : 0;
-  console.log('[GENAI] GOOGLE_API_KEY length:', String(process.env.GOOGLE_API_KEY || '').trim().length);
-  console.log('[GENAI] body.apiKey length (ignored):', bodyApiKeyLength);
+  const envApiKey = String(process.env.GOOGLE_API_KEY || '').trim();
+  const bodyApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
+  const apiKey = bodyApiKey || envApiKey;
+  console.log('[GENAI] GOOGLE_API_KEY length:', envApiKey.length);
+  console.log('[GENAI] body.apiKey length:', bodyApiKey.length);
+  console.log('[GENAI] resolved api key source:', bodyApiKey ? 'body' : 'env');
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -412,11 +414,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   model,
       promptHash: debugMeta?.promptHash,
     }, email);
-    res.status(500).json({ error: 'GOOGLE_API_KEY not configured' });
+    res.status(500).json({ error: 'No Google API key available (body or env)' });
     return;
   }
   if (!apiKey.startsWith('AIza')) {
-    res.status(500).json({ error: 'GOOGLE_API_KEY invalid format (expected API key)' });
+    res.status(500).json({ error: 'Resolved Google API key has invalid format (expected API key)' });
     return;
   }
   if (!parts || parts.length === 0) {
@@ -679,11 +681,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messageText.includes('api key not valid');
     if (isApiKeyInvalid) {
       console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
-        googleApiKeyLength: String(process.env.GOOGLE_API_KEY || '').trim().length,
+        googleApiKeyLength: envApiKey.length,
+        bodyApiKeyLength: bodyApiKey.length,
+        apiKeySource: bodyApiKey ? 'body' : 'env',
         vercelEnv,
       });
       res.status(500).json({
-        error: 'SERVER_GOOGLE_API_KEY_INVALID (Preview env key is invalid or restricted)',
+        error: bodyApiKey
+          ? 'CLIENT_GOOGLE_API_KEY_INVALID (Provided key is invalid or restricted)'
+          : 'SERVER_GOOGLE_API_KEY_INVALID (Env key is invalid or restricted)',
       });
       return;
     }
