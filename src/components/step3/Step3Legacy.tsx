@@ -7330,6 +7330,39 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </AccordionSection>
       )}
 
+      {isProductMode && wineIndustryActive && (
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Output</p>
+            <p className="text-xs text-gray-500 dark:text-white/50">Final aspect ratio and export framing.</p>
+          </div>
+          <AccordionSection
+            icon={Layers}
+            title="Export Format"
+            description="Aspect ratio for the final image"
+            isOpen={openAccordionId === 'output'}
+            onToggle={() => toggleSection('output')}
+            variant="secondary"
+          >
+            <div className={SECTION_GROUP_CLASS}>
+              <p className="text-xs text-[var(--lifestyle-accent)]">ASPECT RATIO</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {ASPECT_RATIO_OPTIONS.map(option => (
+                  <Chip
+                    key={option}
+                    title={ASPECT_RATIO_TOOLTIPS[option] || option}
+                    selected={values.aspectRatio === option}
+                    onClick={() => { updateValue('aspectRatio', option); markSectionTouched('output'); }}
+                  >
+                    {option}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          </AccordionSection>
+        </div>
+      )}
+
       {mode === 'studio' && (
       <CommerceLayerBlock
         icon={Building2}
@@ -9513,7 +9546,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         )
       }
 
-      {isProductMode && (
+      {isProductMode && !wineIndustryActive && (
         <div className="space-y-4">
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">Output</p>
