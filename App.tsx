@@ -797,6 +797,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
 const PREVIEW_ACCESS_CODE = '2999';
 const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '8714';
 const TRIAL_BYPASS_CODE = '8714';
+const BYPASS_CODE_VALUES = new Set([PREVIEW_ACCESS_CODE, TRIAL_BYPASS_CODE, TESTER_UPGRADE_CODE.toUpperCase(), 'CODE']);
 
 const PERSON_FIELD_KEYS = [
   'ageGroup',
@@ -1927,12 +1928,23 @@ const App: React.FC = () => {
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
+  const getStoredBypassCode = useCallback(() => {
+    if (typeof window === 'undefined') return '';
+    return String(window.localStorage.getItem(TRIAL_BYPASS_KEY) || '').trim().toUpperCase();
+  }, []);
   const isTrialBypassActive = hasTrialBypass || isDevBypass || isProjectsPreviewBypass || isAdmin;
   const shouldSendTrialBypassHeader = useMemo(() => {
     if (isProjectsPreviewBypass) return true;
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code';
-  }, [isProjectsPreviewBypass]);
+    const stored = getStoredBypassCode();
+    return BYPASS_CODE_VALUES.has(stored);
+  }, [getStoredBypassCode, isProjectsPreviewBypass]);
+  const trialBypassHeaderValue = useMemo(() => {
+    if (isProjectsPreviewBypass) return PREVIEW_ACCESS_CODE;
+    const stored = getStoredBypassCode();
+    if (!stored) return TRIAL_BYPASS_CODE;
+    if (stored === 'CODE') return TRIAL_BYPASS_CODE;
+    return stored;
+  }, [getStoredBypassCode, isProjectsPreviewBypass]);
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const ritualNoProductMode =
     !isProductPlacement &&
@@ -2288,8 +2300,8 @@ const App: React.FC = () => {
       }
     }
 
-    const storedTrialBypass = window.localStorage.getItem(TRIAL_BYPASS_KEY);
-    if (storedTrialBypass === 'true' || storedTrialBypass === 'code') {
+    const storedTrialBypass = String(window.localStorage.getItem(TRIAL_BYPASS_KEY) || '').trim().toUpperCase();
+    if (storedTrialBypass === 'TRUE' || BYPASS_CODE_VALUES.has(storedTrialBypass)) {
       setHasTrialBypass(true);
     }
 
@@ -2327,8 +2339,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isAdmin || isProjectsPreviewBypass) return;
     if (typeof window !== 'undefined') {
-      const storedTrialBypass = window.localStorage.getItem(TRIAL_BYPASS_KEY);
-      if (storedTrialBypass === 'code') {
+      const storedTrialBypass = String(window.localStorage.getItem(TRIAL_BYPASS_KEY) || '').trim().toUpperCase();
+      if (BYPASS_CODE_VALUES.has(storedTrialBypass)) {
         setHasTrialBypass(true);
         return;
       }
@@ -2393,7 +2405,7 @@ const App: React.FC = () => {
     if (isProjectsPreviewBypass) {
       setHasTrialBypass(true);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+        window.localStorage.setItem(TRIAL_BYPASS_KEY, PREVIEW_ACCESS_CODE);
       }
       return;
     }
@@ -2403,7 +2415,7 @@ const App: React.FC = () => {
     if (!isAdmin) return;
     setHasTrialBypass(true);
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+      window.localStorage.setItem(TRIAL_BYPASS_KEY, TRIAL_BYPASS_CODE);
     }
   }, [isAdmin]);
 
@@ -3666,7 +3678,7 @@ const App: React.FC = () => {
       setHasTrialBypass(true);
       setRemoteCredits(99999);
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'code');
+        window.localStorage.setItem(TRIAL_BYPASS_KEY, normalized);
       }
       setPlanCodeInput('');
       setPlanCodeError(null);
@@ -5682,7 +5694,7 @@ If the model attempts to create a scene or environment, override it and force a 
           headers: {
             'Content-Type': 'application/json',
             ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
               : {}),
           },
           body: JSON.stringify({
@@ -6022,7 +6034,7 @@ If the model attempts to create a scene or environment, override it and force a 
           headers: {
             'Content-Type': 'application/json',
             ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
               : {}),
           },
           body: JSON.stringify({
@@ -6227,7 +6239,7 @@ If the model attempts to create a scene or environment, override it and force a 
           headers: {
             'Content-Type': 'application/json',
             ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
               : {}),
           },
           body: JSON.stringify({
@@ -6373,7 +6385,7 @@ If the model attempts to create a scene or environment, override it and force a 
         headers: {
           'Content-Type': 'application/json',
           ...(shouldSendTrialBypassHeader
-            ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
+            ? { 'x-trial-bypass-code': trialBypassHeaderValue }
             : {}),
         },
         body: JSON.stringify({
