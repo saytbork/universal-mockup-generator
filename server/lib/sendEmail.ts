@@ -1,11 +1,26 @@
 import nodemailer from "nodemailer";
 
+const smtpUser = String(
+  process.env.MAGIC_EMAIL_USER ||
+  process.env.SMTP_USER ||
+  ''
+).trim();
+
+const smtpPass = String(
+  process.env.MAGIC_EMAIL_PASS ||
+  process.env.SMTP_PASS ||
+  ''
+).trim();
+
+const smtpSecure = String(process.env.SMTP_SECURE || '').trim().toLowerCase() === 'true';
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT ?? 587),
+  secure: smtpSecure,
   auth: {
-    user: process.env.MAGIC_EMAIL_USER,
-    pass: process.env.MAGIC_EMAIL_PASS,
+    user: smtpUser,
+    pass: smtpPass,
   },
 });
 
@@ -27,7 +42,7 @@ function resolveFromHeader(): string {
   const parsed = parseSmtpFrom(process.env.SMTP_FROM);
   const fromName = String(process.env.FROM_NAME || parsed.name || DEFAULT_FROM_NAME).trim();
   const fromEmail = String(
-    process.env.FROM_EMAIL || parsed.email || process.env.MAGIC_EMAIL_USER || ""
+    process.env.FROM_EMAIL || parsed.email || smtpUser || ""
   ).trim();
 
   if (!fromEmail) {
