@@ -3,6 +3,7 @@ import { AccordionSection } from '../../../ui/AccordionSection';
 
 type Props = {
   icon: React.ElementType;
+  title?: string;
   description: string;
   isOpen: boolean;
   onToggle: () => void;
@@ -17,6 +18,7 @@ type Props = {
 
 const ProductCharacterBlock: React.FC<Props> = ({
   icon,
+  title = 'Scene & Environment',
   description,
   isOpen,
   onToggle,
@@ -31,7 +33,7 @@ const ProductCharacterBlock: React.FC<Props> = ({
   return (
     <AccordionSection
       icon={icon}
-      title="Scene & Environment"
+      title={title}
       description={description}
       isOpen={isOpen}
       onToggle={onToggle}

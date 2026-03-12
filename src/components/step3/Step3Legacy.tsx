@@ -2873,7 +2873,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <StudioStep3Layout>
           <CreativeDirectionBlock
             icon={Layers}
-            description="Define the creative intent and tone."
+            title={wineIndustryActive ? 'Wine Setup' : 'Creative Style'}
+            description={wineIndustryActive ? 'Core wine presets, shot type, and bottle presentation.' : 'Define the creative intent and tone.'}
             isOpen={openAccordionId === 'product-setup'}
             onToggle={() => toggleSection('product-setup')}
             required
@@ -3007,7 +3008,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {/* ─── 2. PHOTO MODE ─────────────────────────── */}
                     {/* ─── 3. OUTPUT PROFILE ──────────────────────── */}
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>OUTPUT PROFILE</p>
+                      <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'EXPORT PROFILE' : 'OUTPUT PROFILE'}</p>
                       <div className="flex flex-wrap gap-2">
                         {([
                           { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
@@ -3033,6 +3034,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     </div>
 
                     {/* ─── 4. PHYSICAL PLACEMENT ──────────────────── */}
+                    {!wineIndustryActive && (
                     <div className={SECTION_GROUP_CLASS}>
                       <p className={GROUP_LABEL_CLASS}>PHYSICAL PLACEMENT</p>
                       <div className="flex flex-wrap gap-2">
@@ -3060,8 +3062,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <InterpretationNote message={placementCorrectionMessage} />
                       )}
                     </div>
+                    )}
 
                     {/* ─── 5. PHOTO TYPE (technical — Studio vs Environment) ── */}
+                    {!wineIndustryActive && (
                     <div className={SECTION_GROUP_CLASS}>
                       <p className={GROUP_LABEL_CLASS}>PHOTO TYPE</p>
                       <div className="flex flex-wrap gap-2">
@@ -3099,6 +3103,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </Chip>
                       </div>
                     </div>
+                    )}
 
                     {/* ─── SCENE TYPE — Hidden in Product Studio ──── */}
                     {!isProductMode && (
@@ -3143,7 +3148,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
-                          <p className="text-xs font-extrabold text-gray-500 mb-2">PHOTO MODE</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">{wineIndustryActive ? 'SHOT TYPE' : 'PHOTO MODE'}</p>
                           {(() => {
                             // ── WINE-EXCLUSIVE COMPOSITION OPTIONS ────────────────────────────
                             // These modes are only shown when industryProfile === 'wine'.
@@ -5876,7 +5881,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {(mode === 'studio' || uiActiveEngine === 'studio') && (
       <MotionInteractionBlock
         icon={Activity}
-        description="What the product is doing."
+        title={wineIndustryActive ? 'Bottle Action' : 'Motion & Interaction'}
+        description={wineIndustryActive ? 'Bottle state, pour, and serve behavior.' : 'What the product is doing.'}
         isOpen={openAccordionId === 'product-state-motion'}
         onToggle={() => toggleSection('product-state-motion')}
         isTouched={touchedSections.has('product-state-motion')}
@@ -5925,7 +5931,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </p>
 
 	          <div className={SECTION_GROUP_CLASS}>
-	            <p className={GROUP_LABEL_CLASS}>PRODUCT STATE & MOTION</p>
+	            <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'BOTTLE ACTION' : 'PRODUCT STATE & MOTION'}</p>
             <div className="flex flex-wrap gap-2">
               {visibleStateOptions.map(option => {
                 return (
@@ -6095,7 +6101,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </MotionInteractionBlock>
       )}
 
-      {mode === 'studio' && (
+      {mode === 'studio' && !wineIndustryActive && (
       <WorldAtmosphereBlock
         icon={Layers}
         description="Build the world around the product."
@@ -6556,7 +6562,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         mode === 'studio' && (
           <ProductCharacterBlock
             icon={MapPin}
-            description="Where the product is placed and lit."
+            title={wineIndustryActive ? 'Scene' : 'Scene & Environment'}
+            description={wineIndustryActive ? 'Location, background mood, and scene lighting.' : 'Where the product is placed and lit.'}
             id="product-environment"
             isOpen={openAccordionId === 'product-environment'}
             onToggle={() => toggleSection('product-environment')}
@@ -6590,7 +6597,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="p-5 space-y-4">
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <p className={GROUP_LABEL_CLASS}>MACRO ENVIRONMENT</p>
+                            <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'LOCATION' : 'MACRO ENVIRONMENT'}</p>
                             <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Pick a setting. Keep it simple unless you need specific staging.</p>
                           </div>
                           <div className="flex items-center gap-4">
@@ -6666,8 +6673,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="p-5 space-y-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <p className={GROUP_LABEL_CLASS}>MICRO PLACE</p>
-                            <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Optional refinement for where the product sits.</p>
+                            <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'BACKGROUND DETAILS' : 'MICRO PLACE'}</p>
+                            <p className="text-xs text-gray-500 dark:text-white/50 mt-1">{wineIndustryActive ? 'Optional refinement for the immediate scene and backdrop.' : 'Optional refinement for where the product sits.'}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] font-semibold text-gray-500 dark:text-white/50">Advanced</span>
@@ -6744,7 +6751,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       <div className="p-5 space-y-4">
                         <div>
-                          <p className={GROUP_LABEL_CLASS}>LIGHTING</p>
+                          <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'SCENE LIGHTING' : 'LIGHTING'}</p>
                           <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Product-safe lighting style</p>
                         </div>
                         <div className="flex flex-wrap gap-3">
@@ -6987,6 +6994,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         onToggle={() => toggleSection('product-camera')}
         isTouched={touchedSections.has('product-camera')}
         variant="primary"
+        title="Camera"
       >
         <div className="space-y-6">
           {(() => {
@@ -7240,7 +7248,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {mode === 'studio' && (
       <CommerceLayerBlock
         icon={Building2}
-        description={`Modular commerce controls and extension settings.`}
+        title="Content Overlay"
+        description={`Overlay and commerce extension settings.`}
         isOpen={openAccordionId === 'ecommerce'}
         onToggle={() => toggleSection('ecommerce')}
         isActive
@@ -9427,7 +9436,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </div>
           <AccordionSection
             icon={Layers}
-            title="Output Format"
+            title="Export Format"
             description="Aspect ratio for the final image"
             isOpen={openAccordionId === 'output'}
             onToggle={() => toggleSection('output')}
