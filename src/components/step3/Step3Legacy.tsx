@@ -5885,7 +5885,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </PhysicalPresenceBlock>
       )}
 
-      {(mode === 'studio' || uiActiveEngine === 'studio') && (
+      {(mode === 'studio' || uiActiveEngine === 'studio') && !wineIndustryActive && (
       <MotionInteractionBlock
         icon={Activity}
         title={wineIndustryActive ? 'Bottle Action' : 'Motion & Interaction'}
@@ -6799,6 +6799,77 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           </ProductCharacterBlock>
         )
       }
+
+      {(mode === 'studio' || uiActiveEngine === 'studio') && wineIndustryActive && (
+      <MotionInteractionBlock
+        icon={Activity}
+        title="Bottle Action"
+        description="Bottle state, pour, and serve behavior."
+        isOpen={openAccordionId === 'product-state-motion'}
+        onToggle={() => toggleSection('product-state-motion')}
+        isTouched={touchedSections.has('product-state-motion')}
+        variant="primary"
+      >
+        <div className="space-y-6">
+          {(() => {
+            const allOptions = [
+              { value: 'static', label: 'Static', detail: 'Closed and stationary.' },
+              { value: 'opened', label: 'Opened', detail: 'Open bottle. No motion.' },
+              { value: 'pouring', label: 'Pouring', detail: 'Controlled pour with natural downward flow.' },
+            ] as const;
+
+            const allowedProductStates = getResolvedAllowedMotions(
+              productStore.photoMode,
+              industryProfile,
+              productStore.definition.type,
+              undefined
+            );
+
+            const visibleStateOptions = allOptions.filter((option) =>
+              allowedProductStates.includes(option.value as ProductStateMotion)
+            );
+
+            return (
+              <>
+                <p className="text-xs text-gray-500 dark:text-white/50">
+                  Control whether the bottle is static, opened, or actively pouring.
+                </p>
+
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>BOTTLE ACTION</p>
+                  <div className="flex flex-wrap gap-2">
+                    {visibleStateOptions.map((option) => (
+                      <Chip
+                        key={option.value}
+                        onClick={() => {
+                          productStore.setStateMotion(option.value as ProductStateMotion);
+                          markSectionTouched('product-state-motion');
+                        }}
+                        selected={productStore.stateMotion === (option.value as ProductStateMotion)}
+                        description={option.detail}
+                      >
+                        {option.label}
+                      </Chip>
+                    ))}
+                  </div>
+                  <SelectedOptionFooter
+                    options={visibleStateOptions.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                      description: option.detail,
+                    }))}
+                    selectedValue={productStore.stateMotion}
+                  />
+                  {getInterpretationNote('stateMotion') && (
+                    <InterpretationNote message={getInterpretationNote('stateMotion')!} />
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </MotionInteractionBlock>
+      )}
 
       {false && mode === 'studio' && industryProfile !== 'wine' && (
       <AccordionSection
