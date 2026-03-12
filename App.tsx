@@ -1927,6 +1927,11 @@ const App: React.FC = () => {
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
   const isTrialBypassActive = hasTrialBypass || isDevBypass || isProjectsPreviewBypass || isAdmin;
+  const shouldSendTrialBypassHeader = useMemo(() => {
+    if (isProjectsPreviewBypass) return true;
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code';
+  }, [isProjectsPreviewBypass]);
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const ritualNoProductMode =
     !isProductPlacement &&
@@ -5667,7 +5672,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+            ...(shouldSendTrialBypassHeader
               ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
               : {}),
           },
@@ -5836,7 +5841,8 @@ If the model attempts to create a scene or environment, override it and force a 
       setRemoteCredits,
       lifestylePrompt,
       lifestyleStep3Values,
-      resolveOutputAspectRatio
+      resolveOutputAspectRatio,
+      shouldSendTrialBypassHeader
     ]
   );
 
@@ -6006,7 +6012,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+            ...(shouldSendTrialBypassHeader
               ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
               : {}),
           },
@@ -6133,6 +6139,7 @@ If the model attempts to create a scene or environment, override it and force a 
     isAdmin,
     setRemoteCredits,
     resolvedPlanTier,
+    shouldSendTrialBypassHeader,
   ]);
 
   const handleGenerateNarrativeSequenceClick = useCallback(async () => {
@@ -6210,7 +6217,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+            ...(shouldSendTrialBypassHeader
               ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
               : {}),
           },
@@ -6291,6 +6298,7 @@ If the model attempts to create a scene or environment, override it and force a 
     isTrialBypassActive,
     isTrialLocked,
     shouldTrackLocalCredits,
+    shouldSendTrialBypassHeader,
     currentPlan.label,
     planCreditLimit,
     remainingCredits,
@@ -6355,7 +6363,7 @@ If the model attempts to create a scene or environment, override it and force a 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(typeof window !== 'undefined' && window.localStorage.getItem(TRIAL_BYPASS_KEY) === 'code'
+          ...(shouldSendTrialBypassHeader
             ? { 'x-trial-bypass-code': TRIAL_BYPASS_CODE }
             : {}),
         },
@@ -6457,6 +6465,7 @@ If the model attempts to create a scene or environment, override it and force a 
     runHiResPipeline,
     setRemoteCredits,
     setShowPlanModal,
+    shouldSendTrialBypassHeader,
     userEmail,
   ]);
 
