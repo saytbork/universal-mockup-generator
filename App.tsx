@@ -794,6 +794,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STUDIO29: 'studio',
   STUDIO290: 'studio',
 };
+const PREVIEW_ACCESS_CODE = '2999';
 const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '8714';
 const TRIAL_BYPASS_CODE = '8714';
 
@@ -3657,7 +3658,11 @@ const App: React.FC = () => {
     } catch (err) {
       console.warn('Plan code redeem failed', err);
     }
-    if (normalized === TRIAL_BYPASS_CODE || normalized === TESTER_UPGRADE_CODE.toUpperCase()) {
+    if (
+      normalized === PREVIEW_ACCESS_CODE ||
+      normalized === TRIAL_BYPASS_CODE ||
+      normalized === TESTER_UPGRADE_CODE.toUpperCase()
+    ) {
       setHasTrialBypass(true);
       setRemoteCredits(99999);
       if (typeof window !== 'undefined') {
@@ -3665,7 +3670,11 @@ const App: React.FC = () => {
       }
       setPlanCodeInput('');
       setPlanCodeError(null);
-      setPlanNotice('Access code applied: +99999 credits enabled.');
+      setPlanNotice(
+        normalized === PREVIEW_ACCESS_CODE
+          ? 'Access code applied: preview access enabled.'
+          : 'Access code applied: +99999 credits enabled.'
+      );
       setShowPlanModal(false);
       return;
     }
