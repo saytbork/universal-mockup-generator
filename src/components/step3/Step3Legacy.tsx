@@ -3566,7 +3566,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                           <div className="mt-8 space-y-5">
                             <div ref={photoModeSettingsRef} />
-                            {photoModeHintVisible && hasVisiblePhotoModeSettings(photoModeHintMode || productStore.photoMode) && (
+                            {photoModeHintVisible && hasVisiblePhotoModeSettings(photoModeHintMode || productStore.photoMode) && !(wineIndustryActive && (photoModeHintMode || productStore.photoMode) === 'Winery Scene') && (
                               <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
                                 <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
                                 <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
@@ -3575,6 +3575,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
                               <PhotoModeSettings
                                 schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}
+                                productStore={productStore}
+                                markSectionTouched={markSectionTouched}
+                              />
+                            )}
+                            {productStore.photoMode && PHOTO_MODE_SCHEMAS[productStore.photoMode] && !(wineIndustryActive && productStore.photoMode === 'Winery Scene') && (
+                              <PhotoModeSettings
+                                schema={PHOTO_MODE_SCHEMAS[productStore.photoMode]!}
                                 productStore={productStore}
                                 markSectionTouched={markSectionTouched}
                               />
@@ -6778,6 +6785,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
                     </div>
+                    {wineIndustryActive && productStore.photoMode === 'Winery Scene' && PHOTO_MODE_SCHEMAS['Winery Scene'] && (
+                      <PhotoModeSettings
+                        schema={PHOTO_MODE_SCHEMAS['Winery Scene']!}
+                        productStore={productStore}
+                        markSectionTouched={markSectionTouched}
+                      />
+                    )}
                   </div>
                 );
               })()}
