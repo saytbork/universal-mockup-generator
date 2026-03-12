@@ -41,6 +41,7 @@ import { mapLifestyleToPromptOptions } from './src/lib/promptEngine/mapLifestyle
 import { mapProductModeToPromptOptions } from './src/lib/promptEngine/mapProductModeToPromptOptions';
 import { createGenerationLog, installGenerationLogBridge, updateGenerationLog } from './src/lib/debug/generationLog';
 import LifestyleStep3, { type Step3Values } from "@/components/LifestyleStep3";
+import StudioStep3 from "@/components/StudioStep3";
 import { type EcommerceGenerationSettings } from '@/components/EcommerceStep3';
 import type { EcommerceSlotKey, EcommerceSlotsConfig } from '@/lib/ecommerceOverlay/types';
 import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecommerceOverlay/storage';
@@ -6976,34 +6977,43 @@ If the model attempts to create a scene or environment, override it and force a 
                       </div>
                     )}
                     <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
-                      <LifestyleStep3
-                        key={isProductPlacement ? 'product-step3' : 'ugc-step3'}
-                        embedded
-                        isProductMode={isProductPlacement}
-                        productCount={productAssets.length}
-                        onValuesChange={handleLifestyleStep3Change}
-                        onCanGenerateChange={() => {
-                          // UI-only refactor: generation logic unchanged.
-                        }}
-                        hasModelReference={hasModelReference}
-                        hasFirstGenerationComplete={hasFirstGenerationComplete}
-                        ecommerceOverlay={
-                          isProductPlacement
-                            ? {
-                              selectedSlots: ecommerceSelectedSlots,
-                              onSelectedSlotsChange: setEcommerceSelectedSlots,
-                              slotsConfig: ecommerceSlotsConfig,
-                              onSlotsConfigChange: setEcommerceSlotsConfig,
-                              slotBaseImages: ecommerceSlotBaseImages,
-                              slotGenerationMeta: ecommerceSlotGenerationMeta,
-                              settings: ecommerceGenerationSettings,
-                              onSettingsChange: setEcommerceGenerationSettings,
-                              onGenerateSequence: handleGenerateNarrativeSequenceClick,
-                              isGeneratingSequence: isGeneratingSequence,
-                            }
-                            : undefined
-                        }
-                      />
+                      {isProductPlacement ? (
+                        <StudioStep3
+                          key="product-step3"
+                          embedded
+                          productCount={productAssets.length}
+                          onValuesChange={handleLifestyleStep3Change}
+                          onCanGenerateChange={() => {
+                            // UI-only refactor: generation logic unchanged.
+                          }}
+                          hasModelReference={hasModelReference}
+                          hasFirstGenerationComplete={hasFirstGenerationComplete}
+                          ecommerceOverlay={{
+                            selectedSlots: ecommerceSelectedSlots,
+                            onSelectedSlotsChange: setEcommerceSelectedSlots,
+                            slotsConfig: ecommerceSlotsConfig,
+                            onSlotsConfigChange: setEcommerceSlotsConfig,
+                            slotBaseImages: ecommerceSlotBaseImages,
+                            slotGenerationMeta: ecommerceSlotGenerationMeta,
+                            settings: ecommerceGenerationSettings,
+                            onSettingsChange: setEcommerceGenerationSettings,
+                            onGenerateSequence: handleGenerateNarrativeSequenceClick,
+                            isGeneratingSequence: isGeneratingSequence,
+                          }}
+                        />
+                      ) : (
+                        <LifestyleStep3
+                          key="ugc-step3"
+                          embedded
+                          productCount={productAssets.length}
+                          onValuesChange={handleLifestyleStep3Change}
+                          onCanGenerateChange={() => {
+                            // UI-only refactor: generation logic unchanged.
+                          }}
+                          hasModelReference={hasModelReference}
+                          hasFirstGenerationComplete={hasFirstGenerationComplete}
+                        />
+                      )}
                     </div>
                   </div>
 

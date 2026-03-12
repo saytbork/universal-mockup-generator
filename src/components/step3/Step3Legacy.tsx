@@ -39,7 +39,6 @@ import { industryModuleRegistry } from '@/components/industry-modules/industryMo
 import { resetIndustryFields } from '@/utils/resetIndustryFields';
 import StudioStep3Layout from './StudioStep3';
 import LifestyleStep3Layout from './LifestyleStep3';
-import Step3Router from './Step3Router';
 import CreativeDirectionBlock from './blocks/studio/CreativeDirectionBlock';
 import PhysicalPresenceBlock from './blocks/studio/PhysicalPresenceBlock';
 import MotionInteractionBlock from './blocks/studio/MotionInteractionBlock';

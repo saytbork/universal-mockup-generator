@@ -3,8 +3,8 @@ import Step3Legacy, { type LifestyleStep3Props } from './step3/Step3Legacy';
 
 export type { Step3Values, ExpertRole, ExpertAttire } from './step3/Step3Legacy';
 
-const LifestyleStep3: React.FC<LifestyleStep3Props> = (props) => {
-  return <Step3Legacy {...props} isProductMode={false} />;
+const StudioStep3: React.FC<LifestyleStep3Props> = (props) => {
+  return <Step3Legacy {...props} isProductMode />;
 };
 
-export default LifestyleStep3;
+export default StudioStep3;
