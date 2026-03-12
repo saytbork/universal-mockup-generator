@@ -89,7 +89,6 @@ export function WineModule({
   const wineGlassType = (useProductStudioStore((s) => (s as any).wineGlassType) || 'auto') as WineGlassType;
   const wineServeAmount = (useProductStudioStore((s) => (s as any).wineServeAmount) || 'standard') as string;
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
-  const wineEngineVersion = Number(useProductStudioStore((s) => (s as any).wineEngineVersion) || 3);
   const wineStyleArchetype = (useProductStudioStore((s) => (s as any).wineStyleArchetype) ?? null) as WineStyleArchetype | null;
   const photoMode = (useProductStudioStore((s) => (s as any).photoMode) || '') as string;
 
@@ -126,7 +125,7 @@ export function WineModule({
           {/* ── WINE STYLE ARCHETYPE ─────────────────────────────── */}
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Style Preset</p>
-            <p className="text-[11px] text-gray-400 mb-2">High-level visual preset. Applies defaults only — manual controls override.</p>
+            <p className="text-[11px] text-gray-400 mb-2">Visual preset. Manual controls override.</p>
             <div className="flex flex-wrap gap-2">
               {WINE_STYLE_ARCHETYPES.map((archetype) => (
                 <Chip
@@ -234,7 +233,7 @@ export function WineModule({
           </div>
           {currentServeState === 'served' && !isMacroLabelMode && (
             <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Glass Type</p>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Glass</p>
               <div className="flex flex-wrap gap-2">
                 {WINE_GLASS_TYPE_OPTIONS.map((option) => (
                   <Chip
@@ -255,7 +254,7 @@ export function WineModule({
                or closure implies champagne/sparkling physics */}
           {isSparklingRelevant && (
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Sparkling</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bubbles</p>
             <div className="flex flex-wrap gap-2">
               {WINE_CARBONATION_OPTIONS.map((option) => (
                 <Chip
@@ -269,13 +268,6 @@ export function WineModule({
             </div>
           </div>
           )}
-          {wineEngineVersion >= 4 && (
-            <div className="text-[11px] text-gray-500">
-              Wine Engine v{wineEngineVersion} active
-              {wineEngineVersion === 4 ? '.2' : ''}
-            </div>
-          )}
-          <div className="hidden">{wineType}</div>
           {wineAction === 'controlled-pour' && (
             <div>
               <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Pour Style</p>
