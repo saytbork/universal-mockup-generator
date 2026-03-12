@@ -2319,7 +2319,7 @@ const App: React.FC = () => {
   }, [envApiKey]);
 
   useEffect(() => {
-    if (isAdmin) return;
+    if (isAdmin || isProjectsPreviewBypass) return;
     if (typeof window !== 'undefined') {
       const storedTrialBypass = window.localStorage.getItem(TRIAL_BYPASS_KEY);
       if (storedTrialBypass === 'code') {
@@ -2329,7 +2329,7 @@ const App: React.FC = () => {
       window.localStorage.removeItem(TRIAL_BYPASS_KEY);
     }
     setHasTrialBypass(false);
-  }, [isAdmin]);
+  }, [isAdmin, isProjectsPreviewBypass]);
 
   useEffect(() => {
     return () => {
@@ -2382,6 +2382,16 @@ const App: React.FC = () => {
   }, [options]);
 
 
+
+  useEffect(() => {
+    if (isProjectsPreviewBypass) {
+      setHasTrialBypass(true);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(TRIAL_BYPASS_KEY, 'true');
+      }
+      return;
+    }
+  }, [isProjectsPreviewBypass]);
 
   useEffect(() => {
     if (!isAdmin) return;
