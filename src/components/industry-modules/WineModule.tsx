@@ -117,7 +117,7 @@ export function WineModule({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between text-left"
       >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">WINE MODULE</p>
+        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">WINE SETUP</p>
         <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
       </button>
 
@@ -125,7 +125,7 @@ export function WineModule({
         <div className="mt-4 space-y-4">
           {/* ── WINE STYLE ARCHETYPE ─────────────────────────────── */}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Style Archetype</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Style Preset</p>
             <p className="text-[11px] text-gray-400 mb-2">High-level visual preset. Applies defaults only — manual controls override.</p>
             <div className="flex flex-wrap gap-2">
               {WINE_STYLE_ARCHETYPES.map((archetype) => (
@@ -149,7 +149,7 @@ export function WineModule({
           </div>
           {/* ── WINE ACTION ──────────────────────────────────────── */}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Action</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve Style</p>
             <div className="flex flex-wrap gap-2">
               {WINE_ACTION_OPTIONS.map((action) => (
                 <Chip
@@ -163,7 +163,7 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Closure Type</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Closure</p>
             <div className="flex flex-wrap gap-2">
               {WINE_CLOSURE_OPTIONS.map((option) => (
                 <Chip
@@ -177,7 +177,7 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve State</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bottle State</p>
             {isBottleAndGlassMode && (
               <p className="text-[11px] text-violet-500 mb-1 font-medium">
                 ✦ Bottle + Glass mode — Served is enforced automatically
@@ -317,7 +317,7 @@ export function WineModule({
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">
-              Mood Modifier
+              Mood Finish
               {wineStyleArchetype && (
                 <span className="ml-2 text-[10px] text-violet-400 font-medium normal-case">preset by archetype · select to override</span>
               )}
