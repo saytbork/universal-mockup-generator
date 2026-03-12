@@ -270,7 +270,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isAdminUser = authenticatedEmail ? ADMIN_EMAILS.includes(authenticatedEmail.toLowerCase().trim()) : false;
   const isAnonymousTrial = !authenticatedEmail;
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
-  const isPreview = vercelEnv === 'preview';
+  const requestHost = getHeaderString(req.headers.host).trim().toLowerCase();
+  const isProjectsPreviewHost =
+    requestHost === 'projects.vercel.app' || requestHost.endsWith('.projects.vercel.app');
+  const isPreview = vercelEnv === 'preview' || isProjectsPreviewHost;
   const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
   const headerBypassRaw = Array.isArray(req.headers['x-trial-bypass-code'])
     ? req.headers['x-trial-bypass-code'][0]
@@ -321,7 +324,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
     } else {
-      console.log('[CREDITS] Anonymous trial limit bypass active (preview/unlimited mode)');
+      console.log('[CREDITS] Anonymous trial limit bypass active (preview/unlimited mode)', {
+        vercelEnv,
+        requestHost,
+        isProjectsPreviewHost,
+      });
     }
   }
   const email = authenticatedEmail || guestId || undefined;
@@ -433,10 +440,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
-    const creditMode = isPreview
+    const creditMode = isProjectsPreviewHost
+      ? 'projects-preview-host'
+      : isPreview
       ? 'preview'
       : (unlimitedEnv ? 'unlimited-env' : (bypassByCode ? 'tester-code' : (vercelEnv || 'standard')));
-    console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
+    console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, host=${requestHost || 'unknown'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
     if (bypassCreditLimits) {
       console.log('[CREDITS] Skipped decrement in preview/unlimited mode');
     } else {

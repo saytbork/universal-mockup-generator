@@ -1905,6 +1905,11 @@ const App: React.FC = () => {
     // Local dev should never be blocked by credit limits.
     return Boolean(import.meta.env.DEV);
   }, []);
+  const isProjectsPreviewBypass = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const hostname = String(window.location.hostname || '').trim().toLowerCase();
+    return hostname === 'projects.vercel.app' || hostname.endsWith('.projects.vercel.app');
+  }, []);
   const isAdmin = useMemo(() => {
     const normalized = userEmail.trim().toLowerCase();
     return (
@@ -1921,7 +1926,7 @@ const App: React.FC = () => {
   const [hasTrialBypass, setHasTrialBypass] = useState(false);
   const [trialCodeInput, setTrialCodeInput] = useState('');
   const [trialCodeError, setTrialCodeError] = useState<string | null>(null);
-  const isTrialBypassActive = hasTrialBypass || isDevBypass || isAdmin;
+  const isTrialBypassActive = hasTrialBypass || isDevBypass || isProjectsPreviewBypass || isAdmin;
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const ritualNoProductMode =
     !isProductPlacement &&
