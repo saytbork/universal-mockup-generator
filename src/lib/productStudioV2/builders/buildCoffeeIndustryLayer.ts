@@ -68,10 +68,14 @@ function buildCoffeeEnvironmentBlock(state: StudioUIState): string {
 function buildSteamBlock(state: StudioUIState): string {
   const temp = state.coffeeTemperatureProfile || 'hot';
   if (temp !== 'hot') {
-    return 'STEAM_BEHAVIOR: temperature is cold; visible steam suppressed.';
+    return 'COFFEE_STEAM_VISIBILITY: none. STEAM_BEHAVIOR: temperature is cold; visible steam suppressed.';
   }
   const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
-  const visibility = cinematic ? 'volumetric-backlit' : state.coffeeSteamVisibility || 'subtle';
+  const visibility = cinematic ? 'volumetric-backlit' : (state.coffeeSteamVisibility || 'subtle');
+  // If steam is explicitly disabled, suppress the volumetric behavior description
+  if (visibility === 'none') {
+    return 'COFFEE_STEAM_VISIBILITY: none. STEAM_BEHAVIOR: steam suppressed by user configuration.';
+  }
   return [
     `COFFEE_STEAM_VISIBILITY: ${visibility}.`,
     'STEAM_BEHAVIOR: Volumetric upward diffusion.',
@@ -94,17 +98,17 @@ function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const packagingIntent = isPdpCleanIntent ? 'pdp-clean' : (state.coffeePackagingIntent || 'pdp-clean');
   const intentMap: Record<string, string> = {
     'pdp-clean':
-      'COFFEE_INTENT_PROFILE: PDP Clean. productDominanceTarget=85–90%. contextDepth=shallow. background=clean minimal. beansMax=low. STUDIO_PRODUCT_MOTION: static. ACCENT_POLICY: beansScatter=low. cupAccent=behind-small or off. steamLevel=subtle or off. espressoSplash=off. iceMode=off. MODIFIERS: none. TEXTURED_BED: disabled. POURING: disabled. SPLASH: disabled. COMPOSITION_RULE: front-facing or 45° hero. Clean minimal background. Shallow context depth. No aggressive art-direction. Maximum packaging readability.',
+      'COFFEE_INTENT_PROFILE: PDP Clean. productDominanceTarget=85–90%. contextDepth=shallow. background=clean minimal. beansMax=low. ACCENT_POLICY: beansScatter=low. cupAccent=behind-small or off. steamLevel=subtle or off. espressoSplash=off. iceMode=off. MODIFIERS: none. TEXTURED_BED: disabled. POURING: disabled. SPLASH: disabled. COMPOSITION_RULE: front-facing or 45° hero. Clean minimal background. Shallow context depth. No aggressive art-direction. Maximum packaging readability.',
     'premium-campaign':
-      'COFFEE_INTENT_PROFILE: Campaign. productDominanceTarget=80–90%. contrast=higher. shadowDepth=deeper. beansMax=medium. cupMax=small. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only. Never chaotic splash. ACCENT_POLICY: beansScatter=controlled. cupAccent=side or behind-small. steamLevel=subtle. espressoSplash=controlled (never covering packaging). iceMode=only if cold-brew intent. ACCENT_SCALE_RULE: Beans = decorative only. Cup = side support only. Steam = subtle and secondary. Splash must never touch label zone. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
+      'COFFEE_INTENT_PROFILE: Campaign. productDominanceTarget=80–90%. contrast=higher. shadowDepth=deeper. beansMax=medium. cupMax=small. ACCENT_POLICY: beansScatter=controlled. cupAccent=side or behind-small. steamLevel=subtle. espressoSplash=controlled (never covering packaging). iceMode=only if cold-brew intent. ACCENT_SCALE_RULE: Beans = decorative only. Cup = side support only. Steam = subtle and secondary. Splash must never touch label zone. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
     'dark-roast-luxury':
-      'COFFEE_INTENT_PROFILE: Campaign. Dark Roast Luxury. productDominanceTarget=80–90%. background=dark. highlights=controlled. steam=subtle-allowed. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only. Never chaotic splash. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
+      'COFFEE_INTENT_PROFILE: Campaign. Dark Roast Luxury. productDominanceTarget=80–90%. background=dark. highlights=controlled. steam=subtle-allowed. CONTEXT_LIMIT: Context never exceeds 30% visual dominance.',
     'modern-minimal':
-      'COFFEE_INTENT_PROFILE: Campaign. Modern Minimal. productDominanceTarget=80–88%. contextDepth=shallow. background=minimal. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
+      'COFFEE_INTENT_PROFILE: Campaign. Modern Minimal. productDominanceTarget=80–88%. contextDepth=shallow. background=minimal.',
     'cold-brew-fresh':
-      'COFFEE_INTENT_PROFILE: Campaign. Cold Brew Fresh. productDominanceTarget=80–88%. allowIceCubes=true. allowCondensation=true. steam=off. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
+      'COFFEE_INTENT_PROFILE: Campaign. Cold Brew Fresh. productDominanceTarget=80–88%. allowIceCubes=true. allowCondensation=true. steam=off.',
     'bundle-hero':
-      'COFFEE_INTENT_PROFILE: Campaign. Bundle Hero. productDominanceTarget=78–88%. multi-product hierarchy with packaging dominance preserved. STUDIO_PRODUCT_MOTION: static OR controlled-stream pouring only.',
+      'COFFEE_INTENT_PROFILE: Campaign. Bundle Hero. productDominanceTarget=78–88%. multi-product hierarchy with packaging dominance preserved.',
   };
   const beans = state.coffeeBeansScatter || 'low';
   const cup = state.coffeeCupAccent || 'side';

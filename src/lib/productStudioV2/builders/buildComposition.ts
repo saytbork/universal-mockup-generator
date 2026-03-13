@@ -152,6 +152,14 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
         ...interactionBias,
       ].join(' ');
     }
+    // Default coffee fallback — coffee must never fall through to generic composition
+    return [
+      'STUDIO_COMPOSITION_PROFILE: coffee-editorial-ritual.',
+      'COFFEE_COMPOSITION_DOMINANCE: editorial-ritual vertical coverage target 60–70%.',
+      'COFFEE_ENVIRONMENTAL_BREATHING: allowed with intentional negative space and ritual balance.',
+      'COFFEE_LAYOUT_RULE: balanced ritual composition preserving product readability.',
+      ...interactionBias,
+    ].join(' ');
   }
 
   const heroMode = authority.composition === 'hero';
