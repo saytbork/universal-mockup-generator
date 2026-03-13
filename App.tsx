@@ -81,7 +81,7 @@ type UGCRealModeSettings = {
 
 const PRODUCT_DEFAULT_ASPECT_RATIO = '1:1' as const;
 const ECOMMERCE_PDP_ASPECT_RATIO = '1:1' as const;
-const MODE_GUIDE_DISMISSED_KEY = 'studio-lifestyle-mode-guide-dismissed';
+const MODE_GUIDE_DISMISSED_KEY = 'studio-lifestyle-mode-guide-v2-dismissed';
 
 type EcommercePdpGenerationMeta = {
   sceneType: 'ecommerce-pdp';
@@ -6859,9 +6859,11 @@ If the model attempts to create a scene or environment, override it and force a 
                     STUDIO
                   </button>
                 </div>
-                <p className="px-2 text-[11px] text-gray-500 dark:text-white/50">
-                  Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-focused images. We will jump you to the right settings automatically.
-                </p>
+                {!showModeGuide && (
+                  <p className="px-2 text-[11px] text-gray-500 dark:text-white/50">
+                    Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-focused images. We will jump you to the right settings automatically.
+                  </p>
+                )}
               </div>
             </div>
           </header>
