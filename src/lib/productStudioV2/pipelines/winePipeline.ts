@@ -153,7 +153,7 @@ export const winePipeline = {
     } else if (bottleAndGlassPourMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle actively pours into a wine glass. Three-quarter camera angle. Elegant liquid ribbon. Controlled motion only. The liquid stream must originate at the true bottle mouth and inner lip, connected continuously to the neck opening. Never emit liquid from below the bottle rim, sidewall, label area, or glass body. Label remains legible throughout.',
+        content: 'COMPOSITION: BOTTLE_AND_GLASS_POUR. Bottle tilted for active hospitality pour. BOTTLE_TILT_PHYSICS: The bottle is held at a controlled tilt angle — approximately 100–120° from vertical (mouth pointing downward toward the glass). The bottle base is elevated above the glass top. The mouth end is lower than the base. The bottle axis must form a coherent gravity-consistent pouring angle. LIQUID_STREAM_PHYSICS: The liquid stream exits exclusively from the bottle mouth and front lip. The stream must follow a natural downward gravity arc — curving slightly away from the bottle, descending cleanly into the wine glass opening. The stream is a narrow elegant ribbon, not a wide splash or chaotic burst. The stream contacts the glass rim or interior before terminating. SPATIAL_RELATIONSHIP: The bottle mouth must be visually positioned above and adjacent to the glass rim. The glass is upright on the surface. The distance between bottle mouth and glass top is 3–8cm. Label remains legible despite pour tilt. Never emit liquid from below the bottle rim, from the sidewall, or from any point other than the true mouth opening.',
       });
     } else if (handsPouringMode) {
       segments.push({
@@ -215,7 +215,7 @@ export const winePipeline = {
     } else if (bottleAndGlassPourMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour. Elegant hospitality motion. Continuous liquid ribbon into glass. No explosive splash. The pour must originate from the bottle mouth and front lip exactly as real wine service behaves. Never start the stream below the rim or from the underside of the bottle opening. Bottle label remains visible.',
+        content: 'PHOTO_MODE: Bottle + Glass Pour. Controlled premium wine pour with physically coherent bottle tilt. BOTTLE_POUR_PHYSICS: The bottle must be tilted at a realistic serving angle — mouth end lower than base, forming a ~100–120° tilt from vertical. The base of the bottle is elevated. The bottle mouth points downward and is positioned directly above the glass opening. STREAM_PATH: The liquid exits from the bottle mouth only, following a smooth downward gravity arc into the glass. The stream is a narrow elegant ribbon — never wide, explosive, or chaotic. The stream must arc naturally due to gravity — not shoot horizontally, not exit upward, not originate from the bottle body. GLASS_POSITION: The wine glass stands upright on the surface directly below and beside the bottle mouth. The glass is partially filled. POUR_REALISM: This is premium hospitality photography. The pour reads as real wine service, not CGI. Bottle label remains visible despite the tilt angle. No impossible physics. No horizontal liquid arcs. No liquid appearing from anywhere other than the bottle mouth.',
       });
     } else if (handsPouringMode) {
       segments.push({
