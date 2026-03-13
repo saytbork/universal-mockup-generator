@@ -227,6 +227,35 @@ const REFERENCE_PRODUCT_HARD_LOCK =
     'GEOMETRY PRESERVATION: Do not stretch, scale, elongate, inflate, compress, morph, or reshape ' +
     'the object to satisfy framing constraints. If size adjustment is required, simulate camera proximity only. Never modify proportions.';
 
+// Wine served variant: geometry + label stay pixel-faithful but bottle MUST be open and below retail-full.
+// The BOTTLE_PRESERVATION_LOCK in the wine truth layer explicitly overrides closure and fill level —
+// these two properties are intentionally different from the reference image by design.
+const REFERENCE_PRODUCT_HARD_LOCK_WINE_SERVED =
+    'REFERENCE PRODUCT LOCK: The uploaded product image is the primary source of truth for geometry, ' +
+    'label artwork, proportions, silhouette, cap shape, neck height, material finish, and surface texture. ' +
+    'EXCEPTION — WINE SERVICE STATE: The bottle closure and liquid fill level shown in the reference image ' +
+    'are OVERRIDDEN by BOTTLE_PRESERVATION_LOCK below. The bottle MUST appear opened for service with a ' +
+    'visibly reduced liquid level. Do NOT use the reference bottle state (sealed/full) — the served state ' +
+    'defined in WINE_CONFIG_RESOLVED takes absolute precedence over the reference image bottle state. ' +
+    'Preserve exact bottle geometry, label content, proportions, and surface texture from the reference. ' +
+    'Do not reinterpret. Do not restyle. Do not redesign packaging. ' +
+    'GEOMETRY PRESERVATION: Do not stretch, scale, elongate, inflate, compress, morph, or reshape ' +
+    'the object to satisfy framing constraints. If size adjustment is required, simulate camera proximity only. Never modify proportions.';
+
+/**
+ * Returns the correct reference-product hard lock for the assembled prompt.
+ * Wine served scenes need an explicit exception that overrides the reference bottle state.
+ */
+function resolveReferenceProductHardLock(assembledPrompt: string): string {
+    if (
+        assembledPrompt.includes('WINE_ENGINE_STATUS:') &&
+        assembledPrompt.includes('serveState=served')
+    ) {
+        return REFERENCE_PRODUCT_HARD_LOCK_WINE_SERVED;
+    }
+    return REFERENCE_PRODUCT_HARD_LOCK;
+}
+
 // ============================================================================
 // COLOR VALIDATION (original content continues here)
 // ============================================================================
@@ -2028,7 +2057,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
         finalPrompt = appendClosingPhrase(finalPrompt);
         if (hasReferenceProductImage(state)) {
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-            finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+            finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
         }
         console.log('2. Generated Prompt Parts (V2):', [finalPrompt]);
         console.log('3. FINAL PROMPT (V2):', finalPrompt);
@@ -2071,7 +2100,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // GEMINI/GPT FIX PATCH 3: When reference product exists, strip category priors and prepend HARD LOCK
     if (hasReferenceProductImage(state)) {
         finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-        finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+        finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
     }
     
     console.log('2. Generated Prompt Parts:', segments);
@@ -2132,7 +2161,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         finalPrompt = appendClosingPhrase(finalPrompt);
         if (hasReferenceProductImage(state)) {
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-            finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+            finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
         }
         console.log('2. Generated Prompt Parts (V2 Bundle):', [finalPrompt]);
         console.log('3. FINAL PROMPT (V2 Bundle):', finalPrompt);
@@ -2205,7 +2234,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     // GEMINI/GPT FIX PATCH 3: When reference product exists, strip category priors and prepend HARD LOCK
     if (hasReferenceProductImage(state)) {
         finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-        finalPrompt = `${REFERENCE_PRODUCT_HARD_LOCK} ${finalPrompt}`;
+        finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
     }
     
     return finalPrompt;
