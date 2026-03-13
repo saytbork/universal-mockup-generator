@@ -1765,7 +1765,7 @@ const App: React.FC = () => {
   const [remotePlanTier, setRemotePlanTier] = useState<PlanTier | null>(null);
   const studioIndustryProfile = useProductStudioStore((state) => state.industryProfile);
   const studioPhotoMode = useProductStudioStore((state) => state.photoMode);
-  const studioCreativeIntent = useProductStudioStore((state) => state.creativeIntent);
+  const studioVisualIntent = useProductStudioStore((state) => state.visualIntent);
   const studioContextPreset = useProductStudioStore((state) => state.contextPreset);
   useEffect(() => {
     const nextEmail = user?.email || emailUser || '';
@@ -2053,7 +2053,7 @@ const App: React.FC = () => {
         'lifestyle';
 
     const resolvedIntent = resolvedStudioEngine
-      ? studioCreativeIntent || 'conversion'
+      ? studioVisualIntent || 'conversion'
       : lifestyleStep3Values?.visualIntent ||
         lifestyleStep3Values?.creationIntent ||
         options.creationIntent ||
@@ -2083,7 +2083,7 @@ const App: React.FC = () => {
     options.creationMode,
     options.setting,
     studioContextPreset,
-    studioCreativeIntent,
+    studioVisualIntent,
     studioIndustryProfile,
     studioPhotoMode,
   ]);
