@@ -40,12 +40,8 @@ function assertIndustry(i: unknown): IndustryProfile {
 
 function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | undefined {
   if (String(state.photoMode || '').trim() === 'Foam & Texture') return 'studio';
-  const explicitWorld = normalize((state as any).world);
-  const explicitEnvironment = normalize((state as any).environment);
-  const explicitEnvironmentContext =
-    normalize((state as any).environmentContext?.macro) || normalize((state as any).environmentContext?.micro);
-  const source = `${explicitWorld} ${explicitEnvironment} ${explicitEnvironmentContext}`.trim();
-
+  const legacyState = state as Record<string, unknown>;
+  const source = String((legacyState.environmentContext as { macro?: unknown } | undefined)?.macro || '').trim();
   if (!source) return undefined;
   if (source.includes('underwater')) return 'underwater';
   if (source.includes('splash') || source.includes('foam') || source.includes('pool water') || source.includes('tank')) {
@@ -56,7 +52,7 @@ function inferStudioWorld(state: ProductStudioState): StudioUIState['world'] | u
 }
 
 function inferStudioComposition(state: ProductStudioState): StudioUIState['composition'] {
-  const composition = normalize((state as any).composition);
+  const composition = normalize(state.composition);
   if (composition === 'flatlay') return 'flat-lay';
   if (composition === 'grid' || composition === 'grid-ready') return 'carousel';
   if (composition === 'macro') return 'macro';
@@ -77,7 +73,7 @@ function inferStudioMotionFromStateMotion(
     return 'static';
   }
   if (state.photoMode === 'Hands Application Clean') {
-    const handPose = String((state as any).photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '')
+    const handPose = String(state.photoModeConfig?.dynamic?.['Hands Application Clean']?.handPose || '')
       .trim()
       .toLowerCase();
     if (handPose === 'applying' || handPose === 'opening') return 'dispensed';
@@ -111,7 +107,7 @@ function inferLightingOverride(state: ProductStudioState): string | undefined {
     state.controlTier === 'pro' || state.advancedModeEnabled || state.proMode;
   if (!isProMode) return undefined;
 
-  const rig = String((state as any).lightingRig || '').trim();
+  const rig = String(state.lightingRig || '').trim();
   // Only forward rig if it is a non-default value (user explicitly chose it)
   const DEFAULT_LIGHTING_RIGS = new Set(['Softbox Wrap', '']);
   if (!rig || DEFAULT_LIGHTING_RIGS.has(rig)) return undefined;
@@ -123,12 +119,12 @@ function inferLightingOverride(state: ProductStudioState): string | undefined {
 function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requestedModifiers'] {
   const requested = new Set<string>();
   const photoMode = String(state.photoMode || '').trim();
-  const propsText = String((state as any).props || '').toLowerCase();
-  const selectedProps = Array.isArray((state as any).selectedProps)
-    ? (state as any).selectedProps.map((v: unknown) => String(v).toLowerCase())
+  const propsText = String(state.props || '').toLowerCase();
+  const selectedProps = Array.isArray(state.selectedProps)
+    ? state.selectedProps.map((v: unknown) => String(v).toLowerCase())
     : [];
-  const explicitEffects: string[] = Array.isArray((state as any).specialEffects)
-    ? (state as any).specialEffects.map((v: unknown) => String(v).trim())
+  const explicitEffects: string[] = Array.isArray(state.specialEffects)
+    ? state.specialEffects.map((v: unknown) => String(v).trim())
     : [];
   const explicitEffectsLower = explicitEffects.map((value) => value.toLowerCase());
   const hasExplicit = (...names: string[]) =>
@@ -277,19 +273,7 @@ function resolveVisualStyleCategory(
 }
 
 function resolveVisualStyleFromState(state: ProductStudioState): string | undefined {
-  const raw = String(
-    (state as any).visualStyle ||
-      (state as any).selectedVisualStyle ||
-      (state as any).visualStylePreset ||
-      (state as any).worldStyle ||
-      (state as any).styleWorld ||
-      (state as any).visualWorld ||
-      (state as any).creativeWorld ||
-      (state as any).studioWorldPreset ||
-      (state as any).brandWorldPreset ||
-      (state as any).lifestyleWorldPreset ||
-      ''
-  ).trim();
+  const raw = String(state.visualStyle || '').trim();
 
   if (!raw) return undefined;
   if (raw === 'Monochrome Brand') {
@@ -312,18 +296,10 @@ function resolveEnvironmentFromState(
   state: ProductStudioState
 ): { value?: string; source: string; raw: string } {
   const candidates: Array<{ source: string; value: string }> = [
-    { source: 'environmentContext.macro', value: String((state as any).environmentContext?.macro || '').trim() },
-    { source: 'contextPreset', value: String((state as any).contextPreset || '').trim() },
-    { source: 'environmentPreset', value: String((state as any).environmentPreset || '').trim() },
-    { source: 'environmentMode', value: String((state as any).environmentMode || '').trim() },
-    { source: 'environment', value: String((state as any).environment || '').trim() },
-    { source: 'selectedEnvironment', value: String((state as any).selectedEnvironment || '').trim() },
-    { source: 'worldEnvironment', value: String((state as any).worldEnvironment || '').trim() },
-    { source: 'studioEnvironment', value: String((state as any).studioEnvironment || '').trim() },
-    { source: 'contextPresetValue', value: String((state as any).contextPresetValue || '').trim() },
-    { source: 'worldPreset', value: String((state as any).worldPreset || '').trim() },
-    { source: 'environmentStyle', value: String((state as any).environmentStyle || '').trim() },
-    { source: 'sceneEnvironment', value: String((state as any).sceneEnvironment || '').trim() },
+    { source: 'contextPreset', value: String(state.contextPreset || '').trim() },
+    // Legacy aliases kept as runtime-only fallback for old Firestore documents
+    { source: 'environmentContext.macro', value: String(((state as Record<string, unknown>).environmentContext as { macro?: unknown } | undefined)?.macro || '').trim() },
+    { source: 'environmentPreset',        value: String(((state as Record<string, unknown>).environmentPreset as string | undefined) || '').trim() },
   ];
 
   const found = candidates.find((candidate) => candidate.value);
@@ -605,8 +581,8 @@ function resolveCoffeeIndustryLayer(
 } {
   // ── Prefer typed coffeeConfig; fall back to legacy props string parsing
   // for any state that pre-dates the migration.
-  const typedConfig = (state as any).coffeeConfig as import('./types').CoffeeConfig | undefined;
-  const propsText = String((state as any).props || '');
+  const typedConfig = state.coffeeConfig as import('./types').CoffeeConfig | undefined;
+  const propsText = String(state.props || '');
   const extractCoffeeTag = (key: string, fallback: string): string => {
     const match = propsText.match(new RegExp(`coffee:${key}=([a-z0-9-]+)`, 'i'));
     return match?.[1]?.toLowerCase() || fallback;
@@ -647,7 +623,7 @@ function resolveCoffeeIndustryLayer(
   const mode: 'studio' | 'ritual' = state.coffeeMode === 'ritual' ? 'ritual' : 'studio';
   const intent: CoffeeIndustryIntent = resolveCoffeeIndustryIntent(state.photoMode || '', state.visualIntent);
   const environment = resolveCoffeeEnvironmentVariation(String(state.contextPreset || '').trim());
-  const coffeeSignals = `${String(state.contextPreset || '')} ${String((state as any).props || '')} ${String(state.photoMode || '')}`.toLowerCase();
+  const coffeeSignals = `${String(state.contextPreset || '')} ${String(state.props || '')} ${String(state.photoMode || '')}`.toLowerCase();
   const temperatureProfile: NonNullable<StudioUIState['coffeeTemperatureProfile']> =
     /\bice|iced|cold\b/.test(coffeeSignals) ? 'cold' : 'hot';
   const espressoMode = /\bespresso|ristretto|shot\b/.test(coffeeSignals);
@@ -921,7 +897,7 @@ function normalizePhysicalPresence(state: ProductStudioState): {
   placementContext: string;
   groundingMode: string;
 } {
-  const placement = String((state as any).physicalPlacement || (state as any).placement || '').trim().toLowerCase();
+  const placement = String(state.placement || '').trim().toLowerCase();
   const physicalPresence =
     placement === 'held'
       ? 'held'
@@ -967,23 +943,23 @@ function normalizeMotionAndInteraction(
   dropletDensity: string;
   highlightControl: string;
 } {
-  const photoModeDynamic = ((state as any).photoModeConfig?.dynamic?.[String(resolvedPhotoMode || '')] || {}) as Record<string, unknown>;
+  const photoModeDynamic = (state.photoModeConfig?.dynamic?.[String(resolvedPhotoMode || '')] || {}) as Record<string, unknown>;
 
   return {
     photoMode: resolvedPhotoMode,
     motion: inferStudioMotionFromStateMotion(state, capabilityResolvedProductState),
     interactionProfile: String(state.interaction || '').trim() || 'none',
     splashMedium: String(photoModeDynamic.splashMedium || '').trim() || 'water',
-    motionIntensity: String((state as any).photoModeConfig?.splashShot?.motionIntensity || '').trim() || 'static',
-    freezeMoment: String((state as any).photoModeConfig?.splashShot?.freezeMoment || '').trim() || 'peak',
+    motionIntensity: String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim() || 'static',
+    freezeMoment: String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim() || 'peak',
     productStability: 'grounded',
-    macroTightness: String(photoModeDynamic.macroTightness || (state as any).macroTightness || '').trim() || 'Extreme',
+    macroTightness: String(photoModeDynamic.macroTightness || '').trim() || 'Extreme',
     dropletMode:
-      String((state as any)?.photoModeConfig?.macroDewLabel?.dropletMode || (state as any).dropletMode || '').trim() ||
+      String(photoModeDynamic.dropletMode || '').trim() ||
       'Clean',
-    dropletDensity: String(photoModeDynamic.dropletDensity || (state as any).dropletDensity || '').trim() || 'Balanced',
+    dropletDensity: String(photoModeDynamic.dropletDensity || '').trim() || 'Balanced',
     highlightControl:
-      String(photoModeDynamic.highlightControl || (state as any).highlightControl || '').trim() || 'Balanced',
+      String(photoModeDynamic.highlightControl || '').trim() || 'Balanced',
   };
 }
 
@@ -1001,7 +977,7 @@ function normalizeWorldAndAtmosphere(
     environmentPreset: resolvedEnvironment.value,
     visualStyle: resolvedVisualStyle,
     visualStyleCategory: resolvedVisualStyle ? resolveVisualStyleCategory(resolvedVisualStyle) : undefined,
-    atmosphereMode: String((state as any).atmosphereMode || (state as any).environmentMode || '').trim() || 'neutral',
+    atmosphereMode: 'neutral',
   };
 }
 
@@ -1018,7 +994,7 @@ function normalizeProductCharacter(
     industryProfile,
     visualProfile: industryProfile,
     productType: PRODUCT_TYPE_TO_LABEL[state.definition.type],
-    packagingType: String((state as any).packagingType || state.packagingMode || '').trim() || 'standard',
+    packagingType: String(state.packagingMode || '').trim() || 'standard',
   };
 }
 
@@ -1076,19 +1052,6 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     coffee: resolveCoffeeIndustryLayer(state),
   };
   const coffeeLayer = layerByIndustry[industryProfile] || null;
-  const visualStyleRaw = String(
-    (state as any).visualStyle ||
-      (state as any).selectedVisualStyle ||
-      (state as any).visualStylePreset ||
-      (state as any).worldStyle ||
-      (state as any).styleWorld ||
-      (state as any).visualWorld ||
-      (state as any).creativeWorld ||
-      (state as any).studioWorldPreset ||
-      (state as any).brandWorldPreset ||
-      (state as any).lifestyleWorldPreset ||
-      ''
-  ).trim();
   const resolvedVisualStyle = resolveVisualStyleFromState(state) || legacyVisualStyle;
   const resolvedPhotoMode =
     resolvedVisualStyle && preResolvedPhotoMode && CORE_PHOTO_MODES.has(preResolvedPhotoMode)
@@ -1186,7 +1149,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       : wineEnvironment;
   const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
   const wineArchetypeNarrative = winePrestigeMode
-    ? getWineArchetypeNarrative((state as any).wineStyleArchetype ?? null)
+    ? getWineArchetypeNarrative(state.wineStyleArchetype ?? null)
     : '';
   const resolvedEnvironment = resolveEnvironmentFromState(state);
   const normalizedWorldAtmosphere = normalizeWorldAndAtmosphere(
@@ -1197,7 +1160,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const normalizedProductCharacter = normalizeProductCharacter(state, industryProfile);
   debugLog('[PHOTO MODE RAW]', photoModeRaw);
   debugLog('[PHOTO MODE RESOLVED]', resolvedPhotoMode || '');
-  debugLog('[VISUAL STYLE RAW]', visualStyleRaw);
+  debugLog('[VISUAL STYLE RAW]', resolvedVisualStyle || '');
   debugLog('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
   debugLog('[VISUAL STYLE CATEGORY]', normalizedWorldAtmosphere.visualStyleCategory || '');
   debugLog('[ENVIRONMENT RAW]', resolvedEnvironment.raw || '');
@@ -1272,12 +1235,12 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           wineAction: resolvedWineAction,
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
           wineGlassMode: resolvedWineGlassMode,
-          ...((state as any).wineGlassType ? { wineGlassType: (state as any).wineGlassType } : {}),
+          ...(state.wineGlassType ? { wineGlassType: state.wineGlassType } : {}),
           wineClosureType: state.wineClosureType,
           wineType: state.wineType,
           wineBottleState: resolvedWineBottleState,
           carbonationLevel: state.carbonationLevel,
-          ...((state as any).wineStyleArchetype ? { wineStyleArchetype: (state as any).wineStyleArchetype } : {}),
+          ...(state.wineStyleArchetype ? { wineStyleArchetype: state.wineStyleArchetype } : {}),
           ...(wineArchetypeNarrative ? { wineArchetypeNarrative } : {}),
         }
       : {}),
@@ -1354,58 +1317,58 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const extras: Record<string, string> = {};
       const currentPhotoMode = resolvedPhotoMode || undefined;
       const dynamicRaw = currentPhotoMode
-        ? (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode]
+        ? (state.photoModeConfig?.dynamic as Record<string, unknown> | undefined)?.[currentPhotoMode]
         : undefined;
-      const environmentPreset = String((state as any).environmentPreset || '').trim();
+      // Legacy Firestore fields — not in ProductStudioState, read via runtime cast
+      const ls = state as Record<string, unknown>;
+      const environmentPreset = String(ls.environmentPreset || '').trim();
       if (environmentPreset) extras.environmentPreset = environmentPreset;
-      const environmentMode = String((state as any).environmentMode || '').trim();
+      const environmentMode = String(ls.environmentMode || '').trim();
       if (environmentMode) extras.environmentMode = environmentMode;
-      const environment = String((state as any).environment || '').trim();
+      const environment = String(ls.environment || '').trim();
       if (environment) extras.environment = environment;
-      const lightingPreset = String((state as any).lightingPreset || '').trim();
+      const lightingPreset = String(ls.lightingPreset || '').trim();
       if (lightingPreset) extras.lightingPreset = lightingPreset;
-      const lightingMode = String((state as any).lightingMode || '').trim();
+      const lightingMode = String(ls.lightingMode || '').trim();
       if (lightingMode) extras.lightingMode = lightingMode;
-      const lightingRaw = String((state as any).lighting || '').trim();
+      const lightingRaw = String(ls.lighting || '').trim();
       if (lightingRaw) extras.lighting = lightingRaw;
       // Basic lighting selector (natural-light / overcast / cozy-indoors / ring-light)
-      const basicLighting = String(
-        (state as any).lighting || (state as any).lightingPreset || (state as any).lightingMode || ''
-      ).trim();
+      const basicLighting = String(ls.lighting || ls.lightingPreset || ls.lightingMode || '').trim();
       if (basicLighting) extras.basicLighting = basicLighting;
       // Viewpoint (eye-level / top-down / human-pov / suspended / display-view)
-      const viewpoint = String((state as any).viewpoint || '').trim();
+      const viewpoint = String(ls.viewpoint || '').trim();
       if (viewpoint) extras.viewpoint = viewpoint;
       // Physical placement (surface / held / supported / air-suspended)
-      const physicalPlacement = String((state as any).placement || (state as any).physicalPlacement || '').trim();
+      const physicalPlacement = String(state.placement || '').trim();
       if (physicalPlacement) extras.physicalPlacement = physicalPlacement;
       // Physical Presence sub-options
-      const productMaterial = String((state as any).productMaterial || '').trim();
+      const productMaterial = String(ls.productMaterial || '').trim();
       if (productMaterial) extras.productMaterial = productMaterial;
-      const productColor = String((state as any).productColor || '').trim();
+      const productColor = String(ls.productColor || '').trim();
       if (productColor) extras.productColor = productColor;
-      const productFormScale = String((state as any).productFormScale || (state as any).productScale || '').trim();
+      const productFormScale = String(ls.productFormScale || ls.productScale || '').trim();
       if (productFormScale) extras.productFormScale = productFormScale;
       // Foam & Texture controls are read from root state in V2 builder.
-      const textureType = String((state as any).textureType || '').trim();
+      const textureType = String(ls.textureType || '').trim();
       if (textureType) extras.textureType = textureType;
-      const textureDensity = String((state as any).textureDensity || '').trim();
+      const textureDensity = String(ls.textureDensity || '').trim();
       if (textureDensity) extras.textureDensity = textureDensity;
-      const focusDistance = String((state as any).focusDistance || '').trim();
+      const focusDistance = String(ls.focusDistance || '').trim();
       if (focusDistance) extras.focusDistance = focusDistance;
-      const cleanliness = String((state as any).cleanliness || '').trim();
+      const cleanliness = String(ls.cleanliness || '').trim();
       if (cleanliness) extras.cleanliness = cleanliness;
       // Ingredient objects:
       // Primary source is state.props. For Textured Bed, also accept dynamic customIngredients
       // so V2 does not fail invariant when user entered ingredients in the mode sub-control.
-      const propsIngredientObjects = String((state as any).props || '').trim();
+      const propsIngredientObjects = String(state.props || '').trim();
       const texturedBedDynamicIngredients =
         currentPhotoMode === 'Textured Bed / Scatter Base'
-          ? String((dynamicRaw as any)?.customIngredients || '').trim()
+          ? String((dynamicRaw as Record<string, unknown> | undefined)?.customIngredients || '').trim()
           : '';
       const ingredientObjects = propsIngredientObjects || texturedBedDynamicIngredients;
       if (ingredientObjects) extras.ingredientObjects = ingredientObjects;
-      const ingredientLayout = String((state as any).ingredientLayout || '').trim();
+      const ingredientLayout = String(ls.ingredientLayout || '').trim();
       if (ingredientLayout) extras.ingredientLayout = ingredientLayout;
       return extras;
     })(),
@@ -1413,7 +1376,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     ...(() => {
       const currentPhotoMode = resolvedPhotoMode || undefined;
       if (!currentPhotoMode) return {};
-      const dynamicRaw = (state.photoModeConfig as any)?.dynamic?.[currentPhotoMode];
+      const dynamicRaw = (state.photoModeConfig?.dynamic as Record<string, unknown> | undefined)?.[currentPhotoMode];
       const cleaned: Record<string, string> = {};
       const normalizeMaterialState = (raw: string): string => {
         const value = raw.trim().toLowerCase();
@@ -1474,10 +1437,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     })(),
     // ── Context preset (studio environment / world context) ──
     ...(() => {
-      const contextPreset = String((state as any).contextPreset || '').trim();
-      const environmentPreset = String((state as any).environmentPreset || '').trim();
-      const environmentMode = String((state as any).environmentMode || '').trim();
-      const environment = String((state as any).environment || '').trim();
+      const ls = state as Record<string, unknown>;
+      const contextPreset = String(state.contextPreset || ls.contextPreset || '').trim();
+      const environmentPreset = String(ls.environmentPreset || '').trim();
+      const environmentMode = String(ls.environmentMode || '').trim();
+      const environment = String(ls.environment || '').trim();
       const resolved =
         resolvedEnvironment.value || contextPreset || environmentPreset || environmentMode || environment;
       return resolved ? { contextPresetValue: resolved } : {};
@@ -1627,9 +1591,10 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   // (new unified field) > state.interaction (V1 legacy field).
   // productStudioInteraction is what the Step3 UI emits — it is NOT automatically synced to
   // state.interaction by the store, so we must read it explicitly here.
+  const ls = state as Record<string, unknown>;
   const productStudioInteractionRaw =
-    String((state as any).productStudioInteraction || '').trim() ||
-    String((state as any).productInteraction || '').trim();
+    String(ls.productStudioInteraction || '').trim() ||
+    String(ls.productInteraction || '').trim();
   const forceNoInteraction = Boolean(industryModule.forceInteractionNone);
   const resolvedInteractionInput =
     forceNoInteraction ? 'none' : productStudioInteractionRaw || state.interaction;
