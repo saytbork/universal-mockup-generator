@@ -4892,6 +4892,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
                       </div>
                     )}
+                    {getInterpretationNote('composition') && (
+                      <InterpretationNote message={getInterpretationNote('composition')!} />
+                    )}
                   </div>
 
                   {productStore.photoMode !== 'Hero Landing Page' ? (
