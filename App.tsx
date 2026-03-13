@@ -7395,47 +7395,50 @@ If the model attempts to create a scene or environment, override it and force a 
                         Locked until previous step is complete
                       </div>
                     )}
-                    <div className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-4 dark:bg-white/5 dark:border-white/10">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Resolved Generation State</p>
-                          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/50">
-                            These are the effective settings the app will use when you generate.
-                          </p>
-                        </div>
-                        <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                    <div className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 dark:bg-white/5 dark:border-white/10">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">
+                          Resolved State
+                        </span>
+                        <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
                           {resolvedGenerationSummary.engine.value}
                         </span>
                       </div>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {[
-                          { id: 'scene-type', label: 'Scene Type', field: resolvedGenerationSummary.sceneType },
+                          { id: 'scene-type', label: 'Scene', field: resolvedGenerationSummary.sceneType },
                           { id: 'industry', label: 'Industry', field: resolvedGenerationSummary.industry },
                           { id: 'mode', label: 'Mode', field: resolvedGenerationSummary.mode },
                           { id: 'intent', label: 'Intent', field: resolvedGenerationSummary.intent },
                           { id: 'context', label: 'Context', field: resolvedGenerationSummary.context },
                           { id: 'output', label: 'Output', field: selectedOutputAspectRatio },
-                        ].map(({ id, label, field }) => (
-                          <div
-                            key={id}
-                            className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2 dark:border-white/10 dark:bg-white/5"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/40">{label}</p>
-                              {typeof field === 'object' && field.resolved && (
-                                <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                        ].map(({ id, label, field }) => {
+                          const value = typeof field === 'object' ? field.value : field;
+                          const isAuto = typeof field === 'object' && field.resolved;
+                          const source = typeof field === 'object' ? field.source : null;
+
+                          return (
+                            <div
+                              key={id}
+                              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50/80 px-3 py-2 dark:border-white/10 dark:bg-white/5"
+                            >
+                              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 dark:text-white/40">
+                                {label}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                {value}
+                              </span>
+                              {isAuto && (
+                                <span
+                                  className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700"
+                                  title={source || 'Resolved automatically'}
+                                >
                                   Auto
                                 </span>
                               )}
                             </div>
-                            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                              {typeof field === 'object' ? field.value : field}
-                            </p>
-                            {typeof field === 'object' && (
-                              <p className="mt-1 text-[10px] text-gray-500 dark:text-white/45">{field.source}</p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                     {(() => {
