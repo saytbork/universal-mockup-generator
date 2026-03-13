@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { applyIndustryProfileSoft } from '../../productStudio/applyIndustryProfileSoft';
 
 describe('industry soft presets', () => {
-  test('supplements to wine applies compatible premium defaults softly', () => {
+  test('supplements to wine applies compatible premium defaults softly without changing tilt', () => {
     const current = {
       visualIntent: 'conversion',
       lighting: 'clinical-softbox',
@@ -15,11 +15,11 @@ describe('industry soft presets', () => {
 
     expect(next.lighting).toBe('warm-lateral');
     expect(next.composition).toBe('centered');
-    expect(next.tilt).toBe(7);
+    expect(next.tilt).toBe(0);
     expect(next).not.toBe(current);
   });
 
-  test('wine to coffee replaces incompatible fields and normalizes tilt', () => {
+  test('wine to coffee replaces incompatible fields without normalizing tilt', () => {
     const current = {
       visualIntent: 'campaign',
       lighting: 'warm-lateral',
@@ -31,7 +31,7 @@ describe('industry soft presets', () => {
     const next = applyIndustryProfileSoft(current, 'coffee');
 
     expect(next.lighting).toBe('natural-light');
-    expect(next.tilt).toBe(0);
+    expect(next.tilt).toBe(7);
     expect(next).not.toBe(current);
   });
 
