@@ -797,6 +797,11 @@ const PREVIEW_ACCESS_CODE = '2999';
 const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '8714';
 const TRIAL_BYPASS_CODE = '8714';
 const BYPASS_CODE_VALUES = new Set([PREVIEW_ACCESS_CODE, TRIAL_BYPASS_CODE, TESTER_UPGRADE_CODE.toUpperCase(), 'CODE']);
+const DEBUG_PROMPT_PIPELINE =
+  import.meta.env.DEV || import.meta.env.VITE_DEBUG_PROMPT_PIPELINE === 'true';
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_PROMPT_PIPELINE) console.log(...args);
+};
 
 const PERSON_FIELD_KEYS = [
   'ageGroup',
@@ -1700,7 +1705,7 @@ const App: React.FC = () => {
         });
       }
       if (canceled) return;
-      console.log('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
+      debugLog('[PRODUCT STUDIO SYNC] Products synced:', useProductStudioStore.getState().products.length);
     })();
 
     return () => {
@@ -3808,8 +3813,8 @@ const App: React.FC = () => {
   // Handler for LifestyleStep3 component 
   const handleLifestyleStep3Change = useCallback((values: Step3Values) => {
     // PHASE 3: MANDATORY LOG - Prove App receives sceneState
-    console.log('[APP RECEIVED SCENESTATE]', values);
-    console.log('[APP RECEIVED SCENESTATE FIELDS]', {
+    debugLog('[APP RECEIVED SCENESTATE]', values);
+    debugLog('[APP RECEIVED SCENESTATE FIELDS]', {
       sceneType: values.sceneType,
       creationMode: values.creationMode,
       contentStyle: values.contentStyle,
@@ -3819,7 +3824,7 @@ const App: React.FC = () => {
 
     // Store values for PromptEngine - mapper handles all conversions
     setLifestyleStep3Values(values);
-    console.log('[SCENETYPE UPDATE]', {
+    debugLog('[SCENETYPE UPDATE]', {
       sceneType: values.sceneType,
       isStudioEngine: values.sceneType === 'studio-branding',
       sceneIntent: values.sceneIntent,
@@ -5118,14 +5123,14 @@ If the model attempts to create a scene or environment, override it and force a 
     const finalPrompt = removeConflictingIdentityPhrases(prompt);
 
     // DEBUG: Log final prompt for validation
-    console.log('[FINAL PROMPT GENERATED]:', {
+    debugLog('[FINAL PROMPT GENERATED]:', {
       length: finalPrompt.length,
       isLifestyle: isUgcStyle,
       personIncluded,
       hasPreservation: hasUploadedProduct && isUgcStyle,
       mode: options.creationMode,
     });
-    console.log('[Prompt Preview (first 800 chars)]:', finalPrompt.substring(0, 800));
+    debugLog('[Prompt Preview (first 800 chars)]:', finalPrompt.substring(0, 800));
 
     return finalPrompt;
   }
@@ -5300,7 +5305,7 @@ If the model attempts to create a scene or environment, override it and force a 
       // isProductPlacement = options.contentStyle === 'product' (set via the V1 toggle)
       // isStudioBrandingScene = sceneType emitted by Step3 is 'studio-branding' (V2 panel, isProductMode=false)
       // Both cases must use V2 generateProductJobs + ProductStudioStore as source of truth.
-      console.log('[ENGINE TRACE]', {
+      debugLog('[ENGINE TRACE]', {
         sceneType: lifestyleStep3Values?.sceneType,
         isStudioEngine: null,
         sceneIntent: lifestyleStep3Values?.sceneIntent ?? options.sceneIntent,
@@ -5317,7 +5322,7 @@ If the model attempts to create a scene or environment, override it and force a 
           forceStudioByProductContent ||
           isProductPlacement
         ));
-      console.log('[APP isStudioEngine]', {
+      debugLog('[APP isStudioEngine]', {
         'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
         'lifestyleStep3Values.contentStyle': lifestyleStep3Values?.contentStyle,
         'options.contentStyle': options.contentStyle,
@@ -5479,11 +5484,11 @@ If the model attempts to create a scene or environment, override it and force a 
             ...productStateRaw,
             aspectRatio: (resolveOutputAspectRatio() || productStateRaw.aspectRatio || PRODUCT_DEFAULT_ASPECT_RATIO) as any
           };
-          console.log('[PRODUCT STUDIO STATE]', productState);
-          console.log('[ROUTE] studio-branding → V2 engine. isStudioEngine=', isStudioEngine, '(isProductPlacement=', isProductPlacement, ', isStudioBrandingScene=', isStudioBrandingScene, ')');
+          debugLog('[PRODUCT STUDIO STATE]', productState);
+          debugLog('[ROUTE] studio-branding → V2 engine. isStudioEngine=', isStudioEngine, '(isProductPlacement=', isProductPlacement, ', isStudioBrandingScene=', isStudioBrandingScene, ')');
 
           // Generate jobs using Product-only builders
-          console.log('[ENGINE TRACE]', {
+          debugLog('[ENGINE TRACE]', {
             sceneType: String((lifestyleStep3Values as any)?.sceneType || (options as any).sceneType || ''),
             isStudioEngine,
             sceneIntent: String((lifestyleStep3Values as any)?.sceneIntent || (options as any).sceneIntent || ''),
@@ -5515,7 +5520,7 @@ If the model attempts to create a scene or environment, override it and force a 
             }
           }
 
-          console.log('[FINAL PRODUCT PROMPT]', finalPrompt);
+          debugLog('[FINAL PRODUCT PROMPT]', finalPrompt);
 
           // Product mode uses minimal prompt options
           promptOptions = {
@@ -5530,7 +5535,7 @@ If the model attempts to create a scene or environment, override it and force a 
         } else if (lifestyleStep3Values) {
           // LIFESTYLE/UGC MODE - Use legacy mapper (unchanged)
           promptOptions = mapLifestyleToPromptOptions(lifestyleStep3Values, basePromptOptions, hasModelReference);
-          console.log('[ENGINE TRACE]', {
+          debugLog('[ENGINE TRACE]', {
             sceneType: String((promptOptions as any)?.sceneType || ''),
             isStudioEngine,
             sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
@@ -5538,7 +5543,7 @@ If the model attempts to create a scene or environment, override it and force a 
           });
           finalPrompt = promptEngine.build(promptOptions);
         } else {
-          console.log('[ENGINE TRACE]', {
+          debugLog('[ENGINE TRACE]', {
             sceneType: String((promptOptions as any)?.sceneType || ''),
             isStudioEngine,
             sceneIntent: String((promptOptions as any)?.sceneIntent || ''),
@@ -5614,15 +5619,15 @@ If the model attempts to create a scene or environment, override it and force a 
         }
 
         // MANDATORY LOGS - Prove injection works
-        console.log('[SCENESTATE]', lifestyleStep3Values);
-        console.log('[PROMPT OPTIONS FROM MAP]', promptOptions);
+        debugLog('[SCENESTATE]', lifestyleStep3Values);
+        debugLog('[PROMPT OPTIONS FROM MAP]', promptOptions);
 
         const promptHash = await computePromptHash(finalPrompt);
-        console.log('[UGC DEBUG] promptHash:', promptHash);
-        console.log('[UGC DEBUG] promptPreview:', finalPrompt.slice(0, 300));
+        debugLog('[UGC DEBUG] promptHash:', promptHash);
+        debugLog('[UGC DEBUG] promptPreview:', finalPrompt.slice(0, 300));
 
         // MANDATORY LOG - Final prompt string MUST show injected values
-        console.log('[FINAL PROMPT STRING]', finalPrompt);
+        debugLog('[FINAL PROMPT STRING]', finalPrompt);
 
         const aspectRatio =
           isStudioEngine
@@ -5661,7 +5666,7 @@ If the model attempts to create a scene or environment, override it and force a 
         // prompt creates duplicate semantic content that degrades model determinism.
         // The PHYSICS_FINAL_ANCHOR segment appended last in winePipeline handles recency bias.
 
-        console.log('[WINE SERVED MODE DEBUG]', {
+        debugLog('[WINE SERVED MODE DEBUG]', {
           isProductPlacement,
           visualProfile: wineVisualProfile,
           wineGlassMode: (productStateForWine as any)?.wineGlassMode,
@@ -5761,7 +5766,7 @@ If the model attempts to create a scene or environment, override it and force a 
             
             const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
             
-            console.log(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
+            debugLog(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
             
             // GEMINI FIX: Normalize product with light neutral padding
             // Creates a canvas at the target aspect ratio with the product centered
@@ -5829,7 +5834,7 @@ If the model attempts to create a scene or environment, override it and force a 
           partsOrder,
           partsCount: requestParts.length,
         };
-        console.log('[UGC PAYLOAD]', payloadLog);
+        debugLog('[UGC PAYLOAD]', payloadLog);
         generationLogId = createGenerationLog({
           scope: runMode === 'validate' ? 'handleGenerateClick:validate' : 'handleGenerateClick',
           sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
@@ -5902,7 +5907,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const imageUrl = typeof data?.imageUrl === 'string' ? data.imageUrl : '';
         const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
         if (data?.imageMeta && typeof data.imageMeta === 'object') {
-          console.log('[API IMAGE META]', data.imageMeta);
+          debugLog('[API IMAGE META]', data.imageMeta);
         }
         const displayUrl = imageBase64
           ? `data:image/png;base64,${imageBase64}`
@@ -6063,7 +6068,7 @@ If the model attempts to create a scene or environment, override it and force a 
       // Ecommerce overlays are a Product Studio feature; build prompts from the ProductStudioStore
       // (not from legacy PromptEngine mapping), so all selected Product Studio options inject.
       const baseProductStateRaw = useProductStudioStore.getState();
-      console.log('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
+      debugLog('[PRODUCT STUDIO STATE][ECOM]', baseProductStateRaw);
 
       // Ecommerce PDP Image Builder: force square canvases for overlays (hard rule).
       const aspectRatio = ECOMMERCE_PDP_ASPECT_RATIO;
@@ -6125,7 +6130,7 @@ If the model attempts to create a scene or environment, override it and force a 
           },
         };
 
-        console.log('[ENGINE TRACE]', {
+        debugLog('[ENGINE TRACE]', {
           sceneType: String((slotProductState as any)?.sceneType || ''),
           isStudioEngine: true,
           sceneIntent: 'ecommerce',
@@ -6162,7 +6167,7 @@ If the model attempts to create a scene or environment, override it and force a 
           throw new Error('[ECOMMERCE PDP BUG] Safe zone not injected into prompt.');
         }
 
-        console.log('[ECOM SLOT]', slotKey, {
+        debugLog('[ECOM SLOT]', slotKey, {
           promptPreview: finalPrompt.slice(0, 240),
           sceneType: slotProductState.sceneType,
           safeZone,
@@ -6227,7 +6232,7 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(responseData.remaining_credits);
         }
         if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
-          console.log(`[ECOM SLOT IMAGE META:${slotKey}]`, responseData.imageMeta);
+          debugLog(`[ECOM SLOT IMAGE META:${slotKey}]`, responseData.imageMeta);
         }
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (!encodedImage) {
@@ -6386,7 +6391,7 @@ If the model attempts to create a scene or environment, override it and force a 
         });
 
         const state = useProductStudioStore.getState();
-        console.log('[ENGINE TRACE]', {
+        debugLog('[ENGINE TRACE]', {
           sceneType: String((state as any)?.sceneType || ''),
           isStudioEngine: true,
           sceneIntent: 'ecommerce',
@@ -6395,7 +6400,7 @@ If the model attempts to create a scene or environment, override it and force a 
         const jobs = generateProductJobs(state as any);
         const finalPrompt = jobs[0].prompt;
 
-        console.log(`[ECOM SEQUENCE] Step ${i + 1}/5:`, finalPrompt.slice(0, 200));
+        debugLog(`[ECOM SEQUENCE] Step ${i + 1}/5:`, finalPrompt.slice(0, 200));
 
         const response = await fetch('/api/generate', {
           method: 'POST',
@@ -6428,7 +6433,7 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(responseData.remaining_credits);
         }
         if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
-          console.log(`[ECOM SEQUENCE IMAGE META:${i + 1}]`, responseData.imageMeta);
+          debugLog(`[ECOM SEQUENCE IMAGE META:${i + 1}]`, responseData.imageMeta);
         }
 
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
@@ -6582,7 +6587,7 @@ If the model attempts to create a scene or environment, override it and force a 
         setRemoteCredits(data.remaining_credits);
       }
       if (data?.imageMeta && typeof data.imageMeta === 'object') {
-        console.log('[IMAGE EDIT META]', data.imageMeta);
+        debugLog('[IMAGE EDIT META]', data.imageMeta);
       }
       const encodedImage = typeof data?.imageBase64 === 'string' ? data.imageBase64 : '';
       if (!encodedImage) {

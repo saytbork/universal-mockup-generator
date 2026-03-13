@@ -15,11 +15,16 @@ import {
 } from './capabilityResolver';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
+const DEBUG_PROMPT_PIPELINE =
+  import.meta.env.DEV || import.meta.env.VITE_DEBUG_PROMPT_PIPELINE === 'true';
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_PROMPT_PIPELINE) console.log(...args);
+};
 
 function isStudioV2Enabled(): boolean {
   const flag = import.meta.env.VITE_USE_STUDIO_V2;
   const enabled = true;
-  console.log(
+  debugLog(
     `[STUDIO ROUTER] flag v2=${flag ?? 'undefined'} source=vite enabled=${enabled} (main locked to v2)`
   );
   return enabled;
@@ -287,8 +292,7 @@ function resolveVisualStyleFromState(state: ProductStudioState): string | undefi
 
   if (!raw) return undefined;
   if (raw === 'Monochrome Brand') {
-    // eslint-disable-next-line no-console
-    console.log('[LEGACY STYLE NORMALIZED] Monochrome Brand -> cleared');
+    debugLog('[LEGACY STYLE NORMALIZED] Monochrome Brand -> cleared');
     return undefined;
   }
   if (VISUAL_STYLE_MODES.has(raw)) return raw;
@@ -299,8 +303,7 @@ function resolveLegacyVisualStyleFromPhotoMode(state: ProductStudioState): strin
   const raw = String(state.photoMode || '').trim();
   if (!raw) return undefined;
   if (!VISUAL_STYLE_MODES.has(raw)) return undefined;
-  // eslint-disable-next-line no-console
-  console.log('[LEGACY PHOTO MODE MIGRATED TO VISUAL STYLE]', raw);
+  debugLog('[LEGACY PHOTO MODE MIGRATED TO VISUAL STYLE]', raw);
   return raw;
 }
 
@@ -334,8 +337,7 @@ function resolvePhotoModeFromState(state: ProductStudioState): ProductStudioStat
   const raw = String(state.photoMode || '').trim();
   if (!raw) return undefined;
   if (raw === 'Color Pop Hero') {
-    // eslint-disable-next-line no-console
-    console.log('[LEGACY MODE NORMALIZED] Color Pop Hero -> Hero Landing Page');
+    debugLog('[LEGACY MODE NORMALIZED] Color Pop Hero -> Hero Landing Page');
     return 'Hero Landing Page';
   }
   if (PHOTO_MODES.has(raw)) return raw as ProductStudioState['photoMode'];
@@ -1172,32 +1174,19 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     resolvedVisualStyle
   );
   const normalizedProductCharacter = normalizeProductCharacter(state, industryProfile);
-  // eslint-disable-next-line no-console
-  console.log('[PHOTO MODE RAW]', photoModeRaw);
-  // eslint-disable-next-line no-console
-  console.log('[PHOTO MODE RESOLVED]', resolvedPhotoMode || '');
-  // eslint-disable-next-line no-console
-  console.log('[VISUAL STYLE RAW]', visualStyleRaw);
-  // eslint-disable-next-line no-console
-  console.log('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
-  // eslint-disable-next-line no-console
-  console.log('[VISUAL STYLE CATEGORY]', normalizedWorldAtmosphere.visualStyleCategory || '');
-  // eslint-disable-next-line no-console
-  console.log('[ENVIRONMENT RAW]', resolvedEnvironment.raw || '');
-  // eslint-disable-next-line no-console
-  console.log('[ENVIRONMENT FIELD SOURCE]', resolvedEnvironment.source || '');
-  // eslint-disable-next-line no-console
-  console.log('[CREATIVE DIRECTION RESOLVED]', normalizedCreativeDirection);
-  // eslint-disable-next-line no-console
-  console.log('[PHYSICAL PRESENCE RESOLVED]', normalizedPhysicalPresence);
-  // eslint-disable-next-line no-console
-  console.log('[MOTION & INTERACTION RESOLVED]', normalizedMotionInteraction);
-  // eslint-disable-next-line no-console
-  console.log('[WORLD & ATMOSPHERE RESOLVED]', normalizedWorldAtmosphere);
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT CHARACTER RESOLVED]', normalizedProductCharacter);
-  // eslint-disable-next-line no-console
-  console.log('[CINEMATOGRAPHY RESOLVED]', {
+  debugLog('[PHOTO MODE RAW]', photoModeRaw);
+  debugLog('[PHOTO MODE RESOLVED]', resolvedPhotoMode || '');
+  debugLog('[VISUAL STYLE RAW]', visualStyleRaw);
+  debugLog('[VISUAL STYLE RESOLVED]', resolvedVisualStyle || '');
+  debugLog('[VISUAL STYLE CATEGORY]', normalizedWorldAtmosphere.visualStyleCategory || '');
+  debugLog('[ENVIRONMENT RAW]', resolvedEnvironment.raw || '');
+  debugLog('[ENVIRONMENT FIELD SOURCE]', resolvedEnvironment.source || '');
+  debugLog('[CREATIVE DIRECTION RESOLVED]', normalizedCreativeDirection);
+  debugLog('[PHYSICAL PRESENCE RESOLVED]', normalizedPhysicalPresence);
+  debugLog('[MOTION & INTERACTION RESOLVED]', normalizedMotionInteraction);
+  debugLog('[WORLD & ATMOSPHERE RESOLVED]', normalizedWorldAtmosphere);
+  debugLog('[PRODUCT CHARACTER RESOLVED]', normalizedProductCharacter);
+  debugLog('[CINEMATOGRAPHY RESOLVED]', {
     cameraAngle: resolvedCamera.cameraAngle,
     cameraDistance: resolvedCamera.cameraDistance,
     cameraRotation: resolvedCamera.cameraRotation,
@@ -1537,8 +1526,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         if (labelAccent) paletteBlock.productPaletteC = labelAccent;
       }
 
-      // eslint-disable-next-line no-console
-      console.log(
+      debugLog(
         '[extractProductPalette]\n' +
         `A ${labelDominant || '#f9fafb'}\n` +
         `B ${labelSecondary || '#f3f4f6'}\n` +
@@ -1647,8 +1635,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
   v2State.interaction = sanitizedInteractionCanonical;
   v2State.packagingBehavior = packagingBehavior;
-  // eslint-disable-next-line no-console
-  console.log('[ENVIRONMENT RESOLVED]', v2State.environmentPreset || '');
+  debugLog('[ENVIRONMENT RESOLVED]', v2State.environmentPreset || '');
 
   return v2State;
 }
@@ -1684,25 +1671,25 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   // }
 
   if (!isStudioV2Enabled()) {
-    console.log('[STUDIO ROUTER] engine=legacy');
+    debugLog('[STUDIO ROUTER] engine=legacy');
     return mapSceneToPrompt(state, product);
   }
 
-  console.log('[STUDIO ROUTER] engine=v2');
+  debugLog('[STUDIO ROUTER] engine=v2');
   const resolvedIndustryProfile = assertIndustry(
     state.industryProfile || state.visualProfile
   );
   resolveIndustryProfileModule(resolvedIndustryProfile);
   const v2State = toStudioV2State(state);
-  console.log('[STUDIO ROUTER] v2-state', v2State);
-  console.log('[STUDIO ROUTER] v2State.photoMode =', JSON.stringify(v2State.photoMode));
-  console.log('[STUDIO ROUTER] raw state.photoMode =', JSON.stringify(state.photoMode));
+  debugLog('[STUDIO ROUTER] v2-state', v2State);
+  debugLog('[STUDIO ROUTER] v2State.photoMode =', JSON.stringify(v2State.photoMode));
+  debugLog('[STUDIO ROUTER] raw state.photoMode =', JSON.stringify(state.photoMode));
   const v2Prompt = generateStudioPromptV2(v2State);
 
   // Sanitize for industry-specific forbidden patterns (wine/coffee).
   const prompt = applyIndustryPromptPolicy(v2Prompt, resolvedIndustryProfile);
 
-  console.log('[INDUSTRY ACTIVE]', state.industryProfile);
+  debugLog('[INDUSTRY ACTIVE]', state.industryProfile);
 
   if (v2State.visualProfile === 'coffee' && !/\bCOFFEE_PACKAGING_MODE\b/.test(prompt)) {
     console.warn('[COFFEE PACKAGING GUARD MISSING]');
