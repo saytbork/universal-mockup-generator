@@ -4210,7 +4210,7 @@ const App: React.FC = () => {
 
   const advanceModeGuide = useCallback(() => {
     if (activeModeGuideStep === 3) {
-      uploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       dismissModeGuide();
       return;
     }
