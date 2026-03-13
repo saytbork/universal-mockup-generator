@@ -918,12 +918,12 @@ export type ProductStudioState = {
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
     winePourStyle: WinePourStyle;
-    wineType?: string;
-    carbonationLevel?: string;
-    wineBottleState?: string;
-    wineGlassMode?: string;
+    wineType?: 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
+    carbonationLevel?: 'none' | 'subtle' | 'visible';
+    wineBottleState?: 'sealed' | 'opened-with-cork-nearby';
+    wineGlassMode?: 'none' | 'filled';
     wineGlassType?: WineGlassType;
-    wineClosureType?: string;
+    wineClosureType?: 'from-reference' | 'natural-cork' | 'crown-cap' | 'screw-cap' | 'cork-with-cage' | 'synthetic-closure';
     wineServeAmount?: string;
     serveVolumeMode?: string;
     wineEngineVersion?: number;

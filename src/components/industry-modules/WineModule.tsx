@@ -10,23 +10,9 @@ import {
 import type { WineAction, WineGlassType, WineLightingTone, WineMoodModifier, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
-type WineTypeUI =
-  | 'auto'
-  | 'white'
-  | 'red'
-  | 'rosé'
-  | 'sparkling-white'
-  | 'sparkling-rosé';
-
-type WineClosureTypeUI =
-  | 'from-reference'
-  | 'natural-cork'
-  | 'crown-cap'
-  | 'screw-cap'
-  | 'cork-with-cage'
-  | 'synthetic-closure';
-
-  type ServeStateUI = 'none' | 'served';
+type WineTypeUI = 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
+type WineClosureTypeUI = 'from-reference' | 'natural-cork' | 'crown-cap' | 'screw-cap' | 'cork-with-cage' | 'synthetic-closure';
+type ServeStateUI = 'none' | 'served';
 type WineCarbonationUI = 'none' | 'subtle' | 'visible';
 
 const WINE_CLOSURE_OPTIONS: Array<{ value: WineClosureTypeUI; label: string }> = [
@@ -58,19 +44,18 @@ const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = 
 
 export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
-  const wineType = (useProductStudioStore((s) => (s as any).wineType) || 'auto') as WineTypeUI;
-  const wineClosureType = (useProductStudioStore((s) => (s as any).wineClosureType) || 'from-reference') as WineClosureTypeUI;
-  const wineBottleState = (useProductStudioStore((s) => (s as any).wineBottleState) || 'opened-with-cork-nearby') as string;
-  const wineGlassMode = (useProductStudioStore((s) => (s as any).wineGlassMode) || 'none') as string;
-  const wineGlassType = (useProductStudioStore((s) => (s as any).wineGlassType) || 'auto') as WineGlassType;
-  const wineServeAmount = (useProductStudioStore((s) => (s as any).wineServeAmount) || 'standard') as string;
-  const wineAction = (useProductStudioStore((s) => (s as any).wineAction) || 'static-presentation') as WineAction;
-  const winePourStyle = (useProductStudioStore((s) => (s as any).winePourStyle) || 'slow-ribbon') as WinePourStyle;
-  const wineLightingTone = (useProductStudioStore((s) => (s as any).wineLightingTone) || 'Warm Lateral') as WineLightingTone;
-  const wineMoodModifier = (useProductStudioStore((s) => (s as any).wineMoodModifier) || 'None') as WineMoodModifier;
-  const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
-  const wineStyleArchetype = (useProductStudioStore((s) => (s as any).wineStyleArchetype) ?? null) as WineStyleArchetype | null;
-  const photoMode = (useProductStudioStore((s) => (s as any).photoMode) || '') as string;
+  const wineType         = (useProductStudioStore((s) => s.wineType)         ?? 'auto')                    as WineTypeUI;
+  const wineClosureType  = (useProductStudioStore((s) => s.wineClosureType)  ?? 'from-reference')          as WineClosureTypeUI;
+  const wineBottleState  = (useProductStudioStore((s) => s.wineBottleState)  ?? 'opened-with-cork-nearby') as string;
+  const wineGlassMode    = (useProductStudioStore((s) => s.wineGlassMode)    ?? 'none')                    as string;
+  const wineGlassType    =  useProductStudioStore((s) => s.wineGlassType)    ?? 'auto';
+  const wineAction       =  useProductStudioStore((s) => s.wineAction);
+  const winePourStyle    =  useProductStudioStore((s) => s.winePourStyle);
+  const wineLightingTone =  useProductStudioStore((s) => s.wineLightingTone);
+  const wineMoodModifier =  useProductStudioStore((s) => s.wineMoodModifier);
+  const carbonationLevel = (useProductStudioStore((s) => s.carbonationLevel) ?? 'none')                    as WineCarbonationUI;
+  const wineStyleArchetype = useProductStudioStore((s) => s.wineStyleArchetype) ?? null;
+  const photoMode        = (useProductStudioStore((s) => (s as any).photoMode) ?? '') as string;
 
   // ── Derived coherence flags ────────────────────────────────────────────
   const isBottleAndGlassMode = photoMode === 'Bottle + Glass';
