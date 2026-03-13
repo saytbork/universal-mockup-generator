@@ -6836,98 +6836,48 @@ If the model attempts to create a scene or environment, override it and force a 
                     STUDIO
                   </button>
                 </div>
+
+                {showModeGuide && activeModeGuideStep === 2 && (
+                  <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 2 of 3</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Select a mode</p>
+                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                          Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={dismissModeGuide}
+                        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
+                      >
+                        Skip
+                      </button>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={rewindModeGuide}
+                        className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={advanceModeGuide}
+                        className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </header>
 
           <main className="flex flex-col gap-6">
-            {showModeGuide && (
-              <div className="pointer-events-none flex justify-center">
-                <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-gray-200 bg-white/95 px-5 py-4 shadow-sm transition-all duration-300 dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
-                          {activeModeGuideStep}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">
-                            Step {activeModeGuideStep} of 3
-                          </p>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3].map(step => (
-                              <button
-                                key={step}
-                                type="button"
-                                onClick={() => handleModeGuideStepClick(step as 1 | 2 | 3)}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${
-                                  activeModeGuideStep === step
-                                    ? 'w-6 bg-indigo-600'
-                                    : 'w-2 bg-gray-300 dark:bg-white/20'
-                                }`}
-                                aria-label={`Go to onboarding step ${step}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {activeModeGuideStep === 1 && (
-                        <div className="space-y-1">
-                          <p className="text-base font-semibold text-gray-900 dark:text-white">Upload the real product first</p>
-                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                            Start with the pack you want to use so the label, shape and proportions stay locked from the beginning.
-                          </p>
-                        </div>
-                      )}
-                      {activeModeGuideStep === 2 && (
-                        <div className="space-y-1">
-                          <p className="text-base font-semibold text-gray-900 dark:text-white">Choose how you want to create</p>
-                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                            Pick <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
-                          </p>
-                        </div>
-                      )}
-                      {activeModeGuideStep === 3 && (
-                        <div className="space-y-1">
-                          <p className="text-base font-semibold text-gray-900 dark:text-white">Then refine only the relevant settings</p>
-                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                            We take you to the right controls automatically so you can adjust the image without hunting through the builder.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={dismissModeGuide}
-                      className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
-                    >
-                      Skip
-                    </button>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={rewindModeGuide}
-                      disabled={activeModeGuideStep === 1}
-                      className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={advanceModeGuide}
-                      className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
-                    >
-                      {activeModeGuideStep === 3 ? 'Got it' : 'Next'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
               <div className="rounded-3xl border border-gray-200 bg-white/10 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -7020,6 +6970,37 @@ If the model attempts to create a scene or environment, override it and force a 
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
                     </div>
+
+                    {showModeGuide && activeModeGuideStep === 1 && (
+                      <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 1 of 3</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Upload an image</p>
+                            <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                              Start with the real product image so label, shape and proportions stay locked from the beginning.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={dismissModeGuide}
+                            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
+                          >
+                            Skip
+                          </button>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <div className="h-1.5 w-12 rounded-full bg-indigo-600" />
+                          <button
+                            type="button"
+                            onClick={advanceModeGuide}
+                            className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-6">
 
@@ -7210,6 +7191,42 @@ If the model attempts to create a scene or environment, override it and force a 
                         02 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
                       </p>
                     </div>
+                    {showModeGuide && activeModeGuideStep === 3 && (
+                      <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 3 of 3</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Choose a style</p>
+                            <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                              Once the mode is selected, use these settings to shape the look without guessing where to begin.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={dismissModeGuide}
+                            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
+                          >
+                            Skip
+                          </button>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <button
+                            type="button"
+                            onClick={rewindModeGuide}
+                            className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                          >
+                            Back
+                          </button>
+                          <button
+                            type="button"
+                            onClick={advanceModeGuide}
+                            className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+                          >
+                            Got it
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {!hasUploadedProduct && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
