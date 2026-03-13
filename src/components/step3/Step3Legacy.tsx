@@ -3624,13 +3624,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 markSectionTouched={markSectionTouched}
                               />
                             )}
-                            {productStore.photoMode && PHOTO_MODE_SCHEMAS[productStore.photoMode] && !(wineIndustryActive && productStore.photoMode === 'Winery Scene') && (
-                              <PhotoModeSettings
-                                schema={PHOTO_MODE_SCHEMAS[productStore.photoMode]!}
-                                productStore={productStore}
-                                markSectionTouched={markSectionTouched}
-                              />
-                            )}
                             {productStore.photoMode === 'Hero Landing Page' && !productStore.visualStyle && (
                               <PropertySettingsCard
                                 title="Hero Landing Page Atmosphere"
