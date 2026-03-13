@@ -2040,45 +2040,77 @@ const App: React.FC = () => {
       isStudioBrandingScene ||
       (!isLifestyleScene && (forceStudioByProductContent || isProductPlacement));
 
+    const sceneTypeFromUser = lifestyleStep3Values?.sceneType;
     const resolvedSceneType = resolvedStudioEngine
       ? 'studio-branding'
-      : lifestyleStep3Values?.sceneType && lifestyleStep3Values.sceneType !== 'studio-branding'
-        ? lifestyleStep3Values.sceneType
+      : sceneTypeFromUser && sceneTypeFromUser !== 'studio-branding'
+        ? sceneTypeFromUser
         : 'lifestyle-real';
 
-    const resolvedIndustry = resolvedStudioEngine
-      ? studioIndustryProfile || 'supplements'
-      : lifestyleStep3Values?.environment || options.setting || 'Lifestyle';
+    const industryFromUser = resolvedStudioEngine
+      ? studioIndustryProfile
+      : lifestyleStep3Values?.environment || options.setting;
+    const resolvedIndustry = industryFromUser || (resolvedStudioEngine ? 'supplements' : 'Lifestyle');
 
-    const resolvedMode = resolvedStudioEngine
-      ? studioPhotoMode || 'Hero Landing Page'
+    const modeFromUser = resolvedStudioEngine
+      ? studioPhotoMode
       : lifestyleStep3Values?.visualMode ||
         lifestyleStep3Values?.creationMode ||
-        options.creationMode ||
-        'lifestyle';
+        options.creationMode;
+    const resolvedMode = modeFromUser || (resolvedStudioEngine ? 'Hero Landing Page' : 'lifestyle');
 
-    const resolvedIntent = resolvedStudioEngine
-      ? studioVisualIntent || 'conversion'
+    const intentFromUser = resolvedStudioEngine
+      ? studioVisualIntent
       : lifestyleStep3Values?.visualIntent ||
         lifestyleStep3Values?.creationIntent ||
         options.creationIntent ||
-        options.contentStyle ||
-        'ugc';
+        options.contentStyle;
+    const resolvedIntent = intentFromUser || (resolvedStudioEngine ? 'conversion' : 'ugc');
 
-    const resolvedContext = resolvedStudioEngine
-      ? studioContextPreset || 'Auto'
+    const contextFromUser = resolvedStudioEngine
+      ? studioContextPreset
       : lifestyleStep3Values?.environmentContext?.micro ||
         lifestyleStep3Values?.environment ||
-        options.setting ||
-        'Auto';
+        options.setting;
+    const resolvedContext = contextFromUser || 'Auto';
+
+    const toField = (value: string, source: string, wasResolved: boolean) => ({
+      value: String(value || 'Auto'),
+      source,
+      resolved: wasResolved,
+    });
 
     return {
-      engine: resolvedStudioEngine ? 'Studio V2' : 'Lifestyle',
-      sceneType: resolvedSceneType,
-      industry: String(resolvedIndustry || 'Auto'),
-      mode: String(resolvedMode || 'Auto'),
-      intent: String(resolvedIntent || 'Auto'),
-      context: String(resolvedContext || 'Auto'),
+      engine: {
+        value: resolvedStudioEngine ? 'Studio V2' : 'Lifestyle',
+        source: resolvedStudioEngine ? 'resolved by scene + product rules' : 'resolved by scene flow',
+        resolved: resolvedStudioEngine !== isStudioBrandingScene,
+      },
+      sceneType: toField(
+        resolvedSceneType,
+        sceneTypeFromUser ? 'from current selection' : 'defaulted by active flow',
+        !sceneTypeFromUser || sceneTypeFromUser !== resolvedSceneType
+      ),
+      industry: toField(
+        String(resolvedIndustry),
+        industryFromUser ? 'from selected industry/context' : 'defaulted by engine',
+        !industryFromUser
+      ),
+      mode: toField(
+        String(resolvedMode),
+        modeFromUser ? 'from selected mode' : 'defaulted by engine',
+        !modeFromUser
+      ),
+      intent: toField(
+        String(resolvedIntent),
+        intentFromUser ? 'from selected intent' : 'defaulted by engine',
+        !intentFromUser
+      ),
+      context: toField(
+        String(resolvedContext),
+        contextFromUser ? 'from current context' : 'auto',
+        !contextFromUser
+      ),
     };
   }, [
     isProductPlacement,
@@ -7372,7 +7404,7 @@ If the model attempts to create a scene or environment, override it and force a 
                           </p>
                         </div>
                         <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
-                          {resolvedGenerationSummary.engine}
+                          {resolvedGenerationSummary.engine.value}
                         </span>
                       </div>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -7383,13 +7415,25 @@ If the model attempts to create a scene or environment, override it and force a 
                           ['Intent', resolvedGenerationSummary.intent],
                           ['Context', resolvedGenerationSummary.context],
                           ['Output', selectedOutputAspectRatio],
-                        ].map(([label, value]) => (
+                        ].map(([label, field]) => (
                           <div
                             key={label}
                             className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2 dark:border-white/10 dark:bg-white/5"
                           >
-                            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/40">{label}</p>
-                            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{value}</p>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/40">{label}</p>
+                              {typeof field === 'object' && field.resolved && (
+                                <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                                  Auto
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                              {typeof field === 'object' ? field.value : field}
+                            </p>
+                            {typeof field === 'object' && (
+                              <p className="mt-1 text-[10px] text-gray-500 dark:text-white/45">{field.source}</p>
+                            )}
                           </div>
                         ))}
                       </div>
