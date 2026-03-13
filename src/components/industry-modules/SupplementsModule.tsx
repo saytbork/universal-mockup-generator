@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
 import type { ProductStudioState, ProductType } from '@/lib/productStudio/types';
-
-type SupplementsModuleProps = {
-  productType: ProductType;
-  packagingMode: ProductStudioState['packagingMode'];
-  onProductTypeChange: (productType: ProductType) => void;
-  onPackagingModeChange: (mode: ProductStudioState['packagingMode']) => void;
-};
+import { useProductStudioStore } from '@/lib/productStudio/store';
 
 const SUPPLEMENT_FORMAT_OPTIONS: Array<{ label: string; value: ProductType }> = [
   { label: 'Capsules', value: 'capsules' },
@@ -25,12 +19,12 @@ const PACKAGING_OPTIONS: Array<{
   { label: 'With Box', value: 'with-box' },
 ];
 
-export function SupplementsModule({
-  productType,
-  packagingMode,
-  onProductTypeChange,
-  onPackagingModeChange,
-}: SupplementsModuleProps) {
+export function SupplementsModule() {
+  const productType    = useProductStudioStore((s) => s.definition.type);
+  const packagingMode  = useProductStudioStore((s) => s.packagingMode);
+  const setProductType = useProductStudioStore((s) => s.setProductType);
+  const setPackagingMode = useProductStudioStore((s) => s.setPackagingMode);
+
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -53,7 +47,7 @@ export function SupplementsModule({
                 <Chip
                   key={option.value}
                   selected={productType === option.value}
-                  onClick={() => onProductTypeChange(option.value)}
+                  onClick={() => setProductType(option.value)}
                 >
                   {option.label}
                 </Chip>
@@ -68,7 +62,7 @@ export function SupplementsModule({
                 <Chip
                   key={option.value}
                   selected={packagingMode === option.value}
-                  onClick={() => onPackagingModeChange(option.value)}
+                  onClick={() => setPackagingMode(option.value)}
                 >
                   {option.label}
                 </Chip>

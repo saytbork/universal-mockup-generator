@@ -2967,18 +2967,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       if (!ActiveIndustryModule) return null;
 
                       const modulePropsByIndustry: Record<IndustryProfile, Record<string, unknown>> = {
-                        supplements: {
-                          productType: productStore.definition.type,
-                          packagingMode: productStore.packagingMode,
-                          onProductTypeChange: (productType: ProductType) => {
-                            productStore.setProductType(productType);
-                            markSectionTouched('product-setup');
-                          },
-                          onPackagingModeChange: (mode: ProductStudioState['packagingMode']) => {
-                            productStore.setPackagingMode(mode);
-                            markSectionTouched('product-setup');
-                          },
-                        },
+                        supplements: {},
                         wine: {},
                         coffee: {},
                       };
