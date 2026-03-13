@@ -4150,6 +4150,20 @@ const App: React.FC = () => {
     }
   };
 
+  const scrollToBuilderSettings = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        uploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
+    });
+  }, []);
+
+  const handleModeSwitch = useCallback((nextMode: 'ugc' | 'product') => {
+    handleOptionChange('contentStyle', nextMode, 'Mode');
+    scrollToBuilderSettings();
+  }, [handleOptionChange, scrollToBuilderSettings]);
+
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
     setFourKVariant(null);
@@ -6723,24 +6737,29 @@ If the model attempts to create a scene or environment, override it and force a 
                 </span>
               </button>
 
-              <div className="relative flex w-full max-w-[280px] items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                <div
-                  className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleOptionChange('contentStyle', 'ugc', 'Mode')}
-                  className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
-                >
-                  LIFESTYLE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOptionChange('contentStyle', 'product', 'Mode')}
-                  className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
-                >
-                  STUDIO
-                </button>
+              <div className="w-full max-w-[340px] space-y-2">
+                <div className="relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                  <div
+                    className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('ugc')}
+                    className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                  >
+                    LIFESTYLE
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch('product')}
+                    className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                  >
+                    STUDIO
+                  </button>
+                </div>
+                <p className="px-2 text-[11px] text-gray-500 dark:text-white/50">
+                  Start with <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and real environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first scenes. Selecting one jumps you to its settings.
+                </p>
               </div>
             </div>
           </header>

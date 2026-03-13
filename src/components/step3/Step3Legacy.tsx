@@ -204,11 +204,6 @@ const PHOTO_MODE_WITH_MANUAL_SETTINGS = new Set<PhotoMode>([
   'Routine Carousel',
 ]);
 
-const PHOTO_MODES_WITH_VISIBLE_SETTINGS = new Set<PhotoMode>([
-  ...PHOTO_MODE_WITH_MANUAL_SETTINGS,
-  ...(Object.keys(PHOTO_MODE_SCHEMAS) as PhotoMode[]),
-]);
-
 function hasRenderableSchemaSettings(schema?: EnvironmentPhotoModeSchema | null): boolean {
   if (!schema) return false;
   return schema.subOptions.length > 0 || schema.constraints.length > 0;
@@ -1186,13 +1181,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [openUgcLayerId, setOpenUgcLayerId] = useState<UGCLayerField | null>(null);
   const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
   const photoModeSettingsRef = useRef<HTMLDivElement | null>(null);
-  const photoModeHintTimerRef = useRef<number | null>(null);
-  const [photoModeHintVisible, setPhotoModeHintVisible] = useState(false);
-  const [photoModeHintMode, setPhotoModeHintMode] = useState<PhotoMode | null>(null);
-  const hasVisiblePhotoModeSettings = useCallback(
-    (mode?: PhotoMode | null) => Boolean(mode && PHOTO_MODES_WITH_VISIBLE_SETTINGS.has(mode)),
-    []
-  );
   const hasVisibleVisualStyleSettings = useCallback(
     (mode?: VisualStyle | null) => Boolean(mode && hasRenderableSchemaSettings(VISUAL_STYLE_SCHEMAS[mode])),
     []
@@ -1211,32 +1199,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         photoModeSettingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 40);
     });
-  }, []);
-  const showPhotoModeSettingsHint = useCallback((mode: PhotoMode) => {
-    if (typeof window === 'undefined') return;
-    if (!hasVisiblePhotoModeSettings(mode)) {
-      setPhotoModeHintMode(null);
-      setPhotoModeHintVisible(false);
-      if (photoModeHintTimerRef.current != null) {
-        window.clearTimeout(photoModeHintTimerRef.current);
-      }
-      return;
-    }
-    setPhotoModeHintMode(mode);
-    setPhotoModeHintVisible(true);
-    if (photoModeHintTimerRef.current != null) {
-      window.clearTimeout(photoModeHintTimerRef.current);
-    }
-    photoModeHintTimerRef.current = window.setTimeout(() => {
-      setPhotoModeHintVisible(false);
-    }, 2600);
-  }, [hasVisiblePhotoModeSettings]);
-  useEffect(() => {
-    return () => {
-      if (photoModeHintTimerRef.current != null && typeof window !== 'undefined') {
-        window.clearTimeout(photoModeHintTimerRef.current);
-      }
-    };
   }, []);
   // Removed duplicate isCreatorPro declaration here, managed near top.
   const initialValues: Step3Values = {
@@ -3108,7 +3070,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     {/* ─── SCENE TYPE — Hidden in Product Studio ──── */}
                     {!isProductMode && (
                       <div className={SECTION_GROUP_CLASS}>
-                        <p className={GROUP_LABEL_CLASS}>SCENE TYPE</p>
+                        <p className={GROUP_LABEL_CLASS}>START WITH</p>
                         <div className="flex flex-wrap gap-2">
                           {(['studio-branding', 'editorial-product', 'lifestyle-real', 'ugc-phone'] as const).map(type => (
                             <Chip
@@ -3130,12 +3092,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             >
                               {type === 'studio-branding' ? 'Studio' :
                                 type === 'editorial-product' ? 'Editorial' :
-                                  type === 'lifestyle-real' ? 'Lifestyle Real' : 'UGC'}
+                                  type === 'lifestyle-real' ? 'Lifestyle' : 'UGC'}
                             </Chip>
                           ))}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                          Studio: neutral background. Editorial: stylized. Lifestyle Real: full environment. UGC: phone capture.
+                          Choose Studio for product-first scenes, Lifestyle for people and environments, Editorial for campaign polish, or UGC for phone-native content.
                         </p>
                       </div>
                     )}
@@ -3233,7 +3195,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               if (cleaned !== productStore.props) productStore.setProps(cleaned);
                               markSectionTouched('product-setup');
                               scrollToPhotoModeSettings();
-                              showPhotoModeSettingsHint(mode);
                             };
 
                             const applyVisualStyle = (mode: string) => {
@@ -3566,12 +3527,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                           <div className="mt-8 space-y-5">
                             <div ref={photoModeSettingsRef} />
-                            {photoModeHintVisible && hasVisiblePhotoModeSettings(photoModeHintMode || productStore.photoMode) && !(wineIndustryActive && (photoModeHintMode || productStore.photoMode) === 'Winery Scene') && (
-                              <div className="rounded-lg border border-gray-200/80 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-800">
-                                <p className="font-semibold">You can adjust this option here: {photoModeHintMode || productStore.photoMode}</p>
-                                <p className="text-gray-700/90">This hint will auto-dismiss in a few seconds.</p>
-                              </div>
-                            )}
                             {productStore.visualStyle && VISUAL_STYLE_SCHEMAS[productStore.visualStyle] && (
                               <PhotoModeSettings
                                 schema={VISUAL_STYLE_SCHEMAS[productStore.visualStyle]!}

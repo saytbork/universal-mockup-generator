@@ -83,6 +83,10 @@ export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ children, asChil
     return null;
   }
 
+  const isTouchLikeDevice =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
   const handleOpen = (event: React.MouseEvent<HTMLElement> | React.FocusEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
     context.open(event.currentTarget);
   };
@@ -110,13 +114,20 @@ export const TooltipTrigger: React.FC<TooltipTriggerProps> = ({ children, asChil
       child.props.onBlur?.(event);
     },
     onTouchStart: (event: React.TouchEvent<HTMLElement>) => {
+      if (isTouchLikeDevice) {
+        child.props.onTouchStart?.(event);
+        return;
+      }
       if (openOnClick) {
-        // Mobile: no hover, so open on touch.
         handleOpen(event);
       }
       child.props.onTouchStart?.(event);
     },
     onClick: (event: React.MouseEvent<HTMLElement>) => {
+      if (isTouchLikeDevice) {
+        child.props.onClick?.(event);
+        return;
+      }
       if (openOnClick) {
         // Toggle so a second tap closes.
         if (context.isOpen) {

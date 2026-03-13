@@ -140,11 +140,6 @@ export function WineModule({
                 </Chip>
               ))}
             </div>
-            {wineStyleArchetype && (
-              <p className="text-[11px] text-violet-600 mt-1 font-medium">
-                ✦ {wineStyleArchetype} active — change any control to override
-              </p>
-            )}
           </div>
           {/* ── WINE ACTION ──────────────────────────────────────── */}
           <div>
@@ -289,12 +284,7 @@ export function WineModule({
             </div>
           )}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">
-              Lighting Tone
-              {wineStyleArchetype && (
-                <span className="ml-2 text-[10px] text-violet-400 font-medium normal-case">preset by archetype · select to override</span>
-              )}
-            </p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
             <div className="flex flex-wrap gap-2">
               {WINE_LIGHTING_TONES.map((tone) => (
                 <Chip
@@ -308,12 +298,7 @@ export function WineModule({
             </div>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">
-              Mood Finish
-              {wineStyleArchetype && (
-                <span className="ml-2 text-[10px] text-violet-400 font-medium normal-case">preset by archetype · select to override</span>
-              )}
-            </p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Finish</p>
             <div className="flex flex-wrap gap-2">
               {WINE_MODIFIERS.map((modifier) => (
                 <Chip

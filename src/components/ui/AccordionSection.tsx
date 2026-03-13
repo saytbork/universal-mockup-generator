@@ -39,6 +39,7 @@ export function AccordionSection({
 }: AccordionSectionProps) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const [showHelpTooltip, setShowHelpTooltip] = useState(true);
   const controlled = typeof isOpen === 'boolean';
   const open = controlled ? isOpen : internalOpen;
 
@@ -60,6 +61,19 @@ export function AccordionSection({
     if (contentRef.current) observer.observe(contentRef.current);
     return () => observer.disconnect();
   }, [open, children]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const sync = () => setShowHelpTooltip(mediaQuery.matches);
+    sync();
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', sync);
+      return () => mediaQuery.removeEventListener('change', sync);
+    }
+    mediaQuery.addListener(sync);
+    return () => mediaQuery.removeListener(sync);
+  }, []);
 
   const containerClassName = useMemo(
     () =>
@@ -88,7 +102,7 @@ export function AccordionSection({
           <div className="text-left">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
-              {(description || helpTooltip) ? (
+              {(description || helpTooltip) && showHelpTooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -96,7 +110,6 @@ export function AccordionSection({
                       onClick={(event) => event.stopPropagation()}
                       className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:text-white/40 dark:hover:text-white/70"
                       aria-label={`${title} help`}
-                      title="Help"
                     >
                       <HelpCircle className="w-4 h-4" />
                     </button>

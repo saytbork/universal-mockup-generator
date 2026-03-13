@@ -50,11 +50,25 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
   variant = 'primary',
 }) => {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const [showHelpTooltip, setShowHelpTooltip] = useState(true);
   const controlled = typeof isOpen === 'boolean';
   const open = controlled ? isOpen : internalOpen;
   const safeTooltip = typeof tooltip === 'string' ? tooltip : '';
   const safeHelpTooltip = typeof helpTooltip === 'string' ? helpTooltip : undefined;
   const tooltipContent = safeHelpTooltip ?? safeTooltip;
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const sync = () => setShowHelpTooltip(mediaQuery.matches);
+    sync();
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', sync);
+      return () => mediaQuery.removeEventListener('change', sync);
+    }
+    mediaQuery.addListener(sync);
+    return () => mediaQuery.removeListener(sync);
+  }, []);
 
   const handleToggle = () => {
     if (onToggle) {
@@ -93,7 +107,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
             <div className="text-left">
               <div className="flex items-center gap-2">
                 <p className={`text-sm font-semibold text-gray-900 dark:text-white ${titleClassName}`}>{title}</p>
-                {tooltipContent ? (
+                {tooltipContent && showHelpTooltip ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -101,7 +115,6 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                         onClick={(event) => event.stopPropagation()}
                         className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:text-white/40 dark:hover:text-white/70"
                         aria-label={`${title} help`}
-                        title="Help"
                       >
                         <HelpCircle className="w-4 h-4" />
                       </button>
@@ -152,7 +165,7 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
           <div className="text-left">
             <div className="flex items-center gap-2">
               <p className={`text-sm font-semibold text-gray-900 dark:text-white ${titleClassName}`}>{title}</p>
-              {tooltip ? (
+              {tooltip && showHelpTooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -160,7 +173,6 @@ const SmoothAccordion: React.FC<SmoothAccordionProps> = ({
                       onClick={(event) => event.stopPropagation()}
                       className="inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 dark:text-white/40 dark:hover:text-white/70"
                       aria-label={`${title} help`}
-                      title="Help"
                     >
                       <HelpCircle className="w-4 h-4" />
                     </button>
