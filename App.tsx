@@ -5434,6 +5434,13 @@ If the model attempts to create a scene or environment, override it and force a 
             }
             : {}),
           personIncluded,
+          supplementPresetCue,
+          supplementBackgroundColor,
+          supplementAccentColor,
+          supplementFlavorNotes,
+          includeSupplementHand,
+          supplementCustomPrompt,
+          moodPromptCue,
           productAssets: (hideProductMode ? [] : generationProducts).map(p => {
             const sourceAsset = productAssets.find(asset => asset.id === p.id);
             return {
