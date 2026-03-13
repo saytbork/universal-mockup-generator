@@ -195,12 +195,12 @@ export const winePipeline = {
     if (photoMode === 'Editorial Table') {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth.',
+        content: 'PHOTO_MODE: Editorial Table. Premium tabletop editorial composition. Authentic surface texture. Editorial balance. Minimal controlled wine-appropriate props. Bottle as focal point with subtle environmental depth. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt. No lean. Camera angle does not imply bottle angle.',
       });
     } else if (winerysceneActive) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback.',
+        content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt. No lean.',
       });
     } else if (photoMode === 'Hero Landing Page') {
       segments.push({
@@ -210,7 +210,7 @@ export const winePipeline = {
     } else if (bottleAndGlassMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Bottle + Glass. Premium served-bottle presentation with one filled wine glass beside the bottle. Opened service state only. No pour-in-progress. Label remains fully legible and dominant.',
+        content: 'PHOTO_MODE: Bottle + Glass. Premium served-bottle presentation with one filled wine glass beside the bottle. Opened service state only. No pour-in-progress. Label remains fully legible and dominant. BOTTLE_UPRIGHT: The bottle stands perfectly vertical beside the glass. No tilt.',
       });
     } else if (bottleAndGlassPourMode) {
       segments.push({
@@ -225,12 +225,12 @@ export const winePipeline = {
     } else if (lineupMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Wine Lineup Comparison. Multiple bottles shown as a refined brand-family lineup. Clean spacing. Premium shadow geometry. Color variation across bottles is desirable.',
+        content: 'PHOTO_MODE: Wine Lineup Comparison. Multiple bottles shown as a refined brand-family lineup. Clean spacing. Premium shadow geometry. Color variation across bottles is desirable. BOTTLE_UPRIGHT: All bottles stand perfectly vertical. No tilt on any bottle.',
       });
     } else if (editorialBottleTabletopMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Bottle remains the hero subject.',
+        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Bottle remains the hero subject. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt.',
       });
     } else if (bottleInHandCutoutMode) {
       segments.push({
@@ -240,7 +240,7 @@ export const winePipeline = {
     } else if (roseTastingTableMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Rose Tasting Table. Bright premium tasting-table scene for rose or white wine. Fresh glass highlights, refined floral or tasting accents, and no human subjects in frame.',
+        content: 'PHOTO_MODE: Rose Tasting Table. Bright premium tasting-table scene for rose or white wine. Fresh glass highlights, refined floral or tasting accents, and no human subjects in frame. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt.',
       });
     }
 

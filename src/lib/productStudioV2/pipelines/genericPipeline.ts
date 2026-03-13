@@ -390,8 +390,13 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
   }
 
   if (looksLikeAssembledPrompt) {
+    // Strip the required closing anti-human disclaimer before scanning for forbidden patterns.
+    // The disclaimer itself contains "human", "people", etc. as negation language —
+    // these must not trigger the guard. Only positive human language injected by a builder is forbidden.
+    const CLOSING_DISCLAIMER = 'the scene must contain only the product and environmental elements. no people, no visible human anatomical elements, no human presence unless explicitly defined by product interaction.';
+    const scrubbedForHumanCheck = lowerPrompt.split(CLOSING_DISCLAIMER).join(' ');
     for (const pattern of forbiddenHumanPatterns) {
-      if (pattern.test(lowerPrompt)) {
+      if (pattern.test(scrubbedForHumanCheck)) {
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:FORBIDDEN_HUMAN_LANGUAGE]');
       }
     }

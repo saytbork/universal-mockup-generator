@@ -65,6 +65,10 @@ export function buildWineTruthLayer(
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${resolvedBottleState}; serveState=${serveState}; carbonationLevel=${carbonationLevel};`;
 
   // BOTTLE PRESERVATION — geometry and label remain locked, while service state may change opening/fill level.
+  // For pour modes (wineAction='controlled-pour'), the bottle is physically tilted by design.
+  // For all other served modes (Bottle+Glass, Editorial Table, Winery Scene, etc.), the bottle
+  // must remain perfectly upright — no "unless" ambiguity.
+  const isPourAction = String((state as unknown as Record<string, unknown>).wineAction || '').trim() === 'controlled-pour';
   const bottlePreservationBlock = serveState === 'served'
     ? [
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
@@ -74,7 +78,9 @@ export function buildWineTruthLayer(
         'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
-        'BOTTLE_ORIENTATION: Bottle stands perfectly upright unless an explicit pour action is active.',
+        isPourAction
+          ? 'BOTTLE_ORIENTATION: Bottle is held at a pouring angle for active wine service. The tilt angle must originate from the bottle neck rotating forward over the glass, not from the base lifting. The base remains near the surface. The pour stream exits from the true bottle mouth.'
+          : 'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal. The vertical axis is perpendicular to the ground plane. Camera angle does not imply bottle angle.',
       ].join(' ')
     : [
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
