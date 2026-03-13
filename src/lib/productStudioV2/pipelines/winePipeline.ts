@@ -202,6 +202,11 @@ export const winePipeline = {
         type: 'guardrail',
         content: 'PHOTO_MODE: Winery Scene. Authentic winery or cellar setting with barrel-room or stone-cellar depth. Bottle remains the hero subject in the foreground. Real architectural depth, premium ambient atmosphere, and no generic studio fallback.',
       });
+    } else if (photoMode === 'Hero Landing Page') {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Hero Landing Page. Clean premium hero composition. 45° hero describes camera viewpoint only, never physical bottle lean. The bottle must remain perfectly upright with base level on the surface, vertical axis aligned to gravity, and no diagonal tilt or casual slant.',
+      });
     } else if (bottleAndGlassMode) {
       segments.push({
         type: 'guardrail',

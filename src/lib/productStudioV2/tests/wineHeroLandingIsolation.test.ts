@@ -53,4 +53,13 @@ describe('wine hero landing isolation', () => {
     expect(prompt).toContain('No visible dust, salt, residue, or debris.');
     expect(prompt).toContain('Clean premium tabletop or set surface.');
   });
+
+  it('treats 45 hero as camera viewpoint, not bottle tilt', () => {
+    const mapped = toStudioV2State(makeWineHeroState());
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('PHOTO_MODE: Hero Landing Page.');
+    expect(prompt).toContain('45° hero describes camera viewpoint only, never physical bottle lean.');
+    expect(prompt).toContain('The bottle must remain perfectly upright');
+  });
 });
