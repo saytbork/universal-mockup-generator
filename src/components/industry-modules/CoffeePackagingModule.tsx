@@ -3,6 +3,7 @@ import { Chip } from '@/components/ui/Chip';
 import { SwitchToggle } from '@/components/ui/SwitchToggle';
 import type {
   CoffeeAction,
+  CoffeeConfig,
   CoffeeLightingTone,
   CoffeeMoodModifier,
   CoffeeSteamLevel,
@@ -62,7 +63,7 @@ export function CoffeePackagingModule() {
   const coffeeMoodModifier = useProductStudioStore((s) => s.coffeeMoodModifier);
   const coffeeSteamLevel = useProductStudioStore((s) => s.coffeeSteamLevel);
   const coffeeLiquidPhysics = useProductStudioStore((s) => s.coffeeLiquidPhysics);
-  const coffeeConfig = useProductStudioStore((s) => (s as any).coffeeConfig ?? DEFAULT_COFFEE_CONFIG);
+  const coffeeConfig     = useProductStudioStore((s) => s.coffeeConfig ?? DEFAULT_COFFEE_CONFIG);
 
   // ── Store setters ────────────────────────────────────────────────────────
   const setCoffeeAction = useProductStudioStore((s) => s.setCoffeeAction);
@@ -70,7 +71,7 @@ export function CoffeePackagingModule() {
   const setCoffeeSteamLevel = useProductStudioStore((s) => s.setCoffeeSteamLevel);
   const setCoffeeLiquidPhysics = useProductStudioStore((s) => s.setCoffeeLiquidPhysics);
   const setContextPreset = useProductStudioStore((s) => s.setContextPreset);
-  const setCoffeeConfig = useProductStudioStore((s) => (s as any).setCoffeeConfig as (patch: Partial<typeof coffeeConfig>) => void);
+  const setCoffeeConfig  = useProductStudioStore((s) => s.setCoffeeConfig);
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const selectedMood = useMemo<CoffeeMoodModifier>(() => {
