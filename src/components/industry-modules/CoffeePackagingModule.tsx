@@ -132,14 +132,14 @@ export function CoffeePackagingModule({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between text-left"
       >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">COFFEE MODULE</p>
+        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">COFFEE SETUP</p>
         <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
       </button>
 
       {isOpen && (
         <div className="mt-4 space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Mood Finish</p>
             <div className="flex flex-wrap gap-2">
               {MOOD_OPTIONS.map((option) => (
                 <Chip
@@ -154,7 +154,7 @@ export function CoffeePackagingModule({
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Coffee Intent</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Style Preset</p>
             <div className="flex flex-wrap gap-2">
               {INTENT_OPTIONS.map((option) => (
                 <Chip
@@ -175,7 +175,7 @@ export function CoffeePackagingModule({
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Coffee Action</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve Style</p>
             <div className="flex flex-wrap gap-2">
               {([
                 { label: 'Static', value: 'static' },
@@ -193,7 +193,7 @@ export function CoffeePackagingModule({
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Coffee Accents</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Styling Accents</p>
             <div className="space-y-3">
               <div>
                 <p className="text-[11px] text-gray-500 mb-1">Beans Scatter</p>
@@ -288,7 +288,7 @@ export function CoffeePackagingModule({
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Surface Style</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Surface</p>
             <div className="flex flex-wrap gap-2">
               {SURFACE_OPTIONS.map((option) => (
                 <Chip
@@ -306,7 +306,7 @@ export function CoffeePackagingModule({
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Temperature Feel</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Lighting Tone</p>
             <div className="flex flex-wrap gap-2">
               {([
                 { label: 'Warm Roast', value: 'warm-roast', tone: 'warm-ambient' as CoffeeLightingTone },
@@ -329,8 +329,8 @@ export function CoffeePackagingModule({
 
           <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">Liquid Physics</p>
-              <p className="text-[11px] text-gray-500">Keep packaging-first liquid constraints active.</p>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold">Liquid Control</p>
+              <p className="text-[11px] text-gray-500">Keeps liquid behavior clean and packaging-safe.</p>
             </div>
             <SwitchToggle
               checked={coffeeLiquidPhysics}
