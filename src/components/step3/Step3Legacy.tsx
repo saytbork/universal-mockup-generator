@@ -3020,6 +3020,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <p className="text-xs text-gray-500 dark:text-white/50 mt-2">
                         Placement is resolved contextually from Photo Type + Photo Mode to keep physical coherence.
                       </p>
+                      {getInterpretationNote('placement') && (
+                        <InterpretationNote message={getInterpretationNote('placement')!} />
+                      )}
                       {placementCorrectionMessage && (
                         <InterpretationNote message={placementCorrectionMessage} />
                       )}
@@ -3352,6 +3355,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                       </Chip>
                                     ))}
                                   </div>
+                                  {getInterpretationNote('photoMode') && (
+                                    <InterpretationNote message={getInterpretationNote('photoMode')!} />
+                                  )}
+                                  {getInterpretationNote('photoModeInteraction') && (
+                                    <InterpretationNote message={getInterpretationNote('photoModeInteraction')!} />
+                                  )}
                                 </div>
 
                                 {!isCoffeeIndustry && (
