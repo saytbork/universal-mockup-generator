@@ -1554,6 +1554,7 @@ const App: React.FC = () => {
   const [lifestylePrompt, setLifestylePrompt] = useState('');
   const [showModeGuide, setShowModeGuide] = useState(false);
   const [highlightModeToggle, setHighlightModeToggle] = useState(false);
+  const [activeModeGuideStep, setActiveModeGuideStep] = useState<1 | 2 | 3>(1);
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [formulationExpertEnabled, setFormulationExpertEnabled] = useState(false);
   const [formulationExpertPreset, setFormulationExpertPreset] = useState(FORMULATION_EXPERT_PRESETS[0].value);
@@ -1902,6 +1903,7 @@ const App: React.FC = () => {
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const modeToggleHighlightTimerRef = useRef<number | null>(null);
+  const modeGuideCycleTimerRef = useRef<number | null>(null);
   const googleInitRef = useRef(false);
   const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
   const lastAspectRatioRef = useRef<string>('1:1');
@@ -2369,6 +2371,22 @@ const App: React.FC = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!showModeGuide || typeof window === 'undefined') return;
+    if (modeGuideCycleTimerRef.current != null) {
+      window.clearInterval(modeGuideCycleTimerRef.current);
+    }
+    modeGuideCycleTimerRef.current = window.setInterval(() => {
+      setActiveModeGuideStep((prev) => (prev === 3 ? 1 : ((prev + 1) as 1 | 2 | 3)));
+    }, 2600);
+    return () => {
+      if (modeGuideCycleTimerRef.current != null) {
+        window.clearInterval(modeGuideCycleTimerRef.current);
+        modeGuideCycleTimerRef.current = null;
+      }
+    };
+  }, [showModeGuide]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4190,6 +4208,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleModeGuideStepClick = useCallback((step: 1 | 2 | 3) => {
+    setActiveModeGuideStep(step);
     if (typeof window === 'undefined') return;
     if (step === 1) {
       intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -6814,7 +6833,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-600">Quick Start</p>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Start in three simple steps</h3>
                     <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                      Upload your product first, choose whether you want <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span>, then refine only the settings that matter.
+                      A quick guide to the flow. Click any step and we will take you there.
                     </p>
                   </div>
                   <button
@@ -6826,40 +6845,82 @@ If the model attempts to create a scene or environment, override it and force a 
                   </button>
                 </div>
 
-                <div className="mt-5 grid gap-3 lg:grid-cols-3">
-                  {[
-                    {
-                      step: 'Step 1',
-                      title: 'Upload the product',
-                      description: 'Use the real pack so label, shape and proportions stay locked.',
-                    },
-                    {
-                      step: 'Step 2',
-                      title: 'Choose the mode',
-                      description: 'Lifestyle is for people and environments. Studio is for product-first images.',
-                    },
-                    {
-                      step: 'Step 3',
-                      title: 'Adjust the settings',
-                      description: 'Refine the scene with the controls relevant to the mode you picked.',
-                    },
-                  ].map((item, index) => (
-                    <button
-                      key={item.step}
-                      type="button"
-                      onClick={() => handleModeGuideStepClick((index + 1) as 1 | 2 | 3)}
-                      className="flex w-full items-start gap-4 rounded-3xl border border-gray-200 bg-gray-50/80 px-4 py-4 text-left transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
-                        {index + 1}
-                      </div>
+                <div className="mt-5 space-y-4">
+                  <div className="grid gap-2 md:grid-cols-3">
+                    {[
+                      {
+                        step: 1 as const,
+                        label: 'Upload',
+                        title: 'Upload the product',
+                        description: 'Use the real pack so label, shape and proportions stay locked.',
+                      },
+                      {
+                        step: 2 as const,
+                        label: 'Mode',
+                        title: 'Choose Lifestyle or Studio',
+                        description: 'Lifestyle is for people and environments. Studio is for product-first scenes.',
+                      },
+                      {
+                        step: 3 as const,
+                        label: 'Settings',
+                        title: 'Adjust the settings',
+                        description: 'Refine the scene with the controls relevant to the mode you picked.',
+                      },
+                    ].map((item) => {
+                      const isActive = activeModeGuideStep === item.step;
+                      return (
+                        <button
+                          key={item.step}
+                          type="button"
+                          onClick={() => handleModeGuideStepClick(item.step)}
+                          className={`rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
+                            isActive
+                              ? 'border-indigo-300 bg-indigo-50/80 dark:border-white/20 dark:bg-white/10'
+                              : 'border-gray-200 bg-gray-50/70 hover:border-indigo-200 hover:bg-indigo-50/40 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${isActive ? 'bg-indigo-600 text-white scale-105' : 'bg-white text-gray-700 border border-gray-200 dark:bg-white/10 dark:text-white/70 dark:border-white/10'}`}>
+                              {item.step}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.label}</p>
+                              <p className={`text-sm font-semibold transition-colors duration-300 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-white/80'}`}>
+                                {item.title}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/5">
+                    {activeModeGuideStep === 1 && (
                       <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.step}</p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</p>
-                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">{item.description}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Upload the product first</p>
+                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                          Start with the real pack so the label, silhouette and proportions stay accurate from the beginning.
+                        </p>
                       </div>
-                    </button>
-                  ))}
+                    )}
+                    {activeModeGuideStep === 2 && (
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Choose the image style</p>
+                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                          Pick <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
+                        </p>
+                      </div>
+                    )}
+                    {activeModeGuideStep === 3 && (
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Adjust only what matters</p>
+                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
+                          Once you pick a mode, we jump you to the right settings so you can refine the image without guessing where to start.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
