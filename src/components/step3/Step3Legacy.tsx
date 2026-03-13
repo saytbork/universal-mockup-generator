@@ -5231,7 +5231,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
               {values.productType === 'Capsules' && (
                 <>
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>CAPSULE STYLE</p>
+                    <p className={GROUP_LABEL_CLASS}>CAPSULE SHELL</p>
                     <div className="flex flex-wrap gap-2">
                       {(['veggie', 'gel', 'white-opaque', 'colored'] as const).map(style => (
                         <Chip
@@ -5249,7 +5249,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>CAPSULE CONTENT COLOR</p>
+                    <p className={GROUP_LABEL_CLASS}>FILL COLOR</p>
                     <div className="flex items-center gap-4">
                       <label className="relative">
                         <span
@@ -5280,7 +5280,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>QUANTITY</p>
+                    <p className={GROUP_LABEL_CLASS}>COUNT</p>
                     <div className="flex gap-2">
                       {([1, 2, 3, 4, 6] as const).map(qty => (
                         <Chip
@@ -5298,7 +5298,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>LAYOUT</p>
+                    <p className={GROUP_LABEL_CLASS}>ARRANGEMENT</p>
                     <div className="flex gap-2">
                       {(['scattered', 'grouped', 'stacked'] as const).map(layout => (
                         <Chip
@@ -5316,7 +5316,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>OPTIONAL PROPS</p>
+                    <p className={GROUP_LABEL_CLASS}>SUPPORTING PROPS</p>
                     <div className="flex gap-2">
                       <Chip
                         onClick={() => {
@@ -5394,7 +5394,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>QUANTITY</p>
+                    <p className={GROUP_LABEL_CLASS}>COUNT</p>
                     <div className="flex gap-2">
                       {([3, 5, 7, 'handful'] as const).map(qty => (
                         <Chip
@@ -5412,7 +5412,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>OPTIONAL PROPS</p>
+                    <p className={GROUP_LABEL_CLASS}>SUPPORTING PROPS</p>
                     <div className="flex gap-2">
                       <Chip
                         onClick={() => {
