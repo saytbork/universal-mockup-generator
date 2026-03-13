@@ -81,8 +81,6 @@ type UGCRealModeSettings = {
 
 const PRODUCT_DEFAULT_ASPECT_RATIO = '1:1' as const;
 const ECOMMERCE_PDP_ASPECT_RATIO = '1:1' as const;
-const MODE_GUIDE_DISMISSED_KEY = 'studio-lifestyle-mode-guide-v2-dismissed';
-
 type EcommercePdpGenerationMeta = {
   sceneType: 'ecommerce-pdp';
   slot: EcommercePdpSlot;
@@ -2337,7 +2335,7 @@ const App: React.FC = () => {
     if (window.localStorage.getItem(GOAL_WIZARD_KEY) !== 'true') {
       setShowGoalWizard(true);
     }
-    setShowModeGuide(window.localStorage.getItem(MODE_GUIDE_DISMISSED_KEY) !== 'true');
+    setShowModeGuide(true);
 
     checkAiStudioSelection();
   }, [envApiKey]);
@@ -4205,9 +4203,6 @@ const App: React.FC = () => {
 
   const dismissModeGuide = useCallback(() => {
     setShowModeGuide(false);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(MODE_GUIDE_DISMISSED_KEY, 'true');
-    }
   }, []);
 
   const resetOutputs = useCallback(() => {
