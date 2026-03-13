@@ -7,11 +7,11 @@ export class CompositionDetailsBuilder implements PromptBuilder {
             (options.ritualModeActive && options.ritualHideProduct === true) ||
             options.forceHideProduct === true;
 
-        if (options.compositionMode) {
+        if (options.compositionMode && !(options as any).compositionModeStructural) {
             parts.push(`Composition mode: ${options.compositionMode}.`);
         }
 
-        if (options.sidePlacement) {
+        if (options.sidePlacement && !options.ecommerceSidePlacementFlag) {
             parts.push(`${hideProduct ? 'Subject' : 'Product'} placement: ${options.sidePlacement} side.`);
         }
 

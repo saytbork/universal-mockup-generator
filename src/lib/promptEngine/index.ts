@@ -881,22 +881,9 @@ export class PromptEngine {
         const ugcContractSection = resolveUgcContract(options, intentSectionCore);
         const intentSection = [intentSectionCore, ugcContractSection].filter(Boolean).join('\n\n').trim();
         const identityValue = (narrativeSections.identity || identitySection || '').trim();
-        const environmentSection = [
-            options.setting ? `Environment: ${options.setting}.` : '',
-            options.microLocation ? `Micro-location: ${options.microLocation}.` : '',
-            String((options as any).sceneEnvironmentDescriptor || '').trim(),
-        ]
-            .filter(Boolean)
-            .join(' ')
-            .trim();
         const timeAndLightingSection = (narrativeSections.environmentLightingMood || '').trim();
         const cameraAndFramingSection = (narrativeSections.cameraFraming || '').trim();
         const compositionValue = [compositionDetailsSection, selfieCaptureSection].filter(Boolean).join(' ').trim();
-        const propsSection = [options.personProps, (options as any).editorialProps]
-            .map((value) => String(value || '').trim())
-            .filter(Boolean)
-            .join(' ')
-            .trim();
         const ritualSection = options.ritualModeActive
             ? [options.ritualPosture, ...(options.ritualActivities || []), options.ritualCustom]
                 .map((value) => String(value || '').trim())
@@ -940,11 +927,9 @@ export class PromptEngine {
         masterSections.push({ id: 'identity', content: identityValue });
         masterSections.push({ id: 'brandSceneAuthority', content: brandSceneAuthorityLayer });
         masterSections = applyVisualIntentLayer(sceneConfig, masterSections);
-        masterSections.push({ id: 'environment', content: environmentSection });
         masterSections.push({ id: 'timeAndLighting', content: timeAndLightingSection });
         masterSections.push({ id: 'cameraAndFraming', content: cameraAndFramingSection });
         masterSections.push({ id: 'compositionDetails', content: compositionValue });
-        masterSections.push({ id: 'props', content: propsSection });
         masterSections.push({ id: 'ritualMode', content: ritualSection });
         masterSections.push({ id: 'formulationStory', content: formulationValue });
         masterSections.push({ id: 'ecommerceSequence', content: ecommerceSequenceValue });

@@ -793,6 +793,9 @@ export class SceneNarrativeBuilder {
         const cameraDeviceSemantic = '';
 
         const environmentPhrase = formatEnvironmentPhrase(environmentText);
+        const microLocation = String(options.microLocation || '').trim();
+        const normalizedSetting = String(options.setting || '').trim().toLowerCase();
+        const normalizedMicroLocation = microLocation.toLowerCase();
         const backgroundLine =
             isProductMode && !options.ecommerceBlankSpaceMode
                 ? options.bgGradient
@@ -809,6 +812,9 @@ export class SceneNarrativeBuilder {
             cameraDeviceSemantic ? `Camera: ${cameraDeviceSemantic}.` : '',
             backgroundLine,
             environmentPhrase ? `Environment: ${environmentPhrase}.` : '',
+            microLocation && normalizedMicroLocation !== normalizedSetting
+                ? `Micro-location: ${microLocation}.`
+                : '',
             luxuryLightingLayer,
             options.sceneOrderChaosDescriptor ? `Scene order: ${options.sceneOrderChaosDescriptor}.` : '',
             !isLuxuryEditorialMode && lightingText ? `Lighting: ${lightingText}.` : ''
