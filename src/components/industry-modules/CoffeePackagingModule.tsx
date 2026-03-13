@@ -7,6 +7,7 @@ import type {
   CoffeeMoodModifier,
   CoffeeSteamLevel,
 } from '@/lib/productStudio/types';
+import { COFFEE_PROP_KEYS } from '@/lib/productStudio/promptRouter';
 
 type CoffeePackagingIntent =
   | 'pdp-clean'
@@ -112,18 +113,18 @@ export function CoffeePackagingModule({
   }, [coffeeMoodModifier, onCoffeeMoodModifierChange, selectedMood]);
 
   const selectedIntent = useMemo(() => {
-    const fromTag = extractTag(propsValue, 'intent', '');
+    const fromTag = extractTag(propsValue, COFFEE_PROP_KEYS.intent, '');
     if (fromTag) return fromTag as CoffeePackagingIntent;
     const fromMood = INTENT_OPTIONS.find((option) => option.mood === selectedMood);
     return fromMood?.value || 'premium-campaign';
   }, [propsValue, selectedMood]);
 
-  const beansScatter = extractTag(propsValue, 'beans', 'low') as BeansScatterLevel;
-  const cupAccent = extractTag(propsValue, 'cup', 'side') as CupAccentLevel;
-  const espressoSplash = extractTag(propsValue, 'splash', 'off');
-  const iceCubes = extractTag(propsValue, 'ice', 'off');
-  const selectedSurface = extractTag(propsValue, 'surface', 'neutral-gradient') as SurfaceStyle;
-  const temperatureFeel = extractTag(propsValue, 'temp', 'neutral-commercial') as TemperatureFeel;
+  const beansScatter = extractTag(propsValue, COFFEE_PROP_KEYS.beans, 'low') as BeansScatterLevel;
+  const cupAccent = extractTag(propsValue, COFFEE_PROP_KEYS.cup, 'side') as CupAccentLevel;
+  const espressoSplash = extractTag(propsValue, COFFEE_PROP_KEYS.splash, 'off');
+  const iceCubes = extractTag(propsValue, COFFEE_PROP_KEYS.ice, 'off');
+  const selectedSurface = extractTag(propsValue, COFFEE_PROP_KEYS.surface, 'neutral-gradient') as SurfaceStyle;
+  const temperatureFeel = extractTag(propsValue, COFFEE_PROP_KEYS.temp, 'neutral-commercial') as TemperatureFeel;
 
   return (
     <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
@@ -165,7 +166,7 @@ export function CoffeePackagingModule({
                     if (option.value === 'cold-brew-fresh') {
                       onCoffeeSteamLevelChange('none');
                     }
-                    onPropsValueChange(upsertTag(propsValue, 'intent', option.value));
+                    onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.intent, option.value));
                   }}
                 >
                   {option.label}
@@ -202,7 +203,7 @@ export function CoffeePackagingModule({
                     <Chip
                       key={value}
                       selected={beansScatter === value}
-                      onClick={() => onPropsValueChange(upsertTag(propsValue, 'beans', value))}
+                      onClick={() => onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.beans, value))}
                     >
                       {value.charAt(0).toUpperCase() + value.slice(1)}
                     </Chip>
@@ -220,7 +221,7 @@ export function CoffeePackagingModule({
                     <Chip
                       key={option.value}
                       selected={cupAccent === option.value}
-                      onClick={() => onPropsValueChange(upsertTag(propsValue, 'cup', option.value))}
+                      onClick={() => onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.cup, option.value))}
                     >
                       {option.label}
                     </Chip>
@@ -255,7 +256,7 @@ export function CoffeePackagingModule({
                       key={option.value}
                       selected={espressoSplash === option.value}
                       onClick={() => {
-                        onPropsValueChange(upsertTag(propsValue, 'splash', option.value));
+                        onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.splash, option.value));
                         if (option.value === 'controlled') onCoffeeActionChange('controlled-pour');
                       }}
                     >
@@ -275,7 +276,7 @@ export function CoffeePackagingModule({
                       key={option.value}
                       selected={iceCubes === option.value}
                       onClick={() => {
-                        onPropsValueChange(upsertTag(propsValue, 'ice', option.value));
+                        onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.ice, option.value));
                         if (option.value === 'cold') onCoffeeSteamLevelChange('none');
                       }}
                     >
@@ -296,7 +297,7 @@ export function CoffeePackagingModule({
                   selected={selectedSurface === option.value}
                   onClick={() => {
                     onContextPresetChange(option.preset);
-                    onPropsValueChange(upsertTag(propsValue, 'surface', option.value));
+                    onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.surface, option.value));
                   }}
                 >
                   {option.label}
@@ -318,7 +319,7 @@ export function CoffeePackagingModule({
                   selected={temperatureFeel === option.value}
                   onClick={() => {
                     onCoffeeLightingToneChange(option.tone);
-                    onPropsValueChange(upsertTag(propsValue, 'temp', option.value));
+                    onPropsValueChange(upsertTag(propsValue, COFFEE_PROP_KEYS.temp, option.value));
                   }}
                 >
                   {option.label}

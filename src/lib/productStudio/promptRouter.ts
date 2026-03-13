@@ -23,9 +23,10 @@ const debugLog = (...args: unknown[]) => {
 
 function isStudioV2Enabled(): boolean {
   const flag = import.meta.env.VITE_USE_STUDIO_V2;
-  const enabled = true;
+  // If the flag is explicitly set to 'false', respect it. Otherwise default to v2.
+  const enabled = flag !== 'false';
   debugLog(
-    `[STUDIO ROUTER] flag v2=${flag ?? 'undefined'} source=vite enabled=${enabled} (main locked to v2)`
+    `[STUDIO ROUTER] flag v2=${flag ?? 'undefined'} source=vite enabled=${enabled}`
   );
   return enabled;
 }
@@ -539,6 +540,22 @@ function resolveSupplementsAllowedProductStates(state: ProductStudioState): Prod
   return base;
 }
 
+/**
+ * Canonical keys for the coffee props tag-string protocol.
+ * These are the single source of truth shared between CoffeePackagingModule (writer)
+ * and resolveCoffeeIndustryLayer (reader). If a key needs renaming, change it here only.
+ */
+export const COFFEE_PROP_KEYS = {
+  intent: 'intent',
+  beans: 'beans',
+  cup: 'cup',
+  splash: 'splash',
+  ice: 'ice',
+  surface: 'surface',
+  temp: 'temp',
+  serveStyle: 'serve-style',
+} as const;
+
 function resolveCoffeeIndustryLayer(
   state: ProductStudioState
 ): {
@@ -592,24 +609,24 @@ function resolveCoffeeIndustryLayer(
     return match?.[1]?.toLowerCase() || fallback;
   };
 
-  const packagingIntent = extractCoffeeTag('intent', 'pdp-clean') as
+  const packagingIntent = extractCoffeeTag(COFFEE_PROP_KEYS.intent, 'pdp-clean') as
     | 'pdp-clean'
     | 'premium-campaign'
     | 'dark-roast-luxury'
     | 'modern-minimal'
     | 'cold-brew-fresh'
     | 'bundle-hero';
-  const beansScatter = extractCoffeeTag('beans', 'low') as 'low' | 'medium' | 'high';
-  const cupAccent = extractCoffeeTag('cup', 'side') as 'none' | 'side' | 'behind-small';
-  const espressoSplash = extractCoffeeTag('splash', 'off') as 'off' | 'controlled';
-  const iceMode = extractCoffeeTag('ice', 'off') as 'off' | 'cold';
-  const surfaceStyle = extractCoffeeTag('surface', 'neutral-gradient') as
+  const beansScatter = extractCoffeeTag(COFFEE_PROP_KEYS.beans, 'low') as 'low' | 'medium' | 'high';
+  const cupAccent = extractCoffeeTag(COFFEE_PROP_KEYS.cup, 'side') as 'none' | 'side' | 'behind-small';
+  const espressoSplash = extractCoffeeTag(COFFEE_PROP_KEYS.splash, 'off') as 'off' | 'controlled';
+  const iceMode = extractCoffeeTag(COFFEE_PROP_KEYS.ice, 'off') as 'off' | 'cold';
+  const surfaceStyle = extractCoffeeTag(COFFEE_PROP_KEYS.surface, 'neutral-gradient') as
     | 'neutral-gradient'
     | 'dark-stone'
     | 'matte-wood'
     | 'concrete-minimal'
     | 'pure-white-pdp';
-  const temperatureFeel = extractCoffeeTag('temp', 'neutral-commercial') as
+  const temperatureFeel = extractCoffeeTag(COFFEE_PROP_KEYS.temp, 'neutral-commercial') as
     | 'warm-roast'
     | 'neutral-commercial'
     | 'cool-cold-brew';
@@ -619,7 +636,7 @@ function resolveCoffeeIndustryLayer(
       : undefined;
   const cinematicLuxuryActive = selectedMoodModifier === 'coffee-cinematic-luxury';
   const serveStyle = extractCoffeeTag(
-    'serve-style',
+    COFFEE_PROP_KEYS.serveStyle,
     cinematicLuxuryActive ? 'cup-only' : 'cup-and-bag'
   ) as 'cup-only' | 'cup-and-bag' | 'espresso-machine';
 
