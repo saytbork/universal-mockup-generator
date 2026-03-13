@@ -5488,7 +5488,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>DROPPER STATE</p>
+                    <p className={GROUP_LABEL_CLASS}>DROPPER POSITION</p>
                     <div className="flex flex-wrap gap-2">
                       {(['closed', 'open-resting', 'drop-suspended'] as const).map(state => (
                         <Chip
@@ -5506,7 +5506,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>INTERACTION MODE</p>
+                    <p className={GROUP_LABEL_CLASS}>USE STYLE</p>
                     <div className="flex gap-2">
                       {(['sublingual', 'mixed'] as const).map(mode => (
                         <Chip
@@ -5525,7 +5525,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                   {(productStore.definition.physical as any)?.v?.interactionMode === 'mixed' && (
                     <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>ALLOWED PROPS</p>
+                      <p className={GROUP_LABEL_CLASS}>SUPPORTING PROPS</p>
                       <div className="flex gap-2">
                         <Chip
                           onClick={() => {
@@ -5613,7 +5613,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PRESENTATION</p>
+                    <p className={GROUP_LABEL_CLASS}>PRESENTATION STYLE</p>
                     <div className="flex flex-wrap gap-2">
                       {(['loose-pile', 'in-scoop', 'in-container-rim'] as const).map(pres => (
                         <Chip
@@ -5631,7 +5631,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>MIX MODE</p>
+                    <p className={GROUP_LABEL_CLASS}>MIXING STYLE</p>
                     <div className="flex flex-wrap gap-2">
                       {(['water', 'tea', 'coffee', 'smoothie'] as const).map(mode => (
                         <Chip
@@ -5649,7 +5649,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                   </div>
 
                   <div className={SECTION_GROUP_CLASS}>
-                    <p className={GROUP_LABEL_CLASS}>PROPS</p>
+                    <p className={GROUP_LABEL_CLASS}>SUPPORTING PROPS</p>
                     <div className="flex gap-2">
                       <Chip
                         onClick={() => {
