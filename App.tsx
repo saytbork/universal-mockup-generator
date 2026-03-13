@@ -81,6 +81,7 @@ type UGCRealModeSettings = {
 
 const PRODUCT_DEFAULT_ASPECT_RATIO = '1:1' as const;
 const ECOMMERCE_PDP_ASPECT_RATIO = '1:1' as const;
+const MODE_GUIDE_DISMISSED_KEY = 'studio-lifestyle-mode-guide-dismissed';
 
 type EcommercePdpGenerationMeta = {
   sceneType: 'ecommerce-pdp';
@@ -1553,6 +1554,7 @@ const App: React.FC = () => {
   const [camera, setCamera] = useState('front');
   const [lighting, setLighting] = useState('soft');
   const [lifestylePrompt, setLifestylePrompt] = useState('');
+  const [showModeGuide, setShowModeGuide] = useState(false);
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [formulationExpertEnabled, setFormulationExpertEnabled] = useState(false);
   const [formulationExpertPreset, setFormulationExpertPreset] = useState(FORMULATION_EXPERT_PRESETS[0].value);
@@ -2332,6 +2334,7 @@ const App: React.FC = () => {
     if (window.localStorage.getItem(GOAL_WIZARD_KEY) !== 'true') {
       setShowGoalWizard(true);
     }
+    setShowModeGuide(window.localStorage.getItem(MODE_GUIDE_DISMISSED_KEY) !== 'true');
 
     checkAiStudioSelection();
   }, [envApiKey]);
@@ -4163,6 +4166,13 @@ const App: React.FC = () => {
     handleOptionChange('contentStyle', nextMode, 'Mode');
     scrollToBuilderSettings();
   }, [handleOptionChange, scrollToBuilderSettings]);
+
+  const dismissModeGuide = useCallback(() => {
+    setShowModeGuide(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(MODE_GUIDE_DISMISSED_KEY, 'true');
+    }
+  }, []);
 
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
@@ -6737,7 +6747,58 @@ If the model attempts to create a scene or environment, override it and force a 
                 </span>
               </button>
 
-              <div className="w-full max-w-[340px] space-y-2">
+              <div className="w-full max-w-[340px] space-y-3">
+                {showModeGuide && (
+                  <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white/90 p-4 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-indigo-600">Quick Start</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Build your first scene in three steps</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={dismissModeGuide}
+                        className="text-[11px] font-semibold text-gray-500 transition hover:text-gray-900 dark:text-white/50 dark:hover:text-white"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                    <div className="mt-4 grid gap-2">
+                      {[
+                        {
+                          step: 'Step 1',
+                          title: 'Upload the product',
+                          description: 'Start with the real pack so the label and shape stay accurate.',
+                        },
+                        {
+                          step: 'Step 2',
+                          title: 'Choose a mode',
+                          description: 'Pick Lifestyle for people and environments, or Studio for product-first scenes.',
+                        },
+                        {
+                          step: 'Step 3',
+                          title: 'Adjust the settings',
+                          description: 'Refine the look with just the controls that matter for this mode.',
+                        },
+                      ].map((item, index) => (
+                        <div
+                          key={item.step}
+                          className="flex items-start gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/70 px-3 py-3 opacity-100 transition-all duration-300 dark:border-white/10 dark:bg-white/5"
+                          style={{ transitionDelay: `${index * 80}ms` }}
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
+                            {index + 1}
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.step}</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</p>
+                            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-white/50">{item.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                   <div
                     className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
@@ -6758,7 +6819,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   </button>
                 </div>
                 <p className="px-2 text-[11px] text-gray-500 dark:text-white/50">
-                  Start with <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and real environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first scenes. Selecting one jumps you to its settings.
+                  Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-focused images. We will jump you to the right settings automatically.
                 </p>
               </div>
             </div>
