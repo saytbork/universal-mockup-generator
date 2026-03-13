@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
-import type { ProductStudioState, ProductType } from '@/lib/productStudio/types';
+import type { ProductType } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 const SUPPLEMENT_FORMAT_OPTIONS: Array<{ label: string; value: ProductType }> = [
@@ -11,19 +11,9 @@ const SUPPLEMENT_FORMAT_OPTIONS: Array<{ label: string; value: ProductType }> = 
   { label: 'Custom', value: 'custom' },
 ];
 
-const PACKAGING_OPTIONS: Array<{
-  label: string;
-  value: ProductStudioState['packagingMode'];
-}> = [
-  { label: 'Without Box', value: 'without-box' },
-  { label: 'With Box', value: 'with-box' },
-];
-
 export function SupplementsModule() {
   const productType    = useProductStudioStore((s) => s.definition.type);
-  const packagingMode  = useProductStudioStore((s) => s.packagingMode);
   const setProductType = useProductStudioStore((s) => s.setProductType);
-  const setPackagingMode = useProductStudioStore((s) => s.setPackagingMode);
 
   const [isOpen, setIsOpen] = useState(true);
 
@@ -48,21 +38,6 @@ export function SupplementsModule() {
                   key={option.value}
                   selected={productType === option.value}
                   onClick={() => setProductType(option.value)}
-                >
-                  {option.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Packaging</p>
-            <div className="flex flex-wrap gap-2">
-              {PACKAGING_OPTIONS.map((option) => (
-                <Chip
-                  key={option.value}
-                  selected={packagingMode === option.value}
-                  onClick={() => setPackagingMode(option.value)}
                 >
                   {option.label}
                 </Chip>
