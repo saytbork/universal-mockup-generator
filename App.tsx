@@ -1555,6 +1555,7 @@ const App: React.FC = () => {
   const [lighting, setLighting] = useState('soft');
   const [lifestylePrompt, setLifestylePrompt] = useState('');
   const [showModeGuide, setShowModeGuide] = useState(false);
+  const [highlightModeToggle, setHighlightModeToggle] = useState(false);
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [formulationExpertEnabled, setFormulationExpertEnabled] = useState(false);
   const [formulationExpertPreset, setFormulationExpertPreset] = useState(FORMULATION_EXPERT_PRESETS[0].value);
@@ -1899,8 +1900,10 @@ const App: React.FC = () => {
   const uploadRef = useRef<HTMLDivElement>(null);
   const customizeRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const modeToggleRef = useRef<HTMLDivElement>(null);
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
+  const modeToggleHighlightTimerRef = useRef<number | null>(null);
   const googleInitRef = useRef(false);
   const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
   const lastAspectRatioRef = useRef<string>('1:1');
@@ -2359,6 +2362,14 @@ const App: React.FC = () => {
       }
     };
   }, [moodImagePreview]);
+
+  useEffect(() => {
+    return () => {
+      if (modeToggleHighlightTimerRef.current != null && typeof window !== 'undefined') {
+        window.clearTimeout(modeToggleHighlightTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4166,6 +4177,31 @@ const App: React.FC = () => {
     handleOptionChange('contentStyle', nextMode, 'Mode');
     scrollToBuilderSettings();
   }, [handleOptionChange, scrollToBuilderSettings]);
+
+  const pulseModeToggle = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    modeToggleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightModeToggle(true);
+    if (modeToggleHighlightTimerRef.current != null) {
+      window.clearTimeout(modeToggleHighlightTimerRef.current);
+    }
+    modeToggleHighlightTimerRef.current = window.setTimeout(() => {
+      setHighlightModeToggle(false);
+    }, 1800);
+  }, []);
+
+  const handleModeGuideStepClick = useCallback((step: 1 | 2 | 3) => {
+    if (typeof window === 'undefined') return;
+    if (step === 1) {
+      intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (step === 2) {
+      pulseModeToggle();
+      return;
+    }
+    scrollToBuilderSettings();
+  }, [pulseModeToggle, scrollToBuilderSettings]);
 
   const dismissModeGuide = useCallback(() => {
     setShowModeGuide(false);
@@ -6781,9 +6817,11 @@ If the model attempts to create a scene or environment, override it and force a 
                           description: 'Refine the look with just the controls that matter for this mode.',
                         },
                       ].map((item, index) => (
-                        <div
+                        <button
                           key={item.step}
-                          className="flex items-start gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/70 px-3 py-3 opacity-100 transition-all duration-300 dark:border-white/10 dark:bg-white/5"
+                          type="button"
+                          onClick={() => handleModeGuideStepClick((index + 1) as 1 | 2 | 3)}
+                          className="flex w-full items-start gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/70 px-3 py-3 text-left opacity-100 transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
                           style={{ transitionDelay: `${index * 80}ms` }}
                         >
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
@@ -6794,12 +6832,15 @@ If the model attempts to create a scene or environment, override it and force a 
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</p>
                             <p className="text-[11px] leading-relaxed text-gray-500 dark:text-white/50">{item.description}</p>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
                 )}
-                <div className="relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                <div
+                  ref={modeToggleRef}
+                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black shadow-[0_0_0_6px_rgba(99,102,241,0.12)]' : ''}`}
+                >
                   <div
                     className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
                   />
