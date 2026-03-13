@@ -126,14 +126,14 @@ export function CoffeePackagingModule({
   const temperatureFeel = extractTag(propsValue, 'temp', 'neutral-commercial') as TemperatureFeel;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between text-left"
       >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">COFFEE SETUP</p>
-        <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
+        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-amber-700">COFFEE SETUP</p>
+        <span className="text-[11px] font-semibold text-amber-700">{isOpen ? 'Hide' : 'Show'}</span>
       </button>
 
       {isOpen && (

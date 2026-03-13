@@ -34,14 +34,14 @@ export function SupplementsModule({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full flex items-center justify-between text-left"
       >
-        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-gray-500">SUPPLEMENTS SETUP</p>
-        <span className="text-[11px] font-semibold text-gray-500">{isOpen ? 'Hide' : 'Show'}</span>
+        <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-emerald-700">SUPPLEMENTS SETUP</p>
+        <span className="text-[11px] font-semibold text-emerald-700">{isOpen ? 'Hide' : 'Show'}</span>
       </button>
 
       {isOpen && (

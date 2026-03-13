@@ -68,6 +68,16 @@ function InterpretationNote({ message }: { message: string }) {
   );
 }
 
+function WineBottleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 3h4" />
+      <path d="M11 3v4l-2 3v8a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-8l-2-3V3" />
+      <path d="M9 13h6" />
+    </svg>
+  );
+}
+
 const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
 
 function PropertySettingsCard({
@@ -2877,9 +2887,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile('supplements');
                             markSectionTouched('product-setup');
                           }}
-                          description="Supplements industry defaults"
+                          description="Clinical, conversion-focused, product-safe controls"
+                          className={
+                            industryProfile === 'supplements'
+                              ? '!border-emerald-600 !bg-emerald-600 !text-white'
+                              : '!border-emerald-200 !bg-emerald-50/70 !text-emerald-800 hover:!border-emerald-300 dark:!border-emerald-500/30 dark:!bg-emerald-500/10 dark:!text-emerald-200'
+                          }
                         >
-                          Supplements
+                          <span className="flex items-center gap-2">
+                            <Box className="h-4 w-4 shrink-0" />
+                            <span className="flex flex-col items-start leading-tight">
+                              <span className="font-semibold">Supplements</span>
+                              <span className={`text-[10px] ${industryProfile === 'supplements' ? 'text-white/80' : 'text-emerald-700 dark:text-emerald-200/80'}`}>
+                                Clinical and conversion-safe
+                              </span>
+                            </span>
+                          </span>
                         </Chip>
                         <Chip
                           selected={industryProfile === 'wine'}
@@ -2887,9 +2910,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile('wine');
                             markSectionTouched('product-setup');
                           }}
-                          description="Wine prestige industry module"
+                          description="Bottle setups, pours, cellar scenes, prestige styling"
+                          className={
+                            industryProfile === 'wine'
+                              ? '!border-rose-700 !bg-rose-700 !text-white'
+                              : '!border-rose-200 !bg-rose-50/70 !text-rose-900 hover:!border-rose-300 dark:!border-rose-500/30 dark:!bg-rose-500/10 dark:!text-rose-200'
+                          }
                         >
-                          Wine Prestige
+                          <span className="flex items-center gap-2">
+                            <WineBottleIcon />
+                            <span className="flex flex-col items-start leading-tight">
+                              <span className="font-semibold">Wine Prestige</span>
+                              <span className={`text-[10px] ${industryProfile === 'wine' ? 'text-white/80' : 'text-rose-800 dark:text-rose-200/80'}`}>
+                                Pours, cellars, and bottle scenes
+                              </span>
+                            </span>
+                          </span>
                         </Chip>
                         <Chip
                           selected={industryProfile === 'coffee'}
@@ -2897,9 +2933,22 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             applyIndustryProfile('coffee');
                             markSectionTouched('product-setup');
                           }}
-                          description="Coffee ritual industry defaults"
+                          description="Ritual scenes, steam, pours, and warm surfaces"
+                          className={
+                            industryProfile === 'coffee'
+                              ? '!border-amber-700 !bg-amber-700 !text-white'
+                              : '!border-amber-200 !bg-amber-50/70 !text-amber-900 hover:!border-amber-300 dark:!border-amber-500/30 dark:!bg-amber-500/10 dark:!text-amber-200'
+                          }
                         >
-                          Coffee Ritual
+                          <span className="flex items-center gap-2">
+                            <Coffee className="h-4 w-4 shrink-0" />
+                            <span className="flex flex-col items-start leading-tight">
+                              <span className="font-semibold">Coffee Ritual</span>
+                              <span className={`text-[10px] ${industryProfile === 'coffee' ? 'text-white/80' : 'text-amber-800 dark:text-amber-200/80'}`}>
+                                Steam, rituals, and warm styling
+                              </span>
+                            </span>
+                          </span>
                         </Chip>
                       </div>
                       {industryAutoAdjustNote && (
