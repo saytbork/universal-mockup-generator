@@ -2385,25 +2385,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!showModeGuide || typeof window === 'undefined') return;
-    const timer = window.setTimeout(() => {
-      if (activeModeGuideStep === 1) {
-        intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      if (activeModeGuideStep === 2) {
-        pulseModeToggle();
-        return;
-      }
-      uploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 120);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [activeModeGuideStep, pulseModeToggle, showModeGuide]);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     if (talentToast === 'idle') return;
     const timeout = window.setTimeout(() => setTalentToast('idle'), 2200);
@@ -4239,6 +4220,25 @@ const App: React.FC = () => {
     if (activeModeGuideStep === 1) return;
     handleModeGuideStepClick((activeModeGuideStep - 1) as 1 | 2 | 3);
   }, [activeModeGuideStep, handleModeGuideStepClick]);
+
+  useEffect(() => {
+    if (!showModeGuide || typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => {
+      if (activeModeGuideStep === 1) {
+        intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (activeModeGuideStep === 2) {
+        pulseModeToggle();
+        return;
+      }
+      uploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [activeModeGuideStep, pulseModeToggle, showModeGuide]);
 
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
