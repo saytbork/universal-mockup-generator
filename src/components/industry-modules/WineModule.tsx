@@ -7,7 +7,7 @@ import {
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
 } from '@/lib/productStudio/winePrestige';
-import type { WineAction, WineGlassType, WineLightingTone, WineMoodModifier, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
+import type { ProductStudioState, WineGlassType, WineStyleArchetype } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI = 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
@@ -55,7 +55,7 @@ export function WineModule() {
   const wineMoodModifier =  useProductStudioStore((s) => s.wineMoodModifier);
   const carbonationLevel = (useProductStudioStore((s) => s.carbonationLevel) ?? 'none')                    as WineCarbonationUI;
   const wineStyleArchetype = useProductStudioStore((s) => s.wineStyleArchetype) ?? null;
-  const photoMode        = (useProductStudioStore((s) => (s as any).photoMode) ?? '') as string;
+  const photoMode        =  useProductStudioStore((s) => s.photoMode);
 
   // ── Derived coherence flags ────────────────────────────────────────────
   const isBottleAndGlassMode = photoMode === 'Bottle + Glass';
@@ -70,8 +70,8 @@ export function WineModule() {
 
   const currentServeState: ServeStateUI = wineGlassMode !== 'filled' ? 'none' : 'served';
 
-  const setWineUiState = (patch: Record<string, unknown>): void => {
-    useProductStudioStore.setState(patch as any);
+  const setWineUiState = (patch: Partial<ProductStudioState>): void => {
+    useProductStudioStore.setState(patch);
   };
 
   return (
