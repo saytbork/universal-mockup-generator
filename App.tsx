@@ -2263,6 +2263,8 @@ const App: React.FC = () => {
       return;
     }
 
+    setShowModeGuide(true);
+
     const aiStudioInstance = (window as typeof window & { aistudio?: AiStudioApi }).aistudio;
     setIsAiStudioAvailable(Boolean(aiStudioInstance));
 
@@ -2335,7 +2337,6 @@ const App: React.FC = () => {
     if (window.localStorage.getItem(GOAL_WIZARD_KEY) !== 'true') {
       setShowGoalWizard(true);
     }
-    setShowModeGuide(true);
 
     checkAiStudioSelection();
   }, [envApiKey]);
