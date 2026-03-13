@@ -37,8 +37,9 @@ describe('wine concept modes', () => {
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
     expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising photography with controlled hospitality pour motion.');
-    expect(prompt).toContain('The liquid stream must originate at the true bottle mouth and inner lip');
-    expect(prompt).toContain('Never start the stream below the rim');
+    expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
+    expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
+    expect(prompt).toContain('Never emit liquid from below the bottle rim');
   });
 
   it('renders lineup comparison as wine-family comparison instead of hero fallback', () => {

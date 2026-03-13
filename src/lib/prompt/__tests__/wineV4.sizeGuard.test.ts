@@ -68,10 +68,12 @@ describe('wine v4 size guard', () => {
   // Reduction percentage remains primary compactness metric.
   // Updated limit to account for explicit closure instructions added in served mode,
   // ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments,
-  // and mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix).
-  expect(v4Words).toBeLessThanOrEqual(1050); // Increased for ARTWORK_IMMUTABILITY global block + V1 hero realism guardrails
+  // mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix),
+  // and LABEL_GEOMETRY_LOCK tilt-stable label anchor added for pour mode fidelity.
+  expect(v4Words).toBeLessThanOrEqual(1090); // Increased for LABEL_GEOMETRY_LOCK + CLOSURE_RULE additions
   // V4 may be larger than V3 when served mode safety blocks + rich environment + text integrity + artwork immutability + V1 realism blocks are active.
-  // The current stabilized wine baseline is ~-184.4%; keep the guard tight enough to detect accidental growth without failing on the intentional safety overhead.
-  expect(reductionPercent).toBeGreaterThanOrEqual(-185);
+  // Updated baseline accounts for LABEL_GEOMETRY_LOCK + CLOSURE_RULE additions (~-212% measured).
+  // Keep the guard tight enough to detect accidental growth without failing on intentional safety overhead.
+  expect(reductionPercent).toBeGreaterThanOrEqual(-215);
   });
 });

@@ -1383,10 +1383,14 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const contextPresetIsFromPreviousArchetype =
                 previousArchetypePatch?.contextPreset !== undefined &&
                 state.contextPreset === previousArchetypePatch.contextPreset;
+            // Preserve contextPreset when: it was manually set by the user (not from a previous archetype),
+            // OR when the scene mode owns the environment (Winery Scene).
             const preserveManualContextPreset =
                 !contextPresetIsFromPreviousArchetype &&
-                Boolean(String(state.contextPreset || '').trim()) &&
-                !sceneOwnedWineEnvironmentModes.includes(state.photoMode as PhotoMode);
+                (
+                    Boolean(String(state.contextPreset || '').trim()) ||
+                    sceneOwnedWineEnvironmentModes.includes(state.photoMode as PhotoMode)
+                );
             if (preserveManualContextPreset) {
                 delete (visualFields as Record<string, unknown>).contextPreset;
             }
