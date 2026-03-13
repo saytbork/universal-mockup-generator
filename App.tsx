@@ -6779,59 +6779,6 @@ If the model attempts to create a scene or environment, override it and force a 
               </button>
 
               <div className="w-full max-w-[340px] space-y-3">
-                {showModeGuide && (
-                  <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white/90 p-4 shadow-sm transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-indigo-600">Quick Start</p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Build your first scene in three steps</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={dismissModeGuide}
-                        className="text-[11px] font-semibold text-gray-500 transition hover:text-gray-900 dark:text-white/50 dark:hover:text-white"
-                      >
-                        Dismiss
-                      </button>
-                    </div>
-                    <div className="mt-4 grid gap-2">
-                      {[
-                        {
-                          step: 'Step 1',
-                          title: 'Upload the product',
-                          description: 'Start with the real pack so the label and shape stay accurate.',
-                        },
-                        {
-                          step: 'Step 2',
-                          title: 'Choose a mode',
-                          description: 'Pick Lifestyle for people and environments, or Studio for product-first scenes.',
-                        },
-                        {
-                          step: 'Step 3',
-                          title: 'Adjust the settings',
-                          description: 'Refine the look with just the controls that matter for this mode.',
-                        },
-                      ].map((item, index) => (
-                        <button
-                          key={item.step}
-                          type="button"
-                          onClick={() => handleModeGuideStepClick((index + 1) as 1 | 2 | 3)}
-                          className="flex w-full items-start gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/70 px-3 py-3 text-left opacity-100 transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
-                          style={{ transitionDelay: `${index * 80}ms` }}
-                        >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
-                            {index + 1}
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.step}</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</p>
-                            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-white/50">{item.description}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <div
                   ref={modeToggleRef}
                   className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
@@ -6864,6 +6811,63 @@ If the model attempts to create a scene or environment, override it and force a 
           </header>
 
           <main className="flex flex-col gap-6">
+            {showModeGuide && (
+              <div className="rounded-[28px] border border-gray-200 bg-white/90 p-5 shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="max-w-2xl space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-600">Quick Start</p>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Start in three simple steps</h3>
+                    <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
+                      Upload your product first, choose whether you want <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span>, then refine only the settings that matter.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={dismissModeGuide}
+                    className="self-start rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                  >
+                    Hide guide
+                  </button>
+                </div>
+
+                <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                  {[
+                    {
+                      step: 'Step 1',
+                      title: 'Upload the product',
+                      description: 'Use the real pack so label, shape and proportions stay locked.',
+                    },
+                    {
+                      step: 'Step 2',
+                      title: 'Choose the mode',
+                      description: 'Lifestyle is for people and environments. Studio is for product-first images.',
+                    },
+                    {
+                      step: 'Step 3',
+                      title: 'Adjust the settings',
+                      description: 'Refine the scene with the controls relevant to the mode you picked.',
+                    },
+                  ].map((item, index) => (
+                    <button
+                      key={item.step}
+                      type="button"
+                      onClick={() => handleModeGuideStepClick((index + 1) as 1 | 2 | 3)}
+                      className="flex w-full items-start gap-4 rounded-3xl border border-gray-200 bg-gray-50/80 px-4 py-4 text-left transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white">
+                        {index + 1}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.step}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.title}</p>
+                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">{item.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {(!isSimpleMode && canUseStudioFeatures && isDevBypass) && (
               <div className="rounded-3xl border border-gray-200 bg-white/10 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
