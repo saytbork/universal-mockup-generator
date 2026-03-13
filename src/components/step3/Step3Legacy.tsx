@@ -1419,6 +1419,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const [productCreativeAdvancedOpen, setProductCreativeAdvancedOpen] = useState(false);
   const [industryPreviewFade, setIndustryPreviewFade] = useState(false);
   const industryPreviewFadeTimerRef = useRef<number | null>(null);
+  const [industryAutoAdjustNote, setIndustryAutoAdjustNote] = useState<string | null>(null);
 
   // New strict states
   const [isCreatorPro, setIsCreatorPro] = useState(false);
@@ -1461,6 +1462,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       },
       nextProfile
     );
+    const autoAdjustments: string[] = [];
 
     if (industryPreviewFadeTimerRef.current != null && typeof window !== 'undefined') {
       window.clearTimeout(industryPreviewFadeTimerRef.current);
@@ -1478,6 +1480,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     if (softState.visualIntent && softState.visualIntent !== productStore.visualIntent) {
       productStore.setVisualIntent(softState.visualIntent as ProductStudioState['visualIntent']);
+      autoAdjustments.push(`intent: ${softState.visualIntent}`);
     }
     if (
       softState.lighting &&
@@ -1485,9 +1488,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       allowedStudioLightingValues.includes(softState.lighting as ProductStudioState['lighting'])
     ) {
       productStore.setLighting(softState.lighting as ProductStudioState['lighting']);
+      autoAdjustments.push(`lighting: ${softState.lighting}`);
     }
     if (softState.composition && softState.composition !== productStore.composition) {
       productStore.setComposition(softState.composition as ProductStudioState['composition']);
+      autoAdjustments.push(`composition: ${softState.composition}`);
     }
 
     // ── Photo mode stale-mode guard on industry switch ─────────────────────
@@ -1509,16 +1514,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     const currentPhotoMode = productStore.photoMode as PhotoMode;
     if (nextProfile === 'wine' && SUPPLEMENT_ONLY_MODES.includes(currentPhotoMode)) {
       productStore.setPhotoMode('Hero Landing Page');
+      autoAdjustments.push('shot type: Hero Landing Page');
     } else if (nextProfile !== 'wine' && WINE_ONLY_MODES.includes(currentPhotoMode)) {
       productStore.setPhotoMode('Hero Landing Page');
+      autoAdjustments.push('shot type: Hero Landing Page');
     } else if (softState.photoMode && softState.photoMode !== productStore.photoMode) {
       productStore.setPhotoMode(softState.photoMode as ProductStudioState['photoMode']);
+      autoAdjustments.push(`shot type: ${softState.photoMode}`);
     }
     if (softState.wineLightingTone && softState.wineLightingTone !== productStore.wineLightingTone) {
       productStore.setWineLightingTone(softState.wineLightingTone as ProductStudioState['wineLightingTone']);
+      autoAdjustments.push(`wine lighting: ${softState.wineLightingTone}`);
     }
     if (typeof softState.rotation === 'number' && softState.rotation !== productStore.rotation) {
       productStore.setRotation(softState.rotation as ProductStudioState['rotation']);
+      autoAdjustments.push(`rotation: ${softState.rotation}°`);
     }
     if (
       softState.cameraUiRotationLabel &&
@@ -1526,6 +1536,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     ) {
       productStore.setCameraUiLabels({ rotation: softState.cameraUiRotationLabel });
     }
+    setIndustryAutoAdjustNote(
+      autoAdjustments.length > 0
+        ? `Applied automatically for ${nextProfile}: ${autoAdjustments.join(' · ')}`
+        : `Switched to ${nextProfile}. No additional defaults were needed.`
+    );
   }, [productStore]);
 
   useEffect(() => {
@@ -2887,6 +2902,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Coffee Ritual
                         </Chip>
                       </div>
+                      {industryAutoAdjustNote && (
+                        <InterpretationNote message={industryAutoAdjustNote} />
+                      )}
                     </div>
 
                     {(() => {
