@@ -6817,7 +6817,7 @@ If the model attempts to create a scene or environment, override it and force a 
               <div className="w-full max-w-[340px] space-y-3">
                 <div
                   ref={modeToggleRef}
-                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
+                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'coachmark-focus ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
                 >
                   <div
                     className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
@@ -6839,7 +6839,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </div>
 
                 {showModeGuide && activeModeGuideStep === 2 && (
-                  <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                  <div className="coachmark-card rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 2 of 3</p>
@@ -6964,7 +6964,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     ref={intentRef}
                     className={`flex flex-col gap-6 transition-all duration-300 ${
                       showModeGuide && activeModeGuideStep === 1
-                        ? 'rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
+                        ? 'coachmark-focus rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
                         : ''
                     }`}
                   >
@@ -6973,7 +6973,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     </div>
 
                     {showModeGuide && activeModeGuideStep === 1 && (
-                      <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                      <div className="coachmark-card rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 1 of 3</p>
@@ -7183,7 +7183,7 @@ If the model attempts to create a scene or environment, override it and force a 
                     ref={uploadRef}
                     className={`flex flex-col gap-6 transition-all duration-300 ${
                       showModeGuide && activeModeGuideStep === 3
-                        ? 'rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
+                        ? 'coachmark-focus rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
                         : ''
                     }`}
                   >
@@ -7193,7 +7193,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       </p>
                     </div>
                     {showModeGuide && activeModeGuideStep === 3 && (
-                      <div className="rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                      <div className="coachmark-card rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 3 of 3</p>
