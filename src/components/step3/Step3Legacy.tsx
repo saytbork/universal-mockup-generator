@@ -2980,43 +2980,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           },
                         },
                         wine: {},
-                        coffee: {
-                          coffeeAction: productStore.coffeeAction,
-                          contextPreset: productStore.contextPreset,
-                          coffeeLightingTone: productStore.coffeeLightingTone,
-                          coffeeMoodModifier: productStore.coffeeMoodModifier,
-                          coffeeSteamLevel: productStore.coffeeSteamLevel,
-                          coffeeLiquidPhysics: productStore.coffeeLiquidPhysics,
-                          propsValue: productStore.props,
-                          onCoffeeActionChange: (action: ProductStudioState['coffeeAction']) => {
-                            productStore.setCoffeeAction(action);
-                            markSectionTouched('product-setup');
-                          },
-                          onContextPresetChange: (preset: string) => {
-                            productStore.setContextPreset(preset);
-                            markSectionTouched('product-setup');
-                          },
-                          onCoffeeLightingToneChange: (tone: ProductStudioState['coffeeLightingTone']) => {
-                            productStore.setCoffeeLightingTone(tone);
-                            markSectionTouched('product-setup');
-                          },
-                          onCoffeeMoodModifierChange: (modifier: ProductStudioState['coffeeMoodModifier']) => {
-                            productStore.setCoffeeMoodModifier(modifier);
-                            markSectionTouched('product-setup');
-                          },
-                          onCoffeeSteamLevelChange: (level: ProductStudioState['coffeeSteamLevel']) => {
-                            productStore.setCoffeeSteamLevel(level);
-                            markSectionTouched('product-setup');
-                          },
-                          onCoffeeLiquidPhysicsChange: (enabled: boolean) => {
-                            productStore.setCoffeeLiquidPhysics(enabled);
-                            markSectionTouched('product-setup');
-                          },
-                          onPropsValueChange: (next: string) => {
-                            productStore.setProps(next);
-                            markSectionTouched('product-setup');
-                          },
-                        },
+                        coffee: {},
                       };
 
                       return <ActiveIndustryModule {...modulePropsByIndustry[industryProfile]} />;

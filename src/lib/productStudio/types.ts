@@ -723,6 +723,55 @@ export type CoffeeMoodModifier =
     | 'modern-commercial';
 export type CoffeeSteamLevel = 'auto' | 'none' | 'subtle' | 'visible';
 
+/**
+ * CoffeeConfig — typed replacement for the `props` string-tag encoding.
+ * Previously values like `coffee:beans=low | coffee:surface=dark-stone` were
+ * encoded into the free-form `props` string and parsed by regex in the router.
+ * This struct is the canonical, type-safe alternative.
+ */
+export type CoffeePackagingIntent =
+    | 'pdp-clean'
+    | 'premium-campaign'
+    | 'dark-roast-luxury'
+    | 'modern-minimal'
+    | 'cold-brew-fresh'
+    | 'bundle-hero';
+
+export type CoffeeBeansScatter = 'low' | 'medium' | 'high';
+export type CoffeeCupAccent = 'none' | 'side' | 'behind-small';
+export type CoffeeEspressoSplash = 'off' | 'controlled';
+export type CoffeeIceMode = 'off' | 'cold';
+export type CoffeeSurfaceStyle =
+    | 'neutral-gradient'
+    | 'dark-stone'
+    | 'matte-wood'
+    | 'concrete-minimal'
+    | 'pure-white-pdp';
+export type CoffeeTemperatureFeel = 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
+export type CoffeeServeStyle = 'cup-only' | 'cup-and-bag' | 'espresso-machine';
+
+export interface CoffeeConfig {
+    intent: CoffeePackagingIntent;
+    beansScatter: CoffeeBeansScatter;
+    cupAccent: CoffeeCupAccent;
+    espressoSplash: CoffeeEspressoSplash;
+    iceMode: CoffeeIceMode;
+    surfaceStyle: CoffeeSurfaceStyle;
+    temperatureFeel: CoffeeTemperatureFeel;
+    serveStyle: CoffeeServeStyle;
+}
+
+export const DEFAULT_COFFEE_CONFIG: CoffeeConfig = {
+    intent: 'pdp-clean',
+    beansScatter: 'low',
+    cupAccent: 'side',
+    espressoSplash: 'off',
+    iceMode: 'off',
+    surfaceStyle: 'neutral-gradient',
+    temperatureFeel: 'neutral-commercial',
+    serveStyle: 'cup-and-bag',
+};
+
 // NEW CREATIVITY V1 TYPES
 export type CompositionMode = 'centered' | 'thirds' | 'asymmetrical' | 'flatlay' | 'pedestal';
 export type SurfaceBase = 'neutral' | 'pedestal' | 'acrylic' | 'stone' | 'abstract';
@@ -885,6 +934,8 @@ export type ProductStudioState = {
     coffeeMoodModifier: CoffeeMoodModifier;
     coffeeSteamLevel: CoffeeSteamLevel;
     coffeeLiquidPhysics: boolean;
+    /** Typed config replacing the legacy `props` coffee:key=value tag encoding. */
+    coffeeConfig: CoffeeConfig;
     visualIntent: VisualIntent;
     energyLevel: EnergyLevel;
     creativityLevel: 0 | 1 | 2 | 3;

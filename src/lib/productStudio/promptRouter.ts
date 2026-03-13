@@ -603,30 +603,33 @@ function resolveCoffeeIndustryLayer(
   temperatureFeel: 'warm-roast' | 'neutral-commercial' | 'cool-cold-brew';
   serveStyle: 'cup-only' | 'cup-and-bag' | 'espresso-machine';
 } {
+  // ── Prefer typed coffeeConfig; fall back to legacy props string parsing
+  // for any state that pre-dates the migration.
+  const typedConfig = (state as any).coffeeConfig as import('./types').CoffeeConfig | undefined;
   const propsText = String((state as any).props || '');
   const extractCoffeeTag = (key: string, fallback: string): string => {
     const match = propsText.match(new RegExp(`coffee:${key}=([a-z0-9-]+)`, 'i'));
     return match?.[1]?.toLowerCase() || fallback;
   };
 
-  const packagingIntent = extractCoffeeTag(COFFEE_PROP_KEYS.intent, 'pdp-clean') as
+  const packagingIntent = (typedConfig?.intent ?? extractCoffeeTag(COFFEE_PROP_KEYS.intent, 'pdp-clean')) as
     | 'pdp-clean'
     | 'premium-campaign'
     | 'dark-roast-luxury'
     | 'modern-minimal'
     | 'cold-brew-fresh'
     | 'bundle-hero';
-  const beansScatter = extractCoffeeTag(COFFEE_PROP_KEYS.beans, 'low') as 'low' | 'medium' | 'high';
-  const cupAccent = extractCoffeeTag(COFFEE_PROP_KEYS.cup, 'side') as 'none' | 'side' | 'behind-small';
-  const espressoSplash = extractCoffeeTag(COFFEE_PROP_KEYS.splash, 'off') as 'off' | 'controlled';
-  const iceMode = extractCoffeeTag(COFFEE_PROP_KEYS.ice, 'off') as 'off' | 'cold';
-  const surfaceStyle = extractCoffeeTag(COFFEE_PROP_KEYS.surface, 'neutral-gradient') as
+  const beansScatter = (typedConfig?.beansScatter ?? extractCoffeeTag(COFFEE_PROP_KEYS.beans, 'low')) as 'low' | 'medium' | 'high';
+  const cupAccent = (typedConfig?.cupAccent ?? extractCoffeeTag(COFFEE_PROP_KEYS.cup, 'side')) as 'none' | 'side' | 'behind-small';
+  const espressoSplash = (typedConfig?.espressoSplash ?? extractCoffeeTag(COFFEE_PROP_KEYS.splash, 'off')) as 'off' | 'controlled';
+  const iceMode = (typedConfig?.iceMode ?? extractCoffeeTag(COFFEE_PROP_KEYS.ice, 'off')) as 'off' | 'cold';
+  const surfaceStyle = (typedConfig?.surfaceStyle ?? extractCoffeeTag(COFFEE_PROP_KEYS.surface, 'neutral-gradient')) as
     | 'neutral-gradient'
     | 'dark-stone'
     | 'matte-wood'
     | 'concrete-minimal'
     | 'pure-white-pdp';
-  const temperatureFeel = extractCoffeeTag(COFFEE_PROP_KEYS.temp, 'neutral-commercial') as
+  const temperatureFeel = (typedConfig?.temperatureFeel ?? extractCoffeeTag(COFFEE_PROP_KEYS.temp, 'neutral-commercial')) as
     | 'warm-roast'
     | 'neutral-commercial'
     | 'cool-cold-brew';
@@ -635,10 +638,11 @@ function resolveCoffeeIndustryLayer(
       ? state.coffeeMoodModifier
       : undefined;
   const cinematicLuxuryActive = selectedMoodModifier === 'coffee-cinematic-luxury';
-  const serveStyle = extractCoffeeTag(
+  const serveStyleDefault = cinematicLuxuryActive ? 'cup-only' : 'cup-and-bag';
+  const serveStyle = (typedConfig?.serveStyle ?? extractCoffeeTag(
     COFFEE_PROP_KEYS.serveStyle,
-    cinematicLuxuryActive ? 'cup-only' : 'cup-and-bag'
-  ) as 'cup-only' | 'cup-and-bag' | 'espresso-machine';
+    serveStyleDefault
+  )) as 'cup-only' | 'cup-and-bag' | 'espresso-machine';
 
   const mode: 'studio' | 'ritual' = state.coffeeMode === 'ritual' ? 'ritual' : 'studio';
   const intent: CoffeeIndustryIntent = resolveCoffeeIndustryIntent(state.photoMode || '', state.visualIntent);

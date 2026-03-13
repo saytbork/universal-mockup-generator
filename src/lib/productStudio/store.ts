@@ -8,6 +8,7 @@ import { extractDominantColors } from './colorExtractor';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
 import { getPhotoModeCapabilities } from './capabilityResolver';
+import { DEFAULT_COFFEE_CONFIG } from './types';
 import type {
     ProductStudioState,
     ProductAsset,
@@ -61,6 +62,7 @@ import type {
     CoffeeLightingTone,
     CoffeeMoodModifier,
     CoffeeSteamLevel,
+    CoffeeConfig,
     PhysicalFormFactor,
     PhysicalPresence,
     ProductState,
@@ -701,6 +703,7 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     coffeeMoodModifier: 'coffee-cinematic-luxury',
     coffeeSteamLevel: 'auto',
     coffeeLiquidPhysics: true,
+    coffeeConfig: { ...DEFAULT_COFFEE_CONFIG },
     visualIntent: 'conversion',
     energyLevel: 'low',
     creativityLevel: 1,
@@ -870,6 +873,7 @@ type ProductStudioActions = {
     setCoffeeMoodModifier: (modifier: CoffeeMoodModifier) => void;
     setCoffeeSteamLevel: (level: CoffeeSteamLevel) => void;
     setCoffeeLiquidPhysics: (enabled: boolean) => void;
+    setCoffeeConfig: (patch: Partial<CoffeeConfig>) => void;
     setVisualIntent: (intent: ProductStudioState['visualIntent']) => void;
     setEnergyLevel: (level: ProductStudioState['energyLevel']) => void;
     setCreativityLevel: (level: 0 | 1 | 2 | 3) => void;
@@ -1317,6 +1321,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     coffeeMode: 'studio',
                     coffeeAction: 'static',
                     coffeeMoodModifier: 'coffee-cinematic-luxury',
+                    coffeeConfig: { ...DEFAULT_COFFEE_CONFIG },
                 };
             }
             if (normalizedProfile === 'coffee') {
@@ -1326,6 +1331,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     coffeeMode: state.coffeeMode || 'studio',
                     coffeeAction: state.coffeeAction || 'static',
                     coffeeMoodModifier: state.coffeeMoodModifier || 'coffee-cinematic-luxury',
+                    coffeeConfig: state.coffeeConfig ?? { ...DEFAULT_COFFEE_CONFIG },
                 };
             }
             return {
@@ -1402,6 +1408,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setCoffeeMoodModifier: (modifier) => set({ coffeeMoodModifier: modifier }),
     setCoffeeSteamLevel: (level) => set({ coffeeSteamLevel: level }),
     setCoffeeLiquidPhysics: (enabled) => set({ coffeeLiquidPhysics: Boolean(enabled) }),
+    setCoffeeConfig: (patch) =>
+        set((state) => ({ coffeeConfig: { ...state.coffeeConfig, ...patch } })),
     setVisualIntent: (intent) => set({ visualIntent: intent }),
     setEnergyLevel: (energyLevel) => set({ energyLevel }),
     setCreativityLevel: (level) => set({ creativityLevel: level }),
