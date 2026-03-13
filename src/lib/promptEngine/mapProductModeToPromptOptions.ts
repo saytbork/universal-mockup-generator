@@ -46,6 +46,16 @@ const PRODUCT_COMPOSITION_DESCRIPTIONS: Record<Step3Values['productCompositionPr
     routineBundle: 'Routine bundle shot showing multiple products organized as a set.'
 };
 
+const PRODUCT_TYPE_INGREDIENT_HINTS: Partial<Record<NonNullable<Step3Values['productType']>, string>> = {
+    capsules: 'Use supporting ingredient props that feel native to capsule supplements, such as open capsules, powder traces, or formulation materials arranged around the product.',
+    gummies: 'Use supporting ingredient props that feel native to gummy supplements, such as gummies, fruit cues, or formulation materials arranged around the product.',
+    drops: 'Use supporting ingredient props that feel native to liquid drops, such as droppers, liquid droplets, or formulation materials arranged around the product.',
+    powder: 'Use supporting ingredient props that feel native to powders, such as scoops, powder texture, or formulation materials arranged around the product.',
+    skincare: 'Use supporting ingredient props that feel native to skincare, such as cream texture, botanical elements, or formulation materials arranged around the product.',
+    device: 'Use supporting props that explain the device context without introducing unrelated lifestyle clutter.',
+    custom: 'Use supporting ingredient or formulation props arranged around the product.'
+};
+
 const ALIGNMENT_DESCRIPTIONS: Record<Step3Values['ecommerceAlignment'], string> = {
     left: 'Position the product toward the left side of the frame.',
     center: 'Center the product within the frame.',
@@ -196,6 +206,13 @@ export function mapProductModeToPromptOptions(
     const ingredientHint = sceneState.productUsageDescription?.trim();
     if (ingredientHint) {
         customAdditionSentences.push(`Ingredient or flavor props: ${ingredientHint}.`);
+    } else if (sceneState.productCompositionPreset === 'ingredientStory') {
+        const defaultIngredientHint = sceneState.productType
+            ? PRODUCT_TYPE_INGREDIENT_HINTS[sceneState.productType]
+            : 'Use visible ingredient or formulation props arranged around the product to make the formula story explicit.';
+        if (defaultIngredientHint) {
+            customAdditionSentences.push(defaultIngredientHint);
+        }
     }
     const heroCue = sceneState.customProps?.trim();
     if (heroCue) {

@@ -319,6 +319,9 @@ const SceneBuilderProduct: React.FC<SceneBuilderProductProps> = ({
     onCanGenerateChange?.(true);
   }, [onCanGenerateChange]);
 
+  const shouldShowIngredientDescription =
+    values.productInteraction === 'Using' || values.productCompositionPreset === 'ingredientStory';
+
   const productInteractionSection = (
     <AccordionSection
       icon={Hand}
@@ -341,15 +344,24 @@ const SceneBuilderProduct: React.FC<SceneBuilderProductProps> = ({
             </button>
           ))}
         </div>
-        {values.productInteraction === 'Using' && (
+        {shouldShowIngredientDescription && (
           <div className="mt-2">
+            <p className="mb-2 text-[11px] text-gray-400">
+              {values.productCompositionPreset === 'ingredientStory'
+                ? 'Describe the ingredient or formulation props that should surround the product.'
+                : 'Describe how the creator uses the product.'}
+            </p>
             <textarea
               value={values.productUsageDescription}
               onChange={(event) => {
                 updateValue('productUsageDescription', event.target.value);
                 markSectionTouched('productInteraction');
               }}
-              placeholder="Describe how the creator uses the product"
+              placeholder={
+                values.productCompositionPreset === 'ingredientStory'
+                  ? 'Example: loose capsules, vitamin powder, botanical leaves, measuring scoop'
+                  : 'Describe how the creator uses the product'
+              }
               className="w-full rounded-lg border border-gray-600 bg-gray-900/60 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
               rows={3}
             />
