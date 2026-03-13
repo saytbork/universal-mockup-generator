@@ -6839,7 +6839,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 )}
                 <div
                   ref={modeToggleRef}
-                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black shadow-[0_0_0_6px_rgba(99,102,241,0.12)]' : ''}`}
+                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
                 >
                   <div
                     className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
