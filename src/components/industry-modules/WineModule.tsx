@@ -7,7 +7,7 @@ import {
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
 } from '@/lib/productStudio/winePrestige';
-import type { WineAction, WineGlassType, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
+import type { WineAction, WineGlassType, WineLightingTone, WineMoodModifier, WinePourStyle, WineStyleArchetype } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI =
@@ -56,31 +56,7 @@ const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = 
   { value: 'sparkling-flute', label: 'Flute / Champagne' },
 ];
 
-type WineModuleProps = {
-  wineAction: WineAction;
-  winePourStyle: WinePourStyle;
-  contextPreset: string;
-  wineLightingTone: string;
-  wineMoodModifier: string;
-  onWineActionChange: (action: WineAction) => void;
-  onWinePourStyleChange: (style: WinePourStyle) => void;
-  onContextPresetChange: (preset: string) => void;
-  onWineLightingToneChange: (tone: string) => void;
-  onWineMoodModifierChange: (modifier: string) => void;
-};
-
-export function WineModule({
-  wineAction,
-  winePourStyle,
-  contextPreset,
-  wineLightingTone,
-  wineMoodModifier,
-  onWineActionChange,
-  onWinePourStyleChange,
-  onContextPresetChange,
-  onWineLightingToneChange,
-  onWineMoodModifierChange,
-}: WineModuleProps) {
+export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
   const wineType = (useProductStudioStore((s) => (s as any).wineType) || 'auto') as WineTypeUI;
   const wineClosureType = (useProductStudioStore((s) => (s as any).wineClosureType) || 'from-reference') as WineClosureTypeUI;
@@ -88,6 +64,10 @@ export function WineModule({
   const wineGlassMode = (useProductStudioStore((s) => (s as any).wineGlassMode) || 'none') as string;
   const wineGlassType = (useProductStudioStore((s) => (s as any).wineGlassType) || 'auto') as WineGlassType;
   const wineServeAmount = (useProductStudioStore((s) => (s as any).wineServeAmount) || 'standard') as string;
+  const wineAction = (useProductStudioStore((s) => (s as any).wineAction) || 'static-presentation') as WineAction;
+  const winePourStyle = (useProductStudioStore((s) => (s as any).winePourStyle) || 'slow-ribbon') as WinePourStyle;
+  const wineLightingTone = (useProductStudioStore((s) => (s as any).wineLightingTone) || 'Warm Lateral') as WineLightingTone;
+  const wineMoodModifier = (useProductStudioStore((s) => (s as any).wineMoodModifier) || 'None') as WineMoodModifier;
   const carbonationLevel = (useProductStudioStore((s) => (s as any).carbonationLevel) || 'none') as WineCarbonationUI;
   const wineStyleArchetype = (useProductStudioStore((s) => (s as any).wineStyleArchetype) ?? null) as WineStyleArchetype | null;
   const photoMode = (useProductStudioStore((s) => (s as any).photoMode) || '') as string;
@@ -149,7 +129,7 @@ export function WineModule({
                 <Chip
                   key={action}
                   selected={wineAction === action}
-                  onClick={() => onWineActionChange(action)}
+                  onClick={() => setWineUiState({ wineAction: action })}
                 >
                   {action === 'static-presentation' ? 'Static Presentation' : 'Controlled Pour'}
                 </Chip>
@@ -271,7 +251,7 @@ export function WineModule({
                   <Chip
                     key={style}
                     selected={winePourStyle === style}
-                    onClick={() => onWinePourStyleChange(style)}
+                    onClick={() => setWineUiState({ winePourStyle: style })}
                   >
                     {style === 'slow-ribbon'
                       ? 'Slow Ribbon'
@@ -290,7 +270,7 @@ export function WineModule({
                 <Chip
                   key={tone}
                   selected={wineLightingTone === tone}
-                  onClick={() => onWineLightingToneChange(tone)}
+                  onClick={() => setWineUiState({ wineLightingTone: tone })}
                 >
                   {tone}
                 </Chip>
@@ -304,7 +284,7 @@ export function WineModule({
                 <Chip
                   key={modifier}
                   selected={wineMoodModifier === modifier}
-                  onClick={() => onWineMoodModifierChange(modifier)}
+                  onClick={() => setWineUiState({ wineMoodModifier: modifier })}
                 >
                   {modifier}
                 </Chip>

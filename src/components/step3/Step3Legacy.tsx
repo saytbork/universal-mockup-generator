@@ -2979,33 +2979,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             markSectionTouched('product-setup');
                           },
                         },
-                        wine: {
-                          wineAction: productStore.wineAction,
-                          winePourStyle: productStore.winePourStyle,
-                          contextPreset: productStore.contextPreset,
-                          wineLightingTone: productStore.wineLightingTone,
-                          wineMoodModifier: productStore.wineMoodModifier,
-                          onWineActionChange: (action: ProductStudioState['wineAction']) => {
-                            productStore.setWineAction(action);
-                            markSectionTouched('product-setup');
-                          },
-                          onWinePourStyleChange: (style: ProductStudioState['winePourStyle']) => {
-                            productStore.setWinePourStyle(style);
-                            markSectionTouched('product-setup');
-                          },
-                          onContextPresetChange: (preset: string) => {
-                            productStore.setContextPreset(preset);
-                            markSectionTouched('product-setup');
-                          },
-                          onWineLightingToneChange: (tone: string) => {
-                            productStore.setWineLightingTone(tone as ProductStudioState['wineLightingTone']);
-                            markSectionTouched('product-setup');
-                          },
-                          onWineMoodModifierChange: (modifier: string) => {
-                            productStore.setWineMoodModifier(modifier as ProductStudioState['wineMoodModifier']);
-                            markSectionTouched('product-setup');
-                          },
-                        },
+                        wine: {},
                         coffee: {
                           coffeeAction: productStore.coffeeAction,
                           contextPreset: productStore.contextPreset,
