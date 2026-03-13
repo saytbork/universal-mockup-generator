@@ -4222,6 +4222,10 @@ const App: React.FC = () => {
     handleModeGuideStepClick((activeModeGuideStep - 1) as 1 | 2 | 3);
   }, [activeModeGuideStep, handleModeGuideStepClick]);
 
+  const shouldDimInputAssets = showModeGuide && activeModeGuideStep !== 1;
+  const shouldDimModeSelector = showModeGuide && activeModeGuideStep !== 2;
+  const shouldDimBuilderSettings = showModeGuide && activeModeGuideStep !== 3;
+
   useEffect(() => {
     if (!showModeGuide || typeof window === 'undefined') return;
     const timer = window.setTimeout(() => {
@@ -6814,7 +6818,7 @@ If the model attempts to create a scene or environment, override it and force a 
                 </span>
               </button>
 
-              <div className="w-full max-w-[340px] space-y-3">
+              <div className={`w-full max-w-[340px] space-y-3 transition-all duration-300 ${shouldDimModeSelector ? 'coachmark-dim' : ''}`}>
                 <div
                   ref={modeToggleRef}
                   className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'coachmark-focus ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
@@ -6966,7 +6970,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       showModeGuide && activeModeGuideStep === 1
                         ? 'coachmark-focus rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
                         : ''
-                    }`}
+                    } ${shouldDimInputAssets ? 'coachmark-dim' : ''}`}
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
@@ -7185,7 +7189,7 @@ If the model attempts to create a scene or environment, override it and force a 
                       showModeGuide && activeModeGuideStep === 3
                         ? 'coachmark-focus rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
                         : ''
-                    }`}
+                    } ${shouldDimBuilderSettings ? 'coachmark-dim' : ''}`}
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">

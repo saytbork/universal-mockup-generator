@@ -163,4 +163,10 @@
   .coachmark-focus {
     animation: coachmark-focus 2.1s ease-in-out infinite;
   }
+
+  .coachmark-dim {
+    opacity: 0.42;
+    filter: saturate(0.88);
+    transition: opacity 320ms ease, filter 320ms ease;
+  }
 }
