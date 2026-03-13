@@ -78,6 +78,53 @@ function WineBottleIcon() {
   );
 }
 
+type IndustryChipConfig = {
+  value: IndustryProfile;
+  label: string;
+  subtitle: string;
+  description: string;
+  activeClassName: string;
+  inactiveClassName: string;
+  subtitleClassName: string;
+  icon: React.ReactNode;
+};
+
+const INDUSTRY_CHIP_CONFIGS: IndustryChipConfig[] = [
+  {
+    value: 'supplements',
+    label: 'Supplements',
+    subtitle: 'Clinical and conversion-safe',
+    description: 'Clinical, conversion-focused, product-safe controls',
+    activeClassName: '!border-emerald-600 !bg-emerald-600 !text-white',
+    inactiveClassName:
+      '!border-emerald-200 !bg-emerald-50/70 !text-emerald-800 hover:!border-emerald-300 dark:!border-emerald-500/30 dark:!bg-emerald-500/10 dark:!text-emerald-200',
+    subtitleClassName: 'text-emerald-700 dark:text-emerald-200/80',
+    icon: <Box className="h-4 w-4 shrink-0" />,
+  },
+  {
+    value: 'wine',
+    label: 'Wine Prestige',
+    subtitle: 'Pours, cellars, and bottle scenes',
+    description: 'Bottle setups, pours, cellar scenes, prestige styling',
+    activeClassName: '!border-rose-700 !bg-rose-700 !text-white',
+    inactiveClassName:
+      '!border-rose-200 !bg-rose-50/70 !text-rose-900 hover:!border-rose-300 dark:!border-rose-500/30 dark:!bg-rose-500/10 dark:!text-rose-200',
+    subtitleClassName: 'text-rose-800 dark:text-rose-200/80',
+    icon: <WineBottleIcon />,
+  },
+  {
+    value: 'coffee',
+    label: 'Coffee Ritual',
+    subtitle: 'Steam, rituals, and warm styling',
+    description: 'Ritual scenes, steam, pours, and warm surfaces',
+    activeClassName: '!border-amber-700 !bg-amber-700 !text-white',
+    inactiveClassName:
+      '!border-amber-200 !bg-amber-50/70 !text-amber-900 hover:!border-amber-300 dark:!border-amber-500/30 dark:!bg-amber-500/10 dark:!text-amber-200',
+    subtitleClassName: 'text-amber-800 dark:text-amber-200/80',
+    icon: <Coffee className="h-4 w-4 shrink-0" />,
+  },
+];
+
 const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
 
 function PropertySettingsCard({
@@ -2881,75 +2928,31 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     <div className={SECTION_GROUP_CLASS}>
                       <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40 mb-2">INDUSTRY PROFILE</p>
                       <div className="flex flex-wrap gap-2">
-                        <Chip
-                          selected={industryProfile === 'supplements'}
-                          onClick={() => {
-                            applyIndustryProfile('supplements');
-                            markSectionTouched('product-setup');
-                          }}
-                          description="Clinical, conversion-focused, product-safe controls"
-                          className={
-                            industryProfile === 'supplements'
-                              ? '!border-emerald-600 !bg-emerald-600 !text-white'
-                              : '!border-emerald-200 !bg-emerald-50/70 !text-emerald-800 hover:!border-emerald-300 dark:!border-emerald-500/30 dark:!bg-emerald-500/10 dark:!text-emerald-200'
-                          }
-                        >
-                          <span className="flex items-center gap-2">
-                            <Box className="h-4 w-4 shrink-0" />
-                            <span className="flex flex-col items-start leading-tight">
-                              <span className="font-semibold">Supplements</span>
-                              <span className={`text-[10px] ${industryProfile === 'supplements' ? 'text-white/80' : 'text-emerald-700 dark:text-emerald-200/80'}`}>
-                                Clinical and conversion-safe
+                        {INDUSTRY_CHIP_CONFIGS.map((chip) => {
+                          const isSelected = industryProfile === chip.value;
+                          return (
+                            <Chip
+                              key={chip.value}
+                              selected={isSelected}
+                              onClick={() => {
+                                applyIndustryProfile(chip.value);
+                                markSectionTouched('product-setup');
+                              }}
+                              description={chip.description}
+                              className={isSelected ? chip.activeClassName : chip.inactiveClassName}
+                            >
+                              <span className="flex items-center gap-2">
+                                {chip.icon}
+                                <span className="flex flex-col items-start leading-tight">
+                                  <span className="font-semibold">{chip.label}</span>
+                                  <span className={`text-[10px] ${isSelected ? 'text-white/80' : chip.subtitleClassName}`}>
+                                    {chip.subtitle}
+                                  </span>
+                                </span>
                               </span>
-                            </span>
-                          </span>
-                        </Chip>
-                        <Chip
-                          selected={industryProfile === 'wine'}
-                          onClick={() => {
-                            applyIndustryProfile('wine');
-                            markSectionTouched('product-setup');
-                          }}
-                          description="Bottle setups, pours, cellar scenes, prestige styling"
-                          className={
-                            industryProfile === 'wine'
-                              ? '!border-rose-700 !bg-rose-700 !text-white'
-                              : '!border-rose-200 !bg-rose-50/70 !text-rose-900 hover:!border-rose-300 dark:!border-rose-500/30 dark:!bg-rose-500/10 dark:!text-rose-200'
-                          }
-                        >
-                          <span className="flex items-center gap-2">
-                            <WineBottleIcon />
-                            <span className="flex flex-col items-start leading-tight">
-                              <span className="font-semibold">Wine Prestige</span>
-                              <span className={`text-[10px] ${industryProfile === 'wine' ? 'text-white/80' : 'text-rose-800 dark:text-rose-200/80'}`}>
-                                Pours, cellars, and bottle scenes
-                              </span>
-                            </span>
-                          </span>
-                        </Chip>
-                        <Chip
-                          selected={industryProfile === 'coffee'}
-                          onClick={() => {
-                            applyIndustryProfile('coffee');
-                            markSectionTouched('product-setup');
-                          }}
-                          description="Ritual scenes, steam, pours, and warm surfaces"
-                          className={
-                            industryProfile === 'coffee'
-                              ? '!border-amber-700 !bg-amber-700 !text-white'
-                              : '!border-amber-200 !bg-amber-50/70 !text-amber-900 hover:!border-amber-300 dark:!border-amber-500/30 dark:!bg-amber-500/10 dark:!text-amber-200'
-                          }
-                        >
-                          <span className="flex items-center gap-2">
-                            <Coffee className="h-4 w-4 shrink-0" />
-                            <span className="flex flex-col items-start leading-tight">
-                              <span className="font-semibold">Coffee Ritual</span>
-                              <span className={`text-[10px] ${industryProfile === 'coffee' ? 'text-white/80' : 'text-amber-800 dark:text-amber-200/80'}`}>
-                                Steam, rituals, and warm styling
-                              </span>
-                            </span>
-                          </span>
-                        </Chip>
+                            </Chip>
+                          );
+                        })}
                       </div>
                       {industryAutoAdjustNote && (
                         <InterpretationNote message={industryAutoAdjustNote} />
