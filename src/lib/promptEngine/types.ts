@@ -214,6 +214,13 @@ export interface PromptOptions {
     heroAlignment?: string;
     heroScale?: number;
     heroShadow?: string;
+    supplementPresetCue?: string;
+    supplementBackgroundColor?: string;
+    supplementAccentColor?: string;
+    supplementFlavorNotes?: string;
+    includeSupplementHand?: boolean;
+    supplementCustomPrompt?: string;
+    moodPromptCue?: string;
 
     compositionMode?: string;
     bgColor?: string;
