@@ -2869,7 +2869,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         <Chip
                           selected={industryProfile === 'wine'}
                           onClick={() => {
-                            applyIndustryProfile(industryProfile === 'wine' ? 'supplements' : 'wine');
+                            applyIndustryProfile('wine');
                             markSectionTouched('product-setup');
                           }}
                           description="Wine prestige industry module"

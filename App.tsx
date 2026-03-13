@@ -1763,6 +1763,10 @@ const App: React.FC = () => {
   const [inviteUsed, setInviteUsed] = useState(false);
   const [remoteCredits, setRemoteCredits] = useState<number | null>(null);
   const [remotePlanTier, setRemotePlanTier] = useState<PlanTier | null>(null);
+  const studioIndustryProfile = useProductStudioStore((state) => state.industryProfile);
+  const studioPhotoMode = useProductStudioStore((state) => state.photoMode);
+  const studioCreativeIntent = useProductStudioStore((state) => state.creativeIntent);
+  const studioContextPreset = useProductStudioStore((state) => state.contextPreset);
   useEffect(() => {
     const nextEmail = user?.email || emailUser || '';
     setUserEmail(nextEmail);
@@ -2021,6 +2025,68 @@ const App: React.FC = () => {
   const selectedOutputAspectRatio = useMemo(() => {
     return resolveOutputAspectRatio();
   }, [resolveOutputAspectRatio]);
+  const resolvedGenerationSummary = useMemo(() => {
+    const isLifestyleScene = lifestyleStep3Values?.sceneType === 'lifestyle-real';
+    const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
+    const forceStudioByProductContent =
+      options.contentStyle === 'product' ||
+      lifestyleStep3Values?.contentStyle === 'product';
+    const resolvedStudioEngine =
+      isStudioBrandingScene ||
+      (!isLifestyleScene && (forceStudioByProductContent || isProductPlacement));
+
+    const resolvedSceneType = resolvedStudioEngine
+      ? 'studio-branding'
+      : lifestyleStep3Values?.sceneType && lifestyleStep3Values.sceneType !== 'studio-branding'
+        ? lifestyleStep3Values.sceneType
+        : 'lifestyle-real';
+
+    const resolvedIndustry = resolvedStudioEngine
+      ? studioIndustryProfile || 'supplements'
+      : lifestyleStep3Values?.environment || options.setting || 'Lifestyle';
+
+    const resolvedMode = resolvedStudioEngine
+      ? studioPhotoMode || 'Hero Landing Page'
+      : lifestyleStep3Values?.visualMode ||
+        lifestyleStep3Values?.creationMode ||
+        options.creationMode ||
+        'lifestyle';
+
+    const resolvedIntent = resolvedStudioEngine
+      ? studioCreativeIntent || 'conversion'
+      : lifestyleStep3Values?.visualIntent ||
+        lifestyleStep3Values?.creationIntent ||
+        options.creationIntent ||
+        options.contentStyle ||
+        'ugc';
+
+    const resolvedContext = resolvedStudioEngine
+      ? studioContextPreset || 'Auto'
+      : lifestyleStep3Values?.environmentContext?.micro ||
+        lifestyleStep3Values?.environment ||
+        options.setting ||
+        'Auto';
+
+    return {
+      engine: resolvedStudioEngine ? 'Studio V2' : 'Lifestyle',
+      sceneType: resolvedSceneType,
+      industry: String(resolvedIndustry || 'Auto'),
+      mode: String(resolvedMode || 'Auto'),
+      intent: String(resolvedIntent || 'Auto'),
+      context: String(resolvedContext || 'Auto'),
+    };
+  }, [
+    isProductPlacement,
+    lifestyleStep3Values,
+    options.contentStyle,
+    options.creationIntent,
+    options.creationMode,
+    options.setting,
+    studioContextPreset,
+    studioCreativeIntent,
+    studioIndustryProfile,
+    studioPhotoMode,
+  ]);
   useEffect(() => {
     const shouldKeepVisible = isImageLoading || (!hasUploadedProduct && !hideProductMode);
     if (shouldKeepVisible) {
@@ -7292,6 +7358,37 @@ If the model attempts to create a scene or environment, override it and force a 
                         Locked until previous step is complete
                       </div>
                     )}
+                    <div className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-4 dark:bg-white/5 dark:border-white/10">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Resolved Generation State</p>
+                          <p className="mt-1 text-[11px] text-gray-500 dark:text-white/50">
+                            These are the effective settings the app will use when you generate.
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-semibold text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                          {resolvedGenerationSummary.engine}
+                        </span>
+                      </div>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {[
+                          ['Scene Type', resolvedGenerationSummary.sceneType],
+                          ['Industry', resolvedGenerationSummary.industry],
+                          ['Mode', resolvedGenerationSummary.mode],
+                          ['Intent', resolvedGenerationSummary.intent],
+                          ['Context', resolvedGenerationSummary.context],
+                          ['Output', selectedOutputAspectRatio],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2 dark:border-white/10 dark:bg-white/5"
+                          >
+                            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/40">{label}</p>
+                            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     {(() => {
                       const isGenerateDisabled = isImageLoading || (!hasUploadedProduct && !hideProductMode);
                       const generationRestrictionMessage = (() => {
