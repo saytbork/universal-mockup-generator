@@ -7409,15 +7409,15 @@ If the model attempts to create a scene or environment, override it and force a 
                       </div>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         {[
-                          ['Scene Type', resolvedGenerationSummary.sceneType],
-                          ['Industry', resolvedGenerationSummary.industry],
-                          ['Mode', resolvedGenerationSummary.mode],
-                          ['Intent', resolvedGenerationSummary.intent],
-                          ['Context', resolvedGenerationSummary.context],
-                          ['Output', selectedOutputAspectRatio],
-                        ].map(([label, field]) => (
+                          { id: 'scene-type', label: 'Scene Type', field: resolvedGenerationSummary.sceneType },
+                          { id: 'industry', label: 'Industry', field: resolvedGenerationSummary.industry },
+                          { id: 'mode', label: 'Mode', field: resolvedGenerationSummary.mode },
+                          { id: 'intent', label: 'Intent', field: resolvedGenerationSummary.intent },
+                          { id: 'context', label: 'Context', field: resolvedGenerationSummary.context },
+                          { id: 'output', label: 'Output', field: selectedOutputAspectRatio },
+                        ].map(({ id, label, field }) => (
                           <div
-                            key={label}
+                            key={id}
                             className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2 dark:border-white/10 dark:bg-white/5"
                           >
                             <div className="flex items-center justify-between gap-2">

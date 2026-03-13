@@ -2898,9 +2898,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       const modulePropsByIndustry: Record<IndustryProfile, Record<string, unknown>> = {
                         supplements: {
-                          productType: productStore.productType,
+                          productType: productStore.definition.type,
                           packagingMode: productStore.packagingMode,
-                          onProductTypeChange: (productType: ProductStudioState['productType']) => {
+                          onProductTypeChange: (productType: ProductType) => {
                             productStore.setProductType(productType);
                             markSectionTouched('product-setup');
                           },
