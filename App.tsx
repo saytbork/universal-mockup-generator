@@ -4178,7 +4178,7 @@ const App: React.FC = () => {
     scrollToBuilderSettings();
   }, [handleOptionChange, scrollToBuilderSettings]);
 
-  const pulseModeToggle = useCallback(() => {
+  function pulseModeToggle() {
     if (typeof window === 'undefined') return;
     modeToggleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setHighlightModeToggle(true);
@@ -4188,7 +4188,7 @@ const App: React.FC = () => {
     modeToggleHighlightTimerRef.current = window.setTimeout(() => {
       setHighlightModeToggle(false);
     }, 1800);
-  }, []);
+  }
 
   const handleModeGuideStepClick = useCallback((step: 1 | 2 | 3) => {
     setActiveModeGuideStep(step);
@@ -4202,7 +4202,7 @@ const App: React.FC = () => {
       return;
     }
     scrollToBuilderSettings();
-  }, [pulseModeToggle, scrollToBuilderSettings]);
+  }, [scrollToBuilderSettings]);
 
   const dismissModeGuide = useCallback(() => {
     setShowModeGuide(false);
@@ -4239,7 +4239,7 @@ const App: React.FC = () => {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [activeModeGuideStep, pulseModeToggle, showModeGuide]);
+  }, [activeModeGuideStep, showModeGuide]);
 
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
