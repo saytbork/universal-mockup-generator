@@ -57,7 +57,9 @@ function buildCoffeeEnvironmentBlock(state: StudioUIState): string {
     'marble-bar':
       'COFFEE_ENVIRONMENT_VARIATION: marble-bar. surface=polished marble. background=luxury bar ambience. contextDepth=medium.',
   };
-  const auto = state.autoRandomizeCoffeeEnvironment
+  // PDP-clean and conversion-intent modes must never randomize environment — lock to false
+  const isPdpOrConversion = state.visualIntent === 'conversion' || state.coffeePackagingIntent === 'pdp-clean';
+  const auto = (!isPdpOrConversion && state.autoRandomizeCoffeeEnvironment)
     ? 'autoRandomizeCoffeeEnvironment=true.'
     : 'autoRandomizeCoffeeEnvironment=false.';
   return `${variationMap[variation]} ${auto} COFFEE_ENVIRONMENT_SCOPE: controls only surface/background/context depth/spatial integration.`;
@@ -86,8 +88,10 @@ function buildSteamBlock(state: StudioUIState): string {
 function buildCoffeeProductPriorityBlock(state: StudioUIState): string {
   const hasProductReference = Boolean(state.productReferencePresent);
   const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
-  const packagingIntent = state.coffeePackagingIntent || 'pdp-clean';
-  const isPdpCleanIntent = packagingIntent === 'pdp-clean' || state.visualIntent === 'conversion';
+  // visualIntent=conversion always forces PDP-clean behaviour regardless of coffeePackagingIntent
+  const isPdpCleanIntent = state.visualIntent === 'conversion' || state.coffeePackagingIntent === 'pdp-clean';
+  // Effective intent used for intentMap lookup: if conversion mode overrides, always resolve to 'pdp-clean'
+  const packagingIntent = isPdpCleanIntent ? 'pdp-clean' : (state.coffeePackagingIntent || 'pdp-clean');
   const intentMap: Record<string, string> = {
     'pdp-clean':
       'COFFEE_INTENT_PROFILE: PDP Clean. productDominanceTarget=85–90%. contextDepth=shallow. background=clean minimal. beansMax=low. STUDIO_PRODUCT_MOTION: static. ACCENT_POLICY: beansScatter=low. cupAccent=behind-small or off. steamLevel=subtle or off. espressoSplash=off. iceMode=off. MODIFIERS: none. TEXTURED_BED: disabled. POURING: disabled. SPLASH: disabled. COMPOSITION_RULE: front-facing or 45° hero. Clean minimal background. Shallow context depth. No aggressive art-direction. Maximum packaging readability.',
@@ -147,14 +151,37 @@ export function buildCoffeeIndustryLayer(
 ): string {
   if (state?.visualProfile !== 'coffee' || !state.coffeeIndustryLayer) return '';
 
-  const variant = state.coffeeVariant || 'coffee-editorial-ritual';
+  // Resolve effective variant using the same override priority as buildComposition:
+  // coffeeMoodProfile=cinematic-luxury wins first, then visualIntent overrides,
+  // then state.coffeeVariant, then fallback.
+  const effectiveVariant: string = (() => {
+    if (state.coffeeMoodProfile === 'coffee-cinematic-luxury' || state.coffeeVariant === 'coffee-cinematic-luxury') {
+      return 'coffee-cinematic-luxury';
+    }
+    if (state.visualIntent === 'conversion' || state.coffeeVariant === 'coffee-premium-minimal') {
+      return 'coffee-premium-minimal';
+    }
+    if (state.visualIntent === 'campaign' || state.coffeeVariant === 'coffee-color-pop-luxury') {
+      return 'coffee-color-pop-luxury';
+    }
+    return state.coffeeVariant || 'coffee-editorial-ritual';
+  })();
+
   const coverage = String(state.coffeeCompositionCoverage || '').trim();
-  const cinematic = state.coffeeMoodProfile === 'coffee-cinematic-luxury';
+  const cinematic = effectiveVariant === 'coffee-cinematic-luxury';
   const cremaBehavior = state.coffeeEspressoMode
     ? 'CREMA_BEHAVIOR: espresso mode active; micro-bubble crema texture with irregular natural foam distribution. No wine translucency.'
     : 'CREMA_BEHAVIOR: non-espresso mode; minimal crema emphasis with natural surface coherence.';
 
   const coffeeLiquidPhysicsEnabled = state.coffeeLiquidPhysicsEnabled !== false;
+
+  const motionRules = effectiveVariant === 'coffee-cinematic-luxury'
+    ? 'COFFEE_MOTION_RULES: cinematic luxury allows static or controlled-stream ritual pouring only. No chaotic splash energy.'
+    : effectiveVariant === 'coffee-premium-minimal'
+    ? 'COFFEE_MOTION_RULES: conversion mode allows static or dispensed only. No chaotic splash energy.'
+    : effectiveVariant === 'coffee-color-pop-luxury'
+      ? 'COFFEE_MOTION_RULES: campaign mode allows static or controlled-stream pouring only. No gravity violation and no floating particles.'
+      : 'COFFEE_MOTION_RULES: editorial ritual allows static, dispensed, pouring, and subtle steam drift upward only. Steam must stay gravity compliant.';
 
   return [
     '### COFFEE_PACKAGING_STRUCTURAL_PRIORITY_BLOCK',
@@ -163,7 +190,7 @@ export function buildCoffeeIndustryLayer(
     'STRUCTURAL_DOMINANCE_REQUIRED: TRUE',
     'COFFEE_REALISM_TARGET: Hyper-real professional coffee product advertising. Premium campaign polish with true photographic capture behavior. No CGI, no synthetic render finish, and no stock-cafe look.',
     buildCoffeeProductPriorityBlock(state),
-    `COFFEE_INDUSTRY_VARIANT: ${variant}.`,
+    `COFFEE_INDUSTRY_VARIANT: ${effectiveVariant}.`,
     'COFFEE_PHYSICS_PROFILE: enabled.',
     coffeeLiquidPhysicsEnabled
       ? 'COFFEE_LIQUID_PHYSICS: Opaque dark brown absorption core. Minimal translucency. Soft edge highlight near surface. Subtle meniscus at cup rim.'
@@ -180,13 +207,7 @@ export function buildCoffeeIndustryLayer(
     cinematic ? 'DEPTH_STYLE: shallow foreground separation.' : '',
     `COFFEE_COMPOSITION_PROFILE: ${state.compositionProfile || 'ritual-balance'}.`,
     coverage ? `COFFEE_COMPOSITION_COVERAGE: ${coverage}.` : '',
-    state.coffeeVariant === 'coffee-cinematic-luxury'
-      ? 'COFFEE_MOTION_RULES: cinematic luxury allows static or controlled-stream ritual pouring only. No chaotic splash energy.'
-      : state.coffeeVariant === 'coffee-premium-minimal'
-      ? 'COFFEE_MOTION_RULES: conversion mode allows static or dispensed only. No chaotic splash energy.'
-      : state.coffeeVariant === 'coffee-color-pop-luxury'
-        ? 'COFFEE_MOTION_RULES: campaign mode allows static or controlled-stream pouring only. No gravity violation and no floating particles.'
-        : 'COFFEE_MOTION_RULES: editorial ritual allows static, dispensed, pouring, and subtle steam drift upward only. Steam must stay gravity compliant.',
+    motionRules,
     authority.world === 'splash-tank'
       ? 'COFFEE_WORLD_GUARD: do not apply wine splash physics or wine bottle behavior.'
       : '',
