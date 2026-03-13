@@ -1903,7 +1903,6 @@ const App: React.FC = () => {
   const trialInputRef = useRef<HTMLInputElement>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const modeToggleHighlightTimerRef = useRef<number | null>(null);
-  const modeGuideCycleTimerRef = useRef<number | null>(null);
   const googleInitRef = useRef(false);
   const identityContinuityRef = useRef<{ identityKey?: string; identitySeed?: string } | null>(null);
   const lastAspectRatioRef = useRef<string>('1:1');
@@ -2373,22 +2372,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!showModeGuide || typeof window === 'undefined') return;
-    if (modeGuideCycleTimerRef.current != null) {
-      window.clearInterval(modeGuideCycleTimerRef.current);
-    }
-    modeGuideCycleTimerRef.current = window.setInterval(() => {
-      setActiveModeGuideStep((prev) => (prev === 3 ? 1 : ((prev + 1) as 1 | 2 | 3)));
-    }, 2600);
-    return () => {
-      if (modeGuideCycleTimerRef.current != null) {
-        window.clearInterval(modeGuideCycleTimerRef.current);
-        modeGuideCycleTimerRef.current = null;
-      }
-    };
-  }, [showModeGuide]);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     const storedTalent = window.localStorage.getItem(TALENT_PROFILE_STORAGE_KEY);
     if (storedTalent) {
@@ -2400,6 +2383,25 @@ const App: React.FC = () => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!showModeGuide || typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => {
+      if (activeModeGuideStep === 1) {
+        intentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (activeModeGuideStep === 2) {
+        pulseModeToggle();
+        return;
+      }
+      uploadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [activeModeGuideStep, pulseModeToggle, showModeGuide]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -4224,6 +4226,19 @@ const App: React.FC = () => {
   const dismissModeGuide = useCallback(() => {
     setShowModeGuide(false);
   }, []);
+
+  const advanceModeGuide = useCallback(() => {
+    if (activeModeGuideStep === 3) {
+      dismissModeGuide();
+      return;
+    }
+    handleModeGuideStepClick((activeModeGuideStep + 1) as 1 | 2 | 3);
+  }, [activeModeGuideStep, dismissModeGuide, handleModeGuideStepClick]);
+
+  const rewindModeGuide = useCallback(() => {
+    if (activeModeGuideStep === 1) return;
+    handleModeGuideStepClick((activeModeGuideStep - 1) as 1 | 2 | 3);
+  }, [activeModeGuideStep, handleModeGuideStepClick]);
 
   const resetOutputs = useCallback(() => {
     setGeneratedImageUrl(null);
@@ -6827,99 +6842,87 @@ If the model attempts to create a scene or environment, override it and force a 
 
           <main className="flex flex-col gap-6">
             {showModeGuide && (
-              <div className="rounded-[28px] border border-gray-200 bg-white/90 p-5 shadow-sm dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="max-w-2xl space-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-indigo-600">Quick Start</p>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Start in three simple steps</h3>
-                    <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
-                      A quick guide to the flow. Click any step and we will take you there.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={dismissModeGuide}
-                    className="self-start rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
-                  >
-                    Hide guide
-                  </button>
-                </div>
-
-                <div className="mt-5 space-y-4">
-                  <div className="grid gap-2 md:grid-cols-3">
-                    {[
-                      {
-                        step: 1 as const,
-                        label: 'Upload',
-                        title: 'Upload the product',
-                        description: 'Use the real pack so label, shape and proportions stay locked.',
-                      },
-                      {
-                        step: 2 as const,
-                        label: 'Mode',
-                        title: 'Choose Lifestyle or Studio',
-                        description: 'Lifestyle is for people and environments. Studio is for product-first scenes.',
-                      },
-                      {
-                        step: 3 as const,
-                        label: 'Settings',
-                        title: 'Adjust the settings',
-                        description: 'Refine the scene with the controls relevant to the mode you picked.',
-                      },
-                    ].map((item) => {
-                      const isActive = activeModeGuideStep === item.step;
-                      return (
-                        <button
-                          key={item.step}
-                          type="button"
-                          onClick={() => handleModeGuideStepClick(item.step)}
-                          className={`rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
-                            isActive
-                              ? 'border-indigo-300 bg-indigo-50/80 dark:border-white/20 dark:bg-white/10'
-                              : 'border-gray-200 bg-gray-50/70 hover:border-indigo-200 hover:bg-indigo-50/40 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${isActive ? 'bg-indigo-600 text-white scale-105' : 'bg-white text-gray-700 border border-gray-200 dark:bg-white/10 dark:text-white/70 dark:border-white/10'}`}>
-                              {item.step}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gray-500 dark:text-white/40">{item.label}</p>
-                              <p className={`text-sm font-semibold transition-colors duration-300 ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-white/80'}`}>
-                                {item.title}
-                              </p>
-                            </div>
+              <div className="pointer-events-none flex justify-center">
+                <div className="pointer-events-auto w-full max-w-xl rounded-[24px] border border-gray-200 bg-white/95 px-5 py-4 shadow-sm transition-all duration-300 dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
+                          {activeModeGuideStep}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">
+                            Step {activeModeGuideStep} of 3
+                          </p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3].map(step => (
+                              <button
+                                key={step}
+                                type="button"
+                                onClick={() => handleModeGuideStepClick(step as 1 | 2 | 3)}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  activeModeGuideStep === step
+                                    ? 'w-6 bg-indigo-600'
+                                    : 'w-2 bg-gray-300 dark:bg-white/20'
+                                }`}
+                                aria-label={`Go to onboarding step ${step}`}
+                              />
+                            ))}
                           </div>
-                        </button>
-                      );
-                    })}
+                        </div>
+                      </div>
+
+                      {activeModeGuideStep === 1 && (
+                        <div className="space-y-1">
+                          <p className="text-base font-semibold text-gray-900 dark:text-white">Upload the real product first</p>
+                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
+                            Start with the pack you want to use so the label, shape and proportions stay locked from the beginning.
+                          </p>
+                        </div>
+                      )}
+                      {activeModeGuideStep === 2 && (
+                        <div className="space-y-1">
+                          <p className="text-base font-semibold text-gray-900 dark:text-white">Choose how you want to create</p>
+                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
+                            Pick <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
+                          </p>
+                        </div>
+                      )}
+                      {activeModeGuideStep === 3 && (
+                        <div className="space-y-1">
+                          <p className="text-base font-semibold text-gray-900 dark:text-white">Then refine only the relevant settings</p>
+                          <p className="text-sm leading-relaxed text-gray-500 dark:text-white/50">
+                            We take you to the right controls automatically so you can adjust the image without hunting through the builder.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={dismissModeGuide}
+                      className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
+                    >
+                      Skip
+                    </button>
                   </div>
 
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-4 dark:border-white/10 dark:bg-white/5">
-                    {activeModeGuideStep === 1 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Upload the product first</p>
-                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
-                          Start with the real pack so the label, silhouette and proportions stay accurate from the beginning.
-                        </p>
-                      </div>
-                    )}
-                    {activeModeGuideStep === 2 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Choose the image style</p>
-                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
-                          Pick <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
-                        </p>
-                      </div>
-                    )}
-                    {activeModeGuideStep === 3 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Adjust only what matters</p>
-                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
-                          Once you pick a mode, we jump you to the right settings so you can refine the image without guessing where to start.
-                        </p>
-                      </div>
-                    )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={rewindModeGuide}
+                      disabled={activeModeGuideStep === 1}
+                      className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={advanceModeGuide}
+                      className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
+                    >
+                      {activeModeGuideStep === 3 ? 'Got it' : 'Next'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -7008,7 +7011,11 @@ If the model attempts to create a scene or environment, override it and force a 
                 <div className="flex flex-col gap-6">
                   <div
                     ref={intentRef}
-                    className="flex flex-col gap-6 transition-all"
+                    className={`flex flex-col gap-6 transition-all duration-300 ${
+                      showModeGuide && activeModeGuideStep === 1
+                        ? 'rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
+                        : ''
+                    }`}
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">01 / Input Assets</p>
@@ -7192,7 +7199,11 @@ If the model attempts to create a scene or environment, override it and force a 
 
                   <div
                     ref={uploadRef}
-                    className="flex flex-col gap-6 transition-all"
+                    className={`flex flex-col gap-6 transition-all duration-300 ${
+                      showModeGuide && activeModeGuideStep === 3
+                        ? 'rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
+                        : ''
+                    }`}
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
