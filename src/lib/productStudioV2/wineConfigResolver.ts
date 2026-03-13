@@ -74,7 +74,7 @@ export function buildWineTruthLayer(
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
         'The bottle is opened for service.',
         'The bottle remains visibly below retail-full level because wine has been poured into the glass.',
-        'A removed closure or cork may rest on the surface when appropriate to the closure type.',
+        'CLOSURE_RULE: Exactly ONE removed closure exists in the scene — it rests on the surface (beside or near the bottle base). The closure is NOT attached to the bottle neck. There is NO closure on the bottle neck. There is NO duplicate closure. Do NOT show a capped or sealed bottle neck.',
         'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
@@ -108,6 +108,7 @@ export function buildWineTruthLayer(
     'Do NOT replace, invent, or omit the brand name, product name, varietal, vintage year, or any other text.',
     'Do NOT derive label content from wineType, closureType, or any other state variable.',
     'If reproduction of label text is not achievable at full fidelity, preserve the reference image label region without any modification.',
+    'LABEL_GEOMETRY_LOCK: The label surface must remain flat, undistorted, and non-warped regardless of bottle orientation or tilt angle. Do NOT apply perspective warp, barrel distortion, or any geometric deformation to the label area. The label panel reads as a flat rectangle on the bottle surface in all orientations.',
     'The label is the highest-priority locked region in the image.',
   ].join(' ');
 
