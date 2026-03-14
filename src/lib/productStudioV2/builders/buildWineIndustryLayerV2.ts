@@ -4,15 +4,15 @@ function buildWineMoodProfile(state: StudioUIState): string {
   const mood = state.wineMoodProfile || 'prestige';
   const moodMap: Record<string, string> = {
     prestige:
-      'WINE_MOOD_PROFILE: prestige. Warm lateral lighting bias. Deep shadow preservation. Cinematic compression preferred. Ambient silence tone. productDominanceRatio=80–90%.',
+      'WINE_MOOD_PROFILE: prestige. Real photographed wine bottle with warm restrained light, moderate shadow depth, and strong product dominance.',
     editorial:
-      'WINE_MOOD_PROFILE: editorial. Neutral-to-warm lighting bias. Medium contrast. Soft shadow depth. Light atmospheric density. productDominanceRatio=65–75%.',
+      'WINE_MOOD_PROFILE: editorial. Neutral-to-warm light, medium contrast, light depth, and authentic tabletop behavior.',
     ecommerce:
-      'WINE_MOOD_PROFILE: ecommerce. Neutral daylight bias. Controlled contrast for label clarity. Moderate shadows. Minimal atmosphere density. productDominanceRatio=75–85%.',
+      'WINE_MOOD_PROFILE: ecommerce. Neutral daylight, clean label clarity, moderate shadows, minimal atmosphere.',
     'dark-luxury':
-      'WINE_MOOD_PROFILE: dark-luxury. Warm low-key bias. High contrast with deep shadows. Dense atmosphere control. productDominanceRatio=70–82%.',
+      'WINE_MOOD_PROFILE: dark-luxury. Low-key real photography, deep but readable shadows, restrained atmosphere, no synthetic gloss.',
     'modern-minimal':
-      'WINE_MOOD_PROFILE: modern-minimal. Clean neutral bias. Refined medium contrast. Shallow shadow depth. Very low atmosphere density. productDominanceRatio=72–84%.',
+      'WINE_MOOD_PROFILE: modern-minimal. Clean neutral lighting, refined contrast, low atmosphere, simple real surfaces.',
   };
   return moodMap[mood] || moodMap.prestige;
 }
@@ -42,8 +42,8 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
 
   return [
     'WINE_PHYSICS_PROFILE: enabled.',
-    'WINE_LIQUID_PHYSICS: Deep burgundy translucency. Light absorption core. Edge luminosity near rim. Natural meniscus.',
-    'WINE_GLASS_BEHAVIOR: Realistic refraction. Micro-specular highlights. Natural liquid distortion through glass.',
+    'WINE_LIQUID_PHYSICS: Natural wine translucency, believable meniscus, and realistic light absorption.',
+    'WINE_GLASS_BEHAVIOR: Realistic refraction and natural liquid distortion through glass.',
     action === 'controlled-pour' || motion === 'opened'
       ? 'WINE_CORK_LOGIC: natural cork removal active. No beer caps. No synthetic closures unless explicitly defined.'
       : 'WINE_CORK_LOGIC: cork-secured presentation. No beer caps. No synthetic closures unless explicitly defined.',
@@ -52,6 +52,6 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
       : 'GRAVITY_RULE: Liquid obeys gravity. No splash chaos.',
     buildWineMoodProfile(state),
     `WINE_ENVIRONMENT_VARIATION: ${environment}.`,
-    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Depth-field context and spatial integration only.`,
+    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Keep environment secondary to bottle fidelity. No theatrical stylization.`,
   ].join(' ');
 }

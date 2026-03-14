@@ -8,7 +8,7 @@ export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIStat
     const mood = String(state.wineMoodModifier || '').trim();
     const winePrestigeV2Mode = Boolean(state.winePrestigeV2Mode);
     const pourStyle = String(state.winePourStyle || 'mid-flow-elegance').trim();
-    const maybeMood = mood && mood !== 'None' ? `WINE_PRESTIGE_MODIFIER: ${mood}.` : '';
+    const maybeMood = mood && mood !== 'None' ? `WINE_LOOK_MODIFIER: ${mood}. Keep it physically photographed, not stylized.` : '';
     const v2PourModel = winePrestigeV2Mode
       ? [
           'WINE_POUR_MODEL:',
@@ -30,7 +30,7 @@ export function buildModifiers(modifiers: StudioModifier[], state?: StudioUIStat
           .join(' ')
       : '';
 
-    return ['STUDIO_MODIFIERS: wine-prestige.', maybeMood, v2PourModel].filter(Boolean).join(' ');
+    return ['STUDIO_MODIFIERS: none.', maybeMood, v2PourModel].filter(Boolean).join(' ');
   }
 
   if (modifiers.length === 0) {

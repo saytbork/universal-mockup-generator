@@ -70,8 +70,17 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
   }
 
   if (state?.winePrestigeMode) {
-    const mood = String(state.wineMoodProfile || 'prestige').trim();
-    return `STUDIO_LIGHTING_MODEL: wine-${mood}.`;
+    const mood = String(state.wineMoodProfile || 'prestige').trim().toLowerCase();
+    if (mood === 'dark-luxury') {
+      return 'STUDIO_LIGHTING_PROFILE: low-key real photographic lighting with controlled shadow depth, readable label exposure, and restrained specular response. No stylized glow.';
+    }
+    if (mood === 'editorial') {
+      return 'STUDIO_LIGHTING_PROFILE: neutral editorial daylight or soft shaped interior light with real optical falloff and moderate contrast.';
+    }
+    if (mood === 'ecommerce') {
+      return 'STUDIO_LIGHTING_PROFILE: clean neutral daylight with label-priority exposure and soft realistic shadows.';
+    }
+    return 'STUDIO_LIGHTING_PROFILE: real photographic wine lighting with natural falloff, believable contrast, and strict label readability. No hyper-polished ad glow.';
   }
 
   const isSupplementIndustry = industryProfile === 'supplements' || industryProfile === 'supplement';

@@ -31,7 +31,10 @@ export function buildMaterials(authority: StudioAuthorityBundle, state?: StudioU
   }
 
   if (state?.winePrestigeMode) {
-    return 'STUDIO_MATERIAL_MODEL: premium wine materials with controlled reflections and strict geometry-preserving integration.';
+    return [
+      'STUDIO_MATERIAL_PROFILE: authentic wine bottle materials with restrained reflections and strict geometry-preserving integration.',
+      'WINE_MATERIAL_REALISM: Real photographed glass bottle, real label paper, real closure texture, and natural table/surface contact. No premium CGI sheen. No synthetic polish.',
+    ].join(' ');
   }
 
   const isSupplementIndustry = industryProfile === 'supplements' || industryProfile === 'supplement';
