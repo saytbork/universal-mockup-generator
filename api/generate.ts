@@ -113,6 +113,9 @@ const getUtcDayBucket = () => {
 const hashGuestKeyPart = (value: string): string =>
   crypto.createHmac('sha256', getGuestSecret()).update(value).digest('hex').slice(0, 24);
 
+const getKeyFingerprint = (value: string): string =>
+  crypto.createHash('sha256').update(String(value || '')).digest('hex').slice(0, 12);
+
 const getCoarseIp = (ip: string): string => {
   const raw = String(ip || '').trim();
   if (!raw) return 'unknown';
@@ -395,10 +398,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
   const envApiKey = String(process.env.GOOGLE_API_KEY || '').trim();
   const bodyApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-  const apiKey = bodyApiKey || envApiKey;
+  const apiKey = envApiKey;
   console.log('[GENAI] GOOGLE_API_KEY length:', envApiKey.length);
   console.log('[GENAI] body.apiKey length:', bodyApiKey.length);
-  console.log('[GENAI] resolved api key source:', bodyApiKey ? 'body' : 'env');
+  console.log('[GENAI] resolved api key source:', 'env');
+  console.log('[GENAI] resolved api key fingerprint:', apiKey ? getKeyFingerprint(apiKey) : 'missing');
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -659,6 +663,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sceneType: debugMeta?.sceneType,
       imageUrl,
       imageMeta,
+      keySource: 'env',
+      keyFingerprint: apiKey ? getKeyFingerprint(apiKey) : 'missing',
     }, email);
 
     // imageBase64 is included in the response so the browser can render the image
@@ -694,6 +700,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         imageUrl,
         imageBase64: responseImageBase64,
         imageMeta,
+        keySource: 'env',
+        keyFingerprint: apiKey ? getKeyFingerprint(apiKey) : 'missing',
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -715,6 +723,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       imageUrl,
       imageBase64: responseImageBase64,
       imageMeta,
+      keySource: 'env',
+      keyFingerprint: apiKey ? getKeyFingerprint(apiKey) : 'missing',
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
@@ -732,13 +742,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
         googleApiKeyLength: envApiKey.length,
         bodyApiKeyLength: bodyApiKey.length,
-        apiKeySource: bodyApiKey ? 'body' : 'env',
+        apiKeySource: 'env',
+        keyFingerprint: apiKey ? getKeyFingerprint(apiKey) : 'missing',
         vercelEnv,
       });
       res.status(500).json({
-        error: bodyApiKey
-          ? 'CLIENT_GOOGLE_API_KEY_INVALID (Provided key is invalid or restricted)'
-          : 'SERVER_GOOGLE_API_KEY_INVALID (Env key is invalid or restricted)',
+        error: 'SERVER_GOOGLE_API_KEY_INVALID (Env key is invalid or restricted)',
       });
       return;
     }

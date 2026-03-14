@@ -2701,18 +2701,16 @@ const App: React.FC = () => {
     }
   }, [apiKeyError]);
 
-  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
+  const getActiveApiKeyOrNotify = useCallback((_notify: (message: string) => void): string | null => {
     if (GEMINI_DISABLED) {
       return null;
     }
-    const resolvedKey = apiKey || envApiKey;
-    if (!resolvedKey) {
-      notify('Please add your access key to continue.');
-      requireNewApiKey();
-      return null;
+    const resolvedKey = envApiKey || apiKey;
+    if (resolvedKey) {
+      return resolvedKey;
     }
-    return resolvedKey;
-  }, [apiKey, envApiKey, requireNewApiKey, GEMINI_DISABLED]);
+    return 'server-managed';
+  }, [apiKey, envApiKey, GEMINI_DISABLED]);
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
@@ -5907,7 +5905,6 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
-            apiKey: resolvedApiKey,
             trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
             debugMeta: {
               promptHash,
@@ -6249,7 +6246,6 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
             preserveReferenceImage: false,
-            apiKey: resolvedApiKey,
             trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
@@ -6454,7 +6450,6 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             preserveReferenceImage: false,
-            apiKey: resolvedApiKey,
             trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
@@ -6604,7 +6599,6 @@ If the model attempts to create a scene or environment, override it and force a 
           ],
           aspectRatio,
           preserveReferenceImage: isProductPlacement,
-          apiKey: resolvedApiKey,
           trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
         }),
       });
