@@ -142,4 +142,18 @@ describe('combinable dimensions architecture', () => {
       )
     ).not.toThrow();
   });
+
+  it('H) hands-only studio modes allow negative human exclusions without tripping integrity guard', () => {
+    expect(() =>
+      __buildPromptForTest(
+        base({
+          industryProfile: 'wine',
+          photoMode: 'Hands Pouring Wine',
+          environmentPreset: 'Dark Cellar',
+          visualStyle: 'Brand Campaign',
+          visualStyleCategory: 'brand',
+        } as any)
+      )
+    ).not.toThrow();
+  });
 });

@@ -394,7 +394,32 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     // The disclaimer itself contains "human", "people", etc. as negation language —
     // these must not trigger the guard. Only positive human language injected by a builder is forbidden.
     const CLOSING_DISCLAIMER = 'the scene must contain only the product and environmental elements. no people, no visible human anatomical elements, no human presence unless explicitly defined by product interaction.';
-    const scrubbedForHumanCheck = lowerPrompt.split(CLOSING_DISCLAIMER).join(' ');
+    const allowsHandsOnly =
+      photoMode.includes('hands') ||
+      /\bhands?-only\b/.test(lowerPrompt) ||
+      /\bcropped hands only\b/.test(lowerPrompt) ||
+      /\bonly hands or forearms may appear\b/.test(lowerPrompt);
+    let scrubbedForHumanCheck = lowerPrompt.split(CLOSING_DISCLAIMER).join(' ');
+    if (allowsHandsOnly) {
+      const allowedNegativeHumanPhrases = [
+        /\bno visible identity cues\b/g,
+        /\bno full person\b/g,
+        /\bno person\b/g,
+        /\bno people\b/g,
+        /\bno torso\b/g,
+        /\bno faces\b/g,
+        /\bno face\b/g,
+        /\bno full figure\b/g,
+        /\bcropped hands-only\b/g,
+        /\bcropped hands only\b/g,
+        /\bhands-only\b/g,
+        /\bhands only\b/g,
+        /\bonly hands or forearms may appear\b/g,
+      ];
+      for (const phrase of allowedNegativeHumanPhrases) {
+        scrubbedForHumanCheck = scrubbedForHumanCheck.replace(phrase, ' ');
+      }
+    }
     for (const pattern of forbiddenHumanPatterns) {
       if (pattern.test(scrubbedForHumanCheck)) {
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:FORBIDDEN_HUMAN_LANGUAGE]');
