@@ -590,7 +590,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       model,
     };
     console.log('[GENERATE_IMAGE_META]', imageMeta);
-    const fileExtension = contentType === 'image/jpeg' ? 'jpg' : 'png';
+    const fileExtension = 'png';
     const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
     const file = bucket.file(fileName);
 
