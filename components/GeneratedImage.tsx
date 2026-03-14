@@ -209,7 +209,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   onVideoAccessSubmit,
   videoAccessError,
 }) => {
-	const [downloadResolution] = useState<DownloadResolution>('original');
+	const [downloadResolution, setDownloadResolution] = useState<DownloadResolution>('original');
 	const [downloadError, setDownloadError] = useState<string | null>(null);
 	const [isProcessingDownload, setIsProcessingDownload] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -261,6 +261,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
   }, [parsedAspectRatio]);
 
   useEffect(() => {
+    setDownloadResolution('original');
     setDownloadError(null);
   }, [imageUrl]);
 
@@ -342,7 +343,13 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return imageUrl;
   };
 
-  const getResolutionCost = (_resolution: DownloadResolution) => downloadCreditConfig.original;
+  const getResolutionCost = (resolution: DownloadResolution) => {
+    if (resolution === '4k') return downloadCreditConfig.downloadCost4K;
+    if (resolution === '2k') return downloadCreditConfig.downloadCost2K;
+    return downloadCreditConfig.original;
+  };
+
+  const formatCreditLabel = (cost: number) => `${cost} ${cost === 1 ? 'credit' : 'credits'}`;
 
   const exportResolutionBlob = async (resolution: DownloadResolution) => {
     const preferredSource = getResolutionSource(resolution);
@@ -376,6 +383,9 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
     return canvasToBlob(canvas);
   };
 
+  const buildFilename = () => `ai-mockup-${downloadResolution}.png`;
+  const showHiResStatus = isHiResProcessing || Boolean(fourKVariant || twoKVariant || hiResError);
+
   const handleDownload = async () => {
     if (!imageUrl) return;
     setDownloadError(null);
@@ -388,7 +398,7 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
         return;
       }
       const url = URL.createObjectURL(blob);
-      triggerDownload(url, `ai-mockup.png`);
+      triggerDownload(url, buildFilename());
       URL.revokeObjectURL(url);
     } catch (error) {
       setDownloadError(error instanceof Error ? error.message : HIGH_RES_UNAVAILABLE_MESSAGE);
@@ -469,6 +479,39 @@ const GeneratedImage: React.FC<GeneratedImageProps> = ({
       {(imageUrl || imageError) && !isImageLoading && (
         <>
           <div className="mt-3 border-t border-gray-100 dark:border-white/8 pt-3 flex flex-wrap items-center gap-2">
+            {imageUrl && (
+              <>
+                <div className="mr-2 flex flex-wrap items-center gap-2">
+                  {DOWNLOAD_RESOLUTION_OPTIONS.map(option => {
+                    const isActive = downloadResolution === option.value;
+                    const cost = getResolutionCost(option.value);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setDownloadResolution(option.value);
+                          setDownloadError(null);
+                        }}
+                        className={`inline-flex items-center gap-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                          isActive
+                            ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/10 dark:text-indigo-300'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-600 hover:text-indigo-600 dark:border-white/10 dark:bg-black/20 dark:text-white/70 dark:hover:border-white/30 dark:hover:text-white'
+                        }`}
+                      >
+                        {option.label}
+                        <span className="text-[11px] opacity-70">{formatCreditLabel(cost)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {showHiResStatus && (
+                  <span className="w-full text-xs text-gray-500 dark:text-white/50">
+                    {isHiResProcessing ? 'Preparing 4K / 2K masters…' : hiResError ?? 'High-resolution exports ready.'}
+                  </span>
+                )}
+              </>
+            )}
 
             {/* Ghost: Reset */}
             <button
