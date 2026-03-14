@@ -354,7 +354,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
-  const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : 'gemini-2.0-flash-preview-image-generation';
+  const DEFAULT_MODEL = 'gemini-2.5-flash-image';
+  const FALLBACK_MODEL = 'gemini-2.0-flash-preview-image-generation';
+  const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const preserveReferenceImage = Boolean(body.preserveReferenceImage);
@@ -379,11 +381,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         aspectRatio: typeof rawDebugMeta.aspectRatio === 'string' ? rawDebugMeta.aspectRatio.slice(0, 16) : undefined,
       }
     : null;
-
-  // Model config (restored from 7695e35)
-  // No whitelist/fallback logic
-  const MODEL_WHITELIST = undefined; // Not used in this version
-  const DEFAULT_MODEL = 'gemini-2.0-flash-preview-image-generation';
 
   // Validate parts structure
   if (!Array.isArray(parts) || parts.length === 0) {
@@ -483,66 +480,79 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const generateWithRetry = async () => {
       const maxAttempts = 4;
       let lastError: unknown = null;
-      for (const imageSize of requestedImageSizes) {
-        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-          try {
-            return await ai.models.generateContent({
-              model,
-              contents: { parts },
-              config: {
-                responseModalities: [Modality.IMAGE],
-                safetySettings: [],
-                imageConfig: {
-                  aspectRatio,
-                  imageSize,
-                },
-                generationConfig: {
-                  responseMimeType: 'image/png',
-                  aspectRatio,
-                  preserveReferenceImage: effectivePreserveReferenceImage,
-                  ...(imageStrength !== undefined ? { imageStrength } : {}),
-                  ...(guidanceScale !== undefined ? { guidanceScale } : {}),
-                  ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-                  temperature: 0.25,
-                  topP: 0.9,
-                  seed: crypto.randomUUID(),
-                },
-              } as any,
-            });
-          } catch (error) {
-            lastError = error;
-            const message = String((error as any)?.message ?? error);
-            const normalized = message.toLowerCase();
-            const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
-            const shouldRetry =
-              attempt < maxAttempts &&
-              (message.includes('Failed to fetch') ||
-                message.includes('ERR_CONNECTION_CLOSED') ||
-                message.includes('NetworkError') ||
-                normalized.includes('internal error encountered') ||
-                normalized.includes('"status":"internal"') ||
-                normalized.includes('"code":500') ||
-                normalized.includes('service unavailable') ||
-                normalized.includes('deadline exceeded') ||
-                statusCode === 500 ||
-                statusCode === 503 ||
-                statusCode === 504);
-            if (shouldRetry) {
-              await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
-              continue;
-            }
-            const canFallback =
-              normalized.includes('imagesize') ||
-              normalized.includes('image size') ||
-              normalized.includes('invalid enum') ||
-              normalized.includes('unsupported') ||
-              normalized.includes('bad request') ||
-              normalized.includes('400');
-            if (!canFallback || imageSize === requestedImageSizes[requestedImageSizes.length - 1]) {
+      const modelsToTry = model === DEFAULT_MODEL ? [DEFAULT_MODEL, FALLBACK_MODEL] : [model];
+      for (const candidateModel of modelsToTry) {
+        for (const imageSize of requestedImageSizes) {
+          for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+            try {
+              return await ai.models.generateContent({
+                model: candidateModel,
+                contents: { parts },
+                config: {
+                  responseModalities: [Modality.IMAGE],
+                  safetySettings: [],
+                  imageConfig: {
+                    aspectRatio,
+                    imageSize,
+                  },
+                  generationConfig: {
+                    responseMimeType: 'image/png',
+                    aspectRatio,
+                    preserveReferenceImage: effectivePreserveReferenceImage,
+                    ...(imageStrength !== undefined ? { imageStrength } : {}),
+                    ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+                    ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+                    temperature: 0.25,
+                    topP: 0.9,
+                    seed: crypto.randomUUID(),
+                  },
+                } as any,
+              });
+            } catch (error) {
+              lastError = error;
+              const message = String((error as any)?.message ?? error);
+              const normalized = message.toLowerCase();
+              const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
+              const shouldRetry =
+                attempt < maxAttempts &&
+                (message.includes('Failed to fetch') ||
+                  message.includes('ERR_CONNECTION_CLOSED') ||
+                  message.includes('NetworkError') ||
+                  normalized.includes('internal error encountered') ||
+                  normalized.includes('"status":"internal"') ||
+                  normalized.includes('"code":500') ||
+                  normalized.includes('service unavailable') ||
+                  normalized.includes('deadline exceeded') ||
+                  statusCode === 500 ||
+                  statusCode === 503 ||
+                  statusCode === 504);
+              if (shouldRetry) {
+                await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
+                continue;
+              }
+              const canFallbackImageSize =
+                normalized.includes('imagesize') ||
+                normalized.includes('image size') ||
+                normalized.includes('invalid enum') ||
+                normalized.includes('unsupported') ||
+                normalized.includes('bad request') ||
+                normalized.includes('400');
+              const canFallbackModel =
+                normalized.includes('model') ||
+                normalized.includes('not found') ||
+                normalized.includes('not supported') ||
+                normalized.includes('permission') ||
+                normalized.includes('access');
+              if (canFallbackImageSize && imageSize !== requestedImageSizes[requestedImageSizes.length - 1]) {
+                console.warn('[IMAGE_SIZE_FALLBACK]', { candidateModel, imageSize, reason: message });
+                break;
+              }
+              if (canFallbackModel && candidateModel !== modelsToTry[modelsToTry.length - 1]) {
+                console.warn('[MODEL_FALLBACK]', { from: candidateModel, reason: message });
+                break;
+              }
               throw error;
             }
-            console.warn('[IMAGE_SIZE_FALLBACK]', { imageSize, reason: message });
-            break;
           }
         }
       }
