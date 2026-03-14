@@ -5977,8 +5977,7 @@ If the model attempts to create a scene or environment, override it and force a 
             status: 'success',
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
-              imageUrl: outputUrl,
-              storageImageUrl: imageUrl || undefined,
+              imageUrl: imageUrl || outputUrl,
               outputSource: imageBase64 ? 'normalized_base64' : 'remote_url',
             },
           });
@@ -5988,7 +5987,7 @@ If the model attempts to create a scene or environment, override it and force a 
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: outputUrl,
+            imageUrl: imageUrl || outputUrl,
             createdAt: Date.now(),
             plan: resolvedPlanTier,
             aspectRatio,
@@ -5998,7 +5997,7 @@ If the model attempts to create a scene or environment, override it and force a 
           console.warn('Local gallery save failed', e);
         }
         
-        void reportGalleryEntry(outputUrl);
+        void reportGalleryEntry(imageUrl || outputUrl);
         runHiResPipeline(outputUrl);
         
         if (!isTrialBypassActive) {
