@@ -26,7 +26,7 @@ const parseBody = async (req: VercelRequest) => {
 
 const normalizePlan = (plan?: string | null): string => {
   const raw = String(plan ?? '').trim().toLowerCase();
-  return raw || 'free';
+  return raw || 'unknown';
 };
 
 const hasKV =
@@ -478,7 +478,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
   // Authenticated users (any plan): try 4K → 2K → 1K for max quality.
   // Anonymous trial users: try 2K → 1K to limit costs.
-  // Quality downgrade for free plan is applied after generation (JPEG compression).
   const requestedImageSizes = (isPreview || authenticatedEmail) ? ['4K', '2K', '1K'] : ['2K', '1K'];
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -567,32 +566,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('Image generation failed.');
     }
     
-    // Determine user's plan for quality/watermark decisions
+    // Determine user's plan for metadata/debugging.
     const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
     const userPlan = userRecord ? normalizePlan(userRecord.plan) : 'anonymous';
-    const isFreePlan = userPlan === 'free' && !isUnlimited && !isAdminUser;
     
-    // Apply watermark for anonymous trial users AND free plan users
-    const shouldApplyWatermark = (isAnonymousTrial || isFreePlan) && !isAdminUser && !isPreview;
+    // Keep authenticated outputs at full quality. Only anonymous trial users are watermarked.
+    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser && !isPreview;
     const maybeWatermarkedImage = shouldApplyWatermark
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
 
-    // 🔥 Reduce quality for free plan users (not paying subscribers)
-    // Free plan: reduced resolution + JPEG compression for lower storage costs
-    // Paid plans: full PNG quality
-    let buffer: Buffer;
-    let contentType = 'image/png';
-    if (isFreePlan && !isPreview) {
-      console.log('[QUALITY] Applying reduced quality for free plan user');
-      buffer = await sharp(Buffer.from(maybeWatermarkedImage, 'base64'))
-        .resize(1536, 1536, { fit: 'inside', withoutEnlargement: true }) // Max 1536px
-        .jpeg({ quality: 65, mozjpeg: true }) // JPEG with 65% quality
-        .toBuffer();
-      contentType = 'image/jpeg';
-    } else {
-      buffer = Buffer.from(maybeWatermarkedImage, 'base64');
-    }
+    const buffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    const contentType = 'image/png';
     const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
     const imageMeta = {
       requestedImageSize,
@@ -601,7 +586,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       bytes: buffer.length,
       contentType,
       isPreview,
-      isFreePlan,
+      userPlan,
       model,
     };
     console.log('[GENERATE_IMAGE_META]', imageMeta);
