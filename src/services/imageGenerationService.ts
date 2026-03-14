@@ -159,23 +159,47 @@ export async function generateImageWithGemini({
 
     const seed = crypto.randomUUID();
     console.log('[UGC DEBUG] seed:', seed);
-    return await ai.models.generateContent({
-        model,
-        contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-            safetySettings: [],
-            imageConfig: {
-                aspectRatio,
-            },
-            generationConfig: {
-                responseMimeType: "image/png",
-                aspectRatio,
-                preserveReferenceImage,
-                temperature: 0.25,
-                topP: 0.9,
-                seed,
-            },
-        } as any,
-    });
+    const requestedImageSizes = ['4K', '2K', '1K'];
+    let lastError: unknown = null;
+
+    for (const imageSize of requestedImageSizes) {
+        try {
+            return await ai.models.generateContent({
+                model,
+                contents: { parts },
+                config: {
+                    responseModalities: [Modality.IMAGE],
+                    safetySettings: [],
+                    imageConfig: {
+                        aspectRatio,
+                        imageSize,
+                    },
+                    generationConfig: {
+                        responseMimeType: "image/png",
+                        aspectRatio,
+                        preserveReferenceImage,
+                        temperature: 0.25,
+                        topP: 0.9,
+                        seed,
+                    },
+                } as any,
+            });
+        } catch (error) {
+            lastError = error;
+            const message = String((error as any)?.message ?? error).toLowerCase();
+            const canFallback =
+                message.includes('imagesize') ||
+                message.includes('image size') ||
+                message.includes('invalid enum') ||
+                message.includes('unsupported') ||
+                message.includes('bad request') ||
+                message.includes('400');
+            if (!canFallback || imageSize === requestedImageSizes[requestedImageSizes.length - 1]) {
+                throw error;
+            }
+            console.warn('[DIRECT_IMAGE_SIZE_FALLBACK]', { imageSize, reason: message });
+        }
+    }
+
+    throw lastError ?? new Error('Failed to generate image');
 }
