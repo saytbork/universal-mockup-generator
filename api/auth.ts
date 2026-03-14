@@ -35,14 +35,8 @@ const parseAction = (req: VercelRequest) => {
 
 const getRequestOrigin = (req: VercelRequest): string => {
   const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
-  const normalizedHost = String(host || '').trim().toLowerCase();
-  const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
-  const isPreviewHost =
-    normalizedHost === 'projects.vercel.app' ||
-    normalizedHost.endsWith('.projects.vercel.app') ||
-    normalizedHost.endsWith('.vercel.app');
   const envBase = process.env.BASE_URL?.trim();
-  if (envBase && vercelEnv !== 'preview' && !isPreviewHost) {
+  if (envBase) {
     return envBase.replace(/\/+$/, '');
   }
   const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
