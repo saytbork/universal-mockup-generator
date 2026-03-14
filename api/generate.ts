@@ -474,91 +474,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
-  // Authenticated users (any plan): try 4K → 2K → 1K for max quality.
-  // Anonymous trial users: try 2K → 1K to limit costs.
-  const requestedImageSizes = (isPreview || authenticatedEmail) ? ['4K', '2K', '1K'] : ['2K', '1K'];
 
   // ─────────────────────────────────────────────────────────────────────────
 
   try {
-    const supportsFallbackImageSize = (message: string) => {
-      const normalized = message.toLowerCase();
-      return (
-        normalized.includes('imagesize') ||
-        normalized.includes('image size') ||
-        normalized.includes('invalid enum') ||
-        normalized.includes('unsupported') ||
-        normalized.includes('bad request') ||
-        normalized.includes('400')
-      );
-    };
-
     const generateWithRetry = async () => {
       const maxAttempts = 4;
-      let lastError: unknown = null;
-
-      for (const requestedImageSize of requestedImageSizes) {
-        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-          try {
-            const response = await ai.models.generateContent({
-              model,
-              contents: { parts },
-              config: {
-                responseModalities: [Modality.IMAGE],
-                safetySettings: [],
-                imageConfig: {
-                  aspectRatio,
-                },
-                generationConfig: {
-                  responseMimeType: 'image/png',
-                  aspectRatio,
-                  preserveReferenceImage: effectivePreserveReferenceImage,
-                  ...(imageStrength !== undefined ? { imageStrength } : {}),
-                  ...(guidanceScale !== undefined ? { guidanceScale } : {}),
-                  ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-                  temperature: 0.25,
-                  topP: 0.9,
-                  seed: crypto.randomUUID(),
-                },
-              } as any,
-            });
-            return { response, requestedImageSize };
-          } catch (error) {
-            lastError = error;
-            const message = String((error as any)?.message ?? error);
-            const normalized = message.toLowerCase();
-            const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
-            const shouldRetry =
-              attempt < maxAttempts &&
-              (message.includes('Failed to fetch') ||
-                message.includes('ERR_CONNECTION_CLOSED') ||
-                message.includes('NetworkError') ||
-                normalized.includes('internal error encountered') ||
-                normalized.includes('"status":"internal"') ||
-                normalized.includes('"code":500') ||
-                normalized.includes('service unavailable') ||
-                normalized.includes('deadline exceeded') ||
-                statusCode === 500 ||
-                statusCode === 503 ||
-                statusCode === 504);
-            if (shouldRetry) {
-              await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
-              continue;
-            }
-            if (supportsFallbackImageSize(message) && requestedImageSize !== requestedImageSizes[requestedImageSizes.length - 1]) {
-              console.warn('[IMAGE_SIZE_FALLBACK]', { requestedImageSize, reason: message });
-              break;
-            }
-            throw error;
-          }
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          return await ai.models.generateContent({
+            model,
+            contents: { parts },
+            config: {
+              responseModalities: [Modality.IMAGE],
+              safetySettings: [],
+              generationConfig: {
+                responseMimeType: 'image/png',
+                aspectRatio,
+                preserveReferenceImage: effectivePreserveReferenceImage,
+                ...(imageStrength !== undefined ? { imageStrength } : {}),
+                ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+                ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+                temperature: 0.25,
+                topP: 0.9,
+                seed: crypto.randomUUID(),
+              },
+            } as any,
+          });
+        } catch (error) {
+          const message = String((error as any)?.message ?? error);
+          const normalized = message.toLowerCase();
+          const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
+          const shouldRetry =
+            attempt < maxAttempts &&
+            (message.includes('Failed to fetch') ||
+              message.includes('ERR_CONNECTION_CLOSED') ||
+              message.includes('NetworkError') ||
+              normalized.includes('internal error encountered') ||
+              normalized.includes('"status":"internal"') ||
+              normalized.includes('"code":500') ||
+              normalized.includes('service unavailable') ||
+              normalized.includes('deadline exceeded') ||
+              statusCode === 500 ||
+              statusCode === 503 ||
+              statusCode === 504);
+          if (!shouldRetry) throw error;
+          await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
         }
       }
-      throw lastError ?? new Error('Image generation failed after retries.');
+      throw new Error('Image generation failed after retries.');
     };
 
-    const { response, requestedImageSize } = await generateWithRetry();
+    const response = await generateWithRetry();
     const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
     const inlineImage = responseParts.find((part: any) => part?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
     const encodedImage = inlineImage?.inlineData?.data;
@@ -570,9 +538,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
     const userPlan = userRecord ? normalizePlan(userRecord.plan) : 'anonymous';
     
-    // Keep authenticated outputs at full quality. Only anonymous trial users are watermarked.
-    const shouldApplyWatermark = isAnonymousTrial && !isAdminUser && !isPreview;
-    const maybeWatermarkedImage = shouldApplyWatermark
+    const maybeWatermarkedImage = isAnonymousTrial && !isAdminUser && !isPreview
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
 
@@ -580,7 +546,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const contentType = 'image/png';
     const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
     const imageMeta = {
-      requestedImageSize,
       width: Number(outputMetadata.width || 0),
       height: Number(outputMetadata.height || 0),
       bytes: buffer.length,
