@@ -11,7 +11,7 @@ export type UserRecord = {
   updatedAt: number;
 };
 
-const DEFAULT_UNLIMITED_EMAILS: string[] = [];
+const DEFAULT_UNLIMITED_EMAILS: string[] = ['juanamisano@gmail.com'];
 const UNLIMITED_EMAILS = new Set(
   `${process.env.ADMIN_EMAILS || ''},${process.env.UNLIMITED_CREDITS_EMAILS || ''},${process.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_UNLIMITED_EMAILS.join(',')}`
     .split(',')
