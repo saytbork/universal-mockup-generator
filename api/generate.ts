@@ -29,6 +29,34 @@ const normalizePlan = (plan?: string | null): string => {
   return raw || 'unknown';
 };
 
+const imageSizeToEdge = (imageSize?: string): number => {
+  const normalized = String(imageSize || '').trim().toUpperCase();
+  if (normalized === '4K') return 4096;
+  if (normalized === '2K') return 2048;
+  return 1024;
+};
+
+const edgeToEffectiveSize = (edge: number): '1K' | '2K' | '4K' => {
+  if (edge >= 3072) return '4K';
+  if (edge >= 1536) return '2K';
+  return '1K';
+};
+
+const maybeUpscaleImage = async (input: {
+  buffer: Buffer;
+  requestedImageSize: string;
+  actualModel: string;
+  aspectRatio: string;
+}) => {
+  const provider = String(process.env.UPSCALE_PROVIDER || 'none').trim().toLowerCase();
+  return {
+    buffer: input.buffer,
+    applied: false,
+    provider,
+    reason: provider === 'none' ? 'disabled' : 'not_implemented',
+  };
+};
+
 const hasKV =
   !!process.env.KV_REST_API_URL &&
   !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
@@ -575,19 +603,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? await applyLogoWatermarkToPngBase64(encodedImage)
       : encodedImage;
 
-    const buffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    const baseBuffer = Buffer.from(maybeWatermarkedImage, 'base64');
+    const initialMetadata = await sharp(baseBuffer, { failOn: 'none' }).metadata();
+    const initialWidth = Number(initialMetadata.width || 0);
+    const initialHeight = Number(initialMetadata.height || 0);
+    const targetMinEdge = imageSizeToEdge(requestedImageSize);
+    const deliveredEdge = Math.max(initialWidth, initialHeight);
+    const sizeDegraded = deliveredEdge > 0 && deliveredEdge < targetMinEdge;
+    if (sizeDegraded) {
+      console.warn('[IMAGE_SIZE_DEGRADED]', {
+        actualModel,
+        requestedImageSize,
+        targetMinEdge,
+        deliveredEdge,
+        aspectRatio,
+      });
+    }
+
+    const upscaleResult = await maybeUpscaleImage({
+      buffer: baseBuffer,
+      requestedImageSize,
+      actualModel,
+      aspectRatio,
+    });
+    const buffer = upscaleResult.buffer;
     const contentType = 'image/png';
     const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
+    const width = Number(outputMetadata.width || 0);
+    const height = Number(outputMetadata.height || 0);
+    const effectiveEdge = Math.max(width, height);
     const imageMeta = {
       actualModel,
       requestedImageSize,
-      width: Number(outputMetadata.width || 0),
-      height: Number(outputMetadata.height || 0),
+      targetMinEdge,
+      width,
+      height,
+      effectiveSize: edgeToEffectiveSize(effectiveEdge),
+      sizeDegraded,
       bytes: buffer.length,
       contentType,
       isPreview,
       userPlan,
       model,
+      upscale: {
+        applied: upscaleResult.applied,
+        provider: upscaleResult.provider,
+        reason: upscaleResult.reason,
+      },
     };
     console.log('[GENERATE_IMAGE_META]', imageMeta);
     const fileExtension = 'png';
