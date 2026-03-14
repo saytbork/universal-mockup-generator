@@ -5777,60 +5777,37 @@ If the model attempts to create a scene or environment, override it and force a 
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
           const maxProductRefs = 5;
-          const totalReferenceBudget = isStudioEngine ? 3_400_000 : 2_800_000;
+          const totalReferenceBudget = isProductPlacement ? 3_400_000 : 2_800_000;
           let totalAttachedReferenceBase64 = 0;
 
           for (const product of generationProducts.slice(0, maxProductRefs)) {
-            // Calculate relative height scale for this product
-            // Find the tallest product to use as reference (1.0)
-            const allHeights = generationProducts.map(p => {
-              const heightValue = (p as any).heightValue as number | null | undefined;
-              const heightUnit = ((p as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
-              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
-                return null;
-              }
-              const cm = heightUnit === 'in' ? heightValue * 2.54 : heightValue;
-              return cm;
-            }).filter((h): h is number => h !== null);
-            
-            const maxHeight = allHeights.length > 0 ? Math.max(...allHeights) : null;
-            const currentHeight = (() => {
-              const heightValue = (product as any).heightValue as number | null | undefined;
-              const heightUnit = ((product as any).heightUnit as 'cm' | 'in' | undefined) ?? 'cm';
-              if (typeof heightValue !== 'number' || !Number.isFinite(heightValue) || heightValue <= 0) {
-                return null;
-              }
-              return heightUnit === 'in' ? heightValue * 2.54 : heightValue;
-            })();
-            
-            const relativeHeight = (maxHeight && currentHeight) ? (currentHeight / maxHeight) : 1.0;
-            
-            debugLog(`[GEMINI FIX] Product: ${(product as any).name || 'product'}, Height: ${currentHeight}cm, Relative: ${relativeHeight.toFixed(2)}`);
-            
-            // GEMINI FIX: Normalize product with light neutral padding
-            // Creates a canvas at the target aspect ratio with the product centered
-            // Light gray background (#F8F8F8) shows the model the "intended space" to fill with environment
-            // Prevents distortion by pre-formatting the reference to the output aspect ratio
-            const normalized = await normalizeProductWithTransparentPadding(
-              `data:${product.mimeType};base64,${product.base64}`,
+            const resized = await maybeDownscaleInlineImage(product.base64, product.mimeType, {
+              maxLongEdge: isProductPlacement
+                ? (isMultiProductRequest ? 1440 : 3072)
+                : (isMultiProductRequest ? 1024 : 2048),
+              maxBase64Length: isProductPlacement
+                ? (isMultiProductRequest ? 900_000 : 7_500_000)
+                : (isMultiProductRequest ? 550_000 : 4_000_000),
+              quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
+            });
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${resized.mimeType};base64,${resized.base64}`,
               aspectRatio,
-              relativeHeight,
               {
-                maxLongEdge: isStudioEngine
-                  ? (isMultiProductRequest ? 1440 : 2048)
-                  : (isMultiProductRequest ? 1024 : 1536),
-                mimeType: 'image/jpeg', // JPEG with light background
-                quality: 0.96,
+                maxLongEdge: isProductPlacement
+                  ? (isMultiProductRequest ? 1440 : 3072)
+                  : (isMultiProductRequest ? 1024 : 2048),
+                background: '#FFFFFF',
+                mimeType: (isMultiProductRequest ? 'image/jpeg' : (resized.mimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png')) as 'image/jpeg' | 'image/png',
+                quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
               }
             );
-            
             let finalReference = normalized;
 
-            // Keep total payload under serverless limits when multiple products are attached.
             if (isMultiProductRequest) {
               finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-                maxLongEdge: isStudioEngine ? 1200 : 960,
-                maxBase64Length: isStudioEngine ? 450_000 : 320_000,
+                maxLongEdge: isProductPlacement ? 1200 : 960,
+                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
                 quality: 0.86,
               });
             }
@@ -5890,9 +5867,9 @@ If the model attempts to create a scene or environment, override it and force a 
             productCount: generationProducts.length,
           },
         });
-        // IMPORTANT: preserveReferenceImage=true — bottle must be preserved exactly as reference.
-        // This applies to both closed and served mode (served adds a glass but never modifies the bottle).
-        const preserveReferenceImage = true;
+        // Keep Output Format in control of final framing/resolution.
+        // Reference images still ground the product, but should not hard-lock the original canvas framing.
+        const preserveReferenceImage = false;
 
         const response = await fetch('/api/generate', {
           method: 'POST',
