@@ -58,7 +58,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineEnvironmentVariation).toBe('dark-cellar');
     expect(prompt).toContain('WINE_ENVIRONMENT: dark-cellar.');
     expect(prompt).toContain('PHOTO_MODE: Winery Scene.');
-    expect(prompt).toContain('SCENE_STYLE: real luxury wine photography in an authentic cellar environment.');
+    expect(prompt).toContain('SCENE_STYLE: real wine photography in an authentic cellar or winery environment.');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
   });
 
@@ -78,7 +78,7 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Bottle In Hand Cutout'));
     const prompt = generateStudioPromptV2(mapped);
 
-    expect(prompt).toContain('SCENE_STYLE: real wine cutout photography with minimal backdrop.');
+    expect(prompt).toContain('SCENE_STYLE: real cutout wine bottle photography with minimal backdrop and natural capture response.');
     expect(prompt).toContain('PHOTO_MODE: Bottle In Hand Cutout.');
     expect(prompt).toContain('Single cropped hand or forearm only.');
     expect(prompt).toContain('No torso.');
