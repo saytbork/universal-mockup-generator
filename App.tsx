@@ -5957,9 +5957,19 @@ If the model attempts to create a scene or environment, override it and force a 
           setRemoteCredits(data.remaining_credits);
         }
 
-        // Use base64 data URL for immediate display and local hi-res prep.
-        // Keep the remote URL only for gallery persistence/sharing.
-        setGeneratedImageUrl(displayUrl);
+        let outputUrl = displayUrl;
+        if (imageBase64) {
+          const cleanedFinalUrl = await trimBlackBarsDataUrl(displayUrl, { mimeType: 'image/png', background: null });
+          const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
+            maxLongEdge: 4096,
+            mimeType: 'image/png',
+          });
+          outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+        }
+
+        // Use normalized base64 data URL for immediate display and local hi-res prep.
+        // Keep the remote URL only for gallery persistence/sharing when available.
+        setGeneratedImageUrl(outputUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         
         if (generationLogId) {
@@ -5967,7 +5977,8 @@ If the model attempts to create a scene or environment, override it and force a 
             status: 'success',
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
-              imageUrl: imageUrl || displayUrl,
+              imageUrl: imageUrl || outputUrl,
+              outputSource: imageBase64 ? 'normalized_base64' : 'remote_url',
             },
           });
         }
@@ -5976,7 +5987,7 @@ If the model attempts to create a scene or environment, override it and force a 
           const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
           void addLocalGalleryEntry({
             userId: galleryUserId,
-            imageUrl: imageUrl || displayUrl,
+            imageUrl: imageUrl || outputUrl,
             createdAt: Date.now(),
             plan: resolvedPlanTier,
             aspectRatio,
@@ -5986,8 +5997,8 @@ If the model attempts to create a scene or environment, override it and force a 
           console.warn('Local gallery save failed', e);
         }
         
-        void reportGalleryEntry(imageUrl || displayUrl);
-        runHiResPipeline(displayUrl);
+        void reportGalleryEntry(imageUrl || outputUrl);
+        runHiResPipeline(outputUrl);
         
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
