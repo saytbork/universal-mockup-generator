@@ -5731,48 +5731,9 @@ If the model attempts to create a scene or environment, override it and force a 
         const shouldIncludeHumanImage = personIncluded && (hasHumanReference || !isNaturalUgc);
         const requestParts: any[] = [];
         let humanReferenceAttached = false;
+        let humanReferenceIndex = -1;
         let productReferencesAttached = 0;
         requestParts.push({ text: finalPrompt });
-
-        // IMPORTANT: attach human/model reference BEFORE product references.
-        // Gemini is sensitive to reference ordering; placing the model first improves identity adherence.
-        if (shouldIncludeHumanImage) {
-          if (identityInlinePart) {
-            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-            humanReferenceAttached = true;
-          } else if (modelReferenceFile) {
-            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
-            const normalized = await letterboxDataUrlToAspectRatio(
-              `data:${modelMimeType};base64,${modelBase64}`,
-              aspectRatio,
-              {
-                maxLongEdge: 2048,
-                background: '#FFFFFF',
-                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
-                quality: 0.96,
-              }
-            );
-            requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
-              reference: true,
-            });
-            humanReferenceAttached = true;
-          }
-        }
 
         if (shouldSendProductImage) {
           const isMultiProductRequest = generationProducts.length > 1;
@@ -5830,6 +5791,46 @@ If the model attempts to create a scene or environment, override it and force a 
             totalAttachedReferenceBase64 += finalReference.base64.length;
           }
         }
+
+        if (shouldIncludeHumanImage) {
+          if (identityInlinePart) {
+            const sourceMime = String(identityInlinePart.inlineData?.mimeType ?? 'image/png');
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${sourceMime};base64,${identityInlinePart.inlineData.data}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (sourceMime === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+            humanReferenceAttached = true;
+            humanReferenceIndex = requestParts.length - 1;
+          } else if (modelReferenceFile) {
+            const { base64: modelBase64, mimeType: modelMimeType } = await fileToBase64(modelReferenceFile);
+            const normalized = await letterboxDataUrlToAspectRatio(
+              `data:${modelMimeType};base64,${modelBase64}`,
+              aspectRatio,
+              {
+                maxLongEdge: 2048,
+                background: '#FFFFFF',
+                mimeType: (modelMimeType === 'image/jpeg' ? 'image/jpeg' : 'image/png') as 'image/jpeg' | 'image/png',
+                quality: 0.96,
+              }
+            );
+            requestParts.push({
+              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              reference: true,
+            });
+            humanReferenceAttached = true;
+            humanReferenceIndex = requestParts.length - 1;
+          }
+        }
         const payload = { parts: requestParts };
         if (hasModelReference && !humanReferenceAttached) {
           throw new Error('Model Reference is enabled but no human reference image was attached to the generation payload. Re-upload the model photo and try again.');
@@ -5838,7 +5839,7 @@ If the model attempts to create a scene or environment, override it and force a 
           if (part?.text) return `${index}:text`;
           const mimeType = String(part?.inlineData?.mimeType || '');
           if (!mimeType) return `${index}:unknown`;
-          if (index === 1 && humanReferenceAttached) return `${index}:human(${mimeType})`;
+          if (index === humanReferenceIndex && humanReferenceAttached) return `${index}:human(${mimeType})`;
           return `${index}:product(${mimeType})`;
         });
         const payloadLog = {
