@@ -354,8 +354,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
-  const DEFAULT_MODEL = 'gemini-2.5-flash-image';
-  const FALLBACK_MODEL = 'gemini-2.0-flash-preview-image-generation';
+  const DEFAULT_MODEL = 'gemini-3.1-flash-image-preview';
+  const FALLBACK_MODELS = [
+    'gemini-3-pro-image-preview',
+    'gemini-2.5-flash-image',
+    'gemini-2.0-flash-preview-image-generation',
+  ];
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
@@ -480,7 +484,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const generateWithRetry = async () => {
       const maxAttempts = 4;
       let lastError: unknown = null;
-      const modelsToTry = model === DEFAULT_MODEL ? [DEFAULT_MODEL, FALLBACK_MODEL] : [model];
+      const modelsToTry = model === DEFAULT_MODEL ? [DEFAULT_MODEL, ...FALLBACK_MODELS] : [model];
       for (const candidateModel of modelsToTry) {
         for (const imageSize of requestedImageSizes) {
           for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
