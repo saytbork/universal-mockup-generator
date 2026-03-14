@@ -55,41 +55,6 @@ function generateId(): string {
   return `local-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 }
 
-async function downscaleDataUrl(
-  dataUrl: string,
-  options: { maxEdge: number; mimeType: string; quality: number }
-): Promise<string> {
-  if (!dataUrl.toLowerCase().startsWith('data:')) return dataUrl;
-  const img = new Image();
-  img.decoding = 'async';
-  img.loading = 'eager';
-
-  const { width, height } = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = () => reject(new Error('Failed to decode image for local gallery'));
-    img.src = dataUrl;
-  });
-
-  const maxEdge = Math.max(1, options.maxEdge);
-  const scale = Math.min(1, maxEdge / Math.max(width, height));
-  if (scale >= 1) return dataUrl;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(width * scale));
-  canvas.height = Math.max(1, Math.round(height * scale));
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return dataUrl;
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-  try {
-    return canvas.toDataURL(options.mimeType, options.quality);
-  } catch {
-    return dataUrl;
-  }
-}
-
 export async function addLocalGalleryEntry(input: Omit<LocalGalleryEntry, 'id'> & { id?: string }) {
   if (typeof window === 'undefined' || typeof indexedDB === 'undefined') return;
   const userId = String(input.userId || '').trim().toLowerCase();
@@ -100,15 +65,10 @@ export async function addLocalGalleryEntry(input: Omit<LocalGalleryEntry, 'id'> 
   const createdAt = typeof input.createdAt === 'number' ? input.createdAt : Date.now();
   const id = input.id || generateId();
 
-  // Store a compressed thumbnail for local history to avoid huge IDB usage.
-  const storedUrl = imageUrl.toLowerCase().startsWith('data:')
-    ? await downscaleDataUrl(imageUrl, { maxEdge: 1024, mimeType: 'image/jpeg', quality: 0.9 })
-    : imageUrl;
-
   const entry: LocalGalleryEntry = {
     id,
     userId,
-    imageUrl: storedUrl,
+    imageUrl,
     createdAt,
     plan: input.plan,
     width: input.width,

@@ -803,6 +803,7 @@ function GallerySection({ userEmail }: { userEmail: string }) {
           if (Array.isArray(parsed)) {
             localImages = parsed
               .filter(item => item && typeof item.imageUrl === 'string')
+              .filter(item => !String(item.imageUrl || '').trim().toLowerCase().startsWith('data:'))
               .map(item => ({
                 id: String(item.id || `local-${Math.random().toString(36).slice(2)}`),
                 imageUrl: String(item.imageUrl),
@@ -831,18 +832,20 @@ function GallerySection({ userEmail }: { userEmail: string }) {
         let indexedDbImages: GalleryEntry[] = [];
         try {
           const indexed = await listLocalGalleryEntries(userId, 30);
-          indexedDbImages = indexed.map(entry => ({
-            id: entry.id,
-            imageUrl: entry.imageUrl,
-            userId: entry.userId,
-            plan: entry.plan || 'free',
-            createdAt: entry.createdAt,
-            width: entry.width,
-            height: entry.height,
-            modelReferenceUsed: undefined,
-            productsUsed: undefined,
-            source: "indexedDb" as const,
-          }));
+          indexedDbImages = indexed
+            .filter(entry => !String(entry.imageUrl || '').trim().toLowerCase().startsWith('data:'))
+            .map(entry => ({
+              id: entry.id,
+              imageUrl: entry.imageUrl,
+              userId: entry.userId,
+              plan: entry.plan || 'free',
+              createdAt: entry.createdAt,
+              width: entry.width,
+              height: entry.height,
+              modelReferenceUsed: undefined,
+              productsUsed: undefined,
+              source: "indexedDb" as const,
+            }));
         } catch (err) {
           console.warn('Unable to load IndexedDB gallery cache', err);
         }
