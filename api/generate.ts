@@ -588,7 +588,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log('[QUALITY] Applying reduced quality for free plan user');
       buffer = await sharp(Buffer.from(maybeWatermarkedImage, 'base64'))
         .resize(1536, 1536, { fit: 'inside', withoutEnlargement: true }) // Max 1536px
-        .jpeg({ quality: 75, mozjpeg: true }) // JPEG with 75% quality
+        .jpeg({ quality: 65, mozjpeg: true }) // JPEG with 65% quality
         .toBuffer();
       contentType = 'image/jpeg';
     } else {
