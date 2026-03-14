@@ -511,7 +511,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 safetySettings: [],
                 imageConfig: {
                   aspectRatio,
-                  imageSize: requestedImageSize,
                 },
                 generationConfig: {
                   responseMimeType: 'image/png',
