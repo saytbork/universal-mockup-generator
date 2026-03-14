@@ -382,7 +382,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
-  const DEFAULT_MODEL = 'gemini-2.0-flash-preview-image-generation';
+  const DEFAULT_MODEL = 'gemini-2.5-flash-image';
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
