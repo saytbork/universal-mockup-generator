@@ -485,7 +485,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         for (const imageSize of requestedImageSizes) {
           for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
             try {
-              return await ai.models.generateContent({
+              const response = await ai.models.generateContent({
                 model: candidateModel,
                 contents: { parts },
                 config: {
@@ -508,6 +508,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   },
                 } as any,
               });
+              return { response, actualModel: candidateModel, requestedImageSize: imageSize };
             } catch (error) {
               lastError = error;
               const message = String((error as any)?.message ?? error);
@@ -559,7 +560,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw lastError ?? new Error('Image generation failed after retries.');
     };
 
-    const response = await generateWithRetry();
+    const { response, actualModel, requestedImageSize } = await generateWithRetry();
     const responseParts = response?.candidates?.[0]?.content?.parts ?? [];
     const inlineImage = responseParts.find((part: any) => part?.inlineData?.data) as { inlineData?: { data?: string } } | undefined;
     const encodedImage = inlineImage?.inlineData?.data;
@@ -579,6 +580,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const contentType = 'image/png';
     const outputMetadata = await sharp(buffer, { failOn: 'none' }).metadata();
     const imageMeta = {
+      actualModel,
+      requestedImageSize,
       width: Number(outputMetadata.width || 0),
       height: Number(outputMetadata.height || 0),
       bytes: buffer.length,
