@@ -36,7 +36,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
-    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising photography with controlled hospitality pour motion.');
+    expect(prompt).toContain('SCENE_STYLE: real wine hospitality photography with controlled pour motion.');
     expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
     expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
     expect(prompt).toContain('Never emit liquid from below the bottle rim');
@@ -46,7 +46,7 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Wine Lineup Comparison'));
     const prompt = generateStudioPromptV2(mapped);
 
-    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising lineup photography with clean varietal spacing and brand-family balance.');
+    expect(prompt).toContain('SCENE_STYLE: real wine lineup photography with clean varietal spacing and brand-family balance.');
     expect(prompt).toContain('PHOTO_MODE: Wine Lineup Comparison.');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
@@ -58,7 +58,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineEnvironmentVariation).toBe('dark-cellar');
     expect(prompt).toContain('WINE_ENVIRONMENT: dark-cellar.');
     expect(prompt).toContain('PHOTO_MODE: Winery Scene.');
-    expect(prompt).toContain('SCENE_STYLE: hyper-real luxury wine advertising photography in an authentic cellar environment.');
+    expect(prompt).toContain('SCENE_STYLE: real luxury wine photography in an authentic cellar environment.');
     expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
   });
 
@@ -78,7 +78,7 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Bottle In Hand Cutout'));
     const prompt = generateStudioPromptV2(mapped);
 
-    expect(prompt).toContain('SCENE_STYLE: hyper-real professional wine advertising cutout photography with minimal backdrop.');
+    expect(prompt).toContain('SCENE_STYLE: real wine cutout photography with minimal backdrop.');
     expect(prompt).toContain('PHOTO_MODE: Bottle In Hand Cutout.');
     expect(prompt).toContain('Single cropped hand or forearm only.');
     expect(prompt).toContain('No torso.');
