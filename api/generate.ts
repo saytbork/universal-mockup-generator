@@ -57,28 +57,6 @@ const maybeUpscaleImage = async (input: {
   };
 };
 
-const summarizePart = (part: any, index: number) => {
-  if (part?.text) {
-    const text = String(part.text || '');
-    return {
-      index,
-      kind: 'text',
-      chars: text.length,
-      preview: text.replace(/\s+/g, ' ').trim().slice(0, 160),
-    };
-  }
-  const mimeType = String(part?.inlineData?.mimeType || '');
-  const data = typeof part?.inlineData?.data === 'string' ? part.inlineData.data : '';
-  return {
-    index,
-    kind: 'inlineData',
-    mimeType: mimeType || 'unknown',
-    base64Length: data.length,
-    approxBytes: data ? Buffer.byteLength(data, 'base64') : 0,
-    reference: Boolean(part?.reference),
-  };
-};
-
 const hasKV =
   !!process.env.KV_REST_API_URL &&
   !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
@@ -461,23 +439,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  // InlineData: always enable preserveReferenceImage when a product reference is present.
+  // Wine served mode no longer modifies the bottle — the reference image must always be preserved.
   const hasInlineData = parts.some(part => 'inlineData' in part);
-  const effectivePreserveReferenceImage = preserveReferenceImage;
-  const partsSummary = parts.map((part, index) => summarizePart(part, index));
-
-  await addDebugLog('generate.request', {
-    aspectRatio,
-    model,
-    promptHash: debugMeta?.promptHash,
-    mode: debugMeta?.mode,
-    sceneType: debugMeta?.sceneType,
-    apiKeySource: bodyApiKey ? 'body' : 'env',
-    inlineImageCount,
-    hasInlineData,
-    preserveReferenceImage,
-    effectivePreserveReferenceImage,
-    partsSummary,
-  }, email);
+  let effectivePreserveReferenceImage = preserveReferenceImage;
+  if (hasInlineData && !preserveReferenceImage) {
+    console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
+    effectivePreserveReferenceImage = true;
+  }
 
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {

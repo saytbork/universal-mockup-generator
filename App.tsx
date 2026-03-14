@@ -121,28 +121,6 @@ const cloneUGCRealSettings = (settings?: UGCRealModeSettings): UGCRealModeSettin
   framingId: settings?.framingId ?? UGC_SPONTANEOUS_FRAMING_OPTIONS[0]?.id ?? 'arm-length',
 });
 
-const summarizeRequestPart = (part: any, index: number) => {
-  if (part?.text) {
-    const text = String(part.text || '');
-    return {
-      index,
-      kind: 'text',
-      chars: text.length,
-      preview: text.replace(/\s+/g, ' ').trim().slice(0, 160),
-    };
-  }
-  const mimeType = String(part?.inlineData?.mimeType || '');
-  const data = typeof part?.inlineData?.data === 'string' ? part.inlineData.data : '';
-  return {
-    index,
-    kind: 'inlineData',
-    mimeType: mimeType || 'unknown',
-    base64Length: data.length,
-    approxBytes: Math.floor((data.length * 3) / 4),
-    reference: Boolean(part?.reference),
-  };
-};
-
 type StoryboardScene = {
   id: string;
   label: string;
@@ -5871,7 +5849,6 @@ If the model attempts to create a scene or environment, override it and force a 
           humanReferenceAttached,
           partsOrder,
           partsCount: requestParts.length,
-          partsSummary: requestParts.map((part: any, index: number) => summarizeRequestPart(part, index)),
         };
         debugLog('[UGC PAYLOAD]', payloadLog);
         generationLogId = createGenerationLog({
