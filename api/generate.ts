@@ -476,7 +476,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Restore GoogleGenAI initialization from 7695e35
   const ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
-  const requestedImageSizes = isPreview ? ['4K', '2K', '1K'] : ['1K'];
+  // Authenticated users (any plan): try 4K → 2K → 1K for max quality.
+  // Anonymous trial users: try 2K → 1K to limit costs.
+  // Quality downgrade for free plan is applied after generation (JPEG compression).
+  const requestedImageSizes = (isPreview || authenticatedEmail) ? ['4K', '2K', '1K'] : ['2K', '1K'];
 
   // ─────────────────────────────────────────────────────────────────────────
 
