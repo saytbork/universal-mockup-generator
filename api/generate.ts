@@ -45,7 +45,7 @@ const edgeToEffectiveSize = (edge: number): '1K' | '2K' | '4K' => {
 type PreserveReferenceResolution = {
   effective: boolean;
   hasInlineData: boolean;
-  reason: 'client_true' | 'client_false' | 'default_false' | 'auto_enabled_for_inline_data';
+  reason: 'client_true' | 'client_false' | 'default_false';
   requested?: boolean;
   wasCoerced: boolean;
 };
@@ -96,16 +96,6 @@ const resolvePreserveReferenceImage = (
       reason: 'client_true',
       requested: true,
       wasCoerced: false,
-    };
-  }
-
-  if (hasInlineData) {
-    return {
-      effective: true,
-      hasInlineData,
-      reason: 'auto_enabled_for_inline_data',
-      requested: normalizedRequested,
-      wasCoerced: normalizedRequested === false,
     };
   }
 
@@ -617,12 +607,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const hasInlineData = partsValidation.hasInlineData;
   const preserveReference = resolvePreserveReferenceImage(body.preserveReferenceImage, hasInlineData);
-  if (preserveReference.wasCoerced) {
-    console.warn('[INLINE_DATA] inlineData detected -> auto-enabling preserveReferenceImage', {
-      requested: preserveReference.requested,
-      reason: preserveReference.reason,
-    });
-  }
   const effectivePreserveReferenceImage = preserveReference.effective;
 
   if (!apiKey) {
