@@ -79,6 +79,17 @@ type GenerateImageRequestInput = {
   parts: any[];
 };
 
+type RejectGenerateRequestInput = {
+  aspectRatio: string;
+  debugMeta: DebugMeta | null;
+  email?: string;
+  error: string;
+  event: 'generate.reject.missing_parts' | 'generate.reject.missing_api_key' | 'generate.reject.no_credits';
+  model: string;
+  res: VercelResponse;
+  status: number;
+};
+
 const resolvePreserveReferenceImage = (
   requested: unknown,
   hasInlineData: boolean
@@ -252,6 +263,28 @@ const shouldRetryGenerateContentError = (
       statusCode === 503 ||
       statusCode === 504)
   );
+};
+
+const rejectGenerateRequest = async ({
+  aspectRatio,
+  debugMeta,
+  email,
+  error,
+  event,
+  model,
+  res,
+  status,
+}: RejectGenerateRequestInput) => {
+  await addDebugLog(
+    event,
+    {
+      aspectRatio,
+      model,
+      promptHash: debugMeta?.promptHash,
+    },
+    email
+  );
+  res.status(status).json({ error });
 };
 
 const maybeUpscaleImage = async (input: {
@@ -622,12 +655,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     maxInlineImageSize: MAX_INLINE_IMAGE_SIZE,
   });
   if (!partsValidation.ok) {
-    await addDebugLog('generate.reject.missing_parts', {
+    await rejectGenerateRequest({
       aspectRatio,
+      debugMeta,
+      email,
+      error: partsValidation.error,
+      event: 'generate.reject.missing_parts',
       model,
-      promptHash: debugMeta?.promptHash,
-    }, email);
-    res.status(partsValidation.status).json({ error: partsValidation.error });
+      res,
+      status: partsValidation.status,
+    });
     return;
   }
   const hasInlineData = partsValidation.hasInlineData;
@@ -635,12 +672,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const effectivePreserveReferenceImage = preserveReference.effective;
 
   if (!apiKey) {
-    await addDebugLog('generate.reject.missing_api_key', {
+    await rejectGenerateRequest({
       aspectRatio,
-  model,
-      promptHash: debugMeta?.promptHash,
-    }, email);
-    res.status(500).json({ error: 'No Google API key available (body or env)' });
+      debugMeta,
+      email,
+      error: 'No Google API key available (body or env)',
+      event: 'generate.reject.missing_api_key',
+      model,
+      res,
+      status: 500,
+    });
     return;
   }
   if (!apiKey.startsWith('AIza')) {
@@ -661,12 +702,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       creditResult = await consumeCredit(authenticatedEmail!);
       if (!creditResult.ok || !creditResult.bucket) {
-        await addDebugLog('generate.reject.no_credits', {
+        await rejectGenerateRequest({
           aspectRatio,
+          debugMeta,
+          email: authenticatedEmail,
+          error: 'No credits remaining',
+          event: 'generate.reject.no_credits',
           model,
-          promptHash: debugMeta?.promptHash,
-        }, authenticatedEmail);
-        res.status(402).json({ error: 'No credits remaining' });
+          res,
+          status: 402,
+        });
         return;
       }
       if (creditResult.bucket !== 'admin') {
