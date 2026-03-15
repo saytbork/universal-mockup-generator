@@ -3517,35 +3517,6 @@ const App: React.FC = () => {
     []
   );
 
-  const persistCanonicalOutput = useCallback(
-    async (input: {
-      aspectRatio: string;
-      outputUrl: string;
-      plan: string;
-      runHiRes?: boolean;
-    }) => {
-      setGeneratedImageUrl(input.outputUrl);
-      try {
-        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-        void addLocalGalleryEntry({
-          userId: galleryUserId,
-          imageUrl: input.outputUrl,
-          createdAt: Date.now(),
-          plan: input.plan,
-          aspectRatio: input.aspectRatio,
-        });
-        void pruneLocalGallery(galleryUserId, 30, 120);
-      } catch (e) {
-        console.warn('Local gallery save failed', e);
-      }
-      void reportGalleryEntry(input.outputUrl);
-      if (input.runHiRes) {
-        runHiResPipeline(input.outputUrl);
-      }
-    },
-    [reportGalleryEntry, runHiResPipeline, userEmail]
-  );
-
   const handleDownloadCreditCharge = useCallback(
     (resolution: DownloadResolution): { ok: boolean; message?: string } => {
       if (isTrialBypassActive || isAnonymousTrialMode) {
@@ -5342,6 +5313,35 @@ If the model attempts to create a scene or environment, override it and force a 
       }
     },
     [userEmail, planTier, modelReferenceFile, productAssets.length, getImageDimensions, publishFreeGallery, compositionMode]
+  );
+
+  const persistCanonicalOutput = useCallback(
+    async (input: {
+      aspectRatio: string;
+      outputUrl: string;
+      plan: string;
+      runHiRes?: boolean;
+    }) => {
+      setGeneratedImageUrl(input.outputUrl);
+      try {
+        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+        void addLocalGalleryEntry({
+          userId: galleryUserId,
+          imageUrl: input.outputUrl,
+          createdAt: Date.now(),
+          plan: input.plan,
+          aspectRatio: input.aspectRatio,
+        });
+        void pruneLocalGallery(galleryUserId, 30, 120);
+      } catch (e) {
+        console.warn('Local gallery save failed', e);
+      }
+      void reportGalleryEntry(input.outputUrl);
+      if (input.runHiRes) {
+        runHiResPipeline(input.outputUrl);
+      }
+    },
+    [reportGalleryEntry, runHiResPipeline, userEmail]
   );
 
   const determineGalleryPlan = useCallback(() => {
