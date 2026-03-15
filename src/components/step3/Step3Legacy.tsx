@@ -370,6 +370,43 @@ export interface LifestyleStep3Props {
   };
 }
 
+const LIFESTYLE_STUDIO_LEAK_KEYS = new Set<string>([
+  'handsHolding',
+  'productStudioInteraction',
+  'productType',
+  'productTypeCustom',
+  'productPackaging',
+  'productScale',
+  'productCount',
+  'productGrouping',
+  'productCreativityLevel',
+  'productCreativeTheme',
+  'productPaletteSource',
+  'productPaletteA',
+  'productPaletteB',
+  'productPaletteC',
+  'productPropDensity',
+  'productPropsSelected',
+  'productCameraSystem',
+  'productCameraAngle',
+  'productCameraDistance',
+  'productCameraRotation',
+  'productFramingGuide',
+  'productUseCase',
+  'productLayout',
+  'productHeadline',
+  'productSubheadline',
+  'productBullets',
+  'productBulletIcons',
+  'preserveEnvironment',
+  'backgroundBlur',
+  'ecommerceBackgroundColor',
+  'ecommerceBackgroundMode',
+  'ecommerceGradientStart',
+  'ecommerceGradientEnd',
+  'ecommerceGradientAngle',
+]);
+
 export interface Step3Values {
   sceneType?: 'studio-branding' | 'lifestyle-real';
   contentStyle?: 'ugc' | 'product' | 'brand';
@@ -2319,16 +2356,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       contentStyle,
       visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
       allowMessiness: forceNoMessiness ? false : values.allowMessiness,
-      handsHolding: forceHandsHolding ? true : values.handsHolding,
+      handsHolding: forceHandsHolding,
       personIncluded,
     };
     let payload: Step3Values = rawPayload;
 
     if (sceneType === 'lifestyle-real') {
       const leakedStudioKeys = Object.keys(rawPayload).filter((key) => {
-        if (!key.startsWith('studio')) return false;
+        if (!key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)) return false;
         const value = (rawPayload as unknown as Record<string, unknown>)[key];
         if (value === undefined || value === null) return false;
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'boolean') return value === true;
+        if (typeof value === 'number') return value !== 0;
         return String(value).trim().length > 0;
       });
       if (leakedStudioKeys.length > 0) {
@@ -2339,8 +2379,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         });
       }
       payload = {
-        ...Object.fromEntries(Object.entries(rawPayload).filter(([key]) => !key.startsWith('studio'))),
+        ...Object.fromEntries(
+          Object.entries(rawPayload).filter(
+            ([key]) => !key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)
+          )
+        ),
         sceneType: 'lifestyle-real',
+        handsHolding: forceHandsHolding,
       } as Step3Values;
     }
 
@@ -2359,6 +2404,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
+    if (!isProductMode) return;
     setValues(prev => ({
       ...prev,
       studioPhotoMode: productStore.photoMode,
@@ -2385,6 +2431,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore.finish,
     productStore.backgroundColor,
     productStore.accentColor,
+    isProductMode,
   ]);
 
 
