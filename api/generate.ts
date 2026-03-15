@@ -68,6 +68,16 @@ type PartsValidationResult =
   | { ok: true; hasInlineData: boolean; inlineImageCount: number }
   | { ok: false; error: string; status: number };
 
+type GenerateImageRequestInput = {
+  aspectRatio: string;
+  candidateModel: string;
+  effectivePreserveReferenceImage: boolean;
+  guidanceScale?: number;
+  imageStrength?: number;
+  negativePrompt?: string;
+  parts: any[];
+};
+
 const resolvePreserveReferenceImage = (
   requested: unknown,
   hasInlineData: boolean
@@ -180,6 +190,58 @@ const validateGenerateParts = (
     hasInlineData: parts.some(part => typeof part === 'object' && part !== null && 'inlineData' in part),
     inlineImageCount,
   };
+};
+
+const buildGenerateImageRequest = ({
+  aspectRatio,
+  candidateModel,
+  effectivePreserveReferenceImage,
+  guidanceScale,
+  imageStrength,
+  negativePrompt,
+  parts,
+}: GenerateImageRequestInput) => ({
+  model: candidateModel,
+  contents: { parts },
+  config: {
+    responseModalities: [Modality.IMAGE],
+    safetySettings: [],
+    generationConfig: {
+      responseMimeType: 'image/png',
+      aspectRatio,
+      preserveReferenceImage: effectivePreserveReferenceImage,
+      ...(imageStrength !== undefined ? { imageStrength } : {}),
+      ...(guidanceScale !== undefined ? { guidanceScale } : {}),
+      ...(negativePrompt !== undefined ? { negativePrompt } : {}),
+      temperature: 0.25,
+      topP: 0.9,
+      seed: crypto.randomUUID(),
+    },
+  } as any,
+});
+
+const shouldRetryGenerateContentError = (
+  error: unknown,
+  attempt: number,
+  maxAttempts: number
+): boolean => {
+  const message = String((error as any)?.message ?? error);
+  const normalized = message.toLowerCase();
+  const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
+  return (
+    attempt < maxAttempts &&
+    (message.includes('Failed to fetch') ||
+      message.includes('ERR_CONNECTION_CLOSED') ||
+      message.includes('NetworkError') ||
+      normalized.includes('internal error encountered') ||
+      normalized.includes('"status":"internal"') ||
+      normalized.includes('"code":500') ||
+      normalized.includes('service unavailable') ||
+      normalized.includes('deadline exceeded') ||
+      statusCode === 500 ||
+      statusCode === 503 ||
+      statusCode === 504)
+  );
 };
 
 const maybeUpscaleImage = async (input: {
@@ -616,44 +678,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       for (const candidateModel of modelsToTry) {
         for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
           try {
-            const response = await ai.models.generateContent({
-              model: candidateModel,
-              contents: { parts },
-              config: {
-                responseModalities: [Modality.IMAGE],
-                safetySettings: [],
-                generationConfig: {
-                  responseMimeType: 'image/png',
-                  aspectRatio,
-                  preserveReferenceImage: effectivePreserveReferenceImage,
-                  ...(imageStrength !== undefined ? { imageStrength } : {}),
-                  ...(guidanceScale !== undefined ? { guidanceScale } : {}),
-                  ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-                  temperature: 0.25,
-                  topP: 0.9,
-                  seed: crypto.randomUUID(),
-                },
-              } as any,
-            });
+            const response = await ai.models.generateContent(
+              buildGenerateImageRequest({
+                aspectRatio,
+                candidateModel,
+                effectivePreserveReferenceImage,
+                guidanceScale,
+                imageStrength,
+                negativePrompt,
+                parts,
+              })
+            );
             return { response, actualModel: candidateModel, requestedImageSize: 'AUTO' };
           } catch (error) {
             lastError = error;
             const message = String((error as any)?.message ?? error);
             const normalized = message.toLowerCase();
-            const statusCode = Number((error as any)?.status || (error as any)?.code || 0);
-            const shouldRetry =
-              attempt < maxAttempts &&
-              (message.includes('Failed to fetch') ||
-                message.includes('ERR_CONNECTION_CLOSED') ||
-                message.includes('NetworkError') ||
-                normalized.includes('internal error encountered') ||
-                normalized.includes('"status":"internal"') ||
-                normalized.includes('"code":500') ||
-                normalized.includes('service unavailable') ||
-                normalized.includes('deadline exceeded') ||
-                statusCode === 500 ||
-                statusCode === 503 ||
-                statusCode === 504);
+            const shouldRetry = shouldRetryGenerateContentError(error, attempt, maxAttempts);
             if (shouldRetry) {
               await new Promise(resolve => setTimeout(resolve, 600 * attempt * attempt));
               continue;
