@@ -90,6 +90,12 @@ type RejectGenerateRequestInput = {
   status: number;
 };
 
+type GenerateSuccessBase = {
+  imageBase64: string;
+  imageMeta: Record<string, unknown>;
+  imageUrl: string;
+};
+
 const resolvePreserveReferenceImage = (
   requested: unknown,
   hasInlineData: boolean
@@ -286,6 +292,17 @@ const rejectGenerateRequest = async ({
   );
   res.status(status).json({ error });
 };
+
+const buildGenerateSuccessBase = ({
+  imageBase64,
+  imageMeta,
+  imageUrl,
+}: GenerateSuccessBase) => ({
+  ok: true,
+  imageUrl,
+  imageBase64,
+  imageMeta,
+});
 
 const maybeUpscaleImage = async (input: {
   buffer: Buffer;
@@ -875,6 +892,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // directly without a cross-origin fetch to Firebase Storage.
     // The imageUrl is still returned for gallery/persistence use.
     const responseImageBase64 = maybeWatermarkedImage;
+    const successBase = buildGenerateSuccessBase({
+      imageBase64: responseImageBase64,
+      imageMeta,
+      imageUrl,
+    });
 
     if (isAnonymousTrial) {
       let remaining = Math.max(anonymousRemaining - 1, 0);
@@ -900,10 +922,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.setHeader('Set-Cookie', buildGuestTrialCookie(req, guestId));
       }
       res.status(200).json({
-        ok: true,
-        imageUrl,
-        imageBase64: responseImageBase64,
-        imageMeta,
+        ...successBase,
         anonymous_trial: true,
         trial_remaining: remaining,
         trial_cap: GUEST_TRIAL_CAP,
@@ -921,10 +940,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
     res.status(200).json({
-      ok: true,
-      imageUrl,
-      imageBase64: responseImageBase64,
-      imageMeta,
+      ...successBase,
       remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
       trial_remaining: user.trialRemaining ?? 0,
       invite_remaining: user.inviteRemaining ?? 0,
