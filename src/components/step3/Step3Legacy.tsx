@@ -681,6 +681,22 @@ const normalizeCreationModeForEmit = (raw: string): 'aesthetic' | 'lifestyle' | 
   return 'aesthetic';
 };
 
+const resolveStep3SceneType = (
+  rawSceneType: Step3Values['sceneType'],
+  normalizedCreationMode: ReturnType<typeof normalizeCreationModeForEmit>
+): 'studio-branding' | 'lifestyle-real' => {
+  if (rawSceneType === 'studio-branding' || rawSceneType === 'lifestyle-real') {
+    return rawSceneType;
+  }
+
+  const inferredLifestyleScene =
+    normalizedCreationMode === 'aesthetic' ||
+    normalizedCreationMode === 'lifestyle' ||
+    normalizedCreationMode === 'ugc';
+
+  return inferredLifestyleScene ? 'lifestyle-real' : 'studio-branding';
+};
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -2316,16 +2332,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       fromValues: values.sceneType,
       fromStore: productStore.sceneType,
     });
-    const inferredLifestyleScene =
-      normalizedCreationMode === 'aesthetic' ||
-      normalizedCreationMode === 'lifestyle' ||
-      normalizedCreationMode === 'ugc';
-    const sceneType: 'studio-branding' | 'lifestyle-real' =
-      values.sceneType === 'studio-branding' || values.sceneType === 'lifestyle-real'
-        ? values.sceneType
-        : inferredLifestyleScene
-          ? 'lifestyle-real'
-          : 'studio-branding';
+    const sceneType = resolveStep3SceneType(values.sceneType, normalizedCreationMode);
     console.log('[PHASE3 sceneType RESOLUTION]', {
       resolvedSceneType: sceneType,
       source:
@@ -2508,10 +2515,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isEditorialIntent = visualIntentMode === 'editorial' && !isUGCMode;
   const isBrandIntent = visualIntentMode === 'brand' && !isUGCMode;
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
-  const uiSceneType: 'studio-branding' | 'lifestyle-real' =
-    uiCreationMode === 'aesthetic' || uiCreationMode === 'lifestyle' || uiCreationMode === 'ugc'
-      ? 'lifestyle-real'
-      : 'studio-branding';
+  const uiSceneType = resolveStep3SceneType(values.sceneType, uiCreationMode);
   const uiContentStyle: 'ugc' | 'product' | 'brand' =
     values.visualMode === 'ugc'
       ? 'ugc'
