@@ -2419,7 +2419,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           )
         ),
         sceneType: 'lifestyle-real',
-        handsHolding: forceHandsHolding,
+        handsHolding: emitState.handsHolding,
       } as Step3Values;
     }
 
