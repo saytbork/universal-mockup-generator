@@ -712,6 +712,33 @@ const resolveStep3ContentStyle = (
 
 const resolveStep3PersonIncluded = (noPerson: Step3Values['noPerson']): boolean => noPerson === false;
 
+const resolveStep3EmitState = (
+  values: Step3Values,
+  normalizedCreationMode: ReturnType<typeof normalizeCreationModeForEmit>
+) => {
+  const sceneType = resolveStep3SceneType(values.sceneType, normalizedCreationMode);
+  const contentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
+  const personIncluded = resolveStep3PersonIncluded(values.noPerson);
+  const isLuxuryVisualIntent = (values.visualIntent ?? 'editorial') === 'luxury';
+  const forceNoMessiness =
+    sceneType === 'lifestyle-real' &&
+    (contentStyle === 'brand' || isLuxuryVisualIntent) &&
+    values.ugcRealMode !== true;
+  const forceHandsHolding =
+    sceneType === 'lifestyle-real' &&
+    values.productInteraction === 'holding' &&
+    values.ugcRealMode !== true;
+
+  return {
+    sceneType,
+    contentStyle,
+    personIncluded,
+    visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
+    allowMessiness: forceNoMessiness ? false : values.allowMessiness,
+    handsHolding: forceHandsHolding,
+  };
+};
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -2347,7 +2374,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       fromValues: values.sceneType,
       fromStore: productStore.sceneType,
     });
-    const sceneType = resolveStep3SceneType(values.sceneType, normalizedCreationMode);
+    const emitState = resolveStep3EmitState(values, normalizedCreationMode);
+    const sceneType = emitState.sceneType;
     console.log('[PHASE3 sceneType RESOLUTION]', {
       resolvedSceneType: sceneType,
       source:
@@ -2355,26 +2383,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           ? 'values.sceneType only'
           : 'inferred from normalizedCreationMode',
     });
-    const contentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
-    const personIncluded = resolveStep3PersonIncluded(values.noPerson);
-    const isLuxuryVisualIntent = (values.visualIntent ?? 'editorial') === 'luxury';
-    const forceNoMessiness =
-      sceneType === 'lifestyle-real' &&
-      (contentStyle === 'brand' || isLuxuryVisualIntent) &&
-      values.ugcRealMode !== true;
-    const forceHandsHolding =
-      sceneType === 'lifestyle-real' &&
-      values.productInteraction === 'holding' &&
-      values.ugcRealMode !== true;
     const rawPayload: Step3Values = {
       ...values,
       creationMode: normalizedCreationMode,
-      sceneType,
-      contentStyle,
-      visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
-      allowMessiness: forceNoMessiness ? false : values.allowMessiness,
-      handsHolding: forceHandsHolding,
-      personIncluded,
+      sceneType: emitState.sceneType,
+      contentStyle: emitState.contentStyle,
+      visualIntent: emitState.visualIntent,
+      allowMessiness: emitState.allowMessiness,
+      handsHolding: emitState.handsHolding,
+      personIncluded: emitState.personIncluded,
     };
     let payload: Step3Values = rawPayload;
 
