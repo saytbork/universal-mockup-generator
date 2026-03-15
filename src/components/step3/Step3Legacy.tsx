@@ -697,6 +697,21 @@ const resolveStep3SceneType = (
   return inferredLifestyleScene ? 'lifestyle-real' : 'studio-branding';
 };
 
+const resolveStep3ContentStyle = (
+  visualMode: Step3Values['visualMode'],
+  sceneIntent: Step3Values['sceneIntent']
+): 'ugc' | 'product' | 'brand' => {
+  if (visualMode === 'ugc') {
+    return 'ugc';
+  }
+  if (sceneIntent === 'ecommerce') {
+    return 'product';
+  }
+  return 'brand';
+};
+
+const resolveStep3PersonIncluded = (noPerson: Step3Values['noPerson']): boolean => noPerson === false;
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -2340,13 +2355,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           ? 'values.sceneType only'
           : 'inferred from normalizedCreationMode',
     });
-    const contentStyle: 'ugc' | 'product' | 'brand' =
-      values.visualMode === 'ugc'
-        ? 'ugc'
-        : values.sceneIntent === 'ecommerce'
-          ? 'product'
-          : 'brand';
-    const personIncluded = values.noPerson === false;
+    const contentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
+    const personIncluded = resolveStep3PersonIncluded(values.noPerson);
     const isLuxuryVisualIntent = (values.visualIntent ?? 'editorial') === 'luxury';
     const forceNoMessiness =
       sceneType === 'lifestyle-real' &&
@@ -2516,12 +2526,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const isBrandIntent = visualIntentMode === 'brand' && !isUGCMode;
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType = resolveStep3SceneType(values.sceneType, uiCreationMode);
-  const uiContentStyle: 'ugc' | 'product' | 'brand' =
-    values.visualMode === 'ugc'
-      ? 'ugc'
-      : values.sceneIntent === 'ecommerce'
-        ? 'product'
-        : 'brand';
+  const uiContentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
   const uiActiveEngine: 'studio' | 'lifestyle' = uiSceneType === 'studio-branding' ? 'studio' : 'lifestyle';
   const showVisualIntentControl =
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
