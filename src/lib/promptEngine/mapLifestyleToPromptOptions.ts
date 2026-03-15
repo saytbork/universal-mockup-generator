@@ -52,6 +52,24 @@ const normalizeKey = (value?: string) =>
             .replace(/-+/g, '-')
         : '';
 
+const resolveLifestyleHandsHolding = (input: {
+    resolvedSceneType: 'studio-branding' | 'lifestyle-real';
+    productInteraction?: string | null;
+    handsHolding?: boolean | null;
+    ugcRealMode?: boolean | null;
+}): boolean => {
+    if (input.resolvedSceneType !== 'lifestyle-real') {
+        return Boolean(input.handsHolding);
+    }
+
+    const interactionLabel = String(input.productInteraction || '').trim();
+    if (interactionLabel === 'Holding' && input.ugcRealMode !== true) {
+        return true;
+    }
+
+    return Boolean(input.handsHolding);
+};
+
 const OUTDOOR_ENVIRONMENT_LABELS = new Set([
     'Urban Exterior',
     'Natural Exterior',
@@ -348,12 +366,13 @@ function normalizeLifestyleState(
         (next as any).sceneOrderChaos = 'Controlled';
     }
 
-    if (isLifestyleReal && String(next.productInteraction || '').trim() === 'Holding') {
-        next.handsHolding = true;
-    }
-
     next.ugcRealMode = Boolean(next.ugcRealMode);
-    next.handsHolding = Boolean(next.handsHolding);
+    next.handsHolding = resolveLifestyleHandsHolding({
+        resolvedSceneType,
+        productInteraction: next.productInteraction,
+        handsHolding: next.handsHolding,
+        ugcRealMode: next.ugcRealMode,
+    });
     next.allowMessiness = Boolean(next.allowMessiness);
 
     return next;
@@ -1024,12 +1043,12 @@ export function mapLifestyleToPromptOptions(
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
-        handsHolding:
-            resolvedSceneType === 'lifestyle-real' &&
-            String((sceneState as any).productInteraction || '').trim() === 'Holding' &&
-            Boolean((sceneState as any).ugcRealMode) !== true
-                ? true
-                : Boolean((sceneState as any).handsHolding),
+        handsHolding: resolveLifestyleHandsHolding({
+            resolvedSceneType,
+            productInteraction: (sceneState as any).productInteraction,
+            handsHolding: (sceneState as any).handsHolding,
+            ugcRealMode: (sceneState as any).ugcRealMode,
+        }),
     };
     mapped.allowMessiness =
         resolvedSceneType === 'lifestyle-real' &&
