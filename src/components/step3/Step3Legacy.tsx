@@ -407,6 +407,24 @@ const LIFESTYLE_STUDIO_LEAK_KEYS = new Set<string>([
   'ecommerceGradientAngle',
 ]);
 
+const getLifestyleStudioLeakKeys = (payload: Step3Values): string[] =>
+  Object.keys(payload).filter((key) => {
+    if (!key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)) return false;
+    const value = (payload as unknown as Record<string, unknown>)[key];
+    if (value === undefined || value === null) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'boolean') return value === true;
+    if (typeof value === 'number') return value !== 0;
+    return String(value).trim().length > 0;
+  });
+
+const stripLifestyleStudioLeakKeys = (payload: Step3Values): Step3Values =>
+  Object.fromEntries(
+    Object.entries(payload).filter(
+      ([key]) => !key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)
+    )
+  ) as Step3Values;
+
 export interface Step3Values {
   sceneType?: 'studio-branding' | 'lifestyle-real';
   contentStyle?: 'ugc' | 'product' | 'brand';
@@ -2407,15 +2425,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     let payload: Step3Values = rawPayload;
 
     if (sceneType === 'lifestyle-real') {
-      const leakedStudioKeys = Object.keys(rawPayload).filter((key) => {
-        if (!key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)) return false;
-        const value = (rawPayload as unknown as Record<string, unknown>)[key];
-        if (value === undefined || value === null) return false;
-        if (Array.isArray(value)) return value.length > 0;
-        if (typeof value === 'boolean') return value === true;
-        if (typeof value === 'number') return value !== 0;
-        return String(value).trim().length > 0;
-      });
+      const leakedStudioKeys = getLifestyleStudioLeakKeys(rawPayload);
       if (leakedStudioKeys.length > 0) {
         console.warn('Studio state leak detected', {
           sceneType,
@@ -2424,11 +2434,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         });
       }
       payload = {
-        ...Object.fromEntries(
-          Object.entries(rawPayload).filter(
-            ([key]) => !key.startsWith('studio') && !LIFESTYLE_STUDIO_LEAK_KEYS.has(key)
-          )
-        ),
+        ...stripLifestyleStudioLeakKeys(rawPayload),
         sceneType: 'lifestyle-real',
         handsHolding: emitState.handsHolding,
       } as Step3Values;
