@@ -3481,6 +3481,71 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const buildCanonicalOutputUrl = useCallback(
+    async (input: {
+      imageBase64?: string | null;
+      imageUrl?: string | null;
+      aspectRatio: string;
+      strategy: 'extend' | 'letterbox';
+    }) => {
+      const rawImageUrl = String(input.imageUrl || '').trim();
+      const encodedImage = String(input.imageBase64 || '').trim();
+      const displayUrl = encodedImage ? `data:image/png;base64,${encodedImage}` : rawImageUrl;
+      if (!displayUrl) {
+        throw new Error('Image generation failed or returned no image.');
+      }
+
+      if (input.strategy === 'letterbox') {
+        const normalizedOutput = await letterboxDataUrlToAspectRatio(displayUrl, input.aspectRatio, {
+          maxLongEdge: 4096,
+          background: null,
+          mimeType: 'image/png',
+        });
+        return `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+      }
+
+      const cleanedFinalUrl = await trimBlackBarsDataUrl(displayUrl, {
+        mimeType: 'image/png',
+        background: null,
+      });
+      const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, input.aspectRatio, {
+        maxLongEdge: 4096,
+        mimeType: 'image/png',
+      });
+      return `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
+    },
+    []
+  );
+
+  const persistCanonicalOutput = useCallback(
+    async (input: {
+      aspectRatio: string;
+      outputUrl: string;
+      plan: string;
+      runHiRes?: boolean;
+    }) => {
+      setGeneratedImageUrl(input.outputUrl);
+      try {
+        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
+        void addLocalGalleryEntry({
+          userId: galleryUserId,
+          imageUrl: input.outputUrl,
+          createdAt: Date.now(),
+          plan: input.plan,
+          aspectRatio: input.aspectRatio,
+        });
+        void pruneLocalGallery(galleryUserId, 30, 120);
+      } catch (e) {
+        console.warn('Local gallery save failed', e);
+      }
+      void reportGalleryEntry(input.outputUrl);
+      if (input.runHiRes) {
+        runHiResPipeline(input.outputUrl);
+      }
+    },
+    [reportGalleryEntry, runHiResPipeline, userEmail]
+  );
+
   const handleDownloadCreditCharge = useCallback(
     (resolution: DownloadResolution): { ok: boolean; message?: string } => {
       if (isTrialBypassActive || isAnonymousTrialMode) {
@@ -5912,24 +5977,15 @@ If the model attempts to create a scene or environment, override it and force a 
         if (data?.imageMeta && typeof data.imageMeta === 'object') {
           debugLog('[API IMAGE META]', data.imageMeta);
         }
-        const displayUrl = imageBase64
-          ? `data:image/png;base64,${imageBase64}`
-          : imageUrl;
-        if (!displayUrl) {
-          throw new Error('Image generation failed or returned no image.');
-        }
         if (typeof data?.remaining_credits === 'number') {
           setRemoteCredits(data.remaining_credits);
         }
-
-        const cleanedFinalUrl = await trimBlackBarsDataUrl(displayUrl, { mimeType: 'image/png', background: null });
-        const normalizedOutput = await extendEdgesToAspectRatio(cleanedFinalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          mimeType: 'image/png',
+        const outputUrl = await buildCanonicalOutputUrl({
+          imageUrl,
+          imageBase64,
+          aspectRatio,
+          strategy: 'extend',
         });
-        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-
-        setGeneratedImageUrl(outputUrl);
         setHasFirstGenerationComplete(true);  // Enable Keep Same Person toggle
         
         if (generationLogId) {
@@ -5938,28 +5994,17 @@ If the model attempts to create a scene or environment, override it and force a 
             responseMeta: {
               remainingCredits: typeof data?.remaining_credits === 'number' ? data.remaining_credits : undefined,
               imageUrl: imageUrl || outputUrl,
-              outputMimeType: normalizedOutput.mimeType,
-              outputSizeBase64: normalizedOutput.base64?.length ?? 0,
+              outputMimeType: 'image/png',
+              outputSizeBase64: outputUrl.length,
             },
           });
         }
-        
-        try {
-          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-          void addLocalGalleryEntry({
-            userId: galleryUserId,
-            imageUrl: outputUrl,
-            createdAt: Date.now(),
-            plan: resolvedPlanTier,
-            aspectRatio,
-          });
-          void pruneLocalGallery(galleryUserId, 30, 120);
-        } catch (e) {
-          console.warn('Local gallery save failed', e);
-        }
-        
-        void reportGalleryEntry(outputUrl);
-        runHiResPipeline(outputUrl);
+        await persistCanonicalOutput({
+          aspectRatio,
+          outputUrl,
+          plan: resolvedPlanTier,
+          runHiRes: true,
+        });
         
         if (!isTrialBypassActive) {
           if (shouldTrackLocalCredits) {
@@ -6033,6 +6078,8 @@ If the model attempts to create a scene or environment, override it and force a 
       creditUsage,
       isAdmin,
       shouldTrackLocalCredits,
+      buildCanonicalOutputUrl,
+      persistCanonicalOutput,
       resolvedPlanTier,
       handleApiKeyInvalid,
       normalizeGeminiModel(GOOGLE_MODEL ?? GEMINI_IMAGE_MODEL),
@@ -6244,18 +6291,11 @@ If the model attempts to create a scene or environment, override it and force a 
         if (responseData?.imageMeta && typeof responseData.imageMeta === 'object') {
           debugLog(`[ECOM SLOT IMAGE META:${slotKey}]`, responseData.imageMeta);
         }
-        const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
-        if (!encodedImage) {
-          throw new Error(`Image generation failed for slot ${slotKey}.`);
-        }
-
-        const finalUrl = `data:image/png;base64,${encodedImage}`;
-        const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-          maxLongEdge: 4096,
-          background: null,
-          mimeType: 'image/png',
+        const outputUrl = await buildCanonicalOutputUrl({
+          imageBase64: typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '',
+          aspectRatio,
+          strategy: 'letterbox',
         });
-        const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
         lastUrl = outputUrl;
         setEcommerceSlotBaseImages(prev => ({ ...prev, [slotKey]: outputUrl }));
         setEcommerceSlotGenerationMeta(prev => ({
@@ -6268,21 +6308,12 @@ If the model attempts to create a scene or environment, override it and force a 
             safeZone: slotProductState.ecommercePdp.safeZone,
           },
         }));
-        setGeneratedImageUrl(outputUrl);
-        try {
-          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-          void addLocalGalleryEntry({
-            userId: galleryUserId,
-            imageUrl: outputUrl,
-            createdAt: Date.now(),
-            plan: resolvedPlanTier,
-            aspectRatio,
-          });
-          void pruneLocalGallery(galleryUserId, 30, 120);
-        } catch (e) {
-          console.warn('Local gallery save failed', e);
-        }
-        void reportGalleryEntry(outputUrl);
+        await persistCanonicalOutput({
+          aspectRatio,
+          outputUrl,
+          plan: resolvedPlanTier,
+          runHiRes: false,
+        });
       }
 
       if (lastUrl) {
@@ -6332,9 +6363,10 @@ If the model attempts to create a scene or environment, override it and force a 
     remainingCredits,
     resetOutputs,
     options,
+    buildCanonicalOutputUrl,
+    persistCanonicalOutput,
     runHiResPipeline,
     setShowPlanModal,
-    reportGalleryEntry,
     isAdmin,
     setRemoteCredits,
     resolvedPlanTier,
@@ -6448,25 +6480,17 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const encodedImage = typeof responseData?.imageBase64 === 'string' ? responseData.imageBase64 : '';
         if (encodedImage) {
-          const finalUrl = `data:image/png;base64,${encodedImage}`;
-          const normalizedOutput = await letterboxDataUrlToAspectRatio(finalUrl, aspectRatio, {
-            maxLongEdge: 4096,
-            background: null,
-            mimeType: 'image/png',
-          });
-          const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-          setGeneratedImageUrl(outputUrl);
-
-          const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-          void addLocalGalleryEntry({
-            userId: galleryUserId,
-            imageUrl: outputUrl,
-            createdAt: Date.now(),
-            plan: resolvedPlanTier,
+          const outputUrl = await buildCanonicalOutputUrl({
+            imageBase64: encodedImage,
             aspectRatio,
+            strategy: 'letterbox',
           });
-          void reportGalleryEntry(outputUrl);
-          if (i === 4) runHiResPipeline(outputUrl);
+          await persistCanonicalOutput({
+            aspectRatio,
+            outputUrl,
+            plan: resolvedPlanTier,
+            runHiRes: i === 4,
+          });
         }
       }
 
@@ -6603,29 +6627,17 @@ If the model attempts to create a scene or environment, override it and force a 
       if (!encodedImage) {
         throw new Error('Image edit failed or returned no images.');
       }
-      const editedUrl = `data:image/png;base64,${encodedImage}`;
-      const cleanedEditedUrl = await trimBlackBarsDataUrl(editedUrl, { mimeType: 'image/png', background: null });
-      const normalizedOutput = await extendEdgesToAspectRatio(cleanedEditedUrl, aspectRatio, {
-        maxLongEdge: 4096,
-        mimeType: 'image/png',
+      const outputUrl = await buildCanonicalOutputUrl({
+        imageBase64: encodedImage,
+        aspectRatio,
+        strategy: 'extend',
       });
-      const outputUrl = `data:${normalizedOutput.mimeType};base64,${normalizedOutput.base64}`;
-      setGeneratedImageUrl(outputUrl);
-      try {
-        const galleryUserId = String(userEmail || 'guest').trim().toLowerCase() || 'guest';
-        void addLocalGalleryEntry({
-          userId: galleryUserId,
-          imageUrl: outputUrl,
-          createdAt: Date.now(),
-          plan: planTier,
-          aspectRatio,
-        });
-        void pruneLocalGallery(galleryUserId, 30, 120);
-      } catch (e) {
-        console.warn('Local gallery save failed', e);
-      }
-      void reportGalleryEntry(outputUrl);
-      runHiResPipeline(outputUrl);
+      await persistCanonicalOutput({
+        aspectRatio,
+        outputUrl,
+        plan: planTier,
+        runHiRes: true,
+      });
       if (editOptions?.clearManual) {
         setEditPrompt('');
       }
@@ -6661,13 +6673,12 @@ If the model attempts to create a scene or environment, override it and force a 
     isProductPlacement,
     options.aspectRatio,
     planTier,
-    reportGalleryEntry,
+    buildCanonicalOutputUrl,
+    persistCanonicalOutput,
     resolveOutputAspectRatio,
-    runHiResPipeline,
     setRemoteCredits,
     setShowPlanModal,
     shouldSendTrialBypassHeader,
-    userEmail,
   ]);
 
   const handleEditImage = useCallback(async () => {
