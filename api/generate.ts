@@ -55,6 +55,7 @@ type ApiKeyResolution = {
   envLength: number;
   key: string;
   source: 'body' | 'env' | 'missing';
+  strategy: 'body-first' | 'env-first' | 'body-only' | 'env-only';
 };
 
 type DebugMeta = {
@@ -108,26 +109,44 @@ const resolvePreserveReferenceImage = (
   };
 };
 
-const resolveApiKey = (bodyApiKey: unknown, envApiKey: unknown): ApiKeyResolution => {
+const resolveApiKey = (
+  bodyApiKey: unknown,
+  envApiKey: unknown,
+  preferredStrategy?: unknown
+): ApiKeyResolution => {
   const bodyValue = typeof bodyApiKey === 'string' ? bodyApiKey.trim() : '';
   const envValue = typeof envApiKey === 'string' ? envApiKey.trim() : '';
+  const rawStrategy = typeof preferredStrategy === 'string' ? preferredStrategy.trim().toLowerCase() : '';
+  const strategy: ApiKeyResolution['strategy'] =
+    rawStrategy === 'env-first' || rawStrategy === 'body-only' || rawStrategy === 'env-only'
+      ? (rawStrategy as ApiKeyResolution['strategy'])
+      : 'body-first';
 
-  if (bodyValue) {
-    return {
-      bodyLength: bodyValue.length,
-      envLength: envValue.length,
-      key: bodyValue,
-      source: 'body',
-    };
-  }
+  const candidates: Array<{ key: string; source: ApiKeyResolution['source'] }> =
+    strategy === 'env-first'
+      ? [
+          { key: envValue, source: 'env' },
+          { key: bodyValue, source: 'body' },
+        ]
+      : strategy === 'body-only'
+        ? [{ key: bodyValue, source: 'body' }]
+        : strategy === 'env-only'
+          ? [{ key: envValue, source: 'env' }]
+          : [
+              { key: bodyValue, source: 'body' },
+              { key: envValue, source: 'env' },
+            ];
 
-  if (envValue) {
-    return {
-      bodyLength: bodyValue.length,
-      envLength: envValue.length,
-      key: envValue,
-      source: 'env',
-    };
+  for (const candidate of candidates) {
+    if (candidate.key) {
+      return {
+        bodyLength: bodyValue.length,
+        envLength: envValue.length,
+        key: candidate.key,
+        source: candidate.source,
+        strategy,
+      };
+    }
   }
 
   return {
@@ -135,6 +154,7 @@ const resolveApiKey = (bodyApiKey: unknown, envApiKey: unknown): ApiKeyResolutio
     envLength: 0,
     key: '',
     source: 'missing',
+    strategy,
   };
 };
 
@@ -584,13 +604,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
-  const apiKeyResolution = resolveApiKey(body.apiKey, process.env.GOOGLE_API_KEY);
+  const apiKeyResolution = resolveApiKey(
+    body.apiKey,
+    process.env.GOOGLE_API_KEY,
+    process.env.GOOGLE_API_KEY_STRATEGY
+  );
   const envApiKey = apiKeyResolution.source === 'env' ? apiKeyResolution.key : String(process.env.GOOGLE_API_KEY || '').trim();
   const bodyApiKey = apiKeyResolution.source === 'body' ? apiKeyResolution.key : (typeof body.apiKey === 'string' ? body.apiKey.trim() : '');
   const apiKey = apiKeyResolution.key;
   console.log('[GENAI] GOOGLE_API_KEY length:', apiKeyResolution.envLength);
   console.log('[GENAI] body.apiKey length:', apiKeyResolution.bodyLength);
   console.log('[GENAI] resolved api key source:', apiKeyResolution.source);
+  console.log('[GENAI] api key strategy:', apiKeyResolution.strategy);
   const debugMeta = normalizeDebugMeta(body?.debugMeta);
   const partsValidation = validateGenerateParts(parts, {
     maxInlineImages: MAX_INLINE_IMAGES,
@@ -759,6 +784,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       userPlan,
       model,
       apiKeySource: apiKeyResolution.source,
+      apiKeyStrategy: apiKeyResolution.strategy,
       preserveReferenceImage: {
         requested: preserveReference.requested,
         effective: preserveReference.effective,
