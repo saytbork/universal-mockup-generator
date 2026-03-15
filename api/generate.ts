@@ -42,6 +42,54 @@ const edgeToEffectiveSize = (edge: number): '1K' | '2K' | '4K' => {
   return '1K';
 };
 
+type PreserveReferenceResolution = {
+  effective: boolean;
+  hasInlineData: boolean;
+  reason: 'client_true' | 'client_false' | 'default_false' | 'auto_enabled_for_inline_data';
+  requested?: boolean;
+  wasCoerced: boolean;
+};
+
+const resolvePreserveReferenceImage = (
+  requested: unknown,
+  hasInlineData: boolean
+): PreserveReferenceResolution => {
+  const normalizedRequested =
+    typeof requested === 'boolean'
+      ? requested
+      : typeof requested === 'string'
+        ? requested.trim().toLowerCase() === 'true'
+        : undefined;
+
+  if (normalizedRequested === true) {
+    return {
+      effective: true,
+      hasInlineData,
+      reason: 'client_true',
+      requested: true,
+      wasCoerced: false,
+    };
+  }
+
+  if (hasInlineData) {
+    return {
+      effective: true,
+      hasInlineData,
+      reason: 'auto_enabled_for_inline_data',
+      requested: normalizedRequested,
+      wasCoerced: normalizedRequested === false,
+    };
+  }
+
+  return {
+    effective: false,
+    hasInlineData,
+    reason: normalizedRequested === false ? 'client_false' : 'default_false',
+    requested: normalizedRequested,
+    wasCoerced: false,
+  };
+};
+
 const maybeUpscaleImage = async (input: {
   buffer: Buffer;
   requestedImageSize: string;
@@ -386,7 +434,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
-  const preserveReferenceImage = Boolean(body.preserveReferenceImage);
   const imageStrength = typeof body.imageStrength === 'number' ? body.imageStrength : undefined;
   const guidanceScale = typeof body.guidanceScale === 'number' ? body.guidanceScale : undefined;
   const negativePrompt = typeof body.negativePrompt === 'string' ? body.negativePrompt : undefined;
@@ -439,14 +486,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // InlineData: always enable preserveReferenceImage when a product reference is present.
-  // Wine served mode no longer modifies the bottle — the reference image must always be preserved.
   const hasInlineData = parts.some(part => 'inlineData' in part);
-  let effectivePreserveReferenceImage = preserveReferenceImage;
-  if (hasInlineData && !preserveReferenceImage) {
-    console.warn('[INLINE_DATA] inlineData detected → auto-enabling preserveReferenceImage');
-    effectivePreserveReferenceImage = true;
+  const preserveReference = resolvePreserveReferenceImage(body.preserveReferenceImage, hasInlineData);
+  if (preserveReference.wasCoerced) {
+    console.warn('[INLINE_DATA] inlineData detected -> auto-enabling preserveReferenceImage', {
+      requested: preserveReference.requested,
+      reason: preserveReference.reason,
+    });
   }
+  const effectivePreserveReferenceImage = preserveReference.effective;
 
   if (!apiKey) {
     await addDebugLog('generate.reject.missing_api_key', {
@@ -627,6 +675,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       isPreview,
       userPlan,
       model,
+      preserveReferenceImage: {
+        requested: preserveReference.requested,
+        effective: preserveReference.effective,
+        reason: preserveReference.reason,
+        wasCoerced: preserveReference.wasCoerced,
+        hasInlineData: preserveReference.hasInlineData,
+      },
       upscale: {
         applied: upscaleResult.applied,
         provider: upscaleResult.provider,
