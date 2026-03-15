@@ -739,6 +739,17 @@ const resolveStep3EmitState = (
   };
 };
 
+const resolveStep3UiMode = (
+  sceneType: 'studio-branding' | 'lifestyle-real',
+  isEcommerceMode: boolean
+): { uiActiveEngine: 'studio' | 'lifestyle'; mode: 'studio' | 'lifestyle' } => {
+  const uiActiveEngine: 'studio' | 'lifestyle' = sceneType === 'studio-branding' ? 'studio' : 'lifestyle';
+  return {
+    uiActiveEngine,
+    mode: isEcommerceMode || uiActiveEngine === 'studio' ? 'studio' : 'lifestyle',
+  };
+};
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -2544,7 +2555,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const uiCreationMode = normalizeCreationModeForEmit(values.creationMode);
   const uiSceneType = resolveStep3SceneType(values.sceneType, uiCreationMode);
   const uiContentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
-  const uiActiveEngine: 'studio' | 'lifestyle' = uiSceneType === 'studio-branding' ? 'studio' : 'lifestyle';
+  const { uiActiveEngine, mode } = resolveStep3UiMode(uiSceneType, isEcommerceMode);
   const showVisualIntentControl =
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
@@ -2552,7 +2563,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const accentTextClass = 'text-[var(--lifestyle-accent)]';
   // uiActiveEngine === 'studio' covers the isProductMode=false + studio-branding scene case,
   // ensuring the studio UI block (and its photo mode chips) always renders when the V2 engine is active.
-  const mode: 'studio' | 'lifestyle' = (isEcommerceMode || uiActiveEngine === 'studio') ? 'studio' : 'lifestyle';
 
   useEffect(() => {
     if (hasUploadedProductAsset) return;
