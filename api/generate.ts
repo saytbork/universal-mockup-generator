@@ -57,6 +57,17 @@ type ApiKeyResolution = {
   source: 'body' | 'env' | 'missing';
 };
 
+type DebugMeta = {
+  aspectRatio?: string;
+  mode?: string;
+  promptHash?: string;
+  sceneType?: string;
+};
+
+type PartsValidationResult =
+  | { ok: true; hasInlineData: boolean; inlineImageCount: number }
+  | { ok: false; error: string; status: number };
+
 const resolvePreserveReferenceImage = (
   requested: unknown,
   hasInlineData: boolean
@@ -124,6 +135,50 @@ const resolveApiKey = (bodyApiKey: unknown, envApiKey: unknown): ApiKeyResolutio
     envLength: 0,
     key: '',
     source: 'missing',
+  };
+};
+
+const normalizeDebugMeta = (rawDebugMeta: unknown): DebugMeta | null => {
+  if (!rawDebugMeta || typeof rawDebugMeta !== 'object') return null;
+  const meta = rawDebugMeta as Record<string, unknown>;
+  return {
+    promptHash: typeof meta.promptHash === 'string' ? meta.promptHash.slice(0, 128) : undefined,
+    sceneType: typeof meta.sceneType === 'string' ? meta.sceneType.slice(0, 64) : undefined,
+    mode: typeof meta.mode === 'string' ? meta.mode.slice(0, 64) : undefined,
+    aspectRatio: typeof meta.aspectRatio === 'string' ? meta.aspectRatio.slice(0, 16) : undefined,
+  };
+};
+
+const validateGenerateParts = (
+  parts: unknown,
+  limits: { maxInlineImages: number; maxInlineImageSize: number }
+): PartsValidationResult => {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    return { ok: false, error: 'Missing prompt parts', status: 400 };
+  }
+
+  let inlineImageCount = 0;
+  for (const part of parts) {
+    if (typeof part !== 'object' || part === null || (!('text' in part) && !('inlineData' in part))) {
+      return { ok: false, error: 'Invalid part structure', status: 400 };
+    }
+    if ('inlineData' in part) {
+      inlineImageCount++;
+      const data = (part as any).inlineData?.data;
+      if (typeof data === 'string' && Buffer.byteLength(data, 'base64') > limits.maxInlineImageSize) {
+        return { ok: false, error: 'Inline image too large (max 4MB)', status: 413 };
+      }
+    }
+  }
+
+  if (inlineImageCount > limits.maxInlineImages) {
+    return { ok: false, error: `Too many inline images (max ${limits.maxInlineImages})`, status: 413 };
+  }
+
+  return {
+    ok: true,
+    hasInlineData: parts.some(part => typeof part === 'object' && part !== null && 'inlineData' in part),
+    inlineImageCount,
   };
 };
 
@@ -484,47 +539,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[GENAI] GOOGLE_API_KEY length:', apiKeyResolution.envLength);
   console.log('[GENAI] body.apiKey length:', apiKeyResolution.bodyLength);
   console.log('[GENAI] resolved api key source:', apiKeyResolution.source);
-  const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
-  const debugMeta = rawDebugMeta
-    ? {
-        promptHash: typeof rawDebugMeta.promptHash === 'string' ? rawDebugMeta.promptHash.slice(0, 128) : undefined,
-        sceneType: typeof rawDebugMeta.sceneType === 'string' ? rawDebugMeta.sceneType.slice(0, 64) : undefined,
-        mode: typeof rawDebugMeta.mode === 'string' ? rawDebugMeta.mode.slice(0, 64) : undefined,
-        aspectRatio: typeof rawDebugMeta.aspectRatio === 'string' ? rawDebugMeta.aspectRatio.slice(0, 16) : undefined,
-      }
-    : null;
-
-  // Validate parts structure
-  if (!Array.isArray(parts) || parts.length === 0) {
+  const debugMeta = normalizeDebugMeta(body?.debugMeta);
+  const partsValidation = validateGenerateParts(parts, {
+    maxInlineImages: MAX_INLINE_IMAGES,
+    maxInlineImageSize: MAX_INLINE_IMAGE_SIZE,
+  });
+  if (!partsValidation.ok) {
     await addDebugLog('generate.reject.missing_parts', {
       aspectRatio,
-  model,
+      model,
       promptHash: debugMeta?.promptHash,
     }, email);
-    res.status(400).json({ error: 'Missing prompt parts' });
+    res.status(partsValidation.status).json({ error: partsValidation.error });
     return;
   }
-  let inlineImageCount = 0;
-  for (const part of parts) {
-    if (typeof part !== 'object' || (!('text' in part) && !('inlineData' in part))) {
-      res.status(400).json({ error: 'Invalid part structure' });
-      return;
-    }
-    if ('inlineData' in part) {
-      inlineImageCount++;
-      const data = part.inlineData?.data;
-      if (typeof data === 'string' && Buffer.byteLength(data, 'base64') > MAX_INLINE_IMAGE_SIZE) {
-        res.status(413).json({ error: 'Inline image too large (max 4MB)' });
-        return;
-      }
-    }
-  }
-  if (inlineImageCount > MAX_INLINE_IMAGES) {
-    res.status(413).json({ error: 'Too many inline images (max 1)' });
-    return;
-  }
-
-  const hasInlineData = parts.some(part => 'inlineData' in part);
+  const hasInlineData = partsValidation.hasInlineData;
   const preserveReference = resolvePreserveReferenceImage(body.preserveReferenceImage, hasInlineData);
   if (preserveReference.wasCoerced) {
     console.warn('[INLINE_DATA] inlineData detected -> auto-enabling preserveReferenceImage', {
@@ -545,15 +574,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (!apiKey.startsWith('AIza')) {
     res.status(500).json({ error: 'Resolved Google API key has invalid format (expected API key)' });
-    return;
-  }
-  if (!parts || parts.length === 0) {
-    await addDebugLog('generate.reject.missing_parts', {
-      aspectRatio,
-  model,
-      promptHash: debugMeta?.promptHash,
-    }, email);
-    res.status(400).json({ error: 'Missing prompt parts' });
     return;
   }
 
