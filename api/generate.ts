@@ -50,6 +50,13 @@ type PreserveReferenceResolution = {
   wasCoerced: boolean;
 };
 
+type ApiKeyResolution = {
+  bodyLength: number;
+  envLength: number;
+  key: string;
+  source: 'body' | 'env' | 'missing';
+};
+
 const resolvePreserveReferenceImage = (
   requested: unknown,
   hasInlineData: boolean
@@ -87,6 +94,36 @@ const resolvePreserveReferenceImage = (
     reason: normalizedRequested === false ? 'client_false' : 'default_false',
     requested: normalizedRequested,
     wasCoerced: false,
+  };
+};
+
+const resolveApiKey = (bodyApiKey: unknown, envApiKey: unknown): ApiKeyResolution => {
+  const bodyValue = typeof bodyApiKey === 'string' ? bodyApiKey.trim() : '';
+  const envValue = typeof envApiKey === 'string' ? envApiKey.trim() : '';
+
+  if (bodyValue) {
+    return {
+      bodyLength: bodyValue.length,
+      envLength: envValue.length,
+      key: bodyValue,
+      source: 'body',
+    };
+  }
+
+  if (envValue) {
+    return {
+      bodyLength: bodyValue.length,
+      envLength: envValue.length,
+      key: envValue,
+      source: 'env',
+    };
+  }
+
+  return {
+    bodyLength: 0,
+    envLength: 0,
+    key: '',
+    source: 'missing',
   };
 };
 
@@ -440,12 +477,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
-  const envApiKey = String(process.env.GOOGLE_API_KEY || '').trim();
-  const bodyApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-  const apiKey = bodyApiKey || envApiKey;
-  console.log('[GENAI] GOOGLE_API_KEY length:', envApiKey.length);
-  console.log('[GENAI] body.apiKey length:', bodyApiKey.length);
-  console.log('[GENAI] resolved api key source:', bodyApiKey ? 'body' : 'env');
+  const apiKeyResolution = resolveApiKey(body.apiKey, process.env.GOOGLE_API_KEY);
+  const envApiKey = apiKeyResolution.source === 'env' ? apiKeyResolution.key : String(process.env.GOOGLE_API_KEY || '').trim();
+  const bodyApiKey = apiKeyResolution.source === 'body' ? apiKeyResolution.key : (typeof body.apiKey === 'string' ? body.apiKey.trim() : '');
+  const apiKey = apiKeyResolution.key;
+  console.log('[GENAI] GOOGLE_API_KEY length:', apiKeyResolution.envLength);
+  console.log('[GENAI] body.apiKey length:', apiKeyResolution.bodyLength);
+  console.log('[GENAI] resolved api key source:', apiKeyResolution.source);
   const rawDebugMeta = body?.debugMeta && typeof body.debugMeta === 'object' ? body.debugMeta : null;
   const debugMeta = rawDebugMeta
     ? {
@@ -675,6 +713,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       isPreview,
       userPlan,
       model,
+      apiKeySource: apiKeyResolution.source,
       preserveReferenceImage: {
         requested: preserveReference.requested,
         effective: preserveReference.effective,
@@ -787,11 +826,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
         googleApiKeyLength: envApiKey.length,
         bodyApiKeyLength: bodyApiKey.length,
-        apiKeySource: bodyApiKey ? 'body' : 'env',
+        apiKeySource: apiKeyResolution.source,
         vercelEnv,
       });
       res.status(500).json({
-        error: bodyApiKey
+        error: apiKeyResolution.source === 'body'
           ? 'CLIENT_GOOGLE_API_KEY_INVALID (Provided key is invalid or restricted)'
           : 'SERVER_GOOGLE_API_KEY_INVALID (Env key is invalid or restricted)',
       });
