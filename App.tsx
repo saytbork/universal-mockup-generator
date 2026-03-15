@@ -5881,6 +5881,7 @@ If the model attempts to create a scene or environment, override it and force a 
               : {}),
           },
           body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
@@ -6221,6 +6222,7 @@ If the model attempts to create a scene or environment, override it and force a 
               : {}),
           },
           body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
@@ -6426,6 +6428,7 @@ If the model attempts to create a scene or environment, override it and force a 
               : {}),
           },
           body: JSON.stringify({
+            model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             preserveReferenceImage: false,
@@ -6572,6 +6575,7 @@ If the model attempts to create a scene or environment, override it and force a 
             : {}),
         },
         body: JSON.stringify({
+          model: GEMINI_IMAGE_MODEL,
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
             { text: prompt.trim() },
