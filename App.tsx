@@ -48,6 +48,7 @@ import { loadEcommerceSlotsConfig, saveEcommerceSlotsConfig } from '@/lib/ecomme
 import { ECOMMERCE_SLOT_REQUIRED_BLANK_SPACE } from '@/lib/ecommerceOverlay/templates';
 import { PLAN_CONFIG, type PlanTier } from './src/constants/planConfig';
 import { addLocalGalleryEntry, pruneLocalGallery } from './src/services/localGallery';
+import { resolveGenerationRouting } from './src/lib/ux/generationRouting';
 // PHASE 2: ProductStudio direct generation
 import {
   useProductStudioStore,
@@ -2031,43 +2032,36 @@ const App: React.FC = () => {
     return resolveOutputAspectRatio();
   }, [resolveOutputAspectRatio]);
   const resolvedGenerationSummary = useMemo(() => {
-    const isLifestyleScene = lifestyleStep3Values?.sceneType === 'lifestyle-real';
-    const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
-    const forceStudioByProductContent =
-      options.contentStyle === 'product' ||
-      lifestyleStep3Values?.contentStyle === 'product';
-    const resolvedStudioEngine =
-      isStudioBrandingScene ||
-      (!isLifestyleScene && (forceStudioByProductContent || isProductPlacement));
-
     const sceneTypeFromUser = lifestyleStep3Values?.sceneType;
-    const resolvedSceneType = resolvedStudioEngine
-      ? 'studio-branding'
-      : sceneTypeFromUser && sceneTypeFromUser !== 'studio-branding'
-        ? sceneTypeFromUser
-        : 'lifestyle-real';
+    const routing = resolveGenerationRouting({
+      isProductPlacement,
+      optionsContentStyle: options.contentStyle,
+      optionsSceneIntent: options.sceneIntent,
+      step3ContentStyle: lifestyleStep3Values?.contentStyle,
+      step3SceneType: sceneTypeFromUser,
+    });
 
-    const industryFromUser = resolvedStudioEngine
+    const industryFromUser = routing.isStudioEngine
       ? studioIndustryProfile
       : lifestyleStep3Values?.environment || options.setting;
-    const resolvedIndustry = industryFromUser || (resolvedStudioEngine ? 'supplements' : 'Lifestyle');
+    const resolvedIndustry = industryFromUser || (routing.isStudioEngine ? 'supplements' : 'Lifestyle');
 
-    const modeFromUser = resolvedStudioEngine
+    const modeFromUser = routing.isStudioEngine
       ? studioPhotoMode
       : lifestyleStep3Values?.visualMode ||
         lifestyleStep3Values?.creationMode ||
         options.creationMode;
-    const resolvedMode = modeFromUser || (resolvedStudioEngine ? 'Hero Landing Page' : 'lifestyle');
+    const resolvedMode = modeFromUser || (routing.isStudioEngine ? 'Hero Landing Page' : 'lifestyle');
 
-    const intentFromUser = resolvedStudioEngine
+    const intentFromUser = routing.isStudioEngine
       ? studioVisualIntent
       : lifestyleStep3Values?.visualIntent ||
         lifestyleStep3Values?.creationIntent ||
         options.creationIntent ||
         options.contentStyle;
-    const resolvedIntent = intentFromUser || (resolvedStudioEngine ? 'conversion' : 'ugc');
+    const resolvedIntent = intentFromUser || (routing.isStudioEngine ? 'conversion' : 'ugc');
 
-    const contextFromUser = resolvedStudioEngine
+    const contextFromUser = routing.isStudioEngine
       ? studioContextPreset
       : lifestyleStep3Values?.environmentContext?.micro ||
         lifestyleStep3Values?.environment ||
@@ -2082,14 +2076,14 @@ const App: React.FC = () => {
 
     return {
       engine: {
-        value: resolvedStudioEngine ? 'Studio V2' : 'Lifestyle',
-        source: resolvedStudioEngine ? 'resolved by scene + product rules' : 'resolved by scene flow',
-        resolved: resolvedStudioEngine !== isStudioBrandingScene,
+        value: routing.isStudioEngine ? 'Studio V2' : 'Lifestyle',
+        source: routing.isStudioEngine ? 'resolved by scene + product rules' : 'resolved by scene flow',
+        resolved: routing.isStudioEngine !== routing.isStudioBrandingScene,
       },
       sceneType: toField(
-        resolvedSceneType,
+        routing.resolvedSceneType,
         sceneTypeFromUser ? 'from current selection' : 'defaulted by active flow',
-        !sceneTypeFromUser || sceneTypeFromUser !== resolvedSceneType
+        !sceneTypeFromUser || sceneTypeFromUser !== routing.resolvedSceneType
       ),
       industry: toField(
         String(resolvedIndustry),
@@ -5343,17 +5337,17 @@ If the model attempts to create a scene or environment, override it and force a 
         sceneIntent: lifestyleStep3Values?.sceneIntent ?? options.sceneIntent,
         sourceFunction: 'App.handleGenerateClick.beforeIsStudioEngine',
       });
-      const isLifestyleScene = lifestyleStep3Values?.sceneType === 'lifestyle-real';
-      const isStudioBrandingScene = lifestyleStep3Values?.sceneType === 'studio-branding';
-      const forceStudioByProductContent =
-        options.contentStyle === 'product' ||
-        lifestyleStep3Values?.contentStyle === 'product';
-      const isStudioEngine =
-        isStudioBrandingScene ||
-        (!isLifestyleScene && (
-          forceStudioByProductContent ||
-          isProductPlacement
-        ));
+      const routing = resolveGenerationRouting({
+        isProductPlacement,
+        optionsContentStyle: options.contentStyle,
+        optionsSceneIntent: options.sceneIntent,
+        step3ContentStyle: lifestyleStep3Values?.contentStyle,
+        step3SceneType: lifestyleStep3Values?.sceneType,
+      });
+      const isLifestyleScene = routing.isLifestyleScene;
+      const isStudioBrandingScene = routing.isStudioBrandingScene;
+      const forceStudioByProductContent = routing.forceStudioByProductContent;
+      const isStudioEngine = routing.isStudioEngine;
       debugLog('[APP isStudioEngine]', {
         'lifestyleStep3Values.sceneType': lifestyleStep3Values?.sceneType,
         'lifestyleStep3Values.contentStyle': lifestyleStep3Values?.contentStyle,
@@ -5401,14 +5395,8 @@ If the model attempts to create a scene or environment, override it and force a 
         // ENGINE ISOLATION: sceneType and sceneIntent must be locked to the active engine.
         // When isStudioEngine=false, never allow stale 'studio-branding' or 'ecommerce' to leak
         // from a prior studio session into the lifestyle/UGC pipeline.
-        const resolvedBaseSceneType: string = isStudioEngine
-          ? 'studio-branding'
-          : (lifestyleStep3Values?.sceneType && lifestyleStep3Values.sceneType !== 'studio-branding'
-              ? lifestyleStep3Values.sceneType
-              : 'lifestyle-real');
-        const resolvedBaseSceneIntent: string | undefined = isStudioEngine
-          ? 'ecommerce'
-          : (options.sceneIntent === 'ecommerce' ? undefined : options.sceneIntent);
+        const resolvedBaseSceneType = routing.resolvedSceneType;
+        const resolvedBaseSceneIntent = routing.resolvedSceneIntent;
 
         const basePromptOptions: any = {
           ...options,
