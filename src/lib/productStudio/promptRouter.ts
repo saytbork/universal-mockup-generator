@@ -1538,9 +1538,19 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
         if (labelSecondary) paletteBlock.productPaletteB = labelSecondary;
         if (labelAccent) paletteBlock.productPaletteC = labelAccent;
       } else if (resolvedPaletteSource === 'Custom') {
-        const customPrimary = sanitizeHex(state.gradientStart || state.backgroundColor);
-        const customSecondary = sanitizeHex(state.gradientEnd);
-        const customAccent = sanitizeHex(state.gradientMid);
+        const heroBackgroundType = String(
+          state.photoModeConfig?.heroLandingPage?.backgroundType || 'Solid'
+        ).trim();
+        const isGradientHero = heroBackgroundType === 'Gradient';
+        const customPrimary = sanitizeHex(
+          isGradientHero ? (state.gradientStart || state.backgroundColor) : state.backgroundColor
+        );
+        const customSecondary = sanitizeHex(
+          isGradientHero ? state.gradientEnd : ''
+        );
+        const customAccent = sanitizeHex(
+          isGradientHero ? state.gradientMid : ''
+        );
 
         if (customPrimary) paletteBlock.productPaletteA = customPrimary;
         if (customSecondary) paletteBlock.productPaletteB = customSecondary;

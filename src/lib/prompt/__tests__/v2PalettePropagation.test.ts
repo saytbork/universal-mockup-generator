@@ -180,6 +180,39 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).not.toContain('#c0392b');
   });
 
+  it('Hero Landing Page: custom solid background ignores stale gradient colors', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      backgroundColor: '#FFFFFF',
+      gradientStart: '#383838',
+      gradientEnd: '#292a2a',
+      gradientMid: '#303030',
+      photoModeConfig: {
+        heroLandingPage: {
+          backgroundType: 'Solid',
+          paletteSource: 'Custom',
+        },
+      },
+    });
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.productPaletteSource).toBe('Custom');
+    expect(v2State.productPaletteA).toBe('#FFFFFF');
+    expect(v2State.productPaletteB).toBeUndefined();
+    expect(v2State.productPaletteC).toBeUndefined();
+
+    buildPalette(v2State);
+    expect(v2State.resolvedPalette?.source).toBe('custom');
+    expect(v2State.resolvedPalette?.primary).toBe('#ffffff');
+
+    const authority = resolveStudioAuthority(v2State);
+    const result = buildStudioBackground(authority, v2State);
+    expect(result!.colorSource).toBe('custom');
+    expect(result!.primaryColor).toBe('#ffffff');
+    expect(result!.backgroundString).toContain('#ffffff');
+    expect(result!.backgroundString).not.toContain('#383838');
+  });
+
   it('Hero Landing Page: brand palette source forwards brandPalette to V2', () => {
     const state = baseState({
       photoMode: 'Hero Landing Page',
