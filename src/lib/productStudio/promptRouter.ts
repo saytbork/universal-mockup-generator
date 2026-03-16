@@ -1365,6 +1365,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       // Physical placement (surface / held / supported / air-suspended)
       const physicalPlacement = String(state.placement || '').trim();
       if (physicalPlacement) extras.physicalPlacement = physicalPlacement;
+      const alignment = String(state.alignment || '').trim();
+      if (alignment) extras.alignment = alignment;
       const physicalSurfaceType = String(
         state.photoModeConfig?.heroLandingPage?.surfaceType ||
         (state.surface === 'stone' ? 'Stone' : '')

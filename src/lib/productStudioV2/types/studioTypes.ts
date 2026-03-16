@@ -243,6 +243,8 @@ export interface StudioUIState {
   ingredientObjects?: string;
   /** Ingredient layout mode: grounded | top-view | auto */
   ingredientLayout?: string;
+  /** Composition alignment hint from Studio UI. */
+  alignment?: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space' | string;
 
   // ── Brand palette / background color injection ──────────────────────────────
   /** Source of palette for background resolution: 'Use product label colors' | 'Brand Colors' | 'Custom' */

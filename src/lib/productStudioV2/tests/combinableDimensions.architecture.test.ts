@@ -142,4 +142,17 @@ describe('combinable dimensions architecture', () => {
       )
     ).not.toThrow();
   });
+
+  it('H) hero landing alignment survives to prompt for left copy-safe layout', () => {
+    const prompt = __buildPromptForTest(
+      base({
+        photoMode: 'Hero Landing Page',
+        alignment: 'left-space',
+      })
+    );
+
+    expect(prompt).toContain(
+      'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.'
+    );
+  });
 });

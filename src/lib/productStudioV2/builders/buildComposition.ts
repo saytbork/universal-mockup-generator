@@ -78,6 +78,20 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 }
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
+  const alignment = String(state?.alignment || '').trim().toLowerCase();
+  const alignmentRule = (() => {
+    if (alignment === 'left' || alignment === 'left-space') {
+      return 'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.';
+    }
+    if (alignment === 'right' || alignment === 'right-space') {
+      return 'HERO_ALIGNMENT_RULE: Product shifted right-of-center with controlled left-side copy-safe negative space.';
+    }
+    if (alignment === 'center' || alignment === 'centered') {
+      return '';
+    }
+    return '';
+  })();
+
   if (String(state?.photoMode || '').trim() === 'Splash Shot') {
     return [
       'STUDIO_COMPOSITION_PROFILE: splash-impact-hero.',
@@ -213,6 +227,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
             ? 'FRAME_CONSTRAINT: Splash hero framing. Product fills most vertical frame (85–88% height) with controlled side margins.'
           : 'FRAME_CONSTRAINT: Hero framing. Product fills most vertical frame (85–92% height) with controlled side margins.'
       : '',
+    heroMode ? alignmentRule : '',
     macroMode
       ? 'FRAME_CONSTRAINT: True macro close-up. Product label and adjacent bottle surface must dominate frame with minimal side margins. No medium/wide composition.'
       : '',
