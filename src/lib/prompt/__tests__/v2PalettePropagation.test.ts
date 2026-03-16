@@ -255,6 +255,20 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(envBlock).toContain('travertine slab beside sink');
   });
 
+  it('Hero Landing Page: environmentPreset also modifies PHOTO_MODE_SCENE', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      environmentContext: { macro: 'Nature Elements', micro: null },
+    });
+    const v2State = toStudioV2State(state);
+
+    buildPalette(v2State);
+    const authority = resolveStudioAuthority(v2State);
+    const result = buildStudioBackground(authority, v2State);
+
+    expect(result!.backgroundString).toContain('organic material realism');
+  });
+
   it('REGRESSION: no palette in state → neutral-gray fallback, NOT #FFFFFF, NOT a crash', () => {
     const state = {
       products: [],
