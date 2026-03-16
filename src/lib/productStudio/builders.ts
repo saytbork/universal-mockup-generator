@@ -48,13 +48,6 @@ const FORBIDDEN_TERMS = [
 
 const REQUIRED_CLOSING_PHRASE =
     'The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.';
-const ENVIRONMENTAL_ACTIVITY_CLOSING_PHRASE =
-    'The scene must keep the product as the clear foreground hero. Background human activity is allowed only when explicitly defined by Environment and must remain distant, subordinate, and non-interactive with the product. No human contact with the product and no foreground human dominance unless explicitly defined by Product Interaction.';
-const KNOWN_CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, ENVIRONMENTAL_ACTIVITY_CLOSING_PHRASE];
-const ENVIRONMENTAL_ACTIVITY_MARKERS = [
-    'kid', 'kids', 'child', 'children', 'family', 'families', 'swimmer', 'swimmers',
-    'people', 'person', 'crowd', 'guests', 'friends', 'pool side', 'poolside'
-];
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'hand',
@@ -93,32 +86,19 @@ function stripTermsFromText(text: string, terms: string[]): string {
 }
 
 function stripForbiddenTermsExceptClosing(prompt: string, terms: string[]): string {
-    for (const closingPhrase of KNOWN_CLOSING_PHRASES) {
-        if (prompt.includes(closingPhrase)) {
-            const parts = prompt.split(closingPhrase);
-            const head = stripTermsFromText(parts[0] ?? '', terms);
-            return `${head.trim()} ${closingPhrase}`.trim();
-        }
+    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) {
+        const parts = prompt.split(REQUIRED_CLOSING_PHRASE);
+        const head = stripTermsFromText(parts[0] ?? '', terms);
+        return `${head.trim()} ${REQUIRED_CLOSING_PHRASE}`.trim();
     }
     return stripTermsFromText(prompt, terms);
 }
 
-function shouldAllowEnvironmentalBackgroundHumans(prompt: string): boolean {
-    const lower = String(prompt || '').toLowerCase();
-    if (!lower.includes('environment_style_mode: active.') && !lower.includes('environment_context:')) {
-        return false;
-    }
-    return ENVIRONMENTAL_ACTIVITY_MARKERS.some((marker) => lower.includes(marker));
-}
-
 function appendClosingPhrase(prompt: string): string {
-    if (KNOWN_CLOSING_PHRASES.some((phrase) => prompt.includes(phrase))) return prompt;
+    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) return prompt;
     const trimmed = prompt.trim();
     const spacer = trimmed.endsWith('.') ? ' ' : '. ';
-    const closingPhrase = shouldAllowEnvironmentalBackgroundHumans(prompt)
-        ? ENVIRONMENTAL_ACTIVITY_CLOSING_PHRASE
-        : REQUIRED_CLOSING_PHRASE;
-    return `${trimmed}${spacer}${closingPhrase}`.trim();
+    return `${trimmed}${spacer}${REQUIRED_CLOSING_PHRASE}`.trim();
 }
 
 function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?: boolean }): string {
@@ -133,10 +113,7 @@ function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?:
 
 export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
     const lower = prompt.toLowerCase();
-    const scrubbed = KNOWN_CLOSING_PHRASES.reduce(
-        (acc, phrase) => acc.split(phrase.toLowerCase()).join(' '),
-        lower
-    );
+    const scrubbed = lower.split(REQUIRED_CLOSING_PHRASE.toLowerCase()).join(' ');
     console.log('[VALIDATION_TARGET] full prompt:', prompt);
     console.log('[VALIDATION_TARGET] scrubbed (closing phrase removed):', scrubbed);
     for (const term of FORBIDDEN_TERMS) {
