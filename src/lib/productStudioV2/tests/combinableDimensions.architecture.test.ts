@@ -155,4 +155,20 @@ describe('combinable dimensions architecture', () => {
       'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.'
     );
   });
+
+  it('I) hero landing plus explicit environment becomes an environmental hero, not isolated studio hero', () => {
+    const prompt = __buildPromptForTest(
+      base({
+        photoMode: 'Hero Landing Page',
+        environmentPreset: 'pool side with kids jumping in the pool',
+        physicalSurfaceType: 'Stone',
+      } as any)
+    );
+
+    expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
+    expect(prompt).not.toContain('Product isolated for hero landing page.');
+    expect(prompt).not.toContain('No environmental clutter.');
+    expect(prompt).toContain('PHOTO_MODE_SCENE: Contextual environmental hero composition.');
+    expect(prompt).toContain('Controlled background depth, architecture, material context, and environmental activity are allowed');
+  });
 });

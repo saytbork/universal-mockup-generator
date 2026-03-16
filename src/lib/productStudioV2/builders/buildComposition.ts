@@ -79,6 +79,10 @@ function buildInteractionCompositionBias(interaction?: string): string[] {
 
 export function buildComposition(authority: StudioAuthorityBundle, state?: StudioUIState): string {
   const alignment = String(state?.alignment || '').trim().toLowerCase();
+  const rawEnvironment = String(
+    state?.environmentPreset || state?.environment || state?.environmentMode || state?.contextPresetValue || ''
+  ).trim();
+  const hasEnvironmentContext = rawEnvironment.length > 0;
   const alignmentRule = (() => {
     if (alignment === 'left' || alignment === 'left-space') {
       return 'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.';
@@ -239,11 +243,15 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : '',
     'FRAME_EDGE_POLICY: Maintain real scene continuity to all four edges. No white lateral padding, no pillarbox/letterbox bars, no mirrored edge extension, no duplicated side strips, and no synthetic side-fill bands.',
     heroMode
-      ? 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
+      ? hasEnvironmentContext
+        ? 'NEGATIVE_SPACE_POLICY: Controlled, with environmental breathing room allowed behind and around the product when required by the selected environment.'
+        : 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
       : '',
     // V1 hero composition discipline — single-object centered hero framing
     heroMode && !splashMode
-      ? 'HERO_COMPOSITION_DISCIPLINE: Product must remain the dominant focal element. Single object only. Centered hero composition. Balanced negative space reserved for copy. No props. No secondary objects. No environmental clutter.'
+      ? hasEnvironmentContext
+        ? 'HERO_COMPOSITION_DISCIPLINE: Product must remain the dominant focal element and primary foreground hero subject. The selected environment must be visibly present as real scene context, not just abstract backdrop language. Controlled secondary environmental elements, background architecture, and contextual activity are allowed when required by the selected environment, but they must remain subordinate to product readability and brand clarity.'
+        : 'HERO_COMPOSITION_DISCIPLINE: Product must remain the dominant focal element. Single object only. Centered hero composition. Balanced negative space reserved for copy. No props. No secondary objects. No environmental clutter.'
       : '',
     // V1 gravity grounding — universal rule, all worlds
     'GRAVITY_LOCK: Objects must obey gravity. Products must appear grounded on a surface. No levitation. No floating objects.',

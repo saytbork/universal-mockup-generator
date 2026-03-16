@@ -58,6 +58,7 @@ export function buildStudioBackground(
     state.environmentPreset || state.environment || state.environmentMode || state.contextPresetValue || ''
   ).trim();
   const environmentMacro = rawEnvironment.split('::')[0]?.trim() || '';
+  const environmentDrivenHero = isHeroLanding && Boolean(environmentMacro) && !legacyColorPopHero;
   const surfaceRule = (() => {
     if (surfaceType === 'Wood') {
       return ' The entire visible ground plane is a premium warm wood surface with subtle natural grain and controlled texture visibility. No pedestal, no separate platform, and no isolated base object under the product.';
@@ -73,27 +74,27 @@ export function buildStudioBackground(
   const environmentRule = (() => {
     if (!environmentMacro) return '';
     if (environmentMacro === 'Bathroom Vanity' || environmentMacro === 'Bathroom') {
-      return ' Scene integrates refined vanity/countertop cues with premium bathroom surface realism while keeping the product isolated and dominant.';
+      return ' Scene integrates refined vanity and sink-zone architecture with real countertop continuity, while keeping the product as the dominant foreground subject.';
     }
     if (environmentMacro === 'Kitchen Counter' || environmentMacro === 'Kitchen') {
-      return ' Scene integrates clean countertop realism with restrained kitchen-adjacent spatial cues while preserving a premium product-first hero setup.';
+      return ' Scene integrates clean kitchen countertop realism with believable domestic depth and restrained surrounding cues while keeping the product dominant in the foreground.';
     }
     if (environmentMacro === 'Nature Elements') {
-      return ' Scene integrates natural stone, wood, and botanical surface cues with grounded organic material realism while preserving controlled hero isolation.';
+      return ' Scene integrates natural stone, wood, and botanical material cues as part of the actual scene, with the product remaining the dominant foreground hero.';
     }
     if (environmentMacro === 'Stone Surface') {
-      return ' Scene integrates a tactile mineral surface family with editorial stone realism and grounded premium placement cues.';
+      return ' Scene integrates a tactile mineral surface family across the visible scene with grounded premium placement realism.';
     }
     if (environmentMacro === 'Luxury Spa') {
-      return ' Scene integrates calm spa-like architectural surfaces and elevated wellness material cues while maintaining strict product-first discipline.';
+      return ' Scene integrates calm spa-like architecture and elevated wellness surface cues while keeping the product as the dominant hero subject.';
     }
     if (environmentMacro === 'Outdoor Pool') {
-      return ' Scene integrates clean resort-like poolside surface cues and sunlit premium summer atmosphere while keeping the hero product sharply isolated.';
+      return ' Scene integrates authentic poolside architecture, deck surfaces, water adjacency, and sunlit summer atmosphere with the product anchored as the dominant foreground subject.';
     }
     if (environmentMacro === 'Clean Lab') {
-      return ' Scene integrates sterile clinical counter realism and precision laboratory surface cues while preserving clean conversion-focused hero readability.';
+      return ' Scene integrates sterile clinical counter realism and precision laboratory spatial cues while preserving conversion-grade product readability.';
     }
-    return ` Scene integrates ${environmentMacro.toLowerCase()} environmental cues with grounded surface realism while preserving strict hero isolation and product dominance.`;
+    return ` Scene integrates ${environmentMacro.toLowerCase()} as real environmental context with grounded spatial realism, while keeping the product as the dominant foreground hero subject.`;
   })();
 
   if (isColorPopHero || (isHeroLanding && legacyColorPopHero)) {
@@ -110,10 +111,14 @@ export function buildStudioBackground(
 
   if (wantsGradient && secondary) {
     gradientEnabled = true;
-    backgroundString = `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
+    backgroundString = environmentDrivenHero
+      ? `Contextual environmental hero composition. Gradient palette derived from ${primary}, ${secondary}, and ${tertiary} shapes the overall scene tonality while preserving a real environment around the product. The product remains the dominant foreground subject with crisp readability, but the surrounding environment must be visibly present, spatially coherent, and integrated into the full scene. Controlled background depth, architecture, material context, and environmental activity are allowed when explicitly requested by the selected environment.${surfaceRule}${environmentRule}`
+      : `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
   } else {
     gradientEnabled = false;
-    backgroundString = `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
+    backgroundString = environmentDrivenHero
+      ? `Contextual environmental hero composition. Scene tonality is anchored by dominant background color ${primary}, but the background must resolve as a real environment rather than a seamless studio wall. The product remains the dominant foreground subject with clean readability, while the surrounding environment, architecture, surfaces, and contextual activity are visibly integrated into the scene when explicitly requested.${surfaceRule}${environmentRule}`
+      : `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
   }
 
   return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };

@@ -292,6 +292,28 @@ function normalizeText(text: string): string {
   return String(text || '').replace(/\s+/g, ' ').trim();
 }
 
+function allowsEnvironmentalBackgroundHumans(prompt: string): boolean {
+  const lower = normalizeText(prompt).toLowerCase();
+  if (!lower.includes('environment_style_mode: active.') && !lower.includes('environment_context:')) {
+    return false;
+  }
+  const markers = [
+    ' kid',
+    ' kids',
+    ' child',
+    ' children',
+    ' family',
+    ' families',
+    ' swimmer',
+    ' swimmers',
+    ' crowd',
+    ' guests',
+    ' people',
+    ' person',
+  ];
+  return markers.some((marker) => lower.includes(marker));
+}
+
 function extractPromptBlocks(prompt: string): string[] {
   const source = String(prompt || '').trim();
   if (!source) return [];
@@ -393,9 +415,22 @@ function assertFinalPromptIntegrity(prompt: string, state: StudioUIState): void 
     // Strip the required closing anti-human disclaimer before scanning for forbidden patterns.
     // The disclaimer itself contains "human", "people", etc. as negation language —
     // these must not trigger the guard. Only positive human language injected by a builder is forbidden.
-    const CLOSING_DISCLAIMER = 'the scene must contain only the product and environmental elements. no people, no visible human anatomical elements, no human presence unless explicitly defined by product interaction.';
-    const scrubbedForHumanCheck = lowerPrompt.split(CLOSING_DISCLAIMER).join(' ');
-    for (const pattern of forbiddenHumanPatterns) {
+    const closingDisclaimers = [
+      'the scene must contain only the product and environmental elements. no people, no visible human anatomical elements, no human presence unless explicitly defined by product interaction.',
+      'the scene must keep the product as the clear foreground hero. background human activity is allowed only when explicitly defined by environment and must remain distant, subordinate, and non-interactive with the product. no human contact with the product and no foreground human dominance unless explicitly defined by product interaction.',
+    ];
+    const scrubbedForHumanCheck = closingDisclaimers.reduce(
+      (acc, disclaimer) => acc.split(disclaimer).join(' '),
+      lowerPrompt
+    );
+    const allowBackgroundHumans = allowsEnvironmentalBackgroundHumans(normalizedPrompt);
+    const effectiveForbiddenPatterns = allowBackgroundHumans
+      ? forbiddenHumanPatterns.filter((pattern) => {
+          const source = pattern.source;
+          return source !== '\\bperson\\b' && source !== '\\bpeople\\b' && source !== '\\bhuman\\b';
+        })
+      : forbiddenHumanPatterns;
+    for (const pattern of effectiveForbiddenPatterns) {
       if (pattern.test(scrubbedForHumanCheck)) {
         throw new Error('[PIPELINE_INTEGRITY_FAILURE:FORBIDDEN_HUMAN_LANGUAGE]');
       }
