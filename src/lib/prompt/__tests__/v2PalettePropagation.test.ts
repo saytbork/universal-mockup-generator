@@ -268,6 +268,8 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     const authority = resolveStudioAuthority(v2State);
     const result = buildStudioBackground(authority, v2State);
     expect(result!.backgroundString).toContain('polished marble surface');
+    expect(result!.backgroundString).toContain('entire visible ground plane');
+    expect(result!.backgroundString).not.toContain('slab object');
   });
 
   it('Hero Landing Page: custom environment and micro-place survive to V2 context', () => {

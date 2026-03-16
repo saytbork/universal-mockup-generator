@@ -60,13 +60,13 @@ export function buildStudioBackground(
   const environmentMacro = rawEnvironment.split('::')[0]?.trim() || '';
   const surfaceRule = (() => {
     if (surfaceType === 'Wood') {
-      return ' Product rests on a premium warm wood tabletop with subtle natural grain, controlled texture visibility, and clean contact shadow.';
+      return ' The entire visible ground plane is a premium warm wood surface with subtle natural grain and controlled texture visibility. No pedestal, no separate platform, and no isolated base object under the product.';
     }
     if (surfaceType === 'Stone') {
-      return ' Product rests on a rigid natural stone slab with mineral grain, subtle edge hardness, cool dense material response, and crisp base contact. No textile weave, no felt, no carpet pile, and no soft fabric interpretation.';
+      return ' The entire visible ground plane is a rigid natural stone surface with continuous mineral texture, cool dense material response, and crisp grounded contact under the product. No pedestal, no separate slab object, no raised platform, no textile weave, no felt, no carpet pile, and no soft fabric interpretation.';
     }
     if (surfaceType === 'Marble') {
-      return ' Product rests on a polished marble surface with restrained veining, premium reflectance control, and grounded base realism.';
+      return ' The entire visible ground plane is a polished marble surface with restrained continuous veining and premium reflectance control. No pedestal, no separate platform, and no isolated marble block under the product.';
     }
     return '';
   })();

@@ -44,11 +44,11 @@ export function buildPhysicalPresence(state?: StudioUIState): string {
   const surfaceRule =
     (presence === 'surface' || presence === 'supported') && surfaceType && surfaceType !== 'None'
       ? surfaceType === 'Wood'
-        ? 'SUPPORT_SURFACE: grounded on a warm natural wood surface with visible fine grain and believable tactile realism.'
+        ? 'SUPPORT_SURFACE: grounded on a continuous warm natural wood surface plane with visible fine grain and believable tactile realism. No pedestal or separate base object.'
         : surfaceType === 'Stone'
-          ? 'SUPPORT_SURFACE: grounded on a rigid natural stone slab with mineral grain, dense cool material behavior, and crisp base contact. No textile weave, no felt, no carpet pile, and no soft fabric reading.'
+          ? 'SUPPORT_SURFACE: grounded on a continuous rigid natural stone surface plane with mineral grain, dense cool material behavior, and crisp base contact. No pedestal, no separate slab object, no textile weave, no felt, no carpet pile, and no soft fabric reading.'
           : surfaceType === 'Marble'
-            ? 'SUPPORT_SURFACE: grounded on a polished marble surface with restrained veining, controlled reflectance, and premium base realism.'
+            ? 'SUPPORT_SURFACE: grounded on a continuous polished marble surface plane with restrained veining, controlled reflectance, and premium base realism. No pedestal or separate marble block.'
             : ''
       : '';
 
