@@ -407,6 +407,7 @@ export type HeroLandingPageColorSource = 'Brand Colors' | 'Custom Color';
 export type HeroLandingPagePaletteSource = 'Product label colors' | 'Neutral brand tones' | 'Custom';
 export type HeroLandingPageNegativeSpace = 'Tight' | 'Balanced' | 'Spacious';
 export type HeroLandingPageContrastLevel = 'Soft' | 'High';
+export type HeroLandingPageSurfaceType = 'None' | 'Wood' | 'Stone' | 'Marble';
 
 export type ColorPopHeroBackgroundType = 'Solid' | 'Gradient';
 export type ColorPopHeroGradientStyle = 'Soft' | 'Radial' | 'Vertical';
@@ -467,6 +468,7 @@ export type PhotoModeConfig = {
         paletteSource: HeroLandingPagePaletteSource;
         negativeSpace: HeroLandingPageNegativeSpace;
         contrastLevel: HeroLandingPageContrastLevel;
+        surfaceType: HeroLandingPageSurfaceType;
     };
     colorPopHero: {
         backgroundType: ColorPopHeroBackgroundType;

@@ -3980,6 +3980,30 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                           ))}
                                         </div>
                                       </div>
+
+                                      {/* ── 7. SURFACE ────────────────────────────────────── */}
+                                      <div className="space-y-2">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Surface</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {([
+                                            'None',
+                                            'Wood',
+                                            'Stone',
+                                            'Marble',
+                                          ] as const).map(v => (
+                                            <Chip
+                                              key={v}
+                                              selected={heroCfg.surfaceType === v}
+                                              onClick={() => {
+                                                productStore.setPhotoModeConfig({ heroLandingPage: { surfaceType: v } });
+                                                markSectionTouched('product-setup');
+                                              }}
+                                            >
+                                              {v}
+                                            </Chip>
+                                          ))}
+                                        </div>
+                                      </div>
                                     </>
                                   );
                                 })()}

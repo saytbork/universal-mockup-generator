@@ -51,10 +51,23 @@ export function buildStudioBackground(
 
   let backgroundString: string;
   let gradientEnabled = false;
+  const surfaceType = String(state.photoModeConfig?.heroLandingPage?.surfaceType || 'None').trim();
+  const surfaceRule = (() => {
+    if (surfaceType === 'Wood') {
+      return ' Product rests on a premium warm wood tabletop with subtle natural grain, controlled texture visibility, and clean contact shadow.';
+    }
+    if (surfaceType === 'Stone') {
+      return ' Product rests on a refined natural stone surface with tactile mineral texture, grounded luxury, and crisp base contact.';
+    }
+    if (surfaceType === 'Marble') {
+      return ' Product rests on a polished marble surface with restrained veining, premium reflectance control, and grounded base realism.';
+    }
+    return '';
+  })();
 
   if (isColorPopHero || (isHeroLanding && legacyColorPopHero)) {
     gradientEnabled = false;
-    backgroundString = `Color-pop hero studio composition. Solid dominant background color ${primary} with controlled radial tonal energy using ${secondary}. High-contrast silhouette separation, clean premium advertising framing, no environmental context, single-product focus.`;
+    backgroundString = `Color-pop hero studio composition. Solid dominant background color ${primary} with controlled radial tonal energy using ${secondary}. High-contrast silhouette separation, clean premium advertising framing, no environmental context, single-product focus.${surfaceRule}`;
     return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };
   }
 
@@ -66,10 +79,10 @@ export function buildStudioBackground(
 
   if (wantsGradient && secondary) {
     gradientEnabled = true;
-    backgroundString = `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
+    backgroundString = `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}`;
   } else {
     gradientEnabled = false;
-    backgroundString = `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.`;
+    backgroundString = `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}`;
   }
 
   return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };

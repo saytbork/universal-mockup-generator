@@ -262,6 +262,7 @@ export interface StudioUIState {
     heroLandingPage?: {
       backgroundType?: 'Solid' | 'Gradient';
       legacyColorPopHero?: boolean;
+      surfaceType?: 'None' | 'Wood' | 'Stone' | 'Marble';
     };
   };
   /**

@@ -578,6 +578,7 @@ const DEFAULT_PHOTO_MODE_CONFIG: PhotoModeConfig = {
         paletteSource: 'Product label colors',
         negativeSpace: 'Balanced',
         contrastLevel: 'Soft',
+        surfaceType: 'None',
     },
     colorPopHero: {
         backgroundType: 'Solid',

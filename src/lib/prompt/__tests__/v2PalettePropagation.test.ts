@@ -215,6 +215,27 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).toContain('#7b1fa2');
   });
 
+  it('Hero Landing Page: surfaceType forwards to V2 background scene', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      photoModeConfig: {
+        heroLandingPage: {
+          backgroundType: 'Solid',
+          paletteSource: 'Product label colors',
+          surfaceType: 'Marble',
+        },
+      },
+    });
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.photoModeConfig?.heroLandingPage?.surfaceType).toBe('Marble');
+
+    buildPalette(v2State);
+    const authority = resolveStudioAuthority(v2State);
+    const result = buildStudioBackground(authority, v2State);
+    expect(result!.backgroundString).toContain('polished marble surface');
+  });
+
   it('REGRESSION: no palette in state → neutral-gray fallback, NOT #FFFFFF, NOT a crash', () => {
     const state = {
       products: [],

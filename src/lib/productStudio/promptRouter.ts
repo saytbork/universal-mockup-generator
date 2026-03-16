@@ -1545,11 +1545,13 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
 
       // Forward heroLandingPage.backgroundType to V2 photoModeConfig
       const heroBackgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
+      const heroSurfaceType = state.photoModeConfig?.heroLandingPage?.surfaceType;
       const isLegacyColorPopHero = photoModeRaw === 'Color Pop Hero';
-      if (heroBackgroundType || isLegacyColorPopHero) {
+      if (heroBackgroundType || heroSurfaceType || isLegacyColorPopHero) {
         paletteBlock.photoModeConfig = {
           heroLandingPage: {
             ...(heroBackgroundType ? { backgroundType: heroBackgroundType } : {}),
+            ...(heroSurfaceType ? { surfaceType: heroSurfaceType } : {}),
             ...(isLegacyColorPopHero ? { legacyColorPopHero: true } : {}),
           },
         };
