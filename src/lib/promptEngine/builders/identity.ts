@@ -433,9 +433,12 @@ Hair may skew gray/silver/white with thinning and irregular texture.
                 parts.push(`SKIN TEXTURE: ${skinTexture}`);
             }
 
-            // ALWAYS randomize hair styling
-            const hairStyling = randomizer.getHairStyling();
-            parts.push(`HAIR STYLING: ${hairStyling}`);
+            // UGC-only hair randomization. The diversity pool includes casual/ungroomed
+            // styling cues that should never leak into editorial or brand lifestyle.
+            if (isUgcMode) {
+                const hairStyling = randomizer.getHairStyling();
+                parts.push(`HAIR STYLING: ${hairStyling}`);
+            }
 
             // ALWAYS randomize overall appearance
             if (isUgcMode) {
@@ -443,10 +446,13 @@ Hair may skew gray/silver/white with thinning and irregular texture.
                 parts.push(`OVERALL VIBE: ${overallAppearance}`);
             }
 
-            // Randomize accessories
-            const accessories = randomizer.getAccessories();
-            if (accessories && accessories !== 'no visible accessories or jewelry') {
-                parts.push(`ACCESSORIES: ${accessories}`);
+            // UGC-only accessory randomization. Casual items like scrunchies/hair ties
+            // contaminate editorial outputs when applied globally.
+            if (isUgcMode) {
+                const accessories = randomizer.getAccessories();
+                if (accessories && accessories !== 'no visible accessories or jewelry') {
+                    parts.push(`ACCESSORIES: ${accessories}`);
+                }
             }
 
             // ALWAYS randomize clothing in UGC mode
@@ -726,9 +732,12 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`SKIN TEXTURE: ${skinTexture}`);
             }
 
-            // ALWAYS randomize hair styling (prevents "salon perfect" hair)
-            const hairStyling = randomizer.getHairStyling();
-            parts.push(`HAIR STYLING: ${hairStyling}`);
+            // UGC-only hair randomization. Editorial/brand flows already have their own
+            // styling discipline layers and should not inherit casual UGC hair cues.
+            if (isUgcMode) {
+                const hairStyling = randomizer.getHairStyling();
+                parts.push(`HAIR STYLING: ${hairStyling}`);
+            }
 
             // ALWAYS randomize overall appearance (authentically messy UGC vibe)
             if (isUgcMode) {
@@ -736,8 +745,9 @@ Captured by smartphone so fine edges may appear soft or broken.
                 parts.push(`OVERALL VIBE: ${overallAppearance}`);
             }
 
-            // Randomize accessories only if not locked by model reference
-            if (!hasModelReference) {
+            // UGC-only accessory randomization. Editorial/brand should not inherit
+            // casual accessories like wrist hair ties from the UGC diversity pool.
+            if (isUgcMode && !hasModelReference) {
                 const accessories = randomizer.getAccessories();
                 if (accessories && accessories !== 'no visible accessories or jewelry') {
                     parts.push(`ACCESSORIES: ${accessories}`);
