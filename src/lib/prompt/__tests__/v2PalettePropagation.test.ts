@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { toStudioV2State } from '../../productStudio/promptRouter';
 import { buildPalette } from '../../productStudioV2/builders/buildPalette';
 import { buildStudioBackground } from '../../productStudioV2/builders/buildStudioBackground';
+import { buildEnvironmentStyle } from '../../productStudioV2/builders/buildEnvironmentStyle';
 import { resolveStudioAuthority } from '../../productStudioV2/authority/studioAuthorityResolver';
 
 /**
@@ -234,6 +235,24 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     const authority = resolveStudioAuthority(v2State);
     const result = buildStudioBackground(authority, v2State);
     expect(result!.backgroundString).toContain('polished marble surface');
+  });
+
+  it('Hero Landing Page: custom environment and micro-place survive to V2 context', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      environmentContext: { macro: 'custom', micro: 'custom' },
+      customEnvironmentText: 'modern kitchen countertop',
+      customMicroPlaceText: 'travertine slab beside sink',
+    });
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.environmentPreset).toBe('modern kitchen countertop::travertine slab beside sink');
+
+    const envBlock = buildEnvironmentStyle(v2State);
+
+    expect(envBlock).toContain('ENVIRONMENT_STYLE_NAME: modern-kitchen-countertop.');
+    expect(envBlock).toContain('modern kitchen countertop');
+    expect(envBlock).toContain('travertine slab beside sink');
   });
 
   it('REGRESSION: no palette in state → neutral-gray fallback, NOT #FFFFFF, NOT a crash', () => {

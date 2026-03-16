@@ -70,16 +70,24 @@ export function buildEnvironmentStyle(state?: StudioUIState): string {
   const rawPreset = resolveEnvironmentPreset(state);
   if (!rawPreset) return '';
 
-  const definition = ENVIRONMENT_STYLE_DEFINITIONS[rawPreset];
-  const name = definition?.name || toKebabCase(rawPreset);
+  const [rawMacro, rawMicro] = rawPreset.split('::').map((part) => String(part || '').trim());
+  const macroPreset = rawMacro || rawPreset;
+  const microPreset = rawMicro || '';
+
+  const definition = ENVIRONMENT_STYLE_DEFINITIONS[macroPreset] || ENVIRONMENT_STYLE_DEFINITIONS[rawPreset];
+  const name = definition?.name || toKebabCase(macroPreset);
   const context =
     definition?.context ||
-    `environment context derived from ${rawPreset}, preserving coherent spatial cues and grounded product placement realism`;
+    `environment context derived from ${macroPreset}, preserving coherent spatial cues and grounded product placement realism`;
+
+  const microContext = microPreset
+    ? ` Micro-place emphasis: ${microPreset}, with grounded local contact cues and coherent surface realism.`
+    : '';
 
   return [
     'ENVIRONMENT_STYLE_MODE: active.',
     `ENVIRONMENT_STYLE_NAME: ${name}.`,
-    `ENVIRONMENT_CONTEXT: ${context}.`,
+    `ENVIRONMENT_CONTEXT: ${context}.${microContext}`,
     'ENVIRONMENT_AUTHORITY: Environment defines spatial context, surface family, and surrounding scene cues. It does not override product geometry, artwork fidelity, or photo-mode physical rules.',
   ].join(' ');
 }

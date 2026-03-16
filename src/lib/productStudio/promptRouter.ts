@@ -295,10 +295,33 @@ function resolveLegacyVisualStyleFromPhotoMode(state: ProductStudioState): strin
 function resolveEnvironmentFromState(
   state: ProductStudioState
 ): { value?: string; source: string; raw: string } {
+  const environmentContext = (state as Record<string, unknown>).environmentContext as
+    | { macro?: unknown; micro?: unknown }
+    | undefined;
+  const macro = String(environmentContext?.macro || '').trim();
+  const micro = String(environmentContext?.micro || '').trim();
+  const customMacro = String((state as Record<string, unknown>).customEnvironmentText || '').trim();
+  const customMicro = String((state as Record<string, unknown>).customMicroPlaceText || '').trim();
+
+  const encodedEnvironmentContext = (() => {
+    if (!macro) return '';
+    if (macro.toLowerCase() === 'custom') {
+      if (customMacro && customMicro) return `${customMacro}::${customMicro}`;
+      return customMacro || 'Custom';
+    }
+    if (micro.toLowerCase() === 'custom' && customMicro) {
+      return `${macro}::${customMicro}`;
+    }
+    if (micro && micro.toLowerCase() !== 'none') {
+      return `${macro}::${micro}`;
+    }
+    return macro;
+  })();
+
   const candidates: Array<{ source: string; value: string }> = [
     { source: 'contextPreset', value: String(state.contextPreset || '').trim() },
     // Legacy aliases kept as runtime-only fallback for old Firestore documents
-    { source: 'environmentContext.macro', value: String(((state as Record<string, unknown>).environmentContext as { macro?: unknown } | undefined)?.macro || '').trim() },
+    { source: 'environmentContext', value: encodedEnvironmentContext },
     { source: 'environmentPreset',        value: String(((state as Record<string, unknown>).environmentPreset as string | undefined) || '').trim() },
   ];
 
