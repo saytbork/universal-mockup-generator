@@ -32,14 +32,30 @@ function resolveGroundingMode(state?: StudioUIState): string {
   return 'surface-grounded';
 }
 
+function resolveSurfaceType(state?: StudioUIState): string {
+  return String(state?.physicalSurfaceType || '').trim();
+}
+
 export function buildPhysicalPresence(state?: StudioUIState): string {
   const presence = resolvePhysicalPresence(state);
   const context = resolvePlacementContext(state);
   const grounding = resolveGroundingMode(state);
+  const surfaceType = resolveSurfaceType(state);
+  const surfaceRule =
+    (presence === 'surface' || presence === 'supported') && surfaceType && surfaceType !== 'None'
+      ? surfaceType === 'Wood'
+        ? 'SUPPORT_SURFACE: grounded on a warm natural wood surface with visible fine grain and believable tactile realism.'
+        : surfaceType === 'Stone'
+          ? 'SUPPORT_SURFACE: grounded on a refined natural stone surface with mineral texture, crisp base contact, and premium tactile realism.'
+          : surfaceType === 'Marble'
+            ? 'SUPPORT_SURFACE: grounded on a polished marble surface with restrained veining, controlled reflectance, and premium base realism.'
+            : ''
+      : '';
 
   return [
     `PHYSICAL_PRESENCE: ${presence}.`,
     `PHYSICAL_PLACEMENT_CONTEXT: ${context}.`,
     `GROUNDING_MODE: ${grounding}.`,
+    surfaceRule,
   ].join(' ');
 }

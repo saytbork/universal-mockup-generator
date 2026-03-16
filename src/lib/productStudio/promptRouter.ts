@@ -1365,6 +1365,11 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       // Physical placement (surface / held / supported / air-suspended)
       const physicalPlacement = String(state.placement || '').trim();
       if (physicalPlacement) extras.physicalPlacement = physicalPlacement;
+      const physicalSurfaceType = String(
+        state.photoModeConfig?.heroLandingPage?.surfaceType ||
+        (state.surface === 'stone' ? 'Stone' : '')
+      ).trim();
+      if (physicalSurfaceType) extras.physicalSurfaceType = physicalSurfaceType;
       // Physical Presence sub-options
       const productMaterial = String(ls.productMaterial || '').trim();
       if (productMaterial) extras.productMaterial = productMaterial;

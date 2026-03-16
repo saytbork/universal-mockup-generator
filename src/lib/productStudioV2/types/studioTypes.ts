@@ -215,6 +215,8 @@ export interface StudioUIState {
   viewpoint?: string;
   /** Physical placement: surface | held | supported | air-suspended */
   physicalPlacement?: string;
+  /** Surface material for grounded/support-based placements. */
+  physicalSurfaceType?: 'None' | 'Wood' | 'Stone' | 'Marble';
   /** Physical Presence — container material: plastic | metal | glass | rubber | mixed */
   productMaterial?: string;
   /** Physical Presence — product color descriptor (free text) */

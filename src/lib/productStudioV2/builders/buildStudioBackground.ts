@@ -51,7 +51,9 @@ export function buildStudioBackground(
 
   let backgroundString: string;
   let gradientEnabled = false;
-  const surfaceType = String(state.photoModeConfig?.heroLandingPage?.surfaceType || 'None').trim();
+  const surfaceType = String(
+    state.physicalSurfaceType || state.photoModeConfig?.heroLandingPage?.surfaceType || 'None'
+  ).trim();
   const rawEnvironment = String(
     state.environmentPreset || state.environment || state.environmentMode || state.contextPresetValue || ''
   ).trim();
