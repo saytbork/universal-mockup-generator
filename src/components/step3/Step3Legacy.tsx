@@ -4808,86 +4808,90 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <p className={GROUP_LABEL_CLASS}>PRODUCT IDENTITY</p>
               </div>
 
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
-                <div className="flex flex-wrap gap-2">
-                  {PRODUCT_TYPE_OPTIONS.filter(option =>
-                    !activeIndustryRules?.allowedProductTypes || activeIndustryRules.allowedProductTypes.includes(option)
-                  ).map(option => (
-                    <Chip
-                      key={option}
-                      onClick={() => {
-                        updateValue('productType', option as any);
-                        const mapped = ({
-                          Capsules: 'capsules',
-                          Gummies: 'gummies',
-                          Drops: 'drops',
-                          Powder: 'powder',
-                          Skincare: 'skincare',
-                          Device: 'device',
-                          Custom: 'custom',
-                        } as const)[option];
-                        if (mapped) productStore.setProductType(mapped);
+              {mode !== 'studio' && (
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>PRODUCT TYPE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PRODUCT_TYPE_OPTIONS.filter(option =>
+                      !activeIndustryRules?.allowedProductTypes || activeIndustryRules.allowedProductTypes.includes(option)
+                    ).map(option => (
+                      <Chip
+                        key={option}
+                        onClick={() => {
+                          updateValue('productType', option as any);
+                          const mapped = ({
+                            Capsules: 'capsules',
+                            Gummies: 'gummies',
+                            Drops: 'drops',
+                            Powder: 'powder',
+                            Skincare: 'skincare',
+                            Device: 'device',
+                            Custom: 'custom',
+                          } as const)[option];
+                          if (mapped) productStore.setProductType(mapped);
+                          markSectionTouched('product-setup');
+                        }}
+                        selected={
+                          ({
+                            Capsules: 'capsules',
+                            Gummies: 'gummies',
+                            Drops: 'drops',
+                            Powder: 'powder',
+                            Skincare: 'skincare',
+                            Device: 'device',
+                            Custom: 'custom',
+                          } as const)[option] === productStore.definition.type
+                        }
+                      >
+                        {option}
+                      </Chip>
+                    ))}
+                  </div>
+                  {values.productType === 'Custom' && (
+                    <input
+                      type="text"
+                      value={values.productTypeCustom || ''}
+                      onChange={e => {
+                        updateValue('productTypeCustom', e.target.value);
                         markSectionTouched('product-setup');
                       }}
-                      selected={
-                        ({
-                          Capsules: 'capsules',
-                          Gummies: 'gummies',
-                          Drops: 'drops',
-                          Powder: 'powder',
-                          Skincare: 'skincare',
-                          Device: 'device',
-                          Custom: 'custom',
-                        } as const)[option] === productStore.definition.type
-                      }
-                    >
-                      {option}
-                    </Chip>
-                  ))}
+                      className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
+                      placeholder="Describe the product category (min 3 words)"
+                    />
+                  )}
                 </div>
-                {values.productType === 'Custom' && (
-                  <input
-                    type="text"
-                    value={values.productTypeCustom || ''}
-                    onChange={e => {
-                      updateValue('productTypeCustom', e.target.value);
-                      markSectionTouched('product-setup');
-                    }}
-                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:ring-1 focus:ring-[var(--lifestyle-accent)]"
-                    placeholder="Describe the product category (min 3 words)"
-                  />
-                )}
-              </div>
+              )}
 
-              <div className={SECTION_GROUP_CLASS}>
-                <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
-                <div className="flex flex-wrap gap-2">
-                  {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
-                    <Chip
-                      key={option}
-                      onClick={() => {
-                        updateValue('productScale', option);
-                        const mapped =
-                          option === 'Small handheld'
-                            ? 'small-handheld'
-                            : option === 'Medium tabletop'
-                              ? 'medium-tabletop'
-                              : 'large-object';
-                        productStore.setPhysicalScaleLabel(mapped);
-                        markSectionTouched('product-setup');
-                      }}
-                      selected={
-                        (option === 'Small handheld' && productStore.physicalScaleLabel === 'small-handheld') ||
-                        (option === 'Medium tabletop' && productStore.physicalScaleLabel === 'medium-tabletop') ||
-                        (option === 'Large object' && productStore.physicalScaleLabel === 'large-object')
-                      }
-                    >
-                      {option}
-                    </Chip>
-                  ))}
+              {mode !== 'studio' && (
+                <div className={SECTION_GROUP_CLASS}>
+                  <p className={GROUP_LABEL_CLASS}>PHYSICAL SCALE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['Small handheld', 'Medium tabletop', 'Large object'] as const).map(option => (
+                      <Chip
+                        key={option}
+                        onClick={() => {
+                          updateValue('productScale', option);
+                          const mapped =
+                            option === 'Small handheld'
+                              ? 'small-handheld'
+                              : option === 'Medium tabletop'
+                                ? 'medium-tabletop'
+                                : 'large-object';
+                          productStore.setPhysicalScaleLabel(mapped);
+                          markSectionTouched('product-setup');
+                        }}
+                        selected={
+                          (option === 'Small handheld' && productStore.physicalScaleLabel === 'small-handheld') ||
+                          (option === 'Medium tabletop' && productStore.physicalScaleLabel === 'medium-tabletop') ||
+                          (option === 'Large object' && productStore.physicalScaleLabel === 'large-object')
+                        }
+                      >
+                        {option}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
                 </>
               )}
 
