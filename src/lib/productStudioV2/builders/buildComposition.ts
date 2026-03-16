@@ -83,6 +83,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     state?.environmentPreset || state?.environment || state?.environmentMode || state?.contextPresetValue || ''
   ).trim();
   const hasEnvironmentContext = rawEnvironment.length > 0;
+  const heroNegativeSpace = String(state?.photoModeConfig?.heroLandingPage?.negativeSpace || '').trim().toLowerCase();
   const alignmentRule = (() => {
     if (alignment === 'left' || alignment === 'left-space') {
       return 'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.';
@@ -243,9 +244,19 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
       : '',
     'FRAME_EDGE_POLICY: Maintain real scene continuity to all four edges. No white lateral padding, no pillarbox/letterbox bars, no mirrored edge extension, no duplicated side strips, and no synthetic side-fill bands.',
     heroMode
-      ? hasEnvironmentContext
-        ? 'NEGATIVE_SPACE_POLICY: Controlled, with environmental breathing room allowed behind and around the product when required by the selected environment.'
-        : 'NEGATIVE_SPACE_POLICY: Controlled and minimal.'
+      ? (() => {
+          if (heroNegativeSpace === 'tight') {
+            return 'NEGATIVE_SPACE_POLICY: Tight and product-dominant. Minimal breathing room with disciplined edge clearance only.';
+          }
+          if (heroNegativeSpace === 'spacious') {
+            return hasEnvironmentContext
+              ? 'NEGATIVE_SPACE_POLICY: Spacious, with deliberate environmental breathing room and wider contextual read around the product while preserving hero dominance.'
+              : 'NEGATIVE_SPACE_POLICY: Spacious and copy-safe, with intentionally expanded breathing room around the product.';
+          }
+          return hasEnvironmentContext
+            ? 'NEGATIVE_SPACE_POLICY: Controlled, with environmental breathing room allowed behind and around the product when required by the selected environment.'
+            : 'NEGATIVE_SPACE_POLICY: Controlled and minimal.';
+        })()
       : '',
     // V1 hero composition discipline — single-object centered hero framing
     heroMode && !splashMode

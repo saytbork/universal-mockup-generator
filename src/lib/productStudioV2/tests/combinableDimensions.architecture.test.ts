@@ -171,4 +171,24 @@ describe('combinable dimensions architecture', () => {
     expect(prompt).toContain('PHOTO_MODE_SCENE: Contextual environmental hero composition.');
     expect(prompt).toContain('Controlled background depth, architecture, material context, and environmental activity are allowed');
   });
+
+  it('J) hero landing atmosphere chips survive into the prompt contract', () => {
+    const prompt = __buildPromptForTest(
+      base({
+        photoMode: 'Hero Landing Page',
+        photoModeConfig: {
+          heroLandingPage: {
+            backgroundType: 'Gradient',
+            gradientStyle: 'Radial',
+            negativeSpace: 'Spacious',
+            contrastLevel: 'High',
+          },
+        },
+      } as any)
+    );
+
+    expect(prompt).toContain('radial tonal bloom centered behind the product');
+    expect(prompt).toContain('NEGATIVE_SPACE_POLICY: Spacious');
+    expect(prompt).toContain('HERO_CONTRAST_PROFILE: high.');
+  });
 });

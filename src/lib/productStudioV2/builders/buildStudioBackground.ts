@@ -43,6 +43,9 @@ export function buildStudioBackground(
   const secondary = palette.secondary;
   const tertiary = palette.tertiary;
   const colorSource = palette.source;
+  const heroConfig = state.photoModeConfig?.heroLandingPage;
+  const gradientStyle = String(heroConfig?.gradientStyle || '').trim();
+  const contrastLevel = String(heroConfig?.contrastLevel || '').trim();
 
   // eslint-disable-next-line no-console
   console.log('[V2_BG_RESOLVER]', { primary, secondary, tertiary });
@@ -96,6 +99,27 @@ export function buildStudioBackground(
     }
     return ` Scene integrates ${environmentMacro.toLowerCase()} as real environmental context with grounded spatial realism, while keeping the product as the dominant foreground hero subject.`;
   })();
+  const gradientStyleRule = (() => {
+    if (!gradientStyle) {
+      return '';
+    }
+    if (gradientStyle === 'Radial') {
+      return ' Use a radial tonal bloom centered behind the product for silhouette lift while keeping the scene photographic and non-CGI.';
+    }
+    if (gradientStyle === 'Vertical') {
+      return ' Use a vertical tonal transition with natural top-to-bottom falloff, avoiding artificial graphic banding.';
+    }
+    return ' Use a soft diffused tonal transition with natural photographic falloff and no hard gradient banding.';
+  })();
+  const contrastRule = (() => {
+    if (contrastLevel === 'Soft') {
+      return ' Keep overall scene contrast soft and controlled, with gentle transitions and restrained shadow density.';
+    }
+    if (contrastLevel === 'High') {
+      return ' Keep overall scene contrast crisp and elevated, with cleaner separation and stronger tonal hierarchy while preserving label readability.';
+    }
+    return '';
+  })();
 
   if (isColorPopHero || (isHeroLanding && legacyColorPopHero)) {
     gradientEnabled = false;
@@ -112,13 +136,13 @@ export function buildStudioBackground(
   if (wantsGradient && secondary) {
     gradientEnabled = true;
     backgroundString = environmentDrivenHero
-      ? `Contextual environmental hero composition. Gradient palette derived from ${primary}, ${secondary}, and ${tertiary} shapes the overall scene tonality while preserving a real environment around the product. The product remains the dominant foreground subject with crisp readability, but the surrounding environment must be visibly present, spatially coherent, and integrated into the full scene. Controlled background depth, architecture, material context, and environmental activity are allowed when explicitly requested by the selected environment.${surfaceRule}${environmentRule}`
-      : `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}. Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
+      ? `Contextual environmental hero composition. Gradient palette derived from ${primary}, ${secondary}, and ${tertiary} shapes the overall scene tonality while preserving a real environment around the product.${gradientStyleRule}${contrastRule} The product remains the dominant foreground subject with crisp readability, but the surrounding environment must be visibly present, spatially coherent, and integrated into the full scene. Controlled background depth, architecture, material context, and environmental activity are allowed when explicitly requested by the selected environment.${surfaceRule}${environmentRule}`
+      : `Clean studio hero composition. Gradient derived from product palette blending ${primary}, ${secondary}, and ${tertiary}.${gradientStyleRule}${contrastRule} Soft cinematic depth separation. Subtle atmospheric falloff behind product to enhance silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
   } else {
     gradientEnabled = false;
     backgroundString = environmentDrivenHero
-      ? `Contextual environmental hero composition. Scene tonality is anchored by dominant background color ${primary}, but the background must resolve as a real environment rather than a seamless studio wall. The product remains the dominant foreground subject with clean readability, while the surrounding environment, architecture, surfaces, and contextual activity are visibly integrated into the scene when explicitly requested.${surfaceRule}${environmentRule}`
-      : `Clean studio hero composition. Seamless background matching dominant product color ${primary}. Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
+      ? `Contextual environmental hero composition. Scene tonality is anchored by dominant background color ${primary}, but the background must resolve as a real environment rather than a seamless studio wall.${contrastRule} The product remains the dominant foreground subject with clean readability, while the surrounding environment, architecture, surfaces, and contextual activity are visibly integrated into the scene when explicitly requested.${surfaceRule}${environmentRule}`
+      : `Clean studio hero composition. Seamless background matching dominant product color ${primary}.${contrastRule} Soft tonal falloff behind the product. Subtle vignette for silhouette separation. Negative space balanced; copy-safe area reserved for overlays. Product isolated for hero landing page.${surfaceRule}${environmentRule}`;
   }
 
   return { backgroundString, colorSource, primaryColor: primary, gradientEnabled };

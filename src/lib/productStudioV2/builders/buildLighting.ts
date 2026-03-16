@@ -96,6 +96,7 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
     .toLowerCase();
   const normalizedPreset = PRESET_ALIAS_MAP[rawPresetLighting] ?? rawPresetLighting;
   const photoMode = String(state?.photoMode || '').trim().toLowerCase();
+  const heroContrastLevel = String(state?.photoModeConfig?.heroLandingPage?.contrastLevel || '').trim().toLowerCase();
   const isBeachFoamMode = photoMode === 'beach foam splash';
   const splashAdMode = Boolean(state?.splashAdMode);
   const parts: string[] = [];
@@ -178,6 +179,18 @@ export function buildLighting(authority: StudioAuthorityBundle, state?: StudioUI
     parts.push(
       'SUPPLEMENT_AD_LIGHTING_REALISM: Hyper-real commercial lighting with disciplined specular control, true lens behavior, natural highlight roll-off, and optical depth that feels captured in-camera. No fake composite look.'
     );
+  }
+
+  if (photoMode === 'hero landing page') {
+    if (heroContrastLevel === 'soft') {
+      parts.push(
+        'HERO_CONTRAST_PROFILE: soft. Maintain restrained highlight-to-shadow separation, gentle shadow density, and smooth tonal roll-off with no harsh contrast spikes.'
+      );
+    } else if (heroContrastLevel === 'high') {
+      parts.push(
+        'HERO_CONTRAST_PROFILE: high. Maintain crisp tonal separation, cleaner subject edge definition, and stronger highlight-shadow structure while preserving label readability.'
+      );
+    }
   }
 
   if (isDarkPremiumStudio) {

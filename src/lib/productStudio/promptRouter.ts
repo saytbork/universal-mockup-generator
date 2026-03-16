@@ -1586,12 +1586,25 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       // Forward heroLandingPage.backgroundType to V2 photoModeConfig
       const heroBackgroundType = state.photoModeConfig?.heroLandingPage?.backgroundType;
       const heroSurfaceType = state.photoModeConfig?.heroLandingPage?.surfaceType;
+      const heroGradientStyle = state.photoModeConfig?.heroLandingPage?.gradientStyle;
+      const heroNegativeSpace = state.photoModeConfig?.heroLandingPage?.negativeSpace;
+      const heroContrastLevel = state.photoModeConfig?.heroLandingPage?.contrastLevel;
       const isLegacyColorPopHero = photoModeRaw === 'Color Pop Hero';
-      if (heroBackgroundType || heroSurfaceType || isLegacyColorPopHero) {
+      if (
+        heroBackgroundType ||
+        heroSurfaceType ||
+        heroGradientStyle ||
+        heroNegativeSpace ||
+        heroContrastLevel ||
+        isLegacyColorPopHero
+      ) {
         paletteBlock.photoModeConfig = {
           heroLandingPage: {
             ...(heroBackgroundType ? { backgroundType: heroBackgroundType } : {}),
             ...(heroSurfaceType ? { surfaceType: heroSurfaceType } : {}),
+            ...(heroGradientStyle ? { gradientStyle: heroGradientStyle } : {}),
+            ...(heroNegativeSpace ? { negativeSpace: heroNegativeSpace } : {}),
+            ...(heroContrastLevel ? { contrastLevel: heroContrastLevel } : {}),
             ...(isLegacyColorPopHero ? { legacyColorPopHero: true } : {}),
           },
         };

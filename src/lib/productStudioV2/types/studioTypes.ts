@@ -267,6 +267,9 @@ export interface StudioUIState {
       backgroundType?: 'Solid' | 'Gradient';
       legacyColorPopHero?: boolean;
       surfaceType?: 'None' | 'Wood' | 'Stone' | 'Marble';
+      gradientStyle?: 'Soft' | 'Radial' | 'Vertical' | string;
+      negativeSpace?: 'Tight' | 'Balanced' | 'Spacious' | string;
+      contrastLevel?: 'Soft' | 'High' | string;
     };
   };
   /**
