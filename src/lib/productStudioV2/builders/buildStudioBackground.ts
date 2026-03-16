@@ -63,7 +63,7 @@ export function buildStudioBackground(
       return ' Product rests on a premium warm wood tabletop with subtle natural grain, controlled texture visibility, and clean contact shadow.';
     }
     if (surfaceType === 'Stone') {
-      return ' Product rests on a refined natural stone surface with tactile mineral texture, grounded luxury, and crisp base contact.';
+      return ' Product rests on a rigid natural stone slab with mineral grain, subtle edge hardness, cool dense material response, and crisp base contact. No textile weave, no felt, no carpet pile, and no soft fabric interpretation.';
     }
     if (surfaceType === 'Marble') {
       return ' Product rests on a polished marble surface with restrained veining, premium reflectance control, and grounded base realism.';
