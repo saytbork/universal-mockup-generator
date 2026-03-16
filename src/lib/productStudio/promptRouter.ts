@@ -1497,18 +1497,43 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       const labelAccent = rawAccent || (labelDominant ? lighten(labelDominant) : '');
       const hasLabelColors = !!labelDominant;
 
-      // V2 background color source is product image palette only.
-      const productPaletteSource: 'Use product label colors' | undefined = hasLabelColors
-        ? 'Use product label colors'
-        : undefined;
-
       const paletteBlock: Record<string, unknown> = {};
-      if (productPaletteSource) paletteBlock.productPaletteSource = productPaletteSource;
+      const heroPaletteSource = String(state.photoModeConfig?.heroLandingPage?.paletteSource || '').trim();
+      const resolvedPaletteSource =
+        heroPaletteSource === 'Custom'
+          ? 'Custom'
+          : heroPaletteSource === 'Neutral brand tones'
+            ? 'Brand Colors'
+            : hasLabelColors
+              ? 'Use product label colors'
+              : undefined;
 
-      if (productPaletteSource === 'Use product label colors' && hasLabelColors) {
+      if (resolvedPaletteSource) paletteBlock.productPaletteSource = resolvedPaletteSource;
+
+      if (resolvedPaletteSource === 'Use product label colors' && hasLabelColors) {
         paletteBlock.productPaletteA = labelDominant;
         if (labelSecondary) paletteBlock.productPaletteB = labelSecondary;
         if (labelAccent) paletteBlock.productPaletteC = labelAccent;
+      } else if (resolvedPaletteSource === 'Custom') {
+        const customPrimary = sanitizeHex(state.gradientStart || state.backgroundColor);
+        const customSecondary = sanitizeHex(state.gradientEnd);
+        const customAccent = sanitizeHex(state.gradientMid);
+
+        if (customPrimary) paletteBlock.productPaletteA = customPrimary;
+        if (customSecondary) paletteBlock.productPaletteB = customSecondary;
+        if (customAccent) paletteBlock.productPaletteC = customAccent;
+      } else if (resolvedPaletteSource === 'Brand Colors') {
+        const brandPrimary = sanitizeHex(state.palette?.primaryColor);
+        const brandSecondary = sanitizeHex(state.palette?.secondaryColor);
+        const brandAccent = sanitizeHex(state.palette?.accentColor);
+
+        if (brandPrimary || brandSecondary || brandAccent) {
+          paletteBlock.brandPalette = {
+            ...(brandPrimary ? { primaryColor: brandPrimary } : {}),
+            ...(brandSecondary ? { secondaryColor: brandSecondary } : {}),
+            ...(brandAccent ? { accentColor: brandAccent } : {}),
+          };
+        }
       }
 
       debugLog(

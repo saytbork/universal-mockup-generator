@@ -148,6 +148,73 @@ describe('toStudioV2State palette propagation → buildPalette → buildStudioBa
     expect(result!.backgroundString).not.toContain('#FFFFFF');
   });
 
+  it('Hero Landing Page: custom palette source survives to V2 and bypasses product palette', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      backgroundColor: '#112233',
+      gradientStart: '#112233',
+      gradientEnd: '#445566',
+      photoModeConfig: {
+        heroLandingPage: {
+          backgroundType: 'Gradient',
+          paletteSource: 'Custom',
+        },
+      },
+    });
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.productPaletteSource).toBe('Custom');
+    expect(v2State.productPaletteA).toBe('#112233');
+    expect(v2State.productPaletteB).toBe('#445566');
+
+    buildPalette(v2State);
+    expect(v2State.resolvedPalette?.source).toBe('custom');
+    expect(v2State.resolvedPalette?.primary).toBe('#112233');
+
+    const authority = resolveStudioAuthority(v2State);
+    const result = buildStudioBackground(authority, v2State);
+    expect(result!.colorSource).toBe('custom');
+    expect(result!.primaryColor).toBe('#112233');
+    expect(result!.backgroundString).toContain('#112233');
+    expect(result!.backgroundString).not.toContain('#c0392b');
+  });
+
+  it('Hero Landing Page: brand palette source forwards brandPalette to V2', () => {
+    const state = baseState({
+      photoMode: 'Hero Landing Page',
+      products: [],
+      activeProductId: null,
+      palette: {
+        source: 'auto',
+        primaryColor: '#7B1FA2',
+        secondaryColor: '#4CAF50',
+        accentColor: '#FF9800',
+        brandPresetId: null,
+      },
+      photoModeConfig: {
+        heroLandingPage: {
+          backgroundType: 'Gradient',
+          paletteSource: 'Neutral brand tones',
+        },
+      },
+    });
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.productPaletteSource).toBe('Brand Colors');
+    expect(v2State.brandPalette?.primaryColor).toBe('#7B1FA2');
+    expect(v2State.brandPalette?.secondaryColor).toBe('#4CAF50');
+
+    buildPalette(v2State);
+    expect(v2State.resolvedPalette?.source).toBe('brand');
+    expect(v2State.resolvedPalette?.primary).toBe('#7b1fa2');
+
+    const authority = resolveStudioAuthority(v2State);
+    const result = buildStudioBackground(authority, v2State);
+    expect(result!.colorSource).toBe('brand');
+    expect(result!.primaryColor).toBe('#7b1fa2');
+    expect(result!.backgroundString).toContain('#7b1fa2');
+  });
+
   it('REGRESSION: no palette in state → neutral-gray fallback, NOT #FFFFFF, NOT a crash', () => {
     const state = {
       products: [],
