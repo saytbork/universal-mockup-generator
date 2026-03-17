@@ -2116,7 +2116,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           };
           mappedValue = distMap[value as string] ?? 'standard';
         } else if (key === 'productCameraRotation') {
-          mappedValue = (value as number) > 0 ? 5 : 0;
+          mappedValue = value; // Rotation values are already correct: 0 | 5 | 10 | 15
         } else if (key === 'productFramingGuide') {
           const framingMap: Record<string, CameraFraming> = {
             'Centered hero': 'centered_hero',
@@ -6751,20 +6751,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ))}
                         </div>
 
-                        {selectedMacro === 'custom' && (
-                          <label className="block space-y-2">
-                            <p className={GROUP_LABEL_CLASS}>CUSTOM ENVIRONMENT</p>
-                            <input
-                              value={productStore.customEnvironmentText || ''}
-                              onChange={(e) => {
-                                productStore.setCustomEnvironmentText(e.target.value);
-                                markSectionTouched('product-environment');
-                              }}
-                              placeholder="e.g. modern kitchen countertop"
-                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                            />
-                          </label>
-                        )}
+                        <label className="block space-y-2">
+                          <p className={GROUP_LABEL_CLASS}>CUSTOM ENVIRONMENT</p>
+                          <p className="text-xs text-gray-500 dark:text-white/50">Add custom staging or override the selected environment.</p>
+                          <input
+                            value={productStore.customEnvironmentText || ''}
+                            onChange={(e) => {
+                              productStore.setCustomEnvironmentText(e.target.value);
+                              markSectionTouched('product-environment');
+                            }}
+                            placeholder="e.g. modern kitchen countertop with professional lighting"
+                            disabled={isDisabled}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-[var(--lifestyle-accent)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                          />
+                        </label>
                       </div>
 
                       <div className="p-5 space-y-4">
@@ -7248,16 +7248,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }
 
                       updateValue('productCameraAngle', option as any);
-                      const angleMap: Record<string, ProductStudioState['angle']> = {
-                        'Eye level product': 'eye_level',
-                        '45° hero': '45_hero',
-                        'Top-down flat lay': 'top_down',
-                        'Low angle power': 'low_angle',
-                        'High angle overview': 'high_angle',
-                        'Detail close-up': 'detail_closeup',
-                      };
-                      const mapped = angleMap[option];
-                      if (mapped) productStore.setAngle(mapped);
                       productStore.setCameraUiLabels({ angle: option });
                       markSectionTouched('product-camera');
                     }}
@@ -7281,14 +7271,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     disabled={false}
                     onClick={() => {
                       updateValue('productCameraDistance', option);
-                      const distanceMap: Record<string, ProductStudioState['distance']> = {
-                        Wide: 'wide',
-                        Standard: 'standard',
-                        Tight: 'tight',
-                        Macro: 'macro',
-                      };
-                      const mapped = distanceMap[option];
-                      if (mapped) productStore.setDistance(mapped);
                       productStore.setCameraUiLabels({ distance: option });
                       markSectionTouched('product-camera');
                     }}
@@ -7313,7 +7295,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     key={option}
                     onClick={() => {
                       updateValue('productCameraRotation', option);
-                      productStore.setRotation(option);
                       productStore.setCameraUiLabels({ rotation: `${option}°` });
                       markSectionTouched('product-camera');
                     }}
@@ -7341,17 +7322,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     key={option}
                     onClick={() => {
                       updateValue('productFramingGuide', option as any);
-                      if (option === 'Rule of thirds') {
-                        productStore.setFraming('rule_of_thirds');
-                      } else if (option === 'Centered hero') {
-                        productStore.setFraming('centered_hero');
-                      } else if (option === 'Left aligned + negative space') {
-                        productStore.setFraming('left_negative');
-                      } else if (option === 'Right aligned + negative space') {
-                        productStore.setFraming('right_negative');
-                      } else if (option === 'Grid-ready') {
-                        productStore.setFraming('grid_ready');
-                      }
                       productStore.setCameraUiLabels({ framing: option });
                       markSectionTouched('product-camera');
                     }}

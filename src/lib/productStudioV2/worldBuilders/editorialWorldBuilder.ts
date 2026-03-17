@@ -107,6 +107,45 @@ function buildTexturedBedScene(state?: StudioUIState): string {
   ].join(' ');
 }
 
+function enrichSceneStyleWithEnvironmentContext(baseSceneStyle: string, state?: StudioUIState): string {
+  const environment = String(state?.environment || '').trim().toLowerCase();
+  
+  if (!environment || environment === 'studio' || environment === 'neutral-surface') {
+    return baseSceneStyle;
+  }
+
+  // Micro-inject environment-specific details into the scene style
+  const environmentDetailsMap: Record<string, string> = {
+    'kitchen': 'kitchen countertop environment with warm interior lighting, real appliance / counter context, grounded surface placement',
+    'living-room': 'living room environment with natural soft ambient lighting, interior furniture context, realistic relaxation atmosphere',
+    'bedroom': 'bedroom environment with warm intimate lighting, bedside or dresser surface context, calm restful atmosphere',
+    'bathroom': 'bathroom environment with bright clinical lighting, tile surface context, fresh clean aesthetic',
+    'workspace': 'workspace environment with task lighting, desk or workspace surface context, professional productivity atmosphere',
+    'hallway': 'hallway environment with soft passage lighting, clean navigational context',
+    'home-gym': 'home gym environment with bright athletic lighting, equipment context, active performance atmosphere',
+    'balcony-indoor-terrace': 'indoor terrace environment with natural ambient light, exterior-adjacent surface, semi-outdoor atmosphere',
+    'urban-exterior': 'urban exterior environment with daylight street context, architectural surfaces, dynamic city atmosphere',
+    'natural-exterior': 'natural exterior environment with sunlight, organic landscape context, grounded outdoor atmosphere',
+    'parking-lot': 'parking lot environment with overcast daylight, paved surface context, utilitarian atmosphere',
+    'backyard-patio': 'backyard patio environment with natural daylight, landscaped outdoor context, relaxed domestic atmosphere',
+    'street-corner': 'street corner environment with ambient daylight, pedestrian context, urban accessibility',
+    'poolside': 'poolside environment with bright sunlight, clear blue water context adjacent to product placement, premium hydration atmosphere with visible water surface and aquatic reflection',
+  };
+
+  const environmentDetail = environmentDetailsMap[environment];
+  if (!environmentDetail) {
+    return baseSceneStyle;
+  }
+
+  // Extract the base scene body (remove SCENE_STYLE: prefix if present)
+  const baseBody = baseSceneStyle
+    .replace(/^SCENE_STYLE:\s*/i, '')
+    .trim();
+
+  // Append environment micro-details to the scene
+  return `SCENE_STYLE: ${baseBody} Environmental micro-context: ${environmentDetail}.`;
+}
+
 export function buildEditorialWorld(
   authority: StudioAuthorityBundle,
   state?: StudioUIState
@@ -116,20 +155,27 @@ export function buildEditorialWorld(
   if (photoMode === 'Hero Landing Page' || photoMode === 'Color Pop Hero') {
     const bgResolution = buildStudioBackground(authority, state!);
     if (bgResolution) {
-      return `PHOTO_MODE_SCENE: ${bgResolution.backgroundString} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
+      const enrichedScene = enrichSceneStyleWithEnvironmentContext(bgResolution.backgroundString, state);
+      return `PHOTO_MODE_SCENE: ${enrichedScene} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
     }
   }
   if (photoMode === 'Macro Dew Label') {
-    return `PHOTO_MODE_SCENE: ${buildMacroDewSceneStyle(state)} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
+    const macroScene = buildMacroDewSceneStyle(state);
+    const enrichedScene = enrichSceneStyleWithEnvironmentContext(macroScene, state);
+    return `PHOTO_MODE_SCENE: ${enrichedScene} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
   }
 
   if (photoMode === 'Textured Bed / Scatter Base') {
-    return `PHOTO_MODE_SCENE: ${buildTexturedBedScene(state)} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
+    const bedScene = buildTexturedBedScene(state);
+    const enrichedScene = enrichSceneStyleWithEnvironmentContext(bedScene, state);
+    return `PHOTO_MODE_SCENE: ${enrichedScene} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
   }
 
   const sceneStyle = photoMode ? PHOTO_MODE_SCENE_STYLE_MAP[photoMode] : '';
   if (sceneStyle) {
-    return `PHOTO_MODE_SCENE: ${applyIndustryAdvertisingSceneStyle(sceneStyle, state)} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
+    const industryStyle = applyIndustryAdvertisingSceneStyle(sceneStyle, state);
+    const enrichedScene = enrichSceneStyleWithEnvironmentContext(industryStyle, state);
+    return `PHOTO_MODE_SCENE: ${enrichedScene} SCENE_AUTHORITY: Photo Mode defines material behavior and interaction physics only. Environment presets define spatial context. Lighting presets define illumination architecture.`;
   }
 
   return '';
