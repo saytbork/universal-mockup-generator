@@ -76,6 +76,7 @@ import {
   type ResolvedWineConfig,
 } from './wineConfigResolver.ts';
 import { buildWineTruthLayerV4 } from './wineConfigResolverV4.ts';
+import { buildMicroVariationBlock } from '../productStudio/winePrestige';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 import { profileRegistry } from './pipelines/profileRegistry';
 
@@ -459,34 +460,29 @@ function applyWineDeterministicStateMachine(state: StudioUIState): StudioUIState
 }
 
 function buildWineEnvironment(state: StudioUIState): string {
-  const variation = String(state.wineEnvironmentVariation || '').trim();
-  if (!variation) return '';
+  const environment = state.wineEnvironment;
+  if (!environment) return '';
 
+  // Map WineEnvironmentV4 to narrative descriptions
   const narrativeMap: Record<string, string> = {
-    vineyard:
-      'Vineyard at golden hour. Long parallel rows of grapevines receding into the distance. Warm amber-orange sunlight from low angle. Bokeh depth — background recognizably vineyard, slightly soft but NOT fully blurred. Earthy tones, golden haze in the air. Wooden surface in foreground. Sunlight catches bottle and glass edges.',
-    'dark-cellar':
-      'Aged oak barrel cellar. Stone walls with moss texture. Wooden barrel staves visible in the background, clearly identifiable. Moody warm amber side light. Background moderately soft but barrels recognizable. Candlelight-warm tones. Moist cellar atmosphere with subtle depth haze.',
-    'marble-bar':
-      'Luxury marble bar counter. White and grey veined marble surface. Polished black background with dim overhead spotlights. Background slightly soft but marble texture still visible. Premium bar atmosphere. Cool neutral-warm light blend. Reflections on polished surface.',
-    'minimal-gradient':
-      'Minimal gradient backdrop. Soft warm gradient from deep charcoal to warm grey. Clean studio floor line. No distracting elements. Background fully in focus as it is flat. Subtle vignette at edges.',
-    'black-studio':
-      'Dark premium studio. Matte black backdrop. Controlled directional key light from upper-left. Deep shadows on right side. Dramatic subject separation. Background fully in focus as it is flat. Stone or slate surface under the bottle.',
-    'modern-kitchen':
-      'Modern kitchen countertop. Light marble or quartz counter surface. Kitchen cabinets visible in background, slightly soft but recognizable. Natural window light from the side. Clean and editorial.',
-    'luxury-dining':
-      'Fine dining table. Dark polished wood surface. Linen texture visible. Candlelight and warm pendant lights in background, slightly soft but recognizable warm orbs. White tablecloth. Intimate restaurant atmosphere.',
-    'moody-backlight':
-      'Moody backlit scene. Strong backlight creating a rim glow around bottle and glass. Dark foreground. Background extremely dark with subtle atmospheric haze. Cinematic tone.',
-    'sunlit-table':
-      'Sunlit outdoor table. Warm natural daylight. Stone or weathered wood table surface. Green foliage in the background, slightly soft but color clearly present. Soft shadow cast by bottle.',
-    'architectural-shadow':
-      'Architectural shadow scene. Geometric shadow lines across the surface. Neutral concrete or plaster background. Strong directional natural light creating graphic shadow patterns.',
+    'Vineyard Golden Hour': 'Vineyard at golden hour. Long parallel rows of grapevines receding into the distance. Warm amber-orange sunlight from low angle. Bokeh depth — background recognizably vineyard, slightly soft but NOT fully blurred. Earthy tones, golden haze in the air. Wooden surface in foreground. Sunlight catches bottle and glass edges.',
+    'Vineyard Blue Hour': 'Vineyard at blue hour. Long parallel rows of grapevines receding into the distance. Cool blue-purple twilight light from low angle. Bokeh depth — background recognizably vineyard, slightly soft but NOT fully blurred. Cool tones, subtle blue haze in the air. Wooden surface in foreground. Twilight light catches bottle and glass edges.',
+    'Vineyard Misty Dawn': 'Vineyard at misty dawn. Long parallel rows of grapevines receding into the distance through morning mist. Soft diffused light from low angle. Bokeh depth — background recognizably vineyard, slightly soft but NOT fully blurred. Cool misty tones, subtle fog in the air. Wooden surface in foreground. Dawn light catches bottle and glass edges.',
+    'Oak Barrel Cellar': 'Aged oak barrel cellar. Stone walls with moss texture. Wooden barrel staves visible in the background, clearly identifiable. Moody warm amber side light. Background moderately soft but barrels recognizable. Candlelight-warm tones. Moist cellar atmosphere with subtle depth haze.',
+    'Stone Cave Cellar': 'Ancient stone cave cellar. Rough stone walls with natural texture. Wooden barrel staves visible in the background, clearly identifiable. Moody warm amber side light. Background moderately soft but barrels recognizable. Cave-warm tones. Cool damp atmosphere with subtle depth haze.',
+    'Cathedral Wine Cellar': 'Cathedral wine cellar. High arched stone ceilings with intricate detail. Wooden barrel staves visible in the background, clearly identifiable. Dramatic warm amber side light from high angle. Background moderately soft but barrels recognizable. Cathedral-warm tones. Reverent atmosphere with subtle depth haze.',
+    'Fine Dining Table': 'Fine dining table. Dark polished wood surface. Linen texture visible. Candlelight and warm pendant lights in background, slightly soft but recognizable warm orbs. White tablecloth. Intimate restaurant atmosphere.',
+    'Outdoor Terrace Dining': 'Outdoor terrace dining. Wrought iron railing with cityscape or vineyard view in background. Warm ambient lighting from string lights and candles. Background slightly soft but view recognizable. Evening atmosphere with subtle breeze haze.',
+    'Private Wine Library': 'Private wine library. Dark wood bookshelves with leather-bound books. Warm amber reading lamp light. Background moderately soft but bookshelves recognizable. Scholarly atmosphere with subtle dust haze.',
+    'Dark Luxury Studio': 'Dark premium studio. Matte black backdrop. Controlled directional key light from upper-left. Deep shadows on right side. Dramatic subject separation. Background fully in focus as it is flat. Stone or slate surface under the bottle.',
+    'Concrete Architectural Studio': 'Concrete architectural studio. Exposed concrete walls and ceiling. Industrial lighting with warm accents. Background fully in focus with concrete texture visible. Modern industrial atmosphere.',
+    'White Marble Studio': 'White marble studio. Polished white marble floor and walls. Soft diffused lighting. Background fully in focus with marble veining visible. Clean minimalist atmosphere.',
+    'Rustic Estate Kitchen': 'Rustic estate kitchen. Natural wood countertops and cabinets. Warm window light from the side. Background slightly soft but kitchen elements recognizable. Cozy estate atmosphere.',
+    'Glass Winery Modern': 'Glass winery modern. Floor-to-ceiling glass walls with vineyard view. Contemporary lighting with natural daylight. Background slightly soft but view recognizable. Modern winery atmosphere.',
+    'Hillside Terroir Landscape': 'Hillside terroir landscape. Rolling vineyard hills receding into the distance. Natural sunlight from high angle. Bokeh depth — background recognizably vineyard landscape, slightly soft but NOT fully blurred. Earthy natural tones. Grass or soil surface in foreground.',
   };
 
-  const narrative = narrativeMap[variation] || narrativeMap['black-studio'];
-  const envBlock = `WINE_ENVIRONMENT: ${narrative}`;
+  return narrativeMap[environment] || '';
 
   // CRITICAL: When served, the environment is BACKGROUND ONLY.
   // The bottle physical state (open, half-empty, cap on surface, glass with wine) is ALREADY FIXED

@@ -6,8 +6,9 @@ import {
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
+  ALL_WINE_ENVIRONMENTS_V4,
 } from '@/lib/productStudio/winePrestige';
-import type { ProductStudioState, WineGlassType, WineStyleArchetype } from '@/lib/productStudio/types';
+import type { ProductStudioState, WineGlassType, WineStyleArchetype, WineMicroVariation, WineEnvironmentV4 } from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI = 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
@@ -35,12 +36,48 @@ const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string; descripti
   { value: 'served', label: 'Served', description: 'Open bottle, half-full, cap on surface, glass with wine' },
 ];
 
-const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = [
+const WINE_TYPE_OPTIONS: Array<{ value: WineTypeUI; label: string }> = [
   { value: 'auto', label: 'Auto' },
-  { value: 'red-bowl', label: 'Red Bowl' },
-  { value: 'white-stem', label: 'White Stem' },
-  { value: 'sparkling-flute', label: 'Flute / Champagne' },
+  { value: 'white', label: 'White' },
+  { value: 'red', label: 'Red' },
+  { value: 'rosé', label: 'Rosé' },
+  { value: 'sparkling-white', label: 'Sparkling White' },
+  { value: 'sparkling-rosé', label: 'Sparkling Rosé' },
 ];
+
+const WINE_MICRO_VARIATIONS_OPTIONS = {
+  season: [
+    { value: 'none', label: 'None' },
+    { value: 'spring', label: 'Spring' },
+    { value: 'summer', label: 'Summer' },
+    { value: 'autumn', label: 'Autumn' },
+    { value: 'winter', label: 'Winter' },
+  ],
+  dewOnGlass: [
+    { value: false, label: 'No Dew' },
+    { value: true, label: 'Dew Drops' },
+  ],
+  atmosphericHaze: [
+    { value: 'none', label: 'Clear' },
+    { value: 'subtle', label: 'Subtle Haze' },
+    { value: 'moderate', label: 'Atmospheric' },
+  ],
+  floralProps: [
+    { value: false, label: 'No Flowers' },
+    { value: true, label: 'Floral Accents' },
+  ],
+  microProps: [
+    { value: 'none', label: 'None' },
+    { value: 'cork-and-corkscrew', label: 'Cork & Corkscrew' },
+    { value: 'vine-leaves', label: 'Vine Leaves' },
+    { value: 'cheese-board', label: 'Cheese Board' },
+    { value: 'linen-napkin', label: 'Linen Napkin' },
+  ],
+  backgroundDepthBoost: [
+    { value: false, label: 'Standard' },
+    { value: true, label: 'Deep Background' },
+  ],
+};
 
 export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
@@ -55,6 +92,15 @@ export function WineModule() {
   const wineMoodModifier =  useProductStudioStore((s) => s.wineMoodModifier);
   const carbonationLevel = (useProductStudioStore((s) => s.carbonationLevel) ?? 'none')                    as WineCarbonationUI;
   const wineStyleArchetype = useProductStudioStore((s) => s.wineStyleArchetype) ?? null;
+  const wineMicroVariation = useProductStudioStore((s) => s.wineMicroVariation) ?? {
+    season: 'none',
+    dewOnGlass: false,
+    atmosphericHaze: 'none',
+    floralProps: false,
+    microProps: 'none',
+    backgroundDepthBoost: false,
+  } as WineMicroVariation;
+  const wineEnvironment = useProductStudioStore((s) => s.wineEnvironment) ?? 'Dark Luxury Studio' as WineEnvironmentV4;
   const photoMode        =  useProductStudioStore((s) => s.photoMode);
 
   // ── Derived coherence flags ────────────────────────────────────────────
@@ -105,6 +151,24 @@ export function WineModule() {
                 </Chip>
               ))}
             </div>
+          </div>
+          {/* ── WINE TYPE ──────────────────────────────────────── */}
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Type</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_TYPE_OPTIONS.map((option) => (
+                <Chip
+                  key={option.value}
+                  selected={wineType === option.value}
+                  onClick={() => setWineUiState({ wineType: option.value })}
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Auto derives from reference. Manual override for specific wine type styling.
+            </p>
           </div>
           {/* ── WINE ACTION ──────────────────────────────────────── */}
           <div>
@@ -272,6 +336,131 @@ export function WineModule() {
                   onClick={() => setWineUiState({ wineMoodModifier: modifier })}
                 >
                   {modifier}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          {/* ── MICRO VARIATIONS ────────────────────────────────── */}
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Micro Details</p>
+            <p className="text-[11px] text-gray-400 mb-3">Fine-tune atmospheric and prop details.</p>
+            
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Season</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.season.map((option) => (
+                    <Chip
+                      key={option.value}
+                      selected={wineMicroVariation.season === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, season: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Glass Effect</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.dewOnGlass.map((option) => (
+                    <Chip
+                      key={String(option.value)}
+                      selected={wineMicroVariation.dewOnGlass === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, dewOnGlass: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Atmosphere</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.atmosphericHaze.map((option) => (
+                    <Chip
+                      key={option.value}
+                      selected={wineMicroVariation.atmosphericHaze === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, atmosphericHaze: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Floral Props</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.floralProps.map((option) => (
+                    <Chip
+                      key={String(option.value)}
+                      selected={wineMicroVariation.floralProps === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, floralProps: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Micro Props</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.microProps.map((option) => (
+                    <Chip
+                      key={option.value}
+                      selected={wineMicroVariation.microProps === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, microProps: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-semibold mb-1">Background Depth</p>
+                <div className="flex flex-wrap gap-2">
+                  {WINE_MICRO_VARIATIONS_OPTIONS.backgroundDepthBoost.map((option) => (
+                    <Chip
+                      key={String(option.value)}
+                      selected={wineMicroVariation.backgroundDepthBoost === option.value}
+                      onClick={() => setWineUiState({ 
+                        wineMicroVariation: { ...wineMicroVariation, backgroundDepthBoost: option.value } 
+                      })}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* ── WINE ENVIRONMENT ────────────────────────────────── */}
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
+            <p className="text-[11px] text-gray-400 mb-3">Choose the setting and atmosphere for your wine scene.</p>
+            <div className="flex flex-wrap gap-2">
+              {ALL_WINE_ENVIRONMENTS_V4.map((environment) => (
+                <Chip
+                  key={environment}
+                  selected={wineEnvironment === environment}
+                  onClick={() => setWineUiState({ wineEnvironment: environment })}
+                >
+                  {environment}
                 </Chip>
               ))}
             </div>

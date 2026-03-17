@@ -20,6 +20,7 @@ import {
   type ResolvedWineConfig,
 } from './wineConfigResolver.ts';
 import { buildWineTruthLayerV4 } from './wineConfigResolverV4.ts';
+import { buildMicroVariationBlock } from '../productStudio/winePrestige';
 import type { StudioAuthorityBundle, StudioUIState } from './types/studioTypes.ts';
 
 const STRICT_GUARDRAILS = import.meta.env.VITE_STRICT_GUARDRAILS === 'true';
@@ -483,7 +484,7 @@ export function generateStudioPromptV2_legacy(state: StudioUIState): string {
     const wineEffectiveState = applyWineDeterministicStateMachine(state);
     const resolvedWineConfig = resolveDeterministicWineConfig(wineEffectiveState);
     const wineEngineVersion = resolveWineEngineVersion(wineEffectiveState);
-    const hasWineEnvironment = Boolean(String(state.wineEnvironmentVariation || '').trim());
+    const hasWineEnvironment = Boolean(state.wineEnvironment);
     const segments: PromptSegment[] = [];
     pushSegment(segments, 'guardrail', buildIntent(authority, state));
     pushSegment(
@@ -502,6 +503,13 @@ export function generateStudioPromptV2_legacy(state: StudioUIState): string {
         ? buildWineEnvironment(wineEffectiveState)
         : buildWorld(authority, effectiveState.world, state)
     );
+    // Add micro variations if present
+    if (wineEffectiveState.wineMicroVariation) {
+      const microBlock = buildMicroVariationBlock(wineEffectiveState.wineMicroVariation);
+      if (microBlock) {
+        pushSegment(segments, 'world', microBlock);
+      }
+    }
     pushSegment(
       segments,
       'world',

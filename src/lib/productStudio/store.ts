@@ -57,6 +57,8 @@ import type {
     WineMoodModifier,
     WinePourStyle,
     WineStyleArchetype,
+    WineMicroVariation,
+    WineEnvironmentV4,
     CoffeeAction,
     CoffeeMode,
     CoffeeLightingTone,
@@ -698,6 +700,15 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     winePourStyle: 'mid-flow-elegance',
     wineGlassType: 'auto',
     wineStyleArchetype: null,
+    wineMicroVariation: {
+      season: 'none',
+      dewOnGlass: false,
+      atmosphericHaze: 'none',
+      floralProps: false,
+      microProps: 'none',
+      backgroundDepthBoost: false,
+    },
+    wineEnvironment: 'Dark Luxury Studio',
     coffeeMode: 'studio',
     coffeeAction: 'static',
     coffeeLightingTone: 'auto',
@@ -868,6 +879,8 @@ type ProductStudioActions = {
     setWineLightingTone: (tone: WineLightingTone) => void;
     setWineMoodModifier: (modifier: WineMoodModifier) => void;
     setWineStyleArchetype: (archetype: WineStyleArchetype | null) => void;
+    setWineMicroVariation: (variation: Partial<WineMicroVariation>) => void;
+    setWineEnvironment: (environment: WineEnvironmentV4) => void;
     setCoffeeAction: (action: CoffeeAction) => void;
     setCoffeeMode: (mode: CoffeeMode) => void;
     setCoffeeLightingTone: (tone: CoffeeLightingTone) => void;
@@ -1410,6 +1423,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 ...(visualFields as Partial<ProductStudioState>),
             };
         }),
+    setWineMicroVariation: (variation: Partial<WineMicroVariation>) =>
+        set((state) => ({
+            wineMicroVariation: { ...state.wineMicroVariation, ...variation },
+        })),
+    setWineEnvironment: (environment: WineEnvironmentV4) =>
+        set({ wineEnvironment: environment }),
     setCoffeeAction: (action) =>
         set({
             coffeeAction: action === 'controlled-pour' ? 'controlled-pour' : 'static',

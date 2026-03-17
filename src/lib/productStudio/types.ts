@@ -930,6 +930,8 @@ export type ProductStudioState = {
     serveVolumeMode?: string;
     wineEngineVersion?: number;
     wineStyleArchetype?: WineStyleArchetype | null;
+    wineMicroVariation?: WineMicroVariation;
+    wineEnvironment?: WineEnvironmentV4;
     coffeeMode: CoffeeMode;
     coffeeAction: CoffeeAction;
     coffeeLightingTone: CoffeeLightingTone;
