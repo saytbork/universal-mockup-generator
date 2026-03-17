@@ -31,6 +31,13 @@ const WINE_CARBONATION_OPTIONS: Array<{ value: WineCarbonationUI; label: string 
   { value: 'visible', label: 'Visible' },
 ];
 
+const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'red-bowl', label: 'Red Bowl' },
+  { value: 'white-stem', label: 'White Stem' },
+  { value: 'sparkling-flute', label: 'Sparkling Flute' },
+];
+
 const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string; description: string }> = [
   { value: 'none', label: 'Closed', description: 'Sealed bottle, full, no glass' },
   { value: 'served', label: 'Served', description: 'Open bottle, half-full, cap on surface, glass with wine' },
@@ -354,7 +361,7 @@ export function WineModule() {
                       key={option.value}
                       selected={wineMicroVariation.season === option.value}
                       onClick={() => setWineUiState({ 
-                        wineMicroVariation: { ...wineMicroVariation, season: option.value } 
+                        wineMicroVariation: { ...wineMicroVariation, season: option.value as WineMicroVariation['season'] } 
                       })}
                     >
                       {option.label}
@@ -388,7 +395,7 @@ export function WineModule() {
                       key={option.value}
                       selected={wineMicroVariation.atmosphericHaze === option.value}
                       onClick={() => setWineUiState({ 
-                        wineMicroVariation: { ...wineMicroVariation, atmosphericHaze: option.value } 
+                        wineMicroVariation: { ...wineMicroVariation, atmosphericHaze: option.value as WineMicroVariation['atmosphericHaze'] } 
                       })}
                     >
                       {option.label}
@@ -422,7 +429,7 @@ export function WineModule() {
                       key={option.value}
                       selected={wineMicroVariation.microProps === option.value}
                       onClick={() => setWineUiState({ 
-                        wineMicroVariation: { ...wineMicroVariation, microProps: option.value } 
+                        wineMicroVariation: { ...wineMicroVariation, microProps: option.value as WineMicroVariation['microProps'] } 
                       })}
                     >
                       {option.label}

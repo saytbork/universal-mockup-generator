@@ -167,6 +167,8 @@ export interface StudioUIState {
   wineServeAmount?: string;
   serveVolumeMode?: string;
   wineEngineVersion?: number;
+  wineEnvironment?: string;
+  wineMicroVariation?: any;
   cameraSystem?: string;
   cameraAngle?: string;
   cameraDistance?: string;
