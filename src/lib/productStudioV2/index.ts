@@ -396,17 +396,37 @@ function normalizeWineValue(value: unknown): string {
   return String(value || '').trim().toLowerCase();
 }
 
-// Backwards-compatible mapping: derive a binary serveState from older UI fields.
-function resolveServeState(state: StudioUIState): 'none' | 'served' {
+function resolveServePresentationMode(state: StudioUIState): 'bottle-only' | 'served' | 'pouring' {
+  const serveMode = normalizeWineValue((state as StudioUIState & { wineServeMode?: string }).wineServeMode);
+  if (serveMode === 'bottle-only' || serveMode === 'served' || serveMode === 'pouring') {
+    return serveMode;
+  }
+  const action = normalizeWineValue(state.wineAction);
+  if (action === 'controlled-pour') return 'pouring';
   const amount = normalizeWineValue((state as StudioUIState & { wineServeAmount?: string }).wineServeAmount);
   const glassMode = normalizeWineValue(state.wineGlassMode);
   const bottleState = normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open';
+  if (bottleState === 'sealed') return 'bottle-only';
+  if (glassMode === 'filled' || amount) return 'served';
+  return 'bottle-only';
+}
 
-  if (bottleState === 'sealed') return 'none';
-  // Explicit filled mode or any declared serve amount implies served
-  if (glassMode === 'filled') return 'served';
-  if (amount) return 'served';
-  return 'none';
+function resolveBottleFillState(
+  state: StudioUIState,
+  serveMode: 'bottle-only' | 'served' | 'pouring'
+): 'retail-full' | 'just-opened' | 'clearly-partially-consumed' {
+  if (serveMode === 'bottle-only') return 'retail-full';
+  if (serveMode === 'pouring') return 'clearly-partially-consumed';
+  const fillMode = normalizeWineValue((state as StudioUIState & { wineBottleFillMode?: string }).wineBottleFillMode);
+  if (fillMode === 'just-opened') return 'just-opened';
+  const amount = normalizeWineValue((state as StudioUIState & { wineServeAmount?: string }).wineServeAmount);
+  if (amount === 'just-opened') return 'just-opened';
+  return 'clearly-partially-consumed';
+}
+
+// Backwards-compatible mapping: derive a binary serveState from older UI fields.
+function resolveServeState(state: StudioUIState): 'none' | 'served' {
+  return resolveServePresentationMode(state) === 'bottle-only' ? 'none' : 'served';
 }
 
 function resolveWineClosureType(state: StudioUIState): string {
@@ -420,14 +440,15 @@ function resolveWineClosureType(state: StudioUIState): string {
 }
 
 function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWineConfig {
-  const serveState = resolveServeState(state);
+  const serveMode = resolveServePresentationMode(state);
+  const serveState = serveMode === 'bottle-only' ? 'none' : 'served';
   
   // HARD ENFORCEMENT: if serveState='served', bottle MUST be open (never sealed)
   const bottleState = serveState === 'served' 
     ? 'open' 
     : (normalizeWineValue(state.wineBottleState) === 'sealed' ? 'sealed' : 'open');
   
-  const bottleFillState = serveState === 'served' ? 'clearly-partially-consumed' : 'retail-full';
+  const bottleFillState = resolveBottleFillState(state, serveMode);
 
   return {
     closureType: resolveWineClosureType(state),
@@ -454,6 +475,15 @@ function applyWineDeterministicStateMachine(state: StudioUIState): StudioUIState
 
   return {
     ...state,
+    wineServeMode: resolveServePresentationMode(state),
+    wineBottleFillMode:
+      config.bottleFillState === 'just-opened' ? 'just-opened' : 'partially-served',
+    wineServeAmount:
+      config.serveState === 'none'
+        ? 'none'
+        : config.bottleFillState === 'just-opened'
+          ? 'just-opened'
+          : 'partially-served',
     wineBottleState,
     wineGlassMode,
   };

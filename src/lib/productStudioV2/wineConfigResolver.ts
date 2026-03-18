@@ -1,7 +1,7 @@
 import type { StudioUIState } from './types/studioTypes.ts';
 
 export type ServeState = 'none' | 'served';
-export type BottleFillState = 'retail-full' | 'clearly-partially-consumed';
+export type BottleFillState = 'retail-full' | 'just-opened' | 'clearly-partially-consumed';
 
 export type ResolvedWineConfig = {
   closureType: string;
@@ -59,6 +59,11 @@ export function buildWineTruthLayer(
     wineType === 'sparkling-white' ||
     wineType === 'sparkling-rosé' ||
     wineType === 'sparkling-rose';
+  const bottleFillState = (config as any).bottleFillState === 'just-opened'
+    ? 'just-opened'
+    : (config as any).bottleFillState === 'retail-full'
+      ? 'retail-full'
+      : 'clearly-partially-consumed';
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
   const resolvedBottleState = serveState === 'served' ? 'open' : 'sealed';
@@ -73,9 +78,13 @@ export function buildWineTruthLayer(
     ? [
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
         'The bottle is opened for service.',
-        'The bottle remains visibly below retail-full level because wine has been poured into the glass.',
+        bottleFillState === 'just-opened'
+          ? 'The bottle remains near retail-full level with only a subtle reduction from first service. It should read as freshly opened, not substantially depleted.'
+          : 'The bottle remains visibly below retail-full level because wine has been poured into the glass.',
         'CLOSURE_RULE: Exactly ONE removed closure exists in the scene — it rests on the surface (beside or near the bottle base). The closure is NOT attached to the bottle neck. There is NO closure on the bottle neck. There is NO duplicate closure. Do NOT show a capped or sealed bottle neck.',
-        'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
+        bottleFillState === 'just-opened'
+          ? 'Do NOT reseal the bottle. Do NOT show a fully retail-full bottle. The fill should read as freshly opened service with only minimal depletion.'
+          : 'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
         isPourAction

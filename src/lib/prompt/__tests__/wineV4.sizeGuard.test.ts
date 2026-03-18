@@ -70,10 +70,13 @@ describe('wine v4 size guard', () => {
   // ENVIRONMENT_PHYSICS_OVERRIDE safety block for outdoor environments,
   // mandatory TEXT_INTEGRITY_CONSTRAINT terminal block (label hallucination fix),
   // and LABEL_GEOMETRY_LOCK tilt-stable label anchor added for pour mode fidelity.
-  expect(v4Words).toBeLessThanOrEqual(1090); // Increased for LABEL_GEOMETRY_LOCK + CLOSURE_RULE additions
+  // Environment context is now injected explicitly for wine hero scenes so the model
+  // receives actionable spatial cues instead of a bare environment token.
+  expect(v4Words).toBeLessThanOrEqual(1190); // Increased for explicit wine environment context
   // V4 may be larger than V3 when served mode safety blocks + rich environment + text integrity + artwork immutability + V1 realism blocks are active.
-  // Updated baseline accounts for LABEL_GEOMETRY_LOCK + CLOSURE_RULE additions (~-212% measured).
+  // Updated baseline accounts for LABEL_GEOMETRY_LOCK + CLOSURE_RULE additions,
+  // plus explicit WINE_ENVIRONMENT_CONTEXT narrative for stronger environment adherence.
   // Keep the guard tight enough to detect accidental growth without failing on intentional safety overhead.
-  expect(reductionPercent).toBeGreaterThanOrEqual(-215);
+  expect(reductionPercent).toBeGreaterThanOrEqual(-245);
   });
 });

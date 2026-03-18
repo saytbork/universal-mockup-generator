@@ -190,6 +190,9 @@ export type ProductDefinition = {
 
 export type ProductStateMotion = 'static' | 'opened' | 'spilled' | 'dispensed' | 'pouring' | 'falling';
 
+export type WineServeMode = 'bottle-only' | 'served' | 'pouring';
+export type WineBottleFillMode = 'just-opened' | 'partially-served';
+
 // ============================================================================
 // 1️⃣ MODE (ROOT BLOCKER)
 // ============================================================================
@@ -920,6 +923,8 @@ export type ProductStudioState = {
     wineMoodModifier: WineMoodModifier;
     wineAction: WineAction;
     winePourStyle: WinePourStyle;
+    wineServeMode?: WineServeMode;
+    wineBottleFillMode?: WineBottleFillMode;
     wineType?: 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
     carbonationLevel?: 'none' | 'subtle' | 'visible';
     wineBottleState?: 'sealed' | 'opened-with-cork-nearby';

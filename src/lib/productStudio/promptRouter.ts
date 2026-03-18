@@ -21,6 +21,24 @@ const debugLog = (...args: unknown[]) => {
   if (DEBUG_PROMPT_PIPELINE) console.log(...args);
 };
 
+function deriveWineServeMode(state: ProductStudioState): 'bottle-only' | 'served' | 'pouring' {
+  if (state.wineServeMode === 'bottle-only' || state.wineServeMode === 'served' || state.wineServeMode === 'pouring') {
+    return state.wineServeMode;
+  }
+  if (state.wineAction === 'controlled-pour') return 'pouring';
+  if (state.wineGlassMode === 'filled') return 'served';
+  return 'bottle-only';
+}
+
+function deriveWineBottleFillMode(state: ProductStudioState): 'just-opened' | 'partially-served' {
+  if (state.wineBottleFillMode === 'just-opened' || state.wineBottleFillMode === 'partially-served') {
+    return state.wineBottleFillMode;
+  }
+  return String(state.wineServeAmount || '').trim().toLowerCase() === 'just-opened'
+    ? 'just-opened'
+    : 'partially-served';
+}
+
 function isStudioV2Enabled(): boolean {
   const flag = import.meta.env.VITE_USE_STUDIO_V2;
   // If the flag is explicitly set to 'false', respect it. Otherwise default to v2.
@@ -1143,16 +1161,28 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
       resolvedPhotoMode === 'Rose Tasting Table');
-  const resolvedWineAction =
-    isWinePourMode ? 'controlled-pour' : 'static-presentation';
-  const resolvedWineGlassMode =
-    isWineHeroLanding ? 'none' : isWineGlassMode ? 'filled' : state.wineGlassMode;
-  const resolvedWineBottleState =
+  const stateWineServeMode = deriveWineServeMode(state);
+  const stateWineBottleFillMode = deriveWineBottleFillMode(state);
+  const resolvedWineServeMode =
     isWineHeroLanding
-      ? 'sealed'
-      : isWineServedPresentationMode
-        ? 'opened-with-cork-nearby'
-        : state.wineBottleState;
+      ? 'bottle-only'
+      : isWinePourMode
+        ? 'pouring'
+        : isWineServedPresentationMode
+          ? 'served'
+          : stateWineServeMode;
+  const resolvedWineBottleFillMode =
+    resolvedWineServeMode === 'served'
+      ? stateWineBottleFillMode
+      : resolvedWineServeMode === 'pouring'
+        ? 'partially-served'
+        : 'just-opened';
+  const resolvedWineAction =
+    resolvedWineServeMode === 'pouring' ? 'controlled-pour' : 'static-presentation';
+  const resolvedWineGlassMode =
+    resolvedWineServeMode === 'bottle-only' ? 'none' : 'filled';
+  const resolvedWineBottleState =
+    resolvedWineServeMode === 'bottle-only' ? 'sealed' : 'opened-with-cork-nearby';
   const splashMotionIntensity = String(state.photoModeConfig?.splashShot?.motionIntensity || '').trim();
   const splashFreezeMoment = String(state.photoModeConfig?.splashShot?.freezeMoment || '').trim();
   const splashAdMode =
@@ -1259,12 +1289,16 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           ...(state.wineMoodModifier ? { wineMoodModifier: state.wineMoodModifier } : {}),
           wineEngineVersion: state.wineEngineVersion,
           wineAction: resolvedWineAction,
+          wineServeMode: resolvedWineServeMode,
+          wineBottleFillMode: resolvedWineBottleFillMode,
           ...(state.winePourStyle ? { winePourStyle: state.winePourStyle } : {}),
           wineGlassMode: resolvedWineGlassMode,
           ...(state.wineGlassType ? { wineGlassType: state.wineGlassType } : {}),
           wineClosureType: state.wineClosureType,
           wineType: state.wineType,
           wineBottleState: resolvedWineBottleState,
+          wineServeAmount:
+            resolvedWineServeMode === 'bottle-only' ? 'none' : resolvedWineBottleFillMode,
           carbonationLevel: state.carbonationLevel,
           ...(state.wineStyleArchetype ? { wineStyleArchetype: state.wineStyleArchetype } : {}),
           ...(wineArchetypeNarrative ? { wineArchetypeNarrative } : {}),

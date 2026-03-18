@@ -155,6 +155,8 @@ export interface StudioUIState {
   autoRandomizeWineEnvironment?: boolean;
   wineAction?: 'static-presentation' | 'controlled-pour';
   winePourStyle?: 'slow-ribbon' | 'mid-flow-elegance' | 'peak-glass-impact';
+  wineServeMode?: 'bottle-only' | 'served' | 'pouring';
+  wineBottleFillMode?: 'just-opened' | 'partially-served';
   wineType?: string;
   carbonationLevel?: string;
   wineBottleState?: string;

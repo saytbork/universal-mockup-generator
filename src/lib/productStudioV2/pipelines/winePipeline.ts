@@ -43,6 +43,8 @@ export const winePipeline = {
     const stateForMachine: StudioUIState = servedGlassModes.has(photoMode)
       ? {
           ...state,
+          wineServeMode: activePourMode ? 'pouring' : 'served',
+          wineBottleFillMode: activePourMode ? 'partially-served' : (state.wineBottleFillMode || 'partially-served'),
           wineGlassMode: 'filled',
           wineBottleState: activePourMode ? 'open' : state.wineBottleState || 'open',
           wineAction: activePourMode ? 'controlled-pour' : state.wineAction,

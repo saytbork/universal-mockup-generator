@@ -37,6 +37,7 @@ describe('wine hero landing isolation', () => {
     );
     const prompt = generateStudioPromptV2(mapped);
 
+    expect(mapped.wineServeMode).toBe('bottle-only');
     expect(mapped.wineGlassMode).toBe('none');
     expect(mapped.wineBottleState).toBe('sealed');
     expect(prompt).not.toContain('WINE_GLASS:');

@@ -21,6 +21,8 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Bottle + Glass'));
     const prompt = generateStudioPromptV2(mapped);
 
+    expect(mapped.wineServeMode).toBe('served');
+    expect(mapped.wineBottleFillMode).toBe('just-opened');
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
     expect(prompt).toContain('bottleState=open; serveState=served;');
@@ -33,6 +35,8 @@ describe('wine concept modes', () => {
     const mapped = toStudioV2State(makeWineState('Bottle + Glass Pour'));
     const prompt = generateStudioPromptV2(mapped);
 
+    expect(mapped.wineServeMode).toBe('pouring');
+    expect(mapped.wineBottleFillMode).toBe('partially-served');
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
@@ -40,6 +44,19 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
     expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
     expect(prompt).toContain('Never emit liquid from below the bottle rim');
+  });
+
+  it('preserves just-opened served bottles as near-full service instead of half-empty', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Bottle + Glass', {
+        wineServeMode: 'served',
+        wineBottleFillMode: 'just-opened',
+      })
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('freshly opened');
+    expect(prompt).not.toContain('visibly below retail-full level because wine has been poured into the glass');
   });
 
   it('renders lineup comparison as wine-family comparison instead of hero fallback', () => {

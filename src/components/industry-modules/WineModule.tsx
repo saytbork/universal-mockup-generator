@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
 import {
-  WINE_ACTION_OPTIONS,
   WINE_LIGHTING_TONES,
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
   ALL_WINE_ENVIRONMENTS_V4,
 } from '@/lib/productStudio/winePrestige';
-import type { ProductStudioState, WineGlassType, WineStyleArchetype, WineMicroVariation, WineEnvironmentV4 } from '@/lib/productStudio/types';
+import type {
+  ProductStudioState,
+  WineGlassType,
+  WineStyleArchetype,
+  WineMicroVariation,
+  WineEnvironmentV4,
+  WineServeMode,
+  WineBottleFillMode,
+} from '@/lib/productStudio/types';
 import { useProductStudioStore } from '@/lib/productStudio/store';
 
 type WineTypeUI = 'auto' | 'white' | 'red' | 'rosé' | 'sparkling-white' | 'sparkling-rosé';
 type WineClosureTypeUI = 'from-reference' | 'natural-cork' | 'crown-cap' | 'screw-cap' | 'cork-with-cage' | 'synthetic-closure';
-type ServeStateUI = 'none' | 'served';
 type WineCarbonationUI = 'none' | 'subtle' | 'visible';
 
 const WINE_CLOSURE_OPTIONS: Array<{ value: WineClosureTypeUI; label: string }> = [
@@ -38,9 +44,15 @@ const WINE_GLASS_TYPE_OPTIONS: Array<{ value: WineGlassType; label: string }> = 
   { value: 'sparkling-flute', label: 'Sparkling Flute' },
 ];
 
-const SERVE_STATE_OPTIONS: Array<{ value: ServeStateUI; label: string; description: string }> = [
-  { value: 'none', label: 'Closed', description: 'Sealed bottle, full, no glass' },
-  { value: 'served', label: 'Served', description: 'Open bottle, half-full, cap on surface, glass with wine' },
+const WINE_SERVE_MODE_OPTIONS: Array<{ value: WineServeMode; label: string; description: string }> = [
+  { value: 'bottle-only', label: 'Bottle Only', description: 'Sealed bottle, no glass' },
+  { value: 'served', label: 'Served', description: 'Bottle plus glass, no pour-in-progress' },
+  { value: 'pouring', label: 'Pouring', description: 'Active pour with bottle and glass' },
+];
+
+const WINE_BOTTLE_FILL_OPTIONS: Array<{ value: WineBottleFillMode; label: string; description: string }> = [
+  { value: 'just-opened', label: 'Just Opened', description: 'Bottle is opened and nearly full' },
+  { value: 'partially-served', label: 'Partially Served', description: 'Bottle shows visible liquid reduction' },
 ];
 
 const WINE_TYPE_OPTIONS: Array<{ value: WineTypeUI; label: string }> = [
@@ -90,10 +102,9 @@ export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
   const wineType         = (useProductStudioStore((s) => s.wineType)         ?? 'auto')                    as WineTypeUI;
   const wineClosureType  = (useProductStudioStore((s) => s.wineClosureType)  ?? 'from-reference')          as WineClosureTypeUI;
-  const wineBottleState  = (useProductStudioStore((s) => s.wineBottleState)  ?? 'opened-with-cork-nearby') as string;
-  const wineGlassMode    = (useProductStudioStore((s) => s.wineGlassMode)    ?? 'none')                    as string;
+  const wineServeMode    = (useProductStudioStore((s) => s.wineServeMode)    ?? 'bottle-only')             as WineServeMode;
+  const wineBottleFillMode = (useProductStudioStore((s) => s.wineBottleFillMode) ?? 'just-opened')         as WineBottleFillMode;
   const wineGlassType    =  useProductStudioStore((s) => s.wineGlassType)    ?? 'auto';
-  const wineAction       =  useProductStudioStore((s) => s.wineAction);
   const winePourStyle    =  useProductStudioStore((s) => s.winePourStyle);
   const wineLightingTone =  useProductStudioStore((s) => s.wineLightingTone);
   const wineMoodModifier =  useProductStudioStore((s) => s.wineMoodModifier);
@@ -112,6 +123,9 @@ export function WineModule() {
 
   // ── Derived coherence flags ────────────────────────────────────────────
   const isBottleAndGlassMode = photoMode === 'Bottle + Glass';
+  const isBottleAndGlassPourMode = photoMode === 'Bottle + Glass Pour';
+  const isHandsPouringMode = photoMode === 'Hands Pouring Wine';
+  const isRoseTastingMode = photoMode === 'Rose Tasting Table';
   const isMacroLabelMode = photoMode === 'Wine Macro Label';
 
   // RULE 5: Sparkling visible only when wineType resolves to sparkling
@@ -121,10 +135,54 @@ export function WineModule() {
     wineType === 'sparkling-rosé' ||
     wineClosureType === 'cork-with-cage';
 
-  const currentServeState: ServeStateUI = wineGlassMode !== 'filled' ? 'none' : 'served';
+  const forcedServeMode: WineServeMode | null = isBottleAndGlassPourMode || isHandsPouringMode
+    ? 'pouring'
+    : isBottleAndGlassMode || isRoseTastingMode
+      ? 'served'
+      : null;
+  const currentServeMode: WineServeMode = forcedServeMode ?? wineServeMode;
+  const currentBottleFillMode: WineBottleFillMode =
+    currentServeMode === 'served'
+      ? wineBottleFillMode
+      : currentServeMode === 'pouring'
+        ? 'partially-served'
+        : 'just-opened';
 
   const setWineUiState = (patch: Partial<ProductStudioState>): void => {
     useProductStudioStore.setState(patch);
+  };
+
+  const setWineServeMode = (mode: WineServeMode) => {
+    if (mode === 'bottle-only') {
+      setWineUiState({
+        wineServeMode: 'bottle-only',
+        wineBottleFillMode: 'just-opened',
+        wineGlassMode: 'none',
+        wineBottleState: 'sealed',
+        wineAction: 'static-presentation',
+        wineServeAmount: 'none',
+      });
+      return;
+    }
+    if (mode === 'pouring') {
+      setWineUiState({
+        wineServeMode: 'pouring',
+        wineBottleFillMode: 'partially-served',
+        wineGlassMode: 'filled',
+        wineBottleState: 'opened-with-cork-nearby',
+        wineAction: 'controlled-pour',
+        wineServeAmount: 'partially-served',
+      });
+      return;
+    }
+    setWineUiState({
+      wineServeMode: 'served',
+      wineBottleFillMode: currentBottleFillMode,
+      wineGlassMode: 'filled',
+      wineBottleState: 'opened-with-cork-nearby',
+      wineAction: 'static-presentation',
+      wineServeAmount: currentBottleFillMode,
+    });
   };
 
   return (
@@ -177,20 +235,41 @@ export function WineModule() {
               Auto derives from reference. Manual override for specific wine type styling.
             </p>
           </div>
-          {/* ── WINE ACTION ──────────────────────────────────────── */}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Serve Style</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Scene Service</p>
+            {(forcedServeMode === 'served' || forcedServeMode === 'pouring') && (
+              <p className="text-[11px] text-violet-500 mb-1 font-medium">
+                ✦ {photoMode} enforces {forcedServeMode === 'pouring' ? 'Pouring' : 'Served'}
+              </p>
+            )}
+            {isMacroLabelMode && (
+              <p className="text-[11px] text-amber-500 mb-1 font-medium">
+                ✦ Macro Label mode disables service presentation controls
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
-              {WINE_ACTION_OPTIONS.map((action) => (
+              {WINE_SERVE_MODE_OPTIONS.map((option) => (
                 <Chip
-                  key={action}
-                  selected={wineAction === action}
-                  onClick={() => setWineUiState({ wineAction: action })}
+                  key={option.value}
+                  selected={currentServeMode === option.value}
+                  disabled={Boolean(forcedServeMode) || isMacroLabelMode}
+                  onClick={() => {
+                    if (forcedServeMode || isMacroLabelMode) return;
+                    setWineServeMode(option.value);
+                  }}
+                  title={option.description}
                 >
-                  {action === 'static-presentation' ? 'Static Presentation' : 'Controlled Pour'}
+                  {option.label}
                 </Chip>
               ))}
             </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              {currentServeMode === 'bottle-only'
+                ? 'Bottle only. No glass in frame.'
+                : currentServeMode === 'pouring'
+                  ? 'Bottle plus glass with active pour physics.'
+                  : 'Bottle plus glass without active pour.'}
+            </p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Closure</p>
@@ -206,63 +285,38 @@ export function WineModule() {
               ))}
             </div>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bottle State</p>
-            {isBottleAndGlassMode && (
-              <p className="text-[11px] text-violet-500 mb-1 font-medium">
-                ✦ Bottle + Glass mode — Served is enforced automatically
-              </p>
-            )}
-            {isMacroLabelMode && (
-              <p className="text-[11px] text-amber-500 mb-1 font-medium">
-                ✦ Macro Label mode — serve state is not applicable
-              </p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {SERVE_STATE_OPTIONS.map((option) => {
-                // RULE 3: Bottle + Glass forces Served — Closed is locked out
-                const isDisabled =
-                  (isBottleAndGlassMode && option.value === 'none') ||
-                  isMacroLabelMode;
-                return (
+          {currentServeMode === 'served' && !isMacroLabelMode && (
+            <div>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bottle Fill</p>
+              <div className="flex flex-wrap gap-2">
+                {WINE_BOTTLE_FILL_OPTIONS.map((option) => (
                   <Chip
                     key={option.value}
-                    selected={isBottleAndGlassMode ? option.value === 'served' : currentServeState === option.value}
-                    disabled={isDisabled}
-                    onClick={() => {
-                      if (isDisabled) return;
-                      if (option.value === 'none') {
-                        setWineUiState({
-                          wineGlassMode: 'none',
-                          wineServeAmount: 'standard',
-                          wineBottleState: 'sealed',
-                        });
-                        return;
-                      }
+                    selected={currentBottleFillMode === option.value}
+                    onClick={() =>
                       setWineUiState({
+                        wineServeMode: 'served',
+                        wineBottleFillMode: option.value,
                         wineGlassMode: 'filled',
-                        wineServeAmount: 'standard',
                         wineBottleState: 'opened-with-cork-nearby',
-                      });
-                    }}
+                        wineAction: 'static-presentation',
+                        wineServeAmount: option.value,
+                      })
+                    }
                     title={option.description}
                   >
                     {option.label}
                   </Chip>
-                );
-              })}
+                ))}
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {currentBottleFillMode === 'just-opened'
+                  ? 'Open bottle, nearly full, with a filled glass beside it.'
+                  : 'Open bottle with visible liquid reduction, plus filled glass.'}
+              </p>
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">
-              {isBottleAndGlassMode
-                ? 'Open bottle · Half-empty · Cap on surface · Glass with wine'
-                : currentServeState === 'none'
-                ? 'Sealed bottle · Full · No glass'
-                : wineStyleArchetype
-                  ? `Open bottle · Half-empty · Cap on surface · Glass with wine · ${wineStyleArchetype} lighting`
-                  : 'Open bottle · Half-empty · Cap on surface · Glass with wine'}
-            </p>
-          </div>
-          {currentServeState === 'served' && !isMacroLabelMode && (
+          )}
+          {(currentServeMode === 'served' || currentServeMode === 'pouring') && !isMacroLabelMode && (
             <div>
               <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Glass</p>
               <div className="flex flex-wrap gap-2">
@@ -299,7 +353,7 @@ export function WineModule() {
             </div>
           </div>
           )}
-          {wineAction === 'controlled-pour' && (
+          {currentServeMode === 'pouring' && (
             <div>
               <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Pour Style</p>
               <div className="flex flex-wrap gap-2">

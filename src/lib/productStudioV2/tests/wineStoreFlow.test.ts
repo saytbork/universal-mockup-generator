@@ -39,6 +39,7 @@ describe('wine store flow', () => {
 
     expect(state.industryProfile).toBe('wine');
     expect(state.visualProfile).toBe('wine-prestige');
+    expect(state.wineServeMode).toBe('bottle-only');
     expect(state.wineEnvironment).toBe('Marble Bar');
     expect(state.wineMicroVariation).toMatchObject({
       season: 'autumn',

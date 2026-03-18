@@ -8,6 +8,8 @@ describe('wine photo mode state normalization', () => {
       industryProfile: 'wine',
       visualProfile: 'wine',
       photoMode: 'Hero Landing Page',
+      wineServeMode: 'bottle-only',
+      wineBottleFillMode: 'just-opened',
       wineGlassMode: 'none',
       wineBottleState: 'sealed',
       wineAction: 'static-presentation',
@@ -16,6 +18,8 @@ describe('wine photo mode state normalization', () => {
     useProductStudioStore.getState().setPhotoMode('Bottle + Glass');
 
     const state = useProductStudioStore.getState();
+    expect(state.wineServeMode).toBe('served');
+    expect(state.wineBottleFillMode).toBe('just-opened');
     expect(state.wineGlassMode).toBe('filled');
     expect(state.wineBottleState).toBe('opened-with-cork-nearby');
     expect(state.wineAction).toBe('static-presentation');
@@ -27,6 +31,8 @@ describe('wine photo mode state normalization', () => {
       industryProfile: 'wine',
       visualProfile: 'wine',
       photoMode: 'Bottle + Glass Pour',
+      wineServeMode: 'pouring',
+      wineBottleFillMode: 'partially-served',
       wineGlassMode: 'filled',
       wineBottleState: 'opened-with-cork-nearby',
       wineAction: 'controlled-pour',
@@ -35,6 +41,8 @@ describe('wine photo mode state normalization', () => {
     useProductStudioStore.getState().setPhotoMode('Winery Scene');
 
     const state = useProductStudioStore.getState();
+    expect(state.wineServeMode).toBe('bottle-only');
+    expect(state.wineBottleFillMode).toBe('just-opened');
     expect(state.wineGlassMode).toBe('none');
     expect(state.wineBottleState).toBe('sealed');
     expect(state.wineAction).toBe('static-presentation');

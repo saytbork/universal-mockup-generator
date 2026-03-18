@@ -59,6 +59,8 @@ import type {
     WineStyleArchetype,
     WineMicroVariation,
     WineEnvironmentV4,
+    WineServeMode,
+    WineBottleFillMode,
     CoffeeAction,
     CoffeeMode,
     CoffeeLightingTone,
@@ -185,6 +187,58 @@ const mapQualityProfileToVisualIntent = (
 ): ProductStudioState['visualIntent'] => {
     return profile === 'ecommerce-conversion' ? 'conversion' : 'campaign';
 };
+
+function deriveWineServeMode(state: Partial<ProductStudioState>): WineServeMode {
+    if (state.wineServeMode === 'bottle-only' || state.wineServeMode === 'served' || state.wineServeMode === 'pouring') {
+        return state.wineServeMode;
+    }
+    if (state.wineAction === 'controlled-pour') return 'pouring';
+    if (state.wineGlassMode === 'filled') return 'served';
+    return 'bottle-only';
+}
+
+function deriveWineBottleFillMode(state: Partial<ProductStudioState>): WineBottleFillMode {
+    if (state.wineBottleFillMode === 'just-opened' || state.wineBottleFillMode === 'partially-served') {
+        return state.wineBottleFillMode;
+    }
+    const serveAmount = String(state.wineServeAmount || '').trim().toLowerCase();
+    if (serveAmount.includes('just-opened')) return 'just-opened';
+    return 'partially-served';
+}
+
+function resolveWineStatePatch(
+    serveMode: WineServeMode,
+    bottleFillMode: WineBottleFillMode
+): Pick<ProductStudioState, 'wineServeMode' | 'wineBottleFillMode' | 'wineGlassMode' | 'wineBottleState' | 'wineAction' | 'wineServeAmount'> {
+    if (serveMode === 'bottle-only') {
+        return {
+            wineServeMode: 'bottle-only',
+            wineBottleFillMode: 'just-opened',
+            wineGlassMode: 'none',
+            wineBottleState: 'sealed',
+            wineAction: 'static-presentation',
+            wineServeAmount: 'none',
+        };
+    }
+    if (serveMode === 'pouring') {
+        return {
+            wineServeMode: 'pouring',
+            wineBottleFillMode: 'partially-served',
+            wineGlassMode: 'filled',
+            wineBottleState: 'opened-with-cork-nearby',
+            wineAction: 'controlled-pour',
+            wineServeAmount: 'partially-served',
+        };
+    }
+    return {
+        wineServeMode: 'served',
+        wineBottleFillMode: bottleFillMode,
+        wineGlassMode: 'filled',
+        wineBottleState: 'opened-with-cork-nearby',
+        wineAction: 'static-presentation',
+        wineServeAmount: bottleFillMode,
+    };
+}
 
 export function getDefaultPhysical(type: ProductType): PhysicalDefinition {
     switch (type) {
@@ -698,7 +752,12 @@ export const DEFAULT_PRODUCT_STUDIO_STATE: ProductStudioState = {
     wineMoodModifier: 'None',
     wineAction: 'static-presentation',
     winePourStyle: 'mid-flow-elegance',
+    wineServeMode: 'bottle-only',
+    wineBottleFillMode: 'just-opened',
+    wineBottleState: 'sealed',
+    wineGlassMode: 'none',
     wineGlassType: 'auto',
+    wineServeAmount: 'none',
     wineStyleArchetype: null,
     wineMicroVariation: {
       season: 'none',
@@ -1353,9 +1412,10 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 industryProfile: 'wine',
                 category: state.category || 'Wine',
                 contextPreset: state.contextPreset || '',
-                wineAction: WINE_ACTION_OPTIONS.includes(state.wineAction as WineAction)
-                    ? state.wineAction
-                    : 'static-presentation',
+                ...resolveWineStatePatch(
+                    deriveWineServeMode(state),
+                    deriveWineBottleFillMode(state)
+                ),
                 winePourStyle: WINE_POUR_STYLE_OPTIONS.includes(state.winePourStyle as WinePourStyle)
                     ? state.winePourStyle
                     : 'mid-flow-elegance',
@@ -1366,7 +1426,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setWineAction: (action) =>
         set((state) => {
             const normalized: WineAction = action === 'controlled-pour' ? 'controlled-pour' : 'static-presentation';
-            const next: Partial<ProductStudioState> = { wineAction: normalized };
+            const currentServeMode = deriveWineServeMode(state);
+            const currentBottleFillMode = deriveWineBottleFillMode(state);
+            const nextServeMode =
+                normalized === 'controlled-pour'
+                    ? 'pouring'
+                    : currentServeMode === 'pouring'
+                        ? 'served'
+                        : currentServeMode;
+            const next: Partial<ProductStudioState> = {
+                ...resolveWineStatePatch(nextServeMode, currentBottleFillMode),
+            };
             if (state.visualProfile === 'wine-prestige' && normalized === 'controlled-pour') {
                 next.stateMotion = 'static';
             }
@@ -1965,6 +2035,21 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const isServedWineMode = servedWineModes.includes(effectiveMode);
             const isPourWineMode = pourWineModes.includes(effectiveMode);
             const isWineSceneOwnedMode = wineSceneOwnedModes.includes(effectiveMode);
+            const fallbackServeMode = deriveWineServeMode(state);
+            const fallbackBottleFillMode = deriveWineBottleFillMode(state);
+            const resolvedWineServeMode: WineServeMode = isPourWineMode
+                ? 'pouring'
+                : isServedWineMode
+                    ? 'served'
+                    : isWineSceneOwnedMode
+                        ? 'bottle-only'
+                        : fallbackServeMode;
+            const resolvedWineBottleFillMode: WineBottleFillMode =
+                resolvedWineServeMode === 'served'
+                    ? fallbackBottleFillMode
+                    : resolvedWineServeMode === 'pouring'
+                        ? 'partially-served'
+                        : 'just-opened';
 
             const common: Partial<ProductStudioState> = {
                 photoMode: effectiveMode,
@@ -1980,15 +2065,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
                 ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
                 ...(isWinePhotoMode
-                    ? {
-                        wineGlassMode: isServedWineMode ? 'filled' : isWineSceneOwnedMode ? 'none' : state.wineGlassMode,
-                        wineBottleState: isServedWineMode
-                            ? 'opened-with-cork-nearby'
-                            : isWineSceneOwnedMode
-                                ? 'sealed'
-                                : state.wineBottleState,
-                        wineAction: isPourWineMode ? 'controlled-pour' : 'static-presentation',
-                    }
+                    ? resolveWineStatePatch(resolvedWineServeMode, resolvedWineBottleFillMode)
                     : {}),
                 ...notes,
             };
