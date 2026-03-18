@@ -62,6 +62,21 @@ describe('wine concept modes', () => {
     expect(prompt).not.toContain('WINE_ENVIRONMENT: black-studio.');
   });
 
+  it('maps explicit wine environment selection from the wine module into the V2 environment variation', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Hero Landing Page', {
+        contextPreset: '',
+        wineEnvironment: 'Marble Bar',
+      })
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineEnvironment).toBe('Marble Bar');
+    expect(mapped.wineEnvironmentVariation).toBe('marble-bar');
+    expect(mapped.autoRandomizeWineEnvironment).toBe(false);
+    expect(prompt).toContain('WINE_ENVIRONMENT: marble-bar.');
+  });
+
   it('uses explicit sparkling flute guidance when selected for served wine scenes', () => {
     const mapped = toStudioV2State(
       makeWineState('Bottle + Glass Pour', {

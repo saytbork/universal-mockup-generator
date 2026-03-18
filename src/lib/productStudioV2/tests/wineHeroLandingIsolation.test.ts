@@ -62,4 +62,30 @@ describe('wine hero landing isolation', () => {
     expect(prompt).toContain('45° hero describes camera viewpoint only, never physical bottle lean.');
     expect(prompt).toContain('The bottle must remain perfectly upright');
   });
+
+  it('injects wine micro variation details from the wine module controls', () => {
+    const mapped = toStudioV2State(
+      makeWineHeroState({
+        wineMicroVariation: {
+          season: 'autumn',
+          dewOnGlass: true,
+          atmosphericHaze: 'none',
+          floralProps: false,
+          microProps: 'cork-and-corkscrew',
+          backgroundDepthBoost: false,
+        } as any,
+      })
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineMicroVariation).toMatchObject({
+      season: 'autumn',
+      dewOnGlass: true,
+      microProps: 'cork-and-corkscrew',
+    });
+    expect(prompt).toContain('WINE_MICRO_VARIATION:');
+    expect(prompt).toContain('autumn');
+    expect(prompt).toContain('condensation');
+    expect(prompt).toContain('corkscrew');
+  });
 });

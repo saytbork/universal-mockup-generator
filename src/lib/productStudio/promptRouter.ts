@@ -1160,8 +1160,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
+  const explicitWineEnvironment = String(state.contextPreset || state.wineEnvironment || '').trim();
   const wineEnvironment = winePrestigeMode
-    ? resolveWineEnvironmentVariation(String(state.contextPreset || '').trim())
+    ? resolveWineEnvironmentVariation(explicitWineEnvironment)
     : null;
   const effectiveWineEnvironment =
     winePrestigeMode && resolvedPhotoMode === 'Winery Scene'
@@ -1242,6 +1243,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           autoRandomizeWineEnvironment: effectiveWineEnvironment.autoRandomize,
         }
       : {}),
+    ...(state.wineEnvironment ? { wineEnvironment: state.wineEnvironment } : {}),
+    ...(state.wineMicroVariation ? { wineMicroVariation: state.wineMicroVariation } : {}),
     ...(wineMoodProfile ? { wineMoodProfile } : {}),
     ...(shouldAssignWineFields
       ? {
