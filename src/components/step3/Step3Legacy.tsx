@@ -6198,9 +6198,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       </MotionInteractionBlock>
       )}
 
-      {mode === 'studio' && !wineIndustryActive && (
+      {mode === 'studio' && (
       <WorldAtmosphereBlock
         icon={Layers}
+        title={wineIndustryActive ? 'Bundle / Lineup' : undefined}
         description="Build the world around the product."
         isOpen={openAccordionId === 'productStructure'}
         onToggle={() => toggleSection('productStructure')}
@@ -6209,7 +6210,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       >
         <div className="space-y-6">
           <p className="text-xs text-gray-500 dark:text-white/50">
-            Define how products are grouped, bundled, and positioned.
+            {wineIndustryActive
+              ? 'Define how multiple bottles are grouped and rendered together.'
+              : 'Define how products are grouped, bundled, and positioned.'}
           </p>
           {/* BUNDLE PRESETS (Mode: Single/Duo/Trio/Kit) */}
           <div className={SECTION_GROUP_CLASS}>

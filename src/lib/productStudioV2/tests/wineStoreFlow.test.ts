@@ -14,6 +14,17 @@ const TEST_PRODUCT: ProductAsset = {
   },
 };
 
+const TEST_PRODUCT_2: ProductAsset = {
+  id: 'wine-2',
+  name: 'Wine Bottle Reserve',
+  imageUrl: 'https://example.com/wine-2.png',
+  palette: {
+    dominant: '#203040',
+    secondary: '#d7d1c3',
+    accent: '#6f1320',
+  },
+};
+
 describe('wine store flow', () => {
   beforeEach(() => {
     useProductStudioStore.setState(structuredClone(DEFAULT_PRODUCT_STUDIO_STATE));
@@ -54,5 +65,35 @@ describe('wine store flow', () => {
     expect(prompt).toContain('autumn');
     expect(prompt).toContain('condensation');
     expect(prompt).toContain('corkscrew');
+  });
+
+  it('uses a single bundle prompt for wine lineup comparison instead of per-product served prompts', () => {
+    const store = useProductStudioStore.getState();
+
+    store.addProduct(TEST_PRODUCT);
+    store.addProduct(TEST_PRODUCT_2);
+    store.setVisualProfile('wine');
+    store.setPhotoMode('Bottle + Glass');
+
+    useProductStudioStore.setState({
+      wineServeMode: 'served',
+      wineBottleFillMode: 'partially-served',
+      wineGlassMode: 'filled',
+    });
+
+    store.setPhotoMode('Wine Lineup Comparison');
+
+    const state = useProductStudioStore.getState();
+    const jobs = generateProductJobs(state);
+    const prompt = jobs[0]?.prompt ?? '';
+
+    expect(state.bundle.enabled).toBe(true);
+    expect(state.bundle.mode).toBe('lineup');
+    expect(state.wineServeMode).toBe('bottle-only');
+    expect(jobs).toHaveLength(1);
+    expect(prompt).toContain('PHOTO_MODE: Wine Lineup Comparison.');
+    expect(prompt).toContain('BUNDLE: Exactly 2 products must appear in the scene.');
+    expect(prompt).toContain('NO_GLASS: No wine glass in the scene.');
+    expect(prompt).not.toContain('WINE_GLASS:');
   });
 });

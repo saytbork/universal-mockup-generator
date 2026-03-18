@@ -1161,6 +1161,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
       resolvedPhotoMode === 'Rose Tasting Table');
+  const isWineLineupMode =
+    industryProfile === 'wine' && resolvedPhotoMode === 'Wine Lineup Comparison';
   const stateWineServeMode = deriveWineServeMode(state);
   const stateWineBottleFillMode = deriveWineBottleFillMode(state);
   const resolvedWineServeMode =
@@ -1168,6 +1170,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       ? 'bottle-only'
       : isWinePourMode
         ? 'pouring'
+        : isWineLineupMode
+          ? 'bottle-only'
         : isWineServedPresentationMode
           ? 'served'
           : stateWineServeMode;

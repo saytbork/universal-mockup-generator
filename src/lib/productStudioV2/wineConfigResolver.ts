@@ -1,6 +1,6 @@
 import type { StudioUIState } from './types/studioTypes.ts';
 
-export type ServeState = 'none' | 'served';
+export type ServeState = 'none' | 'served' | 'pouring';
 export type BottleFillState = 'retail-full' | 'just-opened' | 'clearly-partially-consumed';
 
 export type ResolvedWineConfig = {
@@ -40,6 +40,10 @@ function resolveWineGlassDescriptor(state: StudioUIState): string {
  *   Bottle is opened for service and visibly below retail-full level.
  *   A wine glass filled with wine appears next to the bottle.
  *   The removed closure may appear on the surface when appropriate.
+ *
+ * POURING (serveState=pouring):
+ *   Bottle is opened and actively pouring into the receiving glass.
+ *   The bottle must read as naturally supported, never levitating.
  */
 export function buildWineTruthLayer(
   state: StudioUIState,
@@ -51,9 +55,11 @@ export function buildWineTruthLayer(
 
   const serveState: ServeState = (config as any).serveState
     ? (config as any).serveState
-    : (typeof (config as any).glassFillLevel !== 'undefined' && (config as any).glassFillLevel !== 'none')
-    ? 'served'
-    : 'none';
+    : String((state as unknown as Record<string, unknown>).wineAction || '').trim() === 'controlled-pour'
+      ? 'pouring'
+      : (typeof (config as any).glassFillLevel !== 'undefined' && (config as any).glassFillLevel !== 'none')
+        ? 'served'
+        : 'none';
 
   const isSparkling =
     wineType === 'sparkling-white' ||
@@ -66,15 +72,17 @@ export function buildWineTruthLayer(
       : 'clearly-partially-consumed';
 
   const engineStatusBlock = 'WINE_ENGINE_STATUS: active. deterministic.';
-  const resolvedBottleState = serveState === 'served' ? 'open' : 'sealed';
+  const resolvedBottleState = serveState === 'none' ? 'sealed' : 'open';
   const configBlock = `WINE_CONFIG_RESOLVED: wineType=${wineType}; closureType=${closureType}; bottleState=${resolvedBottleState}; serveState=${serveState}; carbonationLevel=${carbonationLevel};`;
 
   // BOTTLE PRESERVATION — geometry and label remain locked, while service state may change opening/fill level.
   // For pour modes (wineAction='controlled-pour'), the bottle is physically tilted by design.
   // For all other served modes (Bottle+Glass, Editorial Table, Winery Scene, etc.), the bottle
   // must remain perfectly upright — no "unless" ambiguity.
-  const isPourAction = String((state as unknown as Record<string, unknown>).wineAction || '').trim() === 'controlled-pour';
-  const bottlePreservationBlock = serveState === 'served'
+  const isPourAction =
+    serveState === 'pouring' ||
+    String((state as unknown as Record<string, unknown>).wineAction || '').trim() === 'controlled-pour';
+  const bottlePreservationBlock = serveState !== 'none'
     ? [
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
         'The bottle is opened for service.',
@@ -88,7 +96,7 @@ export function buildWineTruthLayer(
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
         isPourAction
-          ? 'BOTTLE_ORIENTATION: Bottle is held at a pouring angle for active wine service. The tilt angle must originate from the bottle neck rotating forward over the glass, not from the base lifting. The base remains near the surface. The pour stream exits from the true bottle mouth.'
+          ? 'BOTTLE_ORIENTATION: Bottle is supported from off-frame or by a cropped hand and held at a believable serving angle for active wine service. The bottle must not appear to levitate. The punt/base stays lower than the shoulder line and the whole bottle rotates as a single rigid object from a natural wrist or hand position. The mouth sits slightly above the receiving glass rim with the neck angled downward just enough for a controlled pour. The pour stream exits from the true bottle mouth only.'
           : 'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal. The vertical axis is perpendicular to the ground plane. Camera angle does not imply bottle angle.',
       ].join(' ')
     : [
@@ -122,8 +130,10 @@ export function buildWineTruthLayer(
   ].join(' ');
 
   // GLASS — only for served mode
-  const glassBlock = serveState === 'served'
-    ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.`
+  const glassBlock = serveState !== 'none'
+    ? isPourAction
+      ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} stands upright directly beneath or just beside the bottle mouth as the receiving glass for the pour. The glass is partially filled and remains clearly visible in frame. The stream must land inside the glass opening, never beside it.`
+      : `WINE_GLASS: ${resolveWineGlassDescriptor(state)} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.`
     : 'NO_GLASS: No wine glass in the scene. No poured liquid. No extra props.';
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);

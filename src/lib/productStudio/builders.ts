@@ -249,7 +249,7 @@ const REFERENCE_PRODUCT_HARD_LOCK_WINE_SERVED =
 function resolveReferenceProductHardLock(assembledPrompt: string): string {
     if (
         assembledPrompt.includes('WINE_ENGINE_STATUS:') &&
-        assembledPrompt.includes('serveState=served')
+        (assembledPrompt.includes('serveState=served') || assembledPrompt.includes('serveState=pouring'))
     ) {
         return REFERENCE_PRODUCT_HARD_LOCK_WINE_SERVED;
     }

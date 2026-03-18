@@ -40,9 +40,13 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(mapped.wineGlassMode).toBe('filled');
     expect(mapped.wineBottleState).toBe('opened-with-cork-nearby');
+    expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('SCENE_STYLE: real wine hospitality photography with controlled pour motion.');
     expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
     expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
+    expect(prompt).toContain('must not look suspended');
+    expect(prompt).toContain('No levitating bottle.');
+    expect(prompt).toContain('supported from off-frame or by a cropped hand');
     expect(prompt).toContain('Never emit liquid from below the bottle rim');
   });
 
@@ -60,11 +64,20 @@ describe('wine concept modes', () => {
   });
 
   it('renders lineup comparison as wine-family comparison instead of hero fallback', () => {
-    const mapped = toStudioV2State(makeWineState('Wine Lineup Comparison'));
+    const mapped = toStudioV2State(
+      makeWineState('Wine Lineup Comparison', {
+        wineServeMode: 'served',
+        wineBottleFillMode: 'partially-served',
+        wineGlassMode: 'filled',
+      })
+    );
     const prompt = generateStudioPromptV2(mapped);
 
+    expect(mapped.wineServeMode).toBe('bottle-only');
     expect(prompt).toContain('SCENE_STYLE: real wine lineup photography with clean varietal spacing and brand-family balance.');
     expect(prompt).toContain('PHOTO_MODE: Wine Lineup Comparison.');
+    expect(prompt).toContain('NO_GLASS: No wine glass in the scene.');
+    expect(prompt).not.toContain('WINE_GLASS:');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
 

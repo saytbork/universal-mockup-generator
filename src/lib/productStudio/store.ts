@@ -2025,6 +2025,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             ];
             const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine'];
             const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
+            const wineLineupMode = effectiveMode === 'Wine Lineup Comparison';
             const normalizedIndustryProfile = String(state.industryProfile || '').trim().toLowerCase();
             const normalizedVisualProfile = String(state.visualProfile || '').trim().toLowerCase();
             const isWineState =
@@ -2041,6 +2042,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 ? 'pouring'
                 : isServedWineMode
                     ? 'served'
+                    : wineLineupMode
+                        ? 'bottle-only'
                     : isWineSceneOwnedMode
                         ? 'bottle-only'
                         : fallbackServeMode;
@@ -2066,6 +2069,17 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 ...(shouldClearProps ? { props: '', selectedProps: [] } : {}),
                 ...(isWinePhotoMode
                     ? resolveWineStatePatch(resolvedWineServeMode, resolvedWineBottleFillMode)
+                    : {}),
+                ...(isWinePhotoMode && wineLineupMode && state.products.length >= 2
+                    ? {
+                        bundle: {
+                            ...state.bundle,
+                            enabled: true,
+                            mode: 'lineup',
+                            primaryProductId: state.products[0]?.id || null,
+                            secondaryProductIds: state.products.slice(1).map((p) => p.id),
+                        },
+                    }
                     : {}),
                 ...notes,
             };

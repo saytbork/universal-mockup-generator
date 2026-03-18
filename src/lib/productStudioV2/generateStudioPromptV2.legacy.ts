@@ -336,7 +336,8 @@ function resolveWineClosureType(state: StudioUIState): string {
 function resolveDeterministicWineConfig(state: StudioUIState): ResolvedWineConfig {
   const serveMode = resolveServePresentationMode(state);
   const bottleState = serveMode === 'bottle-only' ? 'sealed' : 'open';
-  const serveState = serveMode === 'bottle-only' ? 'none' : 'served';
+  const serveState =
+    serveMode === 'bottle-only' ? 'none' : serveMode === 'pouring' ? 'pouring' : 'served';
   const bottleFillState = resolveBottleFillState(state, serveMode);
 
   return {
