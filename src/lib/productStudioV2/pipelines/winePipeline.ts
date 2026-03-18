@@ -2,6 +2,7 @@ import { applyWineDeterministicStateMachine, resolveDeterministicWineConfig, res
 import type { StudioUIState } from '../index';
 import { assembleWineV4Prompt, resolveDefaultLuxuryTier, resolveCompositionForServeState, resolveCameraForCompositionMode, WINE_LIGHTING_RIGS, WINE_COMPOSITION_MODES, buildMicroVariationBlock } from '../../productStudio/winePrestige';
 import type { WineEnvironmentV4, WineLuxuryIntensity, WineCompositionMode, WineMicroVariation } from '../../productStudio/types';
+import { buildWineIndustryLayerV2 } from '../builders/buildWineIndustryLayerV2';
 
 // For structural testing only
 export function __buildSegmentsForTest(state: StudioUIState) {
@@ -186,6 +187,11 @@ export const winePipeline = {
       type: 'world',
       content: buildWorld(resolveStudioAuthority(wineEffectiveState), wineEffectiveState.world, wineEffectiveState),
     });
+
+    const wineIndustryLayer = buildWineIndustryLayerV2(wineEffectiveState);
+    if (wineIndustryLayer) {
+      segments.push({ type: 'guardrail', content: wineIndustryLayer });
+    }
 
     if (hasWineEnvironment) {
       segments.push({ type: 'guardrail', content: `WINE_ENVIRONMENT: ${effectiveWineEnvironmentVariation}.` });

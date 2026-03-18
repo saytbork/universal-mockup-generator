@@ -22,6 +22,7 @@ describe('wine hero landing isolation', () => {
     const prompt = generateStudioPromptV2(mapped);
 
     expect(prompt).toContain('WINE_ENVIRONMENT: vineyard.');
+    expect(prompt).toContain('WINE_ENVIRONMENT_CONTEXT: background context: vineyard rows with warm distance haze; surface: natural stone or wood.');
     expect(prompt).toContain('SCENE_STYLE: real wine bottle photography with natural optical behavior and product-first fidelity.');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
     expect(prompt).not.toContain('Product isolated for hero landing page.');

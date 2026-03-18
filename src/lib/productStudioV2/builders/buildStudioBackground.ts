@@ -83,7 +83,7 @@ export function buildStudioBackground(
       return ' Scene integrates clean kitchen countertop realism with believable domestic depth and restrained surrounding cues while keeping the product dominant in the foreground.';
     }
     if (environmentMacro === 'Nature Elements') {
-      return ' Scene integrates natural stone, wood, and botanical material cues as part of the actual scene, with the product remaining the dominant foreground hero.';
+      return ' Scene integrates natural stone, wood, and botanical material cues as part of the actual scene, with organic material realism preserved throughout the environment and the product remaining the dominant foreground hero.';
     }
     if (environmentMacro === 'Stone Surface') {
       return ' Scene integrates a tactile mineral surface family across the visible scene with grounded premium placement realism.';
