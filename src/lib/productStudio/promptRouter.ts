@@ -228,6 +228,12 @@ const PHOTO_MODES = new Set([
   'Rose Tasting Table',
   'Editorial Table',
   'Winery Scene',
+  'Social Table Served',
+  'Outdoor Toast',
+  'Hosting Pour',
+  'Dinner Pairing',
+  'Picnic Gathering',
+  'Celebration Chill',
   'Acrylic Blocks',
   'Glass Pedestal Studio',
   'Beach Foam Splash',
@@ -1148,19 +1154,33 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     isExplicitWineIndustry && industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
   const isWinePourMode =
     industryProfile === 'wine' &&
-    (resolvedPhotoMode === 'Bottle + Glass Pour' || resolvedPhotoMode === 'Hands Pouring Wine');
+    (resolvedPhotoMode === 'Bottle + Glass Pour' ||
+      resolvedPhotoMode === 'Hands Pouring Wine' ||
+      resolvedPhotoMode === 'Hosting Pour');
   const isWineGlassMode =
     industryProfile === 'wine' &&
     (resolvedPhotoMode === 'Bottle + Glass' ||
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
-      resolvedPhotoMode === 'Rose Tasting Table');
+      resolvedPhotoMode === 'Rose Tasting Table' ||
+      resolvedPhotoMode === 'Social Table Served' ||
+      resolvedPhotoMode === 'Outdoor Toast' ||
+      resolvedPhotoMode === 'Hosting Pour' ||
+      resolvedPhotoMode === 'Dinner Pairing' ||
+      resolvedPhotoMode === 'Picnic Gathering' ||
+      resolvedPhotoMode === 'Celebration Chill');
   const isWineServedPresentationMode =
     industryProfile === 'wine' &&
     (resolvedPhotoMode === 'Bottle + Glass' ||
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
-      resolvedPhotoMode === 'Rose Tasting Table');
+      resolvedPhotoMode === 'Rose Tasting Table' ||
+      resolvedPhotoMode === 'Social Table Served' ||
+      resolvedPhotoMode === 'Outdoor Toast' ||
+      resolvedPhotoMode === 'Hosting Pour' ||
+      resolvedPhotoMode === 'Dinner Pairing' ||
+      resolvedPhotoMode === 'Picnic Gathering' ||
+      resolvedPhotoMode === 'Celebration Chill');
   const isWineLineupMode =
     industryProfile === 'wine' && resolvedPhotoMode === 'Wine Lineup Comparison';
   const stateWineServeMode = deriveWineServeMode(state);

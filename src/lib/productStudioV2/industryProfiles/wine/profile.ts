@@ -73,6 +73,7 @@ export const wineProfile: IndustryProfileModule = {
     if (stateMotion === 'opened' || stateMotion === 'pouring') return 'wine-cork-removal';
     return 'wine-cork';
   },
+  resolveAllowedInteractions: (interactionWhitelist, _resolvedIntent) => interactionWhitelist,
   resolveCameraByCapability: (camera, options) => {
     const base = { ...camera };
     const warnings: string[] = [];
@@ -100,5 +101,5 @@ export const wineProfile: IndustryProfileModule = {
     return { ...base, warnings };
   },
   getAllowedMotions: () => ['static', 'opened'],
-  forceInteractionNone: true,
+  forceInteractionNone: false,
 };

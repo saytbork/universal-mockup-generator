@@ -38,8 +38,15 @@ export const winePipeline = {
       'Bottle + Glass Pour',
       'Hands Pouring Wine',
       'Rose Tasting Table',
+      'Social Table Served',
+      'Outdoor Toast',
+      'Hosting Pour',
+      'Dinner Pairing',
+      'Picnic Gathering',
+      'Celebration Chill',
     ]);
-    const activePourMode = photoMode === 'Bottle + Glass Pour' || photoMode === 'Hands Pouring Wine';
+    const activePourMode =
+      photoMode === 'Bottle + Glass Pour' || photoMode === 'Hands Pouring Wine' || photoMode === 'Hosting Pour';
     const stateForMachine: StudioUIState = servedGlassModes.has(photoMode)
       ? {
           ...state,
@@ -103,6 +110,12 @@ export const winePipeline = {
     const editorialBottleTabletopMode = photoMode === 'Editorial Bottle Tabletop';
     const bottleInHandCutoutMode = photoMode === 'Bottle In Hand Cutout';
     const roseTastingTableMode = photoMode === 'Rose Tasting Table';
+    const socialTableServedMode = photoMode === 'Social Table Served';
+    const outdoorToastMode = photoMode === 'Outdoor Toast';
+    const hostingPourMode = photoMode === 'Hosting Pour';
+    const dinnerPairingMode = photoMode === 'Dinner Pairing';
+    const picnicGatheringMode = photoMode === 'Picnic Gathering';
+    const celebrationChillMode = photoMode === 'Celebration Chill';
 
     // ── WINERY SCENE — Environment injection shortcut ─────────────────────
     // Forces stone-cellar environment if wineEnvironmentVariation not already set.
@@ -256,6 +269,36 @@ export const winePipeline = {
       segments.push({
         type: 'guardrail',
         content: 'PHOTO_MODE: Rose Tasting Table. Bright premium tasting-table scene for rose or white wine. Fresh glass highlights, refined floral or tasting accents, and no human subjects in frame. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt.',
+      });
+    } else if (socialTableServedMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Social Table Served. Bottle remains the readable hero on a real shared table with one or more glasses and restrained food context. SOCIAL_REALISM: Use cropped people, hands, or passive presence only. No full-body portrait takeover. No influencer aesthetic. HOSPITALITY_DISCIPLINE: The moment reads as real table conversation and service, not staged CGI lifestyle.',
+      });
+    } else if (outdoorToastMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Outdoor Toast. Natural daylight social wine moment with raised glasses and visible bottle setup. PEOPLE_POLICY: Small-group cropped presence only. No crowd chaos. No nightlife vibe. The bottle remains visible, premium, and commercially legible.',
+      });
+    } else if (hostingPourMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Hosting Pour. Real hosting moment with active wine service in a social setting. POUR_REALISM: The bottle is naturally supported by a real cropped hand or host presence and pours into the receiving glass with believable hospitality physics. SOCIAL_CONTEXT: Guests and table context stay secondary to the bottle and pour action.',
+      });
+    } else if (dinnerPairingMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Dinner Pairing. Premium dining scene with plated food, wine glasses, and tactile table context. FOOD_STYLING: Real dining cues only. No prop-styling overload. The bottle stays legible and commercially dominant within the hospitality setup.',
+      });
+    } else if (picnicGatheringMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Picnic Gathering. Relaxed outdoor wine lifestyle scene with picnic cues, natural sunlight, and cropped social presence. LIFESTYLE_REALISM: No influencer fantasy styling. Keep the moment candid, premium, and believable with the bottle still clearly readable.',
+      });
+    } else if (celebrationChillMode) {
+      segments.push({
+        type: 'guardrail',
+        content: 'PHOTO_MODE: Celebration Chill. Chilled wine service scene with cold hospitality cues, glasses, and restrained social context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour.',
       });
     }
 

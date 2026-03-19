@@ -1927,6 +1927,12 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Rose Tasting Table',
                 'Editorial Table',
                 'Winery Scene',
+                'Social Table Served',
+                'Outdoor Toast',
+                'Hosting Pour',
+                'Dinner Pairing',
+                'Picnic Gathering',
+                'Celebration Chill',
             ];
 
             const resolvedMode: PhotoMode = allowed.includes(nextMode as PhotoMode) ? (nextMode as PhotoMode) : 'Hero Landing Page';
@@ -2000,8 +2006,13 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Bottle + Glass Pour',
                 'Hands Pouring Wine',
                 'Rose Tasting Table',
+                'Social Table Served',
+                'Outdoor Toast',
+                'Dinner Pairing',
+                'Picnic Gathering',
+                'Celebration Chill',
             ];
-            const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine'];
+            const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine', 'Hosting Pour'];
             const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
             const wineLineupMode = effectiveMode === 'Wine Lineup Comparison';
             const normalizedIndustryProfile = String(state.industryProfile || '').trim().toLowerCase();

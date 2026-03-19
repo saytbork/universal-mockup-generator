@@ -22,6 +22,12 @@ const WINE_PHOTO_MODES = new Set([
   'Rose Tasting Table',
   'Editorial Table',
   'Winery Scene',
+  'Social Table Served',
+  'Outdoor Toast',
+  'Hosting Pour',
+  'Dinner Pairing',
+  'Picnic Gathering',
+  'Celebration Chill',
 ]);
 
 export function resolveWorldBuilder(

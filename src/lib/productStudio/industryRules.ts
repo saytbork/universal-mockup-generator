@@ -37,6 +37,12 @@ export const industryRules: Record<
       'Rose Tasting Table',
       'Editorial Table',
       'Winery Scene',
+      'Social Table Served',
+      'Outdoor Toast',
+      'Hosting Pour',
+      'Dinner Pairing',
+      'Picnic Gathering',
+      'Celebration Chill',
     ],
     // Macro Dew Label is FORBIDDEN for wine — supplement-only mode
     // DO NOT add 'Macro Dew Label' here under any circumstances

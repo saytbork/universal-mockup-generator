@@ -365,7 +365,13 @@ export type PhotoMode =
     | 'Bottle In Hand Cutout'
     | 'Rose Tasting Table'
     | 'Editorial Table'
-    | 'Winery Scene';
+    | 'Winery Scene'
+    | 'Social Table Served'
+    | 'Outdoor Toast'
+    | 'Hosting Pour'
+    | 'Dinner Pairing'
+    | 'Picnic Gathering'
+    | 'Celebration Chill';
 
 export interface EnvironmentPhotoModeSchema {
     id: string;

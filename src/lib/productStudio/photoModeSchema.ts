@@ -930,6 +930,132 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         allowedInteractions: ['none'],
         allowsPersonPresence: false
     },
+
+    'Social Table Served': {
+        id: 'social-table-served',
+        label: 'Social Table Served',
+        scope: 'environment',
+        description: 'Wine bottle on a real shared table with hospitality context and cropped social presence.',
+        basePrompt: 'premium social table wine scene with bottle on table, one or more glasses, believable food pairing context, cropped people or hands only, hospitality realism, bottle remains visible and legible',
+        subOptions: [
+            { key: 'tableContext', label: 'Table Context', values: ['Minimal snacks', 'Shared plates', 'Hosting spread'] },
+            { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },
+        ],
+        constraints: [
+            'Bottle must remain clearly visible and brand-legible',
+            'No full-body portrait framing',
+            'No selfie or influencer aesthetic',
+            'Food props must feel real and wine-appropriate',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'resting-interaction', 'presenting'],
+        allowsPersonPresence: true
+    },
+
+    'Outdoor Toast': {
+        id: 'outdoor-toast',
+        label: 'Outdoor Toast',
+        scope: 'environment',
+        description: 'Outdoor wine toast with natural daylight and small-group hospitality energy.',
+        basePrompt: 'outdoor wine toast scene with raised glasses, bottle visible in the setup, natural daylight, relaxed premium gathering, cropped people or arms only, believable celebration moment',
+        subOptions: [
+            { key: 'setting', label: 'Setting', values: ['Garden', 'Terrace', 'Picnic lawn'] },
+            { key: 'groupSize', label: 'Group Size', values: ['Two', 'Three', 'Four'] },
+        ],
+        constraints: [
+            'Bottle must stay visible in frame or clearly present on the table',
+            'No chaotic crowd scene',
+            'No nightlife or party-club styling',
+            'Hospitality realism only',
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'two-hand-hold', 'presenting', 'framed-presentation'],
+        allowsPersonPresence: true
+    },
+
+    'Hosting Pour': {
+        id: 'hosting-pour',
+        label: 'Hosting Pour',
+        scope: 'environment',
+        description: 'Wine hosting moment with a real social pour in a lived-in hospitality setting.',
+        basePrompt: 'hosting wine pour in a real social setting, bottle actively pouring into a receiving glass, cropped host support only, premium hospitality realism, table context and guests secondary',
+        subOptions: [
+            { key: 'setting', label: 'Setting', values: ['Indoor hosting', 'Outdoor hosting'] },
+            { key: 'cropStyle', label: 'Crop Style', values: ['Hands only', 'Cropped torso'] },
+        ],
+        constraints: [
+            'Bottle must be naturally supported by a real hand or cropped host presence',
+            'No levitation or impossible pour angle',
+            'No full visible face required',
+            'Glass must read as the receiving vessel',
+        ],
+        requiredPlacement: 'held',
+        allowedInteractions: ['holding', 'supported-hold', 'presenting'],
+        allowsPersonPresence: true
+    },
+
+    'Dinner Pairing': {
+        id: 'dinner-pairing',
+        label: 'Dinner Pairing',
+        scope: 'environment',
+        description: 'Wine bottle with plated food and dining context in a premium but real setting.',
+        basePrompt: 'wine dinner pairing scene with bottle, glasses, plated food, real dining table context, premium hospitality atmosphere, bottle remains commercially readable',
+        subOptions: [
+            { key: 'diningMood', label: 'Dining Mood', values: ['Restaurant', 'Home dinner', 'Terrace dining'] },
+            { key: 'foodDensity', label: 'Food Density', values: ['Minimal pairing', 'Balanced table', 'Shared meal'] },
+        ],
+        constraints: [
+            'Bottle must remain a strong readable subject',
+            'Food styling must feel real, not ad-prop fake',
+            'No overloaded banquet table',
+            'No theatrical set design',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'resting-interaction', 'presenting'],
+        allowsPersonPresence: true
+    },
+
+    'Picnic Gathering': {
+        id: 'picnic-gathering',
+        label: 'Picnic Gathering',
+        scope: 'environment',
+        description: 'Outdoor casual-premium wine gathering with picnic cues and social warmth.',
+        basePrompt: 'wine picnic gathering with bottle, glasses, relaxed outdoor setting, simple premium food context, natural sunlight, cropped people or hands only, lifestyle realism',
+        subOptions: [
+            { key: 'setting', label: 'Setting', values: ['Blanket picnic', 'Low table picnic', 'Park table'] },
+            { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },
+        ],
+        constraints: [
+            'No influencer picnic fantasy styling',
+            'Bottle must remain visible and legible',
+            'No excessive props or floral overload',
+            'Keep tone relaxed but premium',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'resting-interaction', 'presenting'],
+        allowsPersonPresence: true
+    },
+
+    'Celebration Chill': {
+        id: 'celebration-chill',
+        label: 'Celebration Chill',
+        scope: 'environment',
+        description: 'Cold-service wine celebration with bucket, glasses, and a small social hospitality moment.',
+        basePrompt: 'premium wine celebration scene with chilled bottle service, glasses, cold hospitality cues, social context, and believable premium gathering atmosphere',
+        subOptions: [
+            { key: 'serviceStyle', label: 'Service Style', values: ['Ice bucket', 'Chilled table service'] },
+            { key: 'groupMood', label: 'Group Mood', values: ['Intimate', 'Small group'] },
+        ],
+        constraints: [
+            'Cold-service realism only',
+            'No fake frost glamour or nightclub look',
+            'Bottle and service context must remain believable',
+            'Social presence must stay secondary to the bottle',
+        ],
+        requiredPlacement: 'surface',
+        allowedInteractions: ['none', 'passive-presence', 'cropped-hand', 'presenting', 'resting-interaction'],
+        allowsPersonPresence: true
+    },
 };
 
 export function getSceneSchema(mode: string | undefined): EnvironmentPhotoModeSchema | undefined {

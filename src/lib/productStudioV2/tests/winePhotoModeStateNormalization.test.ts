@@ -80,4 +80,28 @@ describe('wine photo mode state normalization', () => {
     expect(state.bundle.primaryProductId).toBe(TEST_PRODUCTS[0].id);
     expect(state.bundle.secondaryProductIds).toEqual([TEST_PRODUCTS[1].id]);
   });
+
+  it('normalizes hosting pour into a pouring wine lifestyle state', () => {
+    useProductStudioStore.setState({
+      ...structuredClone(DEFAULT_PRODUCT_STUDIO_STATE),
+      industryProfile: 'wine',
+      visualProfile: 'wine',
+      sceneType: 'lifestyle-real',
+      photoMode: 'Hero Landing Page',
+      wineServeMode: 'bottle-only',
+      wineBottleFillMode: 'just-opened',
+      wineGlassMode: 'none',
+      wineBottleState: 'sealed',
+      wineAction: 'static-presentation',
+    });
+
+    useProductStudioStore.getState().setPhotoMode('Hosting Pour');
+
+    const state = useProductStudioStore.getState();
+    expect(state.wineServeMode).toBe('pouring');
+    expect(state.wineBottleFillMode).toBe('partially-served');
+    expect(state.wineGlassMode).toBe('filled');
+    expect(state.wineBottleState).toBe('opened-with-cork-nearby');
+    expect(state.wineAction).toBe('controlled-pour');
+  });
 });

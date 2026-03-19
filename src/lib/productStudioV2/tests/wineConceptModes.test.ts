@@ -128,4 +128,33 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('Single cropped hand or forearm only.');
     expect(prompt).toContain('No torso.');
   });
+
+  it('maps hosting pour to a wine lifestyle pouring state instead of static served mode', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Hosting Pour', {
+        sceneType: 'lifestyle-real',
+      } as any)
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineServeMode).toBe('pouring');
+    expect(mapped.wineAction).toBe('controlled-pour');
+    expect(prompt).toContain('serveState=pouring;');
+    expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
+    expect(prompt).toContain('Real hosting moment with active wine service');
+  });
+
+  it('renders outdoor toast as a wine lifestyle social scene rather than a studio fallback', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Outdoor Toast', {
+        sceneType: 'lifestyle-real',
+      } as any)
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
+    expect(prompt).toContain('SCENE_STYLE: real outdoor wine gathering photography');
+    expect(prompt).toContain('Small-group cropped presence only.');
+    expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
+  });
 });

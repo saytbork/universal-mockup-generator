@@ -3238,12 +3238,18 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           Basic: 4 options | Pro: All options
                           ═══════════════════════════════════════════════════════════ */}
                         <div className={SECTION_GROUP_CLASS}>
-                          <p className="text-xs font-extrabold text-gray-500 mb-2">{wineIndustryActive ? 'SHOT TYPE' : 'PHOTO MODE'}</p>
+                          <p className="text-xs font-extrabold text-gray-500 mb-2">
+                            {wineIndustryActive
+                              ? productStore.sceneType === 'lifestyle-real'
+                                ? 'WINE LIFESTYLE'
+                                : 'SHOT TYPE'
+                              : 'PHOTO MODE'}
+                          </p>
                           {(() => {
                             // ── WINE-EXCLUSIVE COMPOSITION OPTIONS ────────────────────────────
                             // These modes are only shown when industryProfile === 'wine'.
                             // Macro Dew Label is SUPPLEMENT-ONLY and must never appear here.
-                            const wineCompositionOptions: Array<{ label: string; mode: PhotoMode }> = [
+                            const wineStudioCompositionOptions: Array<{ label: string; mode: PhotoMode }> = [
                               { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
                               { label: 'Wine Macro Label', mode: 'Wine Macro Label' },
                               { label: 'Bottle + Glass', mode: 'Bottle + Glass' },
@@ -3256,11 +3262,21 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               { label: 'Editorial Table', mode: 'Editorial Table' },
                               { label: 'Winery Scene', mode: 'Winery Scene' },
                             ];
+                            const wineLifestyleCompositionOptions: Array<{ label: string; mode: PhotoMode }> = [
+                              { label: 'Social Table Served', mode: 'Social Table Served' },
+                              { label: 'Outdoor Toast', mode: 'Outdoor Toast' },
+                              { label: 'Hosting Pour', mode: 'Hosting Pour' },
+                              { label: 'Dinner Pairing', mode: 'Dinner Pairing' },
+                              { label: 'Picnic Gathering', mode: 'Picnic Gathering' },
+                              { label: 'Celebration Chill', mode: 'Celebration Chill' },
+                            ];
 
                             // ── SUPPLEMENT/GENERIC COMPOSITION OPTIONS ───────────────────────
                             // Macro Dew Label is supplement-only — never shown in wine mode.
                             const compositionOptions: Array<{ label: string; mode: PhotoMode }> = wineIndustryActive
-                              ? wineCompositionOptions
+                              ? productStore.sceneType === 'lifestyle-real'
+                                ? wineLifestyleCompositionOptions
+                                : wineStudioCompositionOptions
                               : [
                                   { label: 'Hero Landing Page', mode: 'Hero Landing Page' },
                                   { label: 'Ingredient Stack', mode: 'Ingredient Stack' },
@@ -3382,6 +3398,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Rose Tasting Table': 'Bright tasting-table scene for rose/white wine without people.',
                               'Editorial Table': 'Premium tabletop editorial with controlled wine-appropriate props.',
                               'Winery Scene': 'Bottle in authentic cellar or barrel room environment.',
+                              'Social Table Served': 'Bottle on a shared table with real hospitality context and cropped social presence.',
+                              'Outdoor Toast': 'Outdoor toast scene with natural daylight and a visible wine setup.',
+                              'Hosting Pour': 'Wine being served in a real hosting moment with cropped social presence.',
+                              'Dinner Pairing': 'Bottle, glasses, and plated food in a premium dining context.',
+                              'Picnic Gathering': 'Outdoor wine gathering with relaxed picnic cues and real social warmth.',
+                              'Celebration Chill': 'Cold-service wine celebration with social hospitality context.',
                             };
 
                             const specialEffectsOptions: Array<{ label: string; mode: PhotoMode }> = [
