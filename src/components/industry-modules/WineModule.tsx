@@ -80,12 +80,12 @@ const WINE_STUDIO_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; descri
 ];
 
 const WINE_LIFESTYLE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
-  { value: 'Social Table Served', label: 'Social Table', description: 'Product-led table scene with service context and bottle clearly visible' },
-  { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Product-led outdoor toast with visible bottle setup and action' },
-  { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Product-led hosting pour with real service action' },
-  { value: 'Dinner Pairing', label: 'Dinner Pairing', description: 'Bottle-led pairing scene with refined food context' },
-  { value: 'Picnic Gathering', label: 'Picnic Gathering', description: 'Product-led picnic setup with relaxed hospitality cues' },
-  { value: 'Celebration Chill', label: 'Celebration Chill', description: 'Chilled bottle service scene with restrained action context' },
+  { value: 'Social Table Served', label: 'Social Table', description: 'Bottle-first shared table scene with glasses, food, and real hospitality context' },
+  { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Bottle-led outdoor setup with toast action, cropped people, and natural daylight' },
+  { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Bottle hero during a real pour, with cropped arms or hands only' },
+  { value: 'Dinner Pairing', label: 'Dinner Pairing', description: 'Bottle-led dining scene with plates, snacks, or charcuterie on table' },
+  { value: 'Picnic Gathering', label: 'Picnic Gathering', description: 'Picnic blanket or board scene with bottle, glass, and relaxed outdoor context' },
+  { value: 'Celebration Chill', label: 'Celebration Chill', description: 'Chilled bottle service with bucket, condensation, glassware, or cool-table setup' },
 ];
 
 const WINE_MICRO_VARIATIONS_OPTIONS = {
