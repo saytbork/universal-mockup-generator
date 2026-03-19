@@ -273,32 +273,32 @@ export const winePipeline = {
     } else if (socialTableServedMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Social Table Served. Bottle remains the readable hero on a real shared table with one or more glasses, tactile food cues, and restrained hosting context. TABLE_LANGUAGE: Use believable olives, grapes, charcuterie, bread, or plated small bites only when they support the scene naturally. SOCIAL_REALISM: Use cropped people, hands, or passive presence only. No full-body portrait takeover. No influencer aesthetic. HOSPITALITY_DISCIPLINE: The moment reads as real table conversation and service, not staged CGI lifestyle. Keep props asymmetrical, lightly imperfect, and photographed rather than art-directed into a fake ad spread.',
+        content: 'PHOTO_MODE: Social Table Served. Product-lifestyle wine scene with the bottle as the readable hero on a real shared table. One or more glasses, tactile food cues, and restrained hosting context may appear, but the bottle remains the subject. TABLE_LANGUAGE: Use believable olives, grapes, charcuterie, bread, or plated small bites only when they support the scene naturally. HUMAN_PRESENCE_POLICY: Hands, arms, or passive cropped presence only when needed for action or context. No portrait takeover. No influencer aesthetic. HOSPITALITY_DISCIPLINE: The moment reads as real table service and product context, not staged CGI lifestyle. Keep props asymmetrical, lightly imperfect, and photographed rather than art-directed into a fake ad spread.',
       });
     } else if (outdoorToastMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Outdoor Toast. Natural daylight social wine moment with raised glasses and visible bottle setup. PEOPLE_POLICY: Small-group cropped presence only. No crowd chaos. No nightlife vibe. The bottle remains visible, premium, and commercially legible. OUTDOOR_CONTEXT: Prefer lawn, terrace, picnic table, or relaxed garden hospitality cues over scenic-cinematic backgrounds. Keep the gathering intimate and real, with sunlight and shadows behaving like an actual outdoor lunch or afternoon toast.',
+        content: 'PHOTO_MODE: Outdoor Toast. Product-lifestyle outdoor wine moment with raised glasses and visible bottle setup. HUMAN_PRESENCE_POLICY: Partial human presence only, limited to hands, arms, or cropped bodies supporting the action. No group portrait framing. No crowd chaos. No nightlife vibe. The bottle remains visible, premium, and commercially legible. OUTDOOR_CONTEXT: Prefer lawn, terrace, picnic table, or relaxed garden hospitality cues over scenic-cinematic backgrounds. Keep the moment intimate and real, with sunlight and shadows behaving like an actual outdoor lunch or afternoon toast.',
       });
     } else if (hostingPourMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Hosting Pour. Real hosting moment with active wine service in a social setting. POUR_REALISM: The bottle is naturally supported by a real cropped hand or host presence and pours into the receiving glass with believable hospitality physics. SOCIAL_CONTEXT: Guests and table context stay secondary to the bottle and pour action. HOSTING_DISCIPLINE: Frame it like real service at a table, counter, or outdoor spread. No floating bottle. No robotic wrist angle. No theatrical liquid arc.',
+        content: 'PHOTO_MODE: Hosting Pour. Product-lifestyle hosting moment with active wine service. POUR_REALISM: The bottle is naturally supported by a real cropped hand or host presence and pours into the receiving glass with believable hospitality physics. HUMAN_PRESENCE_POLICY: Only partial human presence needed to support the pour. The action is visible, but the bottle remains the hero subject. HOSTING_DISCIPLINE: Frame it like real service at a table, counter, or outdoor spread. No floating bottle. No robotic wrist angle. No theatrical liquid arc.',
       });
     } else if (dinnerPairingMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Dinner Pairing. Premium dining scene with plated food, wine glasses, and tactile table context. FOOD_STYLING: Real dining cues only. No prop-styling overload. Use one or two credible plates, not a banquet spread. The bottle stays legible and commercially dominant within the hospitality setup. TABLE_REALISM: Linen, wood, ceramic, or stone surfaces are welcome if they feel photographed and slightly imperfect, never like a CG restaurant set.',
+        content: 'PHOTO_MODE: Dinner Pairing. Product-lifestyle dining scene with plated food, wine glasses, and tactile table context. FOOD_STYLING: Real dining cues only. No prop-styling overload. Use one or two credible plates, not a banquet spread. The bottle stays legible and commercially dominant within the hospitality setup. HUMAN_PRESENCE_POLICY: Optional partial human presence only if it supports the action or context. TABLE_REALISM: Linen, wood, ceramic, or stone surfaces are welcome if they feel photographed and slightly imperfect, never like a CG restaurant set.',
       });
     } else if (picnicGatheringMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Picnic Gathering. Relaxed outdoor wine lifestyle scene with picnic cues, natural sunlight, and cropped social presence. PICNIC_LANGUAGE: Think blanket, low table, shared board, bread, fruit, or simple serveware. Avoid floral fantasy setups and wedding-styled decor. LIFESTYLE_REALISM: No influencer fantasy styling. Keep the moment candid, premium, and believable with the bottle still clearly readable.',
+        content: 'PHOTO_MODE: Picnic Gathering. Product-lifestyle picnic wine scene with picnic cues, natural sunlight, and relaxed real-world context. PICNIC_LANGUAGE: Think blanket, low table, shared board, bread, fruit, or simple serveware. Avoid floral fantasy setups and wedding-styled decor. HUMAN_PRESENCE_POLICY: Partial human presence is optional, but the bottle and action stay primary. LIFESTYLE_REALISM: No influencer fantasy styling. Keep the moment candid, premium, and believable with the bottle still clearly readable.',
       });
     } else if (celebrationChillMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Celebration Chill. Chilled wine service scene with cold hospitality cues, glasses, and restrained social context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour. SERVICE_CUES: Ice bucket, chilled bottle sleeve, or cool tabletop service may appear, but the bottle remains premium and readable. No frozen fantasy texture, no exaggerated vapor cloud, no nightclub bottle-service theatrics.',
+        content: 'PHOTO_MODE: Celebration Chill. Product-lifestyle chilled wine service scene with cold hospitality cues, glasses, and restrained action context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour. HUMAN_PRESENCE_POLICY: Partial human presence only when it helps sell the service moment. The bottle remains premium and readable. SERVICE_CUES: Ice bucket, chilled bottle sleeve, or cool tabletop service may appear, but the bottle remains premium and readable. No frozen fantasy texture, no exaggerated vapor cloud, no nightclub bottle-service theatrics.',
       });
     }
 

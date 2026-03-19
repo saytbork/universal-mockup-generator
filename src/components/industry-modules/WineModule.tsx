@@ -80,12 +80,12 @@ const WINE_STUDIO_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; descri
 ];
 
 const WINE_LIFESTYLE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
-  { value: 'Social Table Served', label: 'Social Table', description: 'Shared-table hospitality moment with bottle clearly visible' },
-  { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Natural daylight toast with bottle visible in the setup' },
-  { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Real hosting/service pour in a social setting' },
-  { value: 'Dinner Pairing', label: 'Dinner Pairing', description: 'Bottle with plated food and refined dining context' },
-  { value: 'Picnic Gathering', label: 'Picnic Gathering', description: 'Relaxed outdoor wine gathering with picnic cues' },
-  { value: 'Celebration Chill', label: 'Celebration Chill', description: 'Cold-service wine celebration with chilled hospitality context' },
+  { value: 'Social Table Served', label: 'Social Table', description: 'Product-led table scene with service context and bottle clearly visible' },
+  { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Product-led outdoor toast with visible bottle setup and action' },
+  { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Product-led hosting pour with real service action' },
+  { value: 'Dinner Pairing', label: 'Dinner Pairing', description: 'Bottle-led pairing scene with refined food context' },
+  { value: 'Picnic Gathering', label: 'Picnic Gathering', description: 'Product-led picnic setup with relaxed hospitality cues' },
+  { value: 'Celebration Chill', label: 'Celebration Chill', description: 'Chilled bottle service scene with restrained action context' },
 ];
 
 const WINE_MICRO_VARIATIONS_OPTIONS = {
@@ -244,7 +244,7 @@ export function WineModule() {
                   onClick={() => useProductStudioStore.getState().setSceneType('lifestyle-real')}
                   title="Social and hospitality wine moments"
                 >
-                  Wine Lifestyle
+                  Wine Product Lifestyle
                 </Chip>
               </div>
             </div>
@@ -252,11 +252,11 @@ export function WineModule() {
 
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
-              {wineSceneFamily === 'lifestyle' ? 'Wine Lifestyle' : 'Scene'}
+              {wineSceneFamily === 'lifestyle' ? 'Wine Product Lifestyle' : 'Scene'}
             </p>
             <p className="text-[11px] text-gray-400 mb-2">
               {wineSceneFamily === 'lifestyle'
-                ? 'Wine-specific social moments. Hospitality context is allowed, but the bottle must stay commercially legible.'
+                ? 'Product-led wine lifestyle scenes. Environment and action are allowed, but the bottle stays the hero and people never become the subject.'
                 : 'Wine-specific shot selection. This is the primary scene authority for wine.'}
             </p>
             <div className="flex flex-wrap gap-2">

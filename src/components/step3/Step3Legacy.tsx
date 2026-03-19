@@ -3247,7 +3247,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           ))}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                          Choose Studio for product-first scenes, Lifestyle for people and environments, Editorial for campaign polish, or UGC for phone-native content.
+                          Choose Studio for product-first scenes, Lifestyle for real environments and action context, Editorial for campaign polish, or UGC for phone-native content.
                         </p>
                       </div>
                     )}

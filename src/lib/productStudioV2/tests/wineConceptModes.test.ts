@@ -141,7 +141,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
-    expect(prompt).toContain('Real hosting moment with active wine service');
+    expect(prompt).toContain('Product-lifestyle hosting moment with active wine service.');
     expect(prompt).toContain('No floating bottle.');
   });
 
@@ -154,8 +154,8 @@ describe('wine concept modes', () => {
     const prompt = generateStudioPromptV2(mapped);
 
     expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
-    expect(prompt).toContain('SCENE_STYLE: real outdoor wine gathering photography');
-    expect(prompt).toContain('Small-group cropped presence only.');
+    expect(prompt).toContain('SCENE_STYLE: real product-lifestyle outdoor wine photography');
+    expect(prompt).toContain('Partial human presence only');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
