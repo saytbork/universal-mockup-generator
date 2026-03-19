@@ -7769,7 +7769,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 <div className="space-y-1">
                   <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-rose-700">WINE LIFESTYLE</p>
                   <p className="text-[11px] text-gray-500 dark:text-white/50">
-                    Social and hospitality wine moments. This stays in lifestyle mode.
+                    Social and hospitality wine moments.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -7785,10 +7785,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       key={option.mode}
                       selected={productStore.photoMode === option.mode}
                       onClick={() => {
-                        productStore.setSceneType('lifestyle-real');
                         productStore.setPhotoMode(option.mode as PhotoMode);
-                        updateValue('sceneType', 'lifestyle-real');
-                        updateValue('sceneIntent', 'environment');
                         markSectionTouched('creator');
                       }}
                     >
