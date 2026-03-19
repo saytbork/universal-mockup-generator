@@ -2676,6 +2676,73 @@ const App: React.FC = () => {
     requireNewApiKey();
   }, [isUsingStoredKey, removeStoredApiKey, requireNewApiKey]);
 
+  const classifyGenerationError = useCallback((rawError: string) => {
+    const message = String(rawError || '').trim();
+    const normalized = message.toLowerCase();
+
+    const isInvalidKey =
+      normalized.includes('requested entity was not found') ||
+      normalized.includes('api_key_invalid') ||
+      normalized.includes('api key not valid') ||
+      normalized.includes('invalid api key') ||
+      normalized.includes('provided key is invalid or restricted');
+
+    if (isInvalidKey) {
+      return {
+        message: 'Your API Key is invalid. Please select a valid key to continue.',
+        invalidateKey: true,
+      };
+    }
+
+    const isQuotaExceeded =
+      normalized.includes('exceeded your current quota') ||
+      normalized.includes('quota exceeded') ||
+      normalized.includes('insufficient_quota') ||
+      (normalized.includes('quota') &&
+        (normalized.includes('billing') || normalized.includes('plan') || normalized.includes('account')))
+      || normalized.includes('resource_exhausted');
+
+    if (isQuotaExceeded) {
+      return {
+        message: "API quota exceeded. Please select a different API key, or check your current key's plan and billing details.",
+        invalidateKey: false,
+      };
+    }
+
+    const isRateLimited =
+      normalized.includes('rate limit') ||
+      normalized.includes('too many requests') ||
+      normalized.includes('rate limited') ||
+      normalized.includes('429');
+
+    if (isRateLimited) {
+      return {
+        message: 'The image provider is rate limited right now. Wait a moment and try again.',
+        invalidateKey: false,
+      };
+    }
+
+    const isTemporaryProviderIssue =
+      normalized.includes('service unavailable') ||
+      normalized.includes('internal error encountered') ||
+      normalized.includes('deadline exceeded') ||
+      normalized.includes('temporarily unavailable') ||
+      normalized.includes('overloaded') ||
+      normalized.includes('try again later');
+
+    if (isTemporaryProviderIssue) {
+      return {
+        message: 'The image provider is temporarily unavailable. Try again in a moment.',
+        invalidateKey: false,
+      };
+    }
+
+    return {
+      message,
+      invalidateKey: false,
+    };
+  }, []);
+
   const handleManualApiKeySubmit = useCallback(() => {
     const trimmed = manualApiKey.trim();
     if (!trimmed) {
@@ -5965,19 +6032,23 @@ If the model attempts to create a scene or environment, override it and force a 
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const message =
+          const rawMessage =
             response.status === 413
               ? 'Generation failed: too many/too large product references in one request. Try with fewer products or lower-size images.'
               : (typeof data?.error === 'string' ? data.error : 'Generation failed');
+          const classifiedError = classifyGenerationError(rawMessage);
           if (generationLogId) {
             updateGenerationLog(generationLogId, {
               status: 'http_error',
               httpStatus: response.status,
-              error: message,
+              error: classifiedError.message,
               responseMeta: { responseBody: data },
             });
           }
-          setImageError(message);
+          setImageError(classifiedError.message);
+          if (classifiedError.invalidateKey) {
+            handleApiKeyInvalid();
+          }
           if (data?.upgrade_required || data?.reason === 'trial_limit') {
             setShowPlanModal(true);
             setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
@@ -6046,19 +6117,15 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
 
-        if (errorMessage.includes('Requested entity was not found')) {
-          setImageError('Your API Key is invalid. Please select a valid key to continue.');
+        const classifiedError = classifyGenerationError(errorMessage);
+        setImageError(classifiedError.message);
+        if (classifiedError.invalidateKey) {
           handleApiKeyInvalid();
-        } else if (errorMessage.toLowerCase().includes('quota')) {
-          setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-          handleApiKeyInvalid();
-        } else {
-          setImageError(errorMessage);
         }
         if (generationLogId) {
           updateGenerationLog(generationLogId, {
             status: 'exception',
-            error: errorMessage || 'Unknown generation exception',
+            error: classifiedError.message || errorMessage || 'Unknown generation exception',
           });
         }
       } finally {
@@ -6621,8 +6688,12 @@ If the model attempts to create a scene or environment, override it and force a 
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = typeof data?.error === 'string' ? data.error : 'Image edit failed';
-        setImageError(message);
+        const rawMessage = typeof data?.error === 'string' ? data.error : 'Image edit failed';
+        const classifiedError = classifyGenerationError(rawMessage);
+        setImageError(classifiedError.message);
+        if (classifiedError.invalidateKey) {
+          handleApiKeyInvalid();
+        }
         if (data?.upgrade_required || data?.reason === 'trial_limit') {
           setShowPlanModal(true);
           setPlanNotice('Free trial limit reached. Sign in to remove watermark and continue generating.');
@@ -6669,14 +6740,10 @@ If the model attempts to create a scene or environment, override it and force a 
         // not JSON
       }
 
-      if (errorMessage.includes("Requested entity was not found")) {
-        setImageError("Your API Key is invalid. Please select a valid key to continue.");
+      const classifiedError = classifyGenerationError(errorMessage);
+      setImageError(classifiedError.message);
+      if (classifiedError.invalidateKey) {
         handleApiKeyInvalid();
-      } else if (errorMessage.toLowerCase().includes("quota")) {
-        setImageError("API quota exceeded. Please select a different API key, or check your current key's plan and billing details.");
-        handleApiKeyInvalid();
-      } else {
-        setImageError(errorMessage);
       }
     } finally {
       setIsImageLoading(false);
