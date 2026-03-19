@@ -1451,33 +1451,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
     setWineMoodModifier: (modifier) => set({ wineMoodModifier: modifier }),
     setWineStyleArchetype: (archetype) =>
         set((state) => {
-            if (!archetype) return { wineStyleArchetype: null, contextPreset: undefined };
+            if (!archetype) return { wineStyleArchetype: null };
             const patch = getWineArchetypePatch(archetype);
-            if (!patch) return { wineStyleArchetype: null, contextPreset: undefined };
+            if (!patch) return { wineStyleArchetype: null };
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { _archetypeNarrative, ambientLighting: _al, ...visualFields } = patch;
-            const sceneOwnedWineEnvironmentModes: PhotoMode[] = ['Winery Scene'];
-            // Only preserve contextPreset if it was set by the USER directly (not by a previous archetype).
-            // We detect user-set vs archetype-set by checking if the current wineStyleArchetype already
-            // owns a contextPreset — if so, the current contextPreset came from an archetype, not the user,
-            // and must be overwritten by the incoming archetype patch.
-            const previousArchetypePatch = state.wineStyleArchetype
-                ? getWineArchetypePatch(state.wineStyleArchetype)
-                : null;
-            const contextPresetIsFromPreviousArchetype =
-                previousArchetypePatch?.contextPreset !== undefined &&
-                state.contextPreset === previousArchetypePatch.contextPreset;
-            // Preserve contextPreset when: it was manually set by the user (not from a previous archetype),
-            // OR when the scene mode owns the environment (Winery Scene).
-            const preserveManualContextPreset =
-                !contextPresetIsFromPreviousArchetype &&
-                (
-                    Boolean(String(state.contextPreset || '').trim()) ||
-                    sceneOwnedWineEnvironmentModes.includes(state.photoMode as PhotoMode)
-                );
-            if (preserveManualContextPreset) {
-                delete (visualFields as Record<string, unknown>).contextPreset;
-            }
             // For Action Pour Photography: only apply wineAction if physics allow it
             if (archetype === 'Action Pour Photography') {
                 const pourOk = isActionPourCompatible({

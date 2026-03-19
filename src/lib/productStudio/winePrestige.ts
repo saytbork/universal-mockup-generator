@@ -92,6 +92,12 @@ export const WINE_STYLE_ARCHETYPES: WineStyleArchetype[] = [
   'Action Pour Photography',
   'Cinematic Vineyard',
   'Warm Tasting Room',
+  'Game Night Editorial',
+  'Rustic Pairing Table',
+  'Outdoor Social Toast',
+  'Ice Bucket Chill',
+  'Grounded Vineyard Flatlay',
+  'Bottle Inspection Handheld',
 ];
 
 /**
@@ -103,7 +109,6 @@ export const WINE_STYLE_ARCHETYPES: WineStyleArchetype[] = [
  * application time via `isSafeToApplyArchetypeField()`.
  */
 export type WineArchetypePatch = {
-  contextPreset?: string;
   wineLightingTone?: WineLightingTone;
   wineMoodModifier?: WineMoodModifier;
   wineAction?: WineAction;
@@ -117,7 +122,6 @@ export type WineArchetypePatch = {
 
 const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
   'Minimal Editorial Studio': {
-    contextPreset: 'Dark Luxury Studio',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'None',
     composition: 'centered',
@@ -130,7 +134,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'medium-tight framing. Commercial wine photography — restrained, elegant, precision-focused.',
   },
   'Ultra Minimal Black Luxury': {
-    contextPreset: 'Dark Luxury Studio',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'Elegant Reflection Layer',
     composition: 'centered',
@@ -143,7 +146,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Modern premium winery aesthetic — architectural, precise, luxurious.',
   },
   'Backlit Premium Studio': {
-    contextPreset: 'Dark Luxury Studio',
     wineLightingTone: 'Golden Ambient',
     wineMoodModifier: 'Terroir Mood Tone',
     composition: 'centered',
@@ -156,7 +158,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Translucent bottle photography with natural light diffusion through the glass.',
   },
   'Moody Wood Editorial': {
-    contextPreset: 'Oak Barrel Cellar',
     wineLightingTone: 'Cellar Dramatic',
     wineMoodModifier: 'Vintage Film Grain',
     composition: 'flatlay',
@@ -169,7 +170,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Wine storytelling editorial — raw, textural, atmospheric.',
   },
   'Macro Label Branding': {
-    contextPreset: 'Dark Luxury Studio',
     wineLightingTone: 'Warm Lateral',
     wineMoodModifier: 'None',
     composition: 'centered',
@@ -185,7 +185,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Label surface is a locked photographic region — preserve from reference exactly.',
   },
   'Action Pour Photography': {
-    contextPreset: 'Dark Luxury Studio',
     wineLightingTone: 'Cellar Dramatic',
     wineMoodModifier: 'Deep Burgundy Contrast Boost',
     composition: 'thirds',
@@ -198,7 +197,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Premium action wine photography — energy, precision, drama.',
   },
   'Cinematic Vineyard': {
-    contextPreset: 'Vineyard Golden Hour',
     wineLightingTone: 'Golden Ambient',
     wineMoodModifier: 'Terroir Mood Tone',
     composition: 'thirds',
@@ -212,7 +210,6 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Terroir-driven cinematic wine photography — place, warmth, provenance.',
   },
   'Warm Tasting Room': {
-    contextPreset: 'Fine Dining Table',
     wineLightingTone: 'Golden Ambient',
     wineMoodModifier: 'None',
     composition: 'thirds',
@@ -223,6 +220,72 @@ const ARCHETYPE_PATCHES: Record<WineStyleArchetype, WineArchetypePatch> = {
       'Refined winery tasting room with warm wood cabinetry, back-bar shelving filled with wine bottles, ' +
       'soft hospitality lighting, subtle architectural depth, and elegant commercial balance. ' +
       'Bottle remains hero in the foreground while the tasting-room wall and bottle library stay recognizable but softly secondary.',
+  },
+  'Game Night Editorial': {
+    wineLightingTone: 'Candle Intimate',
+    wineMoodModifier: 'Vintage Film Grain',
+    composition: 'flatlay',
+    lightStyle: 'contrast',
+    negativeSpace: 'none',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Game Night Editorial. ' +
+      'Top-down or high-angle editorial flatlay with tactile paper, cards, corks, and restrained table clutter. ' +
+      'Everything reads as photographed and lived-in, never styled like CGI. Warm practical light, imperfect paper creases, and authentic social-night atmosphere.',
+  },
+  'Rustic Pairing Table': {
+    wineLightingTone: 'Golden Ambient',
+    wineMoodModifier: 'None',
+    composition: 'thirds',
+    lightStyle: 'soft',
+    negativeSpace: 'subtle',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Rustic Pairing Table. ' +
+      'Bottle on a real wooden table with charcuterie, olives, grapes, bread, or simple pairing accents. ' +
+      'Hospitality editorial look with tactile surfaces, natural food styling, and believable afternoon light. No luxury-showroom staging.',
+  },
+  'Outdoor Social Toast': {
+    wineLightingTone: 'Golden Ambient',
+    wineMoodModifier: 'None',
+    composition: 'thirds',
+    lightStyle: 'soft',
+    negativeSpace: 'subtle',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Outdoor Social Toast. ' +
+      'Relaxed outdoor gathering feel with natural daylight, picnic or terrace cues, and a premium but candid hospitality mood. ' +
+      'The bottle remains readable and hero-led while surrounding social context feels real, sunny, and unforced.',
+  },
+  'Ice Bucket Chill': {
+    wineLightingTone: 'Warm Lateral',
+    wineMoodModifier: 'Soft Barrel Ambient Haze',
+    composition: 'centered',
+    lightStyle: 'contrast',
+    negativeSpace: 'subtle',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Ice Bucket Chill. ' +
+      'Close premium chilling scene with real condensation, wet metal or acrylic bucket surfaces, partially visible ice, and cold-service realism. ' +
+      'No synthetic frost glam. The cold reads physical and tactile.',
+  },
+  'Grounded Vineyard Flatlay': {
+    wineLightingTone: 'Golden Ambient',
+    wineMoodModifier: 'Terroir Mood Tone',
+    composition: 'flatlay',
+    lightStyle: 'soft',
+    negativeSpace: 'none',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Grounded Vineyard Flatlay. ' +
+      'Bottle placed directly on real soil, dry grass, vine leaves, or scattered grapes. ' +
+      'Top-down or near-top-down capture with natural imperfections, outdoor texture, and terroir cues. Nothing polished or showroom-clean.',
+  },
+  'Bottle Inspection Handheld': {
+    wineLightingTone: 'Warm Lateral',
+    wineMoodModifier: 'None',
+    composition: 'centered',
+    lightStyle: 'soft',
+    negativeSpace: 'subtle',
+    _archetypeNarrative:
+      'WINE_STYLE_ARCHETYPE: Bottle Inspection Handheld. ' +
+      'Single-person handheld inspection moment with the bottle close to camera, natural arm support, and real consumer viewing behavior. ' +
+      'No generic UGC chaos. Premium candid realism with the label staying legible.',
   },
 };
 
@@ -407,6 +470,66 @@ const ARCHETYPE_AESTHETIC_PROFILES: Record<WineStyleArchetype, WineAestheticProf
     shadowRollOff: 'soft',
     highlightSharpness: 0.35,
     vignetteBias: 0.2,
+  },
+  'Game Night Editorial': {
+    reflectionIntensity: 0.2,
+    microContrast: 0.75,
+    labelTextureBoost: 0.45,
+    liquidGlowBias: 0.1,
+    depthOfFieldBias: 0.2,
+    shadowRollOff: 'crisp',
+    highlightSharpness: 0.45,
+    vignetteBias: 0.35,
+  },
+  'Rustic Pairing Table': {
+    reflectionIntensity: 0.25,
+    microContrast: 0.55,
+    labelTextureBoost: 0.45,
+    liquidGlowBias: 0.15,
+    depthOfFieldBias: 0.35,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.3,
+    vignetteBias: 0.15,
+  },
+  'Outdoor Social Toast': {
+    reflectionIntensity: 0.35,
+    microContrast: 0.45,
+    labelTextureBoost: 0.35,
+    liquidGlowBias: 0.2,
+    depthOfFieldBias: 0.5,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.25,
+    vignetteBias: 0.05,
+  },
+  'Ice Bucket Chill': {
+    reflectionIntensity: 0.65,
+    microContrast: 0.6,
+    labelTextureBoost: 0.4,
+    liquidGlowBias: 0.2,
+    depthOfFieldBias: 0.45,
+    shadowRollOff: 'neutral',
+    highlightSharpness: 0.7,
+    vignetteBias: 0.1,
+  },
+  'Grounded Vineyard Flatlay': {
+    reflectionIntensity: 0.15,
+    microContrast: 0.6,
+    labelTextureBoost: 0.4,
+    liquidGlowBias: 0.1,
+    depthOfFieldBias: 0.15,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.2,
+    vignetteBias: 0.25,
+  },
+  'Bottle Inspection Handheld': {
+    reflectionIntensity: 0.3,
+    microContrast: 0.55,
+    labelTextureBoost: 0.5,
+    liquidGlowBias: 0.15,
+    depthOfFieldBias: 0.45,
+    shadowRollOff: 'soft',
+    highlightSharpness: 0.35,
+    vignetteBias: 0.1,
   },
 };
 

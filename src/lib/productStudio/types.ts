@@ -664,7 +664,13 @@ export type WineStyleArchetype =
     | 'Macro Label Branding'
     | 'Action Pour Photography'
     | 'Cinematic Vineyard'
-    | 'Warm Tasting Room';
+    | 'Warm Tasting Room'
+    | 'Game Night Editorial'
+    | 'Rustic Pairing Table'
+    | 'Outdoor Social Toast'
+    | 'Ice Bucket Chill'
+    | 'Grounded Vineyard Flatlay'
+    | 'Bottle Inspection Handheld';
 
 // ============================================================================
 // WINE ARCHETYPE SYSTEM v4 — ENTERPRISE TYPES

@@ -60,7 +60,7 @@ describe('wine store flow', () => {
 
     expect(jobs).toHaveLength(1);
     expect(prompt).toContain('WINE_ENVIRONMENT: marble-bar.');
-    expect(prompt).toContain('WINE_ENVIRONMENT_CONTEXT: background context: luxury bar backdrop; surface: dark marble.');
+    expect(prompt).toContain('WINE_ENVIRONMENT_CONTEXT: background context: real hospitality bar backdrop with restrained depth and believable reflections; surface: dark marble or polished stone.');
     expect(prompt).toContain('WINE_MICRO_VARIATION:');
     expect(prompt).toContain('autumn');
     expect(prompt).toContain('condensation');

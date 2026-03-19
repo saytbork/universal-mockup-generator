@@ -19,16 +19,16 @@ function buildWineMoodProfile(state: StudioUIState): string {
 
 function buildWineEnvironmentContext(variation: NonNullable<StudioUIState['wineEnvironmentVariation']>): string {
   const map: Record<NonNullable<StudioUIState['wineEnvironmentVariation']>, string> = {
-    vineyard: 'background context: vineyard rows with warm distance haze; surface: natural stone or wood.',
-    'dark-cellar': 'background context: dark cellar with barrel depth; surface: aged oak.',
-    'marble-bar': 'background context: luxury bar backdrop; surface: dark marble.',
-    'minimal-gradient': 'background context: minimal gradient backdrop; surface: clean neutral platform.',
-    'black-studio': 'background context: black studio void with controlled falloff; surface: matte black plinth.',
-    'modern-kitchen': 'background context: modern kitchen depth cues; surface: polished countertop.',
-    'luxury-dining': 'background context: fine dining atmosphere; surface: premium dining table.',
-    'moody-backlight': 'background context: moody backlit depth; surface: refined dark plane.',
-    'sunlit-table': 'background context: sunlit interior table scene; surface: warm wood table.',
-    'architectural-shadow': 'background context: architectural shadow geometry; surface: stone/mineral slab.',
+    vineyard: 'background context: real vineyard rows or natural vine-area depth, softly photographed rather than volumetric; surface: natural soil, worn wood, or stone.',
+    'dark-cellar': 'background context: authentic cellar depth with real barrel or stone cues, low light and tactile shadow falloff; surface: aged oak or rough stone.',
+    'marble-bar': 'background context: real hospitality bar backdrop with restrained depth and believable reflections; surface: dark marble or polished stone.',
+    'minimal-gradient': 'background context: photographed seamless backdrop with gentle tonal falloff, not CGI void; surface: clean neutral platform.',
+    'black-studio': 'background context: matte black photographed backdrop with imperfect natural falloff; surface: matte black plane, not glossy render plinth.',
+    'modern-kitchen': 'background context: lived-in modern kitchen cues with believable countertop depth; surface: polished stone or composite counter.',
+    'luxury-dining': 'background context: refined dining room depth with real table setting cues, never theatrical stage design; surface: premium dining table.',
+    'moody-backlight': 'background context: dark backlit room depth with natural falloff and restrained haze; surface: refined dark tabletop.',
+    'sunlit-table': 'background context: real sunlit interior table scene with window-driven shadows; surface: warm wood table.',
+    'architectural-shadow': 'background context: photographed wall or set with real shadow geometry and imperfect texture; surface: stone or mineral slab.',
   };
   return map[variation];
 }
@@ -52,6 +52,6 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
       : 'GRAVITY_RULE: Liquid obeys gravity. No splash chaos.',
     buildWineMoodProfile(state),
     `WINE_ENVIRONMENT_VARIATION: ${environment}.`,
-    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Keep environment secondary to bottle fidelity. No theatrical stylization.`,
+    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Keep environment secondary to bottle fidelity. Real photographed surfaces only. No theatrical stylization. No CGI showroom depth. No render-engine polish.`,
   ].join(' ');
 }

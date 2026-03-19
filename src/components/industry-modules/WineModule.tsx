@@ -9,6 +9,7 @@ import {
 } from '@/lib/productStudio/winePrestige';
 import type {
   ProductStudioState,
+  PhotoMode,
   WineGlassType,
   WineStyleArchetype,
   WineMicroVariation,
@@ -62,6 +63,20 @@ const WINE_TYPE_OPTIONS: Array<{ value: WineTypeUI; label: string }> = [
   { value: 'rosé', label: 'Rosé' },
   { value: 'sparkling-white', label: 'Sparkling White' },
   { value: 'sparkling-rosé', label: 'Sparkling Rosé' },
+];
+
+const WINE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
+  { value: 'Hero Landing Page', label: 'Hero Landing', description: 'Single-bottle hero with clean product-first framing' },
+  { value: 'Wine Macro Label', label: 'Macro Label', description: 'Extreme label-detail framing' },
+  { value: 'Bottle + Glass', label: 'Bottle + Glass', description: 'Served bottle with glass beside it' },
+  { value: 'Bottle + Glass Pour', label: 'Bottle + Glass Pour', description: 'Active bottle-to-glass pour' },
+  { value: 'Hands Pouring Wine', label: 'Hands Pouring', description: 'Cropped-hands hospitality pour' },
+  { value: 'Wine Lineup Comparison', label: 'Lineup', description: 'Multiple bottles in one clean comparison scene' },
+  { value: 'Editorial Bottle Tabletop', label: 'Editorial Tabletop', description: 'Still-life tabletop editorial' },
+  { value: 'Editorial Table', label: 'Editorial Table', description: 'Broader premium tabletop scene' },
+  { value: 'Bottle In Hand Cutout', label: 'Bottle In Hand', description: 'Cropped hand holding bottle' },
+  { value: 'Rose Tasting Table', label: 'Tasting Table', description: 'Bright served tasting scene' },
+  { value: 'Winery Scene', label: 'Winery Scene', description: 'Cellar or winery environment' },
 ];
 
 const WINE_MICRO_VARIATIONS_OPTIONS = {
@@ -198,10 +213,26 @@ export function WineModule() {
 
       {isOpen && (
         <div className="mt-4 space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene</p>
+            <p className="text-[11px] text-gray-400 mb-2">Wine-specific shot selection. This is the primary scene authority for wine.</p>
+            <div className="flex flex-wrap gap-2">
+              {WINE_SCENE_OPTIONS.map((option) => (
+                <Chip
+                  key={option.value}
+                  selected={photoMode === option.value}
+                  onClick={() => useProductStudioStore.getState().setPhotoMode(option.value)}
+                  title={option.description}
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
           {/* ── WINE STYLE ARCHETYPE ─────────────────────────────── */}
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Style Preset</p>
-            <p className="text-[11px] text-gray-400 mb-2">Visual preset. Manual controls override.</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Look Preset</p>
+            <p className="text-[11px] text-gray-400 mb-2">Visual treatment only. Does not override the selected environment.</p>
             <div className="flex flex-wrap gap-2">
               {WINE_STYLE_ARCHETYPES.map((archetype) => (
                 <Chip
@@ -513,7 +544,7 @@ export function WineModule() {
           {/* ── WINE ENVIRONMENT ────────────────────────────────── */}
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
-            <p className="text-[11px] text-gray-400 mb-3">Choose the setting and atmosphere for your wine scene.</p>
+            <p className="text-[11px] text-gray-400 mb-3">Physical place and surface for the wine scene. This should work with any look preset.</p>
             <div className="flex flex-wrap gap-2">
               {ALL_WINE_ENVIRONMENTS_V4.map((environment) => (
                 <Chip
