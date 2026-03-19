@@ -1162,7 +1162,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   }
   const wineEnabledProfiles = new Set<IndustryProfile>(['wine']);
   const shouldAssignWineFields = wineEnabledProfiles.has(industryProfile);
-  const isExplicitWineIndustry = String(state.industryProfile || '').trim().toLowerCase() === 'wine';
+  const isExplicitWineIndustry =
+    String(state.industryProfile || state.visualProfile || '').trim().toLowerCase() === 'wine';
   const isWineHeroLanding =
     isExplicitWineIndustry && industryProfile === 'wine' && resolvedPhotoMode === 'Hero Landing Page';
   const isWinePourMode =
@@ -1749,7 +1750,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const productStudioInteractionRaw =
     String(ls.productStudioInteraction || '').trim() ||
     String(ls.productInteraction || '').trim();
-  const forceNoInteraction = Boolean(industryModule.forceInteractionNone);
+  const wineInteractiveModes = new Set([
+    'Hands Pouring Wine',
+    'Bottle In Hand Cutout',
+    'Hosting Pour',
+  ]);
+  const forceNoInteraction =
+    Boolean(industryModule.forceInteractionNone) ||
+    (industryProfile === 'wine' && !wineInteractiveModes.has(String(resolvedPhotoMode || '').trim()));
   const resolvedInteractionInput =
     forceNoInteraction ? 'none' : productStudioInteractionRaw || state.interaction;
   const interactionKey = String(resolvedInteractionInput || '').trim();

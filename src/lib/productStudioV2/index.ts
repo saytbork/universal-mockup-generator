@@ -542,7 +542,7 @@ function buildWineMinimalGuardrail(): string {
     'PHOTOGRAPHIC_AUTHENTICITY:',
     'Natural real-world capture.',
     'Subtle sensor noise in midtones.',
-    'Tiny optical imperfections.',
+    'Optical imperfections.',
     'Lens breathing micro-distortion.',
     'Imperfect highlight bloom.',
     'No render-engine polish.',
