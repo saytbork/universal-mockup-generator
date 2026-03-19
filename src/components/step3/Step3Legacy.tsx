@@ -7741,6 +7741,38 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       {
         mode === 'lifestyle' && (
           <LifestyleStep3Layout>
+            {wineIndustryActive && (
+              <div className="space-y-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-4">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.2em] font-extrabold text-rose-700">WINE LIFESTYLE</p>
+                  <p className="text-[11px] text-gray-500 dark:text-white/50">
+                    Social and hospitality wine moments. This stays in lifestyle mode.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { label: 'Social Table', mode: 'Social Table Served' },
+                    { label: 'Outdoor Toast', mode: 'Outdoor Toast' },
+                    { label: 'Hosting Pour', mode: 'Hosting Pour' },
+                    { label: 'Dinner Pairing', mode: 'Dinner Pairing' },
+                    { label: 'Picnic Gathering', mode: 'Picnic Gathering' },
+                    { label: 'Celebration Chill', mode: 'Celebration Chill' },
+                  ] as const).map((option) => (
+                    <Chip
+                      key={option.mode}
+                      selected={productStore.photoMode === option.mode}
+                      onClick={() => {
+                        productStore.setSceneType('lifestyle-real');
+                        productStore.setPhotoMode(option.mode as PhotoMode);
+                        markSectionTouched('creator');
+                      }}
+                    >
+                      {option.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-6">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-[0.35em] font-semibold text-gray-500 dark:text-white/40">SUBJECT</p>
