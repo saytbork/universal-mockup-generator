@@ -1472,6 +1472,11 @@ const maybeDownscaleInlineImage = async (
   return downscaleDataUrlToJpeg(dataUrl, { maxLongEdge: opts.maxLongEdge, quality: opts.quality });
 };
 
+// Server rejects inline images above 4 MiB decoded bytes.
+// Keep a conservative base64 ceiling on the client so PNG/letterboxed references
+// get recompressed before hitting the API hard limit.
+const SAFE_INLINE_IMAGE_BASE64_LIMIT = 5_000_000;
+
 const App: React.FC = () => {
   const GEMINI_DISABLED = false; // Gemini must stay enabled for direct image generation
   const location = useLocation();
@@ -5816,15 +5821,15 @@ If the model attempts to create a scene or environment, override it and force a 
                 quality: isMultiProductRequest ? 0.9 : (isProductPlacement ? 0.99 : 0.96),
               }
             );
-            let finalReference = normalized;
-
-            if (isMultiProductRequest) {
-              finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
-                maxLongEdge: isProductPlacement ? 1200 : 960,
-                maxBase64Length: isProductPlacement ? 450_000 : 320_000,
-                quality: 0.86,
-              });
-            }
+            let finalReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+              maxLongEdge: isMultiProductRequest
+                ? (isProductPlacement ? 1200 : 960)
+                : (isProductPlacement ? 2048 : 1600),
+              maxBase64Length: isMultiProductRequest
+                ? (isProductPlacement ? 450_000 : 320_000)
+                : SAFE_INLINE_IMAGE_BASE64_LIMIT,
+              quality: isMultiProductRequest ? 0.86 : (isProductPlacement ? 0.94 : 0.9),
+            });
 
             if (isMultiProductRequest && totalAttachedReferenceBase64 + finalReference.base64.length > totalReferenceBudget) {
               console.warn('[UGC PAYLOAD] Skipping product reference to stay within payload budget', {
@@ -5858,8 +5863,13 @@ If the model attempts to create a scene or environment, override it and force a 
                 quality: 0.96,
               }
             );
+            const finalHumanReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+              maxLongEdge: 1600,
+              maxBase64Length: SAFE_INLINE_IMAGE_BASE64_LIMIT,
+              quality: 0.9,
+            });
             requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              inlineData: { data: finalHumanReference.base64, mimeType: finalHumanReference.mimeType },
               reference: true,
             });
             humanReferenceAttached = true;
@@ -5876,8 +5886,13 @@ If the model attempts to create a scene or environment, override it and force a 
                 quality: 0.96,
               }
             );
+            const finalHumanReference = await maybeDownscaleInlineImage(normalized.base64, normalized.mimeType, {
+              maxLongEdge: 1600,
+              maxBase64Length: SAFE_INLINE_IMAGE_BASE64_LIMIT,
+              quality: 0.9,
+            });
             requestParts.push({
-              inlineData: { data: normalized.base64, mimeType: normalized.mimeType },
+              inlineData: { data: finalHumanReference.base64, mimeType: finalHumanReference.mimeType },
               reference: true,
             });
             humanReferenceAttached = true;
