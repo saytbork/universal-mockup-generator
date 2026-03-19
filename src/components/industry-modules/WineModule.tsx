@@ -230,7 +230,7 @@ export function WineModule() {
           {wineSceneFamily === 'studio' && (
             <div>
               <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
-              <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in product-first studio or social lifestyle.</p>
+              <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in product-first studio or product-first lifestyle.</p>
               <div className="flex flex-wrap gap-2">
                 <Chip
                   selected
@@ -242,7 +242,7 @@ export function WineModule() {
                 <Chip
                   selected={false}
                   onClick={() => useProductStudioStore.getState().setSceneType('lifestyle-real')}
-                  title="Social and hospitality wine moments"
+                  title="Product-in-context wine moments"
                 >
                   Wine Product Lifestyle
                 </Chip>
@@ -256,7 +256,7 @@ export function WineModule() {
             </p>
             <p className="text-[11px] text-gray-400 mb-2">
               {wineSceneFamily === 'lifestyle'
-                ? 'Product-led wine lifestyle scenes. Environment and action are allowed, but the bottle stays the hero and people never become the subject.'
+                ? 'Product-led wine lifestyle scenes. Environment and action are allowed, but the bottle stays the hero and no full person should appear.'
                 : 'Wine-specific shot selection. This is the primary scene authority for wine.'}
             </p>
             <div className="flex flex-wrap gap-2">

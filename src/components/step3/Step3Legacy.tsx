@@ -2606,6 +2606,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         return changed ? next : prev;
       }
 
+      if (wineLifestyleModeSelected) {
+        next.noPerson = true;
+        next.personIncluded = false;
+
+        const changed =
+          next.noPerson !== prev.noPerson ||
+          next.personIncluded !== prev.personIncluded;
+
+        return changed ? next : prev;
+      }
+
       next.noPerson = false;
       next.personIncluded = true;
 
@@ -2673,6 +2684,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     });
   }, [
     uiSceneType,
+    wineLifestyleModeSelected,
     values.ugcRealMode,
     values.visualIntent,
     values.personCount,
@@ -3420,11 +3432,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               'Rose Tasting Table': 'Bright tasting-table scene for rose/white wine without people.',
                               'Editorial Table': 'Premium tabletop editorial with controlled wine-appropriate props.',
                               'Winery Scene': 'Bottle in authentic cellar or barrel room environment.',
-                              'Social Table Served': 'Bottle on a shared table with real hospitality context and cropped social presence.',
+                              'Social Table Served': 'Bottle on a shared table with real hospitality context and product-first table action.',
                               'Outdoor Toast': 'Outdoor toast scene with natural daylight and a visible wine setup.',
-                              'Hosting Pour': 'Wine being served in a real hosting moment with cropped social presence.',
+                              'Hosting Pour': 'Wine being served in a real hosting moment with action-first framing.',
                               'Dinner Pairing': 'Bottle, glasses, and plated food in a premium dining context.',
-                              'Picnic Gathering': 'Outdoor wine gathering with relaxed picnic cues and real social warmth.',
+                              'Picnic Gathering': 'Outdoor wine gathering with relaxed picnic cues and product-first context.',
                               'Celebration Chill': 'Cold-service wine celebration with social hospitality context.',
                             };
 
