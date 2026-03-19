@@ -227,26 +227,28 @@ export function WineModule() {
 
       {isOpen && (
         <div className="mt-4 space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
-            <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in product-first studio or social lifestyle.</p>
-            <div className="flex flex-wrap gap-2">
-              <Chip
-                selected={wineSceneFamily === 'studio'}
-                onClick={() => useProductStudioStore.getState().setSceneType('studio-branding')}
-                title="Product-first wine scenes"
-              >
-                Wine Studio
-              </Chip>
-              <Chip
-                selected={wineSceneFamily === 'lifestyle'}
-                onClick={() => useProductStudioStore.getState().setSceneType('lifestyle-real')}
-                title="Social and hospitality wine moments"
-              >
-                Wine Lifestyle
-              </Chip>
+          {wineSceneFamily === 'studio' && (
+            <div>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
+              <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in product-first studio or social lifestyle.</p>
+              <div className="flex flex-wrap gap-2">
+                <Chip
+                  selected
+                  onClick={() => useProductStudioStore.getState().setSceneType('studio-branding')}
+                  title="Product-first wine scenes"
+                >
+                  Wine Studio
+                </Chip>
+                <Chip
+                  selected={false}
+                  onClick={() => useProductStudioStore.getState().setSceneType('lifestyle-real')}
+                  title="Social and hospitality wine moments"
+                >
+                  Wine Lifestyle
+                </Chip>
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
