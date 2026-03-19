@@ -65,7 +65,7 @@ const WINE_TYPE_OPTIONS: Array<{ value: WineTypeUI; label: string }> = [
   { value: 'sparkling-rosé', label: 'Sparkling Rosé' },
 ];
 
-const WINE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
+const WINE_STUDIO_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
   { value: 'Hero Landing Page', label: 'Hero Landing', description: 'Single-bottle hero with clean product-first framing' },
   { value: 'Wine Macro Label', label: 'Macro Label', description: 'Extreme label-detail framing' },
   { value: 'Bottle + Glass', label: 'Bottle + Glass', description: 'Served bottle with glass beside it' },
@@ -77,6 +77,15 @@ const WINE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: 
   { value: 'Bottle In Hand Cutout', label: 'Bottle In Hand', description: 'Cropped hand holding bottle' },
   { value: 'Rose Tasting Table', label: 'Tasting Table', description: 'Bright served tasting scene' },
   { value: 'Winery Scene', label: 'Winery Scene', description: 'Cellar or winery environment' },
+];
+
+const WINE_LIFESTYLE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
+  { value: 'Social Table Served', label: 'Social Table', description: 'Shared-table hospitality moment with bottle clearly visible' },
+  { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Natural daylight toast with bottle visible in the setup' },
+  { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Real hosting/service pour in a social setting' },
+  { value: 'Dinner Pairing', label: 'Dinner Pairing', description: 'Bottle with plated food and refined dining context' },
+  { value: 'Picnic Gathering', label: 'Picnic Gathering', description: 'Relaxed outdoor wine gathering with picnic cues' },
+  { value: 'Celebration Chill', label: 'Celebration Chill', description: 'Cold-service wine celebration with chilled hospitality context' },
 ];
 
 const WINE_MICRO_VARIATIONS_OPTIONS = {
@@ -135,6 +144,7 @@ export function WineModule() {
   } as WineMicroVariation;
   const wineEnvironment = useProductStudioStore((s) => s.wineEnvironment) ?? 'Dark Luxury Studio' as WineEnvironmentV4;
   const photoMode        =  useProductStudioStore((s) => s.photoMode);
+  const sceneType        =  useProductStudioStore((s) => s.sceneType);
 
   // ── Derived coherence flags ────────────────────────────────────────────
   const isBottleAndGlassMode = photoMode === 'Bottle + Glass';
@@ -166,6 +176,10 @@ export function WineModule() {
   const setWineUiState = (patch: Partial<ProductStudioState>): void => {
     useProductStudioStore.setState(patch);
   };
+
+  const wineSceneFamily: 'studio' | 'lifestyle' = sceneType === 'lifestyle-real' ? 'lifestyle' : 'studio';
+  const visibleWineSceneOptions =
+    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_SCENE_OPTIONS : WINE_STUDIO_SCENE_OPTIONS;
 
   const setWineServeMode = (mode: WineServeMode) => {
     if (mode === 'bottle-only') {
@@ -214,10 +228,37 @@ export function WineModule() {
       {isOpen && (
         <div className="mt-4 space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene</p>
-            <p className="text-[11px] text-gray-400 mb-2">Wine-specific shot selection. This is the primary scene authority for wine.</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
+            <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in product-first studio or social lifestyle.</p>
             <div className="flex flex-wrap gap-2">
-              {WINE_SCENE_OPTIONS.map((option) => (
+              <Chip
+                selected={wineSceneFamily === 'studio'}
+                onClick={() => useProductStudioStore.getState().setSceneType('studio-branding')}
+                title="Product-first wine scenes"
+              >
+                Wine Studio
+              </Chip>
+              <Chip
+                selected={wineSceneFamily === 'lifestyle'}
+                onClick={() => useProductStudioStore.getState().setSceneType('lifestyle-real')}
+                title="Social and hospitality wine moments"
+              >
+                Wine Lifestyle
+              </Chip>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
+              {wineSceneFamily === 'lifestyle' ? 'Wine Lifestyle' : 'Scene'}
+            </p>
+            <p className="text-[11px] text-gray-400 mb-2">
+              {wineSceneFamily === 'lifestyle'
+                ? 'Wine-specific social moments. Hospitality context is allowed, but the bottle must stay commercially legible.'
+                : 'Wine-specific shot selection. This is the primary scene authority for wine.'}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {visibleWineSceneOptions.map((option) => (
                 <Chip
                   key={option.value}
                   selected={photoMode === option.value}
