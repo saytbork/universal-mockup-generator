@@ -936,7 +936,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Social Table Served',
         scope: 'environment',
         description: 'Product-led wine table scene with hospitality context and bottle-first readability.',
-        basePrompt: 'product-led social table wine scene with bottle on table, one or more glasses, believable food pairing context, hands or partial human presence only when needed, hospitality realism, bottle remains visible and legible',
+        basePrompt: 'product-led social table wine scene with bottle on table, one or more glasses, believable food pairing context, hands or partial cropped presence only when needed, hospitality realism, bottle remains visible and legible',
         subOptions: [
             { key: 'tableContext', label: 'Table Context', values: ['Minimal snacks', 'Shared plates', 'Hosting spread'] },
             { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },
@@ -958,7 +958,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Outdoor Toast',
         scope: 'environment',
         description: 'Product-led outdoor wine toast with natural daylight and visible action context.',
-        basePrompt: 'product-led outdoor wine toast scene with raised glasses, bottle visible in the setup, natural daylight, relaxed premium hospitality, partial human presence only, believable celebration moment',
+        basePrompt: 'product-led outdoor wine toast scene with raised glasses, bottle visible in the setup, natural daylight, relaxed premium hospitality, partial cropped presence only, believable celebration moment',
         subOptions: [
             { key: 'setting', label: 'Setting', values: ['Garden', 'Terrace', 'Picnic lawn'] },
             { key: 'groupSize', label: 'Group Size', values: ['Two', 'Three', 'Four'] },
@@ -1024,7 +1024,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Picnic Gathering',
         scope: 'environment',
         description: 'Product-led outdoor wine gathering with picnic cues and relaxed action context.',
-        basePrompt: 'product-led wine picnic gathering with bottle, glasses, relaxed outdoor setting, simple premium food context, natural sunlight, hands or partial human presence only, lifestyle realism',
+        basePrompt: 'product-led wine picnic gathering with bottle, glasses, relaxed outdoor setting, simple premium food context, natural sunlight, hands or partial cropped presence only, lifestyle realism',
         subOptions: [
             { key: 'setting', label: 'Setting', values: ['Blanket picnic', 'Low table picnic', 'Park table'] },
             { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },

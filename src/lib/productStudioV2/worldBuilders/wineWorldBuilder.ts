@@ -36,7 +36,7 @@ export function buildWineWorld(
     return 'SCENE_STYLE: real wine photography in an authentic cellar or winery environment.';
   }
   if (photoMode === 'Social Table Served') {
-    return 'SCENE_STYLE: real product-lifestyle shared-table wine photography with hospitality context, tactile food cues, optional partial human presence, and strong bottle readability. The moment should feel like authentic table service, not stock lifestyle staging.';
+    return 'SCENE_STYLE: real product-lifestyle shared-table wine photography with hospitality context, tactile food cues, optional partial cropped presence, and strong bottle readability. The moment should feel like authentic table service, not stock lifestyle staging.';
   }
   if (photoMode === 'Outdoor Toast') {
     return 'SCENE_STYLE: real product-lifestyle outdoor wine photography with toast energy, natural daylight, relaxed premium hospitality, and believable picnic-or-terrace action context.';

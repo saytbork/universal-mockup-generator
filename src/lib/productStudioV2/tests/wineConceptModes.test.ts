@@ -155,7 +155,7 @@ describe('wine concept modes', () => {
 
     expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
     expect(prompt).toContain('SCENE_STYLE: real product-lifestyle outdoor wine photography');
-    expect(prompt).toContain('Partial human presence only');
+    expect(prompt).toContain('Partial cropped presence only');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
