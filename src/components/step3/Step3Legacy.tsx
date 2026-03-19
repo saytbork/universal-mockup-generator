@@ -125,15 +125,6 @@ const INDUSTRY_CHIP_CONFIGS: IndustryChipConfig[] = [
   },
 ];
 
-const WINE_LIFESTYLE_MODES = new Set<PhotoMode>([
-  'Social Table Served',
-  'Outdoor Toast',
-  'Hosting Pour',
-  'Dinner Pairing',
-  'Picnic Gathering',
-  'Celebration Chill',
-]);
-
 const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
 
 function PropertySettingsCard({
@@ -2571,9 +2562,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const uiSceneType = resolveStep3SceneType(values.sceneType, uiCreationMode);
   const uiContentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
   const { uiActiveEngine, mode } = resolveStep3UiMode(uiSceneType, isEcommerceMode);
-  const wineLifestyleModeSelected =
-    wineIndustryActive &&
-    WINE_LIFESTYLE_MODES.has(productStore.photoMode as PhotoMode);
   const showVisualIntentControl =
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
@@ -2603,17 +2591,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           next.editSecondaryPerson = false;
         }
         const changed = next.personCount !== prev.personCount || next.editSecondaryPerson !== prev.editSecondaryPerson;
-        return changed ? next : prev;
-      }
-
-      if (wineLifestyleModeSelected) {
-        next.noPerson = true;
-        next.personIncluded = false;
-
-        const changed =
-          next.noPerson !== prev.noPerson ||
-          next.personIncluded !== prev.personIncluded;
-
         return changed ? next : prev;
       }
 
@@ -2684,7 +2661,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     });
   }, [
     uiSceneType,
-    wineLifestyleModeSelected,
     values.ugcRealMode,
     values.visualIntent,
     values.personCount,
@@ -2733,12 +2709,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // If this instance is mounted as Product Mode, lock scene intent to ecommerce.
   useEffect(() => {
-    if (wineLifestyleModeSelected) return;
     if (!isProductMode) return;
     if (values.sceneIntent !== 'ecommerce') {
       enableEcommerce();
     }
-  }, [isProductMode, values.sceneIntent, enableEcommerce, wineLifestyleModeSelected]);
+  }, [isProductMode, values.sceneIntent, enableEcommerce]);
 
 
 
@@ -2798,15 +2773,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
 
   useEffect(() => {
-    if (wineLifestyleModeSelected) {
-      if (values.sceneType !== 'lifestyle-real') {
-        updateValue('sceneType', 'lifestyle-real');
-      }
-      if (values.sceneIntent !== 'environment') {
-        updateValue('sceneIntent', 'environment');
-      }
-      return;
-    }
     if (isProductMode || values.sceneIntent === 'ecommerce') {
       if (values.sceneType !== 'studio-branding') {
         updateValue('sceneType', 'studio-branding');
@@ -2816,7 +2782,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.sceneType !== 'lifestyle-real') {
       updateValue('sceneType', 'lifestyle-real');
     }
-  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue, wineLifestyleModeSelected]);
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {

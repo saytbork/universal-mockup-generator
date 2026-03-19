@@ -177,21 +177,21 @@ export function WineModule() {
     useProductStudioStore.setState(patch);
   };
 
-  const wineSceneFamily: 'studio' | 'lifestyle' = sceneType === 'lifestyle-real' ? 'lifestyle' : 'studio';
+  const wineSceneFamily: 'studio' | 'lifestyle' =
+    WINE_LIFESTYLE_SCENE_OPTIONS.some(option => option.value === photoMode) ? 'lifestyle' : 'studio';
   const visibleWineSceneOptions =
     wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_SCENE_OPTIONS : WINE_STUDIO_SCENE_OPTIONS;
 
   const setWineSceneFamily = (family: 'studio' | 'lifestyle') => {
     const store = useProductStudioStore.getState();
+    store.setSceneType('studio-branding');
     if (family === 'studio') {
-      store.setSceneType('studio-branding');
       if (!WINE_STUDIO_SCENE_OPTIONS.some(option => option.value === photoMode)) {
         store.setPhotoMode('Hero Landing Page');
       }
       return;
     }
 
-    store.setSceneType('lifestyle-real');
     if (!WINE_LIFESTYLE_SCENE_OPTIONS.some(option => option.value === photoMode)) {
       store.setPhotoMode('Social Table Served');
     }
