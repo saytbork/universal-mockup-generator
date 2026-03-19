@@ -84,7 +84,15 @@ describe('wine truth layer enforcement', () => {
   });
 
   test('buildWinePhysicalPrompt includes all required physical tokens', () => {
-    const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
+    const prompt = generateStudioPromptV2(
+      toStudioV2State(
+        buildWineState({
+          photoMode: 'Bottle + Glass',
+          wineGlassMode: 'filled' as any,
+          wineEngineVersion: 4,
+        })
+      )
+    );
     // Served model: bottle is opened for service and glass is present
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
@@ -94,13 +102,29 @@ describe('wine truth layer enforcement', () => {
   });
 
   test('buildWineStylingPrompt includes preservation clause and styling', () => {
-    const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
+    const prompt = generateStudioPromptV2(
+      toStudioV2State(
+        buildWineState({
+          photoMode: 'Bottle + Glass',
+          wineGlassMode: 'filled' as any,
+          wineEngineVersion: 4,
+        })
+      )
+    );
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).not.toContain('Preserve the open bottle');
   });
 
   test('buildWineSinglePassPrompt starts with physical, then styling', () => {
-    const prompt = generateStudioPromptV2(toStudioV2State(buildWineState({ wineGlassMode: 'filled' as any, wineEngineVersion: 4 })));
+    const prompt = generateStudioPromptV2(
+      toStudioV2State(
+        buildWineState({
+          photoMode: 'Bottle + Glass',
+          wineGlassMode: 'filled' as any,
+          wineEngineVersion: 4,
+        })
+      )
+    );
     expect(prompt).toContain('BOTTLE_PRESERVATION_LOCK:');
     expect(prompt).toContain('WINE_GLASS:');
     expect(prompt).toContain('bottleState=open');
@@ -129,6 +153,7 @@ describe('wine truth layer enforcement', () => {
 
   test('glassFillLevel=half: served mode opens bottle and reduces fill level', () => {
     const source = buildWineState({
+      photoMode: 'Bottle + Glass',
       wineType: 'sparkling-white' as any,
       wineBottleState: 'open' as any,
       wineClosureType: 'screw-cap',
@@ -158,6 +183,7 @@ describe('wine truth layer enforcement', () => {
 
   test('closureType=screw: served state still preserves bottle lock with open service bottle', () => {
     const source = buildWineState({
+      photoMode: 'Bottle + Glass',
       wineClosureType: 'screw' as any,
       wineGlassMode: 'filled' as any,
       wineEngineVersion: 4,

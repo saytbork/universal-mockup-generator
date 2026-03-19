@@ -9,7 +9,7 @@ function buildWineState(overrides: Partial<ProductStudioState> = {}): ProductStu
     qualityProfile: 'luxury-brand',
     visualIntent: 'campaign',
     definition: { type: 'custom' } as ProductStudioState['definition'],
-    photoMode: 'Hero Landing Page',
+    photoMode: 'Bottle + Glass',
     distance: 'standard',
     stateMotion: 'opened' as any,
     controlTier: 'basic',
