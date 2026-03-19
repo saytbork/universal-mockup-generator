@@ -2680,6 +2680,19 @@ const App: React.FC = () => {
     const message = String(rawError || '').trim();
     const normalized = message.toLowerCase();
 
+    const isLocalStorageQuota =
+      normalized.includes('quotaexceedederror') &&
+      (normalized.includes('localstorage') ||
+        normalized.includes('storage') ||
+        normalized.includes('setitem'));
+
+    if (isLocalStorageQuota) {
+      return {
+        message: 'Local browser storage for debug logs is full. Clear site storage or retry after the app trims old logs.',
+        invalidateKey: false,
+      };
+    }
+
     const isInvalidKey =
       normalized.includes('requested entity was not found') ||
       normalized.includes('api_key_invalid') ||
