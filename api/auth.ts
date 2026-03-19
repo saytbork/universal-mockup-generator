@@ -17,13 +17,15 @@ const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
-const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 30;
+const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
   const parsed = Number(value || fallback);
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
   return Math.floor(parsed);
 };
+
+const normalizeCode = (value: unknown) => String(value || '').trim().toUpperCase();
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -109,17 +111,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(429).json({ error: 'Too many attempts. Please try again in a few minutes.' });
         return;
       }
-      const requiredCode = process.env.INVITATION_CODE;
-      const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+      const requiredCode = normalizeCode(process.env.INVITATION_CODE);
+      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
       const domain = String(normalizedEmail).split('@')[1] || '';
       const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
-      const normalizedCode = typeof invitationCode === 'string' ? invitationCode.trim() : '';
+      const normalizedCode = normalizeCode(invitationCode);
       const matchesRequired = Boolean(requiredCode && normalizedCode === requiredCode);
       const matchesTrialCoupon = normalizedCode === trialCouponCode;
       const isRecognizedCode = matchesRequired || matchesTrialCoupon;
+      if (normalizedCode && isDisposable) {
+        res.status(400).json({ error: 'Invitation code requires a non-temporary email address' });
+        return;
+      }
+      if (normalizedCode && !isRecognizedCode) {
+        res.status(400).json({ error: 'Invalid invitation code' });
+        return;
+      }
       const shouldAllowMagicLinkCode = Boolean(isRecognizedCode && !isDisposable);
       const codeForToken = shouldAllowMagicLinkCode ? normalizedCode : undefined;
 
@@ -191,22 +201,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]);
 
       try {
-        const requiredCode = process.env.INVITATION_CODE;
-        const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+        const requiredCode = normalizeCode(process.env.INVITATION_CODE);
+        const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
         const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
         const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
         const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
         const domain = email.split('@')[1] || '';
         const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
-        const bonusCredits = invitationCode === trialCouponCode ? trialCouponBonus : inviteBonus;
+        const normalizedInvitationCode = normalizeCode(invitationCode);
+        const bonusCredits = normalizedInvitationCode === trialCouponCode ? trialCouponBonus : inviteBonus;
 
         const shouldApplyBonus =
           Boolean(
-            invitationCode &&
+            normalizedInvitationCode &&
             !isDisposable &&
             (
-              (requiredCode && invitationCode === requiredCode) ||
-              invitationCode === trialCouponCode
+              (requiredCode && normalizedInvitationCode === requiredCode) ||
+              normalizedInvitationCode === trialCouponCode
             )
           );
 
@@ -216,9 +227,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const alreadyClaimed = Boolean(user.inviteUsed);
 
           if (plan === 'free' && !alreadyClaimed) {
-            const isTrialCoupon = invitationCode === trialCouponCode;
+            const isTrialCoupon = normalizedInvitationCode === trialCouponCode;
             if (isTrialCoupon) {
-              const redemption = await tryConsumeTrialCouponRedemption(invitationCode);
+              const redemption = await tryConsumeTrialCouponRedemption(normalizedInvitationCode);
               if (!redemption.ok) {
                 // Coupon exhausted globally; proceed with login but skip bonus.
               } else {
@@ -227,9 +238,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
                     inviteUsed: true,
                   });
-                  await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
+                  await addActivity(email, 'invite', { bonus: bonusCredits, code: normalizedInvitationCode });
                 } catch (claimError) {
-                  await rollbackTrialCouponRedemption(invitationCode);
+                  await rollbackTrialCouponRedemption(normalizedInvitationCode);
                   throw claimError;
                 }
               }
@@ -238,7 +249,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 inviteRemaining: (user.inviteRemaining || 0) + bonusCredits,
                 inviteUsed: true,
               });
-              await addActivity(email, 'invite', { bonus: bonusCredits, code: invitationCode });
+              await addActivity(email, 'invite', { bonus: bonusCredits, code: normalizedInvitationCode });
             }
           }
 

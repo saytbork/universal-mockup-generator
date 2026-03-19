@@ -50,10 +50,10 @@ export const SUPPORT_KB: SupportArticle[] = [
   },
   {
     id: 'invite-code',
-    title: 'Invitation code (+30 trial credits)',
-    keywords: ['invitation', 'invitation code', 'invite', 'bonus', '30 credits', '+30', 'gift', '2999'],
+    title: 'Invitation code (+20 trial credits)',
+    keywords: ['invitation', 'invitation code', 'invite', 'bonus', '20 credits', '+20', 'gift', '2999'],
     answer: [
-      'The “Invitation Code” on `/login` is optional. Use code `2999` to add +30 trial credits on the Free plan.',
+      'The “Invitation Code” on `/login` is optional. Use code `2999` to add +20 trial credits on the Free plan.',
       '',
       'Notes:',
       '- Use a real email (no temporary inboxes).',

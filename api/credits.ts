@@ -9,7 +9,7 @@ import {
 
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
-const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 30;
+const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
 const DEFAULT_TESTER_UPGRADE_CODE = '8714';
 const DEFAULT_TESTER_UPGRADE_BONUS_CREDITS = 99999;
 
@@ -18,6 +18,8 @@ const parseBonus = (value: string | undefined, fallback: number) => {
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
   return Math.floor(parsed);
 };
+
+const normalizeCode = (value: unknown) => String(value || '').trim().toUpperCase();
 
 const parseAction = (req: VercelRequest) => {
   const raw = req.query.action;
@@ -57,20 +59,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const creditAmount = parseAmount(amount) ?? 1;
   try {
     if (action === 'redeem') {
-      const normalized = typeof code === 'string' ? code.trim() : '';
+      const normalized = normalizeCode(code);
       if (!normalized) {
         res.status(400).json({ error: 'Missing code' });
         return;
       }
-      const requiredCode = process.env.INVITATION_CODE;
-      const testerCode = String(process.env.TESTER_UPGRADE_CODE || '').trim();
-      const trialCouponCode = process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE;
+      const requiredCode = normalizeCode(process.env.INVITATION_CODE);
+      const testerCode = normalizeCode(process.env.TESTER_UPGRADE_CODE || '');
+      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const testerBonus = parseBonus(process.env.TESTER_UPGRADE_BONUS_CREDITS, DEFAULT_TESTER_UPGRADE_BONUS_CREDITS);
 
       const matchesRequired = requiredCode ? normalized === requiredCode : false;
-      const matchesTester = normalized === DEFAULT_TESTER_UPGRADE_CODE || (testerCode.length > 0 && normalized === testerCode);
+      const matchesTester = normalized === normalizeCode(DEFAULT_TESTER_UPGRADE_CODE) || (testerCode.length > 0 && normalized === testerCode);
       const matchesTrialCoupon = normalized === trialCouponCode;
       if (!matchesRequired && !matchesTester && !matchesTrialCoupon) {
         res.status(400).json({ error: 'Invalid code' });

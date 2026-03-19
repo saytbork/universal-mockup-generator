@@ -1417,7 +1417,7 @@ export const ALL_WINE_CAMERA_ANGLES = Object.keys(WINE_CAMERA_ANGLES) as (keyof 
  */
 export function resolveCompositionForServeState(
   currentMode: WineCompositionMode,
-  serveState: 'none' | 'served'
+  serveState: 'none' | 'served' | 'pouring'
 ): WineCompositionMode {
   if (serveState === 'served' && currentMode === 'single-hero') return 'bottle-and-glass';
   return currentMode;
