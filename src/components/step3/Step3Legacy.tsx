@@ -125,6 +125,15 @@ const INDUSTRY_CHIP_CONFIGS: IndustryChipConfig[] = [
   },
 ];
 
+const WINE_LIFESTYLE_MODES = new Set<PhotoMode>([
+  'Social Table Served',
+  'Outdoor Toast',
+  'Hosting Pour',
+  'Dinner Pairing',
+  'Picnic Gathering',
+  'Celebration Chill',
+]);
+
 const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
 
 function PropertySettingsCard({
@@ -2562,6 +2571,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const uiSceneType = resolveStep3SceneType(values.sceneType, uiCreationMode);
   const uiContentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
   const { uiActiveEngine, mode } = resolveStep3UiMode(uiSceneType, isEcommerceMode);
+  const wineLifestyleModeSelected =
+    wineIndustryActive &&
+    WINE_LIFESTYLE_MODES.has(productStore.photoMode as PhotoMode);
   const showVisualIntentControl =
     uiSceneType === 'lifestyle-real' && uiActiveEngine === 'lifestyle' && uiContentStyle !== 'product';
   const isLifestyleCompatibilityActive = uiSceneType === 'lifestyle-real' && values.ugcRealMode !== true;
@@ -2709,11 +2721,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // If this instance is mounted as Product Mode, lock scene intent to ecommerce.
   useEffect(() => {
+    if (wineLifestyleModeSelected) return;
     if (!isProductMode) return;
     if (values.sceneIntent !== 'ecommerce') {
       enableEcommerce();
     }
-  }, [isProductMode, values.sceneIntent, enableEcommerce]);
+  }, [isProductMode, values.sceneIntent, enableEcommerce, wineLifestyleModeSelected]);
 
 
 
@@ -2773,6 +2786,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
 
   useEffect(() => {
+    if (wineLifestyleModeSelected) {
+      if (values.sceneType !== 'lifestyle-real') {
+        updateValue('sceneType', 'lifestyle-real');
+      }
+      if (values.sceneIntent !== 'environment') {
+        updateValue('sceneIntent', 'environment');
+      }
+      return;
+    }
     if (isProductMode || values.sceneIntent === 'ecommerce') {
       if (values.sceneType !== 'studio-branding') {
         updateValue('sceneType', 'studio-branding');
@@ -2782,7 +2804,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.sceneType !== 'lifestyle-real') {
       updateValue('sceneType', 'lifestyle-real');
     }
-  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue, wineLifestyleModeSelected]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
@@ -7765,6 +7787,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       onClick={() => {
                         productStore.setSceneType('lifestyle-real');
                         productStore.setPhotoMode(option.mode as PhotoMode);
+                        updateValue('sceneType', 'lifestyle-real');
+                        updateValue('sceneIntent', 'environment');
                         markSectionTouched('creator');
                       }}
                     >
