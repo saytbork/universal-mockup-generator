@@ -5509,7 +5509,13 @@ If the model attempts to create a scene or environment, override it and force a 
         isStudioEngine,
       });
 
-      const personIncluded = !isStudioEngine && (options.ageGroup !== 'no person' || !!modelReferenceFile);
+      const step3PersonIncluded =
+        typeof lifestyleStep3Values?.personIncluded === 'boolean'
+          ? lifestyleStep3Values.personIncluded
+          : undefined;
+      const personIncluded =
+        !isStudioEngine &&
+        (step3PersonIncluded ?? (options.ageGroup !== 'no person' || !!modelReferenceFile));
       const realModeActive = ugcRealSettings.isEnabled && !isStudioEngine && personIncluded;
 
       const creditCost = getImageCreditCost(options);
@@ -5771,7 +5777,9 @@ If the model attempts to create a scene or environment, override it and force a 
           }
         }
 
-        if (!isStudioEngine && personIncluded) {
+        const promptPersonIncluded = !isStudioEngine && Boolean((promptOptions as any)?.personIncluded);
+
+        if (!isStudioEngine && promptPersonIncluded) {
           finalPrompt = [
             finalPrompt,
             'REALISM HARD RULE: Photorealistic real human photo. Absolutely no 3D/CGI, no cartoon, no illustration, no anime, no doll-like/plastic skin, no game-render look.',
