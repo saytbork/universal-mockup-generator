@@ -36,22 +36,22 @@ export function buildWineWorld(
     return 'SCENE_STYLE: real wine photography in an authentic cellar or winery environment.';
   }
   if (photoMode === 'Social Table Served') {
-    return 'SCENE_STYLE: real social-table wine photography with hospitality context, cropped presence, and strong bottle readability.';
+    return 'SCENE_STYLE: real shared-table wine photography with hospitality context, tactile food cues, cropped human presence, and strong bottle readability. The moment should feel like authentic table service, not stock lifestyle staging.';
   }
   if (photoMode === 'Outdoor Toast') {
-    return 'SCENE_STYLE: real outdoor wine gathering photography with toast energy, natural daylight, and premium social realism.';
+    return 'SCENE_STYLE: real outdoor wine gathering photography with toast energy, natural daylight, relaxed premium hospitality, and believable picnic-or-terrace social realism.';
   }
   if (photoMode === 'Hosting Pour') {
-    return 'SCENE_STYLE: real hosting wine photography with social pour action and authentic hospitality framing.';
+    return 'SCENE_STYLE: real hosting wine photography with active pour service, cropped host support, and authentic hospitality framing rooted in table realism rather than showroom styling.';
   }
   if (photoMode === 'Dinner Pairing') {
-    return 'SCENE_STYLE: real wine dinner-pairing photography with tactile food context and refined hospitality atmosphere.';
+    return 'SCENE_STYLE: real wine dinner-pairing photography with tactile plated-food context, premium table texture, and refined hospitality atmosphere that still keeps the bottle commercially legible.';
   }
   if (photoMode === 'Picnic Gathering') {
-    return 'SCENE_STYLE: real picnic-style wine lifestyle photography with relaxed outdoor social cues and premium natural light.';
+    return 'SCENE_STYLE: real picnic-style wine lifestyle photography with relaxed outdoor social cues, simple shareable food, and premium natural light grounded in believable casual hospitality.';
   }
   if (photoMode === 'Celebration Chill') {
-    return 'SCENE_STYLE: real chilled-wine celebration photography with cold-service realism and restrained social context.';
+    return 'SCENE_STYLE: real chilled-wine celebration photography with ice-bucket or cold-table service realism, restrained social context, and tactile condensation rather than synthetic frost glamour.';
   }
   return 'SCENE_STYLE: real wine bottle photography with natural optical behavior and product-first fidelity.';
 }

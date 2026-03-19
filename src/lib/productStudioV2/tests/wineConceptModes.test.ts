@@ -142,6 +142,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
     expect(prompt).toContain('Real hosting moment with active wine service');
+    expect(prompt).toContain('No floating bottle.');
   });
 
   it('renders outdoor toast as a wine lifestyle social scene rather than a studio fallback', () => {
@@ -155,6 +156,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
     expect(prompt).toContain('SCENE_STYLE: real outdoor wine gathering photography');
     expect(prompt).toContain('Small-group cropped presence only.');
+    expect(prompt).toContain('garden hospitality cues');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
 });
