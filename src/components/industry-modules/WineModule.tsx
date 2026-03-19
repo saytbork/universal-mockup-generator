@@ -270,7 +270,7 @@ export function WineModule() {
             </p>
             <p className="text-[11px] text-gray-400 mb-2">
               {wineSceneFamily === 'lifestyle'
-                ? 'Product-led wine lifestyle scenes. Environment and action are allowed, but the bottle stays the hero.'
+                ? 'Product-led wine context scenes. Real action and hospitality cues are allowed, but the bottle stays the hero and people stay incidental.'
                 : 'Wine-specific shot selection. This is the primary scene authority for wine.'}
             </p>
             <div className="flex flex-wrap gap-2">
