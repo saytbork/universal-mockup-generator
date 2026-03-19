@@ -3052,6 +3052,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       const industryModules = industryModuleRegistry as Partial<
                         Record<IndustryProfile, React.ComponentType<any>>
                       >;
+                      if (industryProfile === 'wine' && productStore.sceneType === 'lifestyle-real') return null;
                       const ActiveIndustryModule = industryModules[industryProfile];
                       if (!ActiveIndustryModule) return null;
 
