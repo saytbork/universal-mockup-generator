@@ -60,7 +60,7 @@ import {
   type EcommercePdpSafeZone,
 } from '@/lib/productStudio';
 import { addProductWithPalette } from '@/lib/productStudio/store';
-import { isStudioV2Enabled } from '@/lib/productStudio/promptRouter';
+import { isStudioV2ActiveForState } from '@/lib/productStudio/promptRouter';
 
 
 
@@ -5601,7 +5601,7 @@ If the model attempts to create a scene or environment, override it and force a 
           // Skip when V2 engine is active — V2 has its own internal validation policy
           // that correctly handles hands/interaction. Running V1 forbidden-terms check
           // on a V2 prompt incorrectly blocks hands even when interaction is active.
-          if (!isStudioV2Enabled()) {
+          if (!isStudioV2ActiveForState(productState)) {
             try {
               validatePrompt(finalPrompt, { allowHands: productState.interaction !== 'none' || productState.handsHolding === true });
             } catch (validationError) {

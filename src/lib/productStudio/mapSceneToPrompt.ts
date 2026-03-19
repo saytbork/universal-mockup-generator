@@ -297,7 +297,7 @@ export type ScenePromptResult = {
   randomSeed: string;
 };
 
-function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptResult {
+function buildWinePrestigeFallbackPrompt(state: ProductStudioState): ScenePromptResult {
   const environmentNarrative = getWineEnvironmentNarrative(
     String(state.contextPreset || '').trim() || 'Dark Luxury Studio'
   );
@@ -318,10 +318,10 @@ function buildWinePrestigeLegacyPrompt(state: ProductStudioState): ScenePromptRe
     'WINE PRESTIGE NARRATIVE BASE: Premium wine presentation. Atmosphere-driven composition. Emphasize depth, texture, silence, and material richness. The bottle is integrated naturally within a refined environment. Preserve exact label fidelity and geometry. Use cinematic lens compression and warm lateral lighting. Avoid commercial splash energy. Focus on elegance, mood, and premium brand perception.',
     environmentNarrative,
     winePrestigeV2Mode
-      ? 'WINE_PRESTIGE_VERSION: V2 Cinematic Pour Edition.'
-      : 'WINE_PRESTIGE_VERSION: V1 Static Presentation.',
+      ? 'WINE_PRESTIGE_PROFILE: Cinematic Pour Edition.'
+      : 'WINE_PRESTIGE_PROFILE: Static Presentation Fallback.',
     winePrestigeV2Mode
-      ? 'WINE_PRESTIGE_V2_NARRATIVE: Premium wine presentation with controlled cinematic pouring action. Emphasize elegance, depth, and refined atmosphere. The wine flows smoothly from the bottle in a continuous ribbon with natural gravity-driven motion. No explosive splash behavior. Focus on material richness, glass refraction, liquid translucency, and warm lateral lighting. Preserve exact label fidelity and bottle geometry. The composition should feel sophisticated, intimate, and premium.'
+      ? 'WINE_PRESTIGE_POUR_NARRATIVE: Premium wine presentation with controlled cinematic pouring action. Emphasize elegance, depth, and refined atmosphere. The wine flows smoothly from the bottle in a continuous ribbon with natural gravity-driven motion. No explosive splash behavior. Focus on material richness, glass refraction, liquid translucency, and warm lateral lighting. Preserve exact label fidelity and bottle geometry. The composition should feel sophisticated, intimate, and premium.'
       : '',
     `WINE_ACTION: ${wineAction}.`,
     winePrestigeV2Mode ? `POUR_STYLE: ${pourStyle}.` : '',
@@ -720,7 +720,7 @@ function extractModeSpecificDynamicSettings(state: ProductStudioState): Record<s
 
 export function mapSceneToPrompt(state: ProductStudioState, product?: ProductAsset | null): ScenePromptResult {
   if (isWinePrestigeMode(state)) {
-    return buildWinePrestigeLegacyPrompt(state);
+    return buildWinePrestigeFallbackPrompt(state);
   }
 
   const randomizer = createRandomizer();

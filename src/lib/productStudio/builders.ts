@@ -30,7 +30,7 @@ import type {
     CameraFraming,
 } from './types';
 
-import { routeStudioScenePrompt, isStudioV2Enabled } from './promptRouter';
+import { routeStudioScenePrompt, isStudioV2ActiveForState } from './promptRouter';
 import { applyCanonicalPhysicalForMotion } from './motionCoherence';
 import { buildEcommercePdpPrompt } from './prompt-builders/buildEcommercePdpPrompt';
 import { PHOTO_MODE_SCHEMAS } from './photoModeSchema';
@@ -2047,7 +2047,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     // Do NOT run buildCoreSceneLayer — it appends V1 metadata blocks (backgroundEnabled=false,
     // backgroundType=Solid, gradientStyle=Soft, PHYSICAL_PLACEMENT, PHOTO_MODE, LIGHTING:clinical-softbox,
     // etc.) that directly contradict the V2 structured output and cause gray stripe backgrounds.
-    if (isStudioV2Enabled()) {
+    if (isStudioV2ActiveForState(state)) {
         let finalPrompt = sceneResult.prompt;
         const terminalParts = normalizePromptSegments([
             ...buildProtectionLightLayer(),
@@ -2128,7 +2128,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
 
     // V2 BYPASS: When V2 is active, sceneResult is already a complete structured prompt.
     // Do NOT run buildCoreSceneLayer — same reason as assembleSingleProductPrompt.
-    if (isStudioV2Enabled()) {
+    if (isStudioV2ActiveForState(state)) {
         const bundleInfo = state.bundle.enabled ? (() => {
             const productCount = 1 + (state.bundle.secondaryProductIds?.length || 0);
             const allProducts = [
@@ -2443,7 +2443,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
         // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
-        if (!isStudioV2Enabled()) {
+        if (!isStudioV2ActiveForState(normalizedState)) {
             validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
         }
 
@@ -2467,7 +2467,7 @@ export function generateProductJobs(state: ProductStudioState): ProductGeneratio
         let prompt = assembleSingleProductPrompt(normalizedState, product);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
         // Skip V1 forbidden-terms check when V2 engine is active — V2 has its own policy
-        if (!isStudioV2Enabled()) {
+        if (!isStudioV2ActiveForState(normalizedState)) {
             validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
         }
 
@@ -2636,7 +2636,7 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
     if (normalizedState.bundle.enabled) {
         let prompt = assembleBundlePrompt(normalizedState);
         prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-        if (!isStudioV2Enabled()) {
+        if (!isStudioV2ActiveForState(normalizedState)) {
             validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
         }
         return prompt;
@@ -2647,7 +2647,7 @@ export function generatePreviewPrompt(state: ProductStudioState): string | null 
 
     let prompt = assembleSingleProductPrompt(normalizedState, activeProduct);
     prompt = sanitizePromptBeforeValidation(prompt, { allowHands: normalizedState.interaction !== 'none' });
-    if (!isStudioV2Enabled()) {
+    if (!isStudioV2ActiveForState(normalizedState)) {
         validatePrompt(prompt, { allowHands: normalizedState.interaction !== 'none' });
     }
 

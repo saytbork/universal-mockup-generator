@@ -49,6 +49,19 @@ function isStudioV2Enabled(): boolean {
   return enabled;
 }
 
+function isWineProfile(state: ProductStudioState): boolean {
+  const profile = normalize(state.visualProfile || state.industryProfile);
+  return profile === 'wine' || profile === 'wine-prestige';
+}
+
+export function isStudioV2ActiveForState(state: ProductStudioState): boolean {
+  if (isWineProfile(state)) {
+    debugLog('[STUDIO ROUTER] forcing engine=v2 for wine profile');
+    return true;
+  }
+  return isStudioV2Enabled();
+}
+
 function assertIndustry(i: unknown): IndustryProfile {
   const normalized = String(i || '').trim().toLowerCase();
   if (normalized === 'wine' || normalized === 'wine-prestige') return 'wine';
@@ -1797,7 +1810,7 @@ export function routeStudioScenePrompt(state: ProductStudioState, product?: Prod
   //   };
   // }
 
-  if (!isStudioV2Enabled()) {
+  if (!isStudioV2ActiveForState(state)) {
     debugLog('[STUDIO ROUTER] engine=legacy');
     return mapSceneToPrompt(state, product);
   }

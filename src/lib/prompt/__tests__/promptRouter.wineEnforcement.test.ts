@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { ProductStudioState } from '../../productStudio/types';
-import { toStudioV2State } from '../../productStudio/promptRouter';
+import { isStudioV2ActiveForState, toStudioV2State } from '../../productStudio/promptRouter';
 
 function buildState(overrides: Partial<ProductStudioState> = {}): ProductStudioState {
   return {
@@ -36,6 +36,14 @@ function buildState(overrides: Partial<ProductStudioState> = {}): ProductStudioS
 }
 
 describe('promptRouter wine enforcement', () => {
+  test('forces Studio V2 routing for wine regardless of global fallback flag', () => {
+    const state = buildState({
+      visualProfile: 'wine',
+    });
+
+    expect(isStudioV2ActiveForState(state)).toBe(true);
+  });
+
   test('forces Custom product type when visualProfile is wine', () => {
     const state = buildState({
       visualProfile: 'wine',
