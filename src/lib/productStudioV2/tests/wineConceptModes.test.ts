@@ -141,9 +141,10 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
-    expect(prompt).toContain('ACTION_ONLY_POLICY: No portrait subject. No hero human figure.');
+    expect(prompt).toContain('ACTION_ONLY_POLICY: No portrait subject. No hero character framing.');
     expect(prompt).toContain('Only incidental hands, cropped arms, or partial cues needed to support the pour action.');
     expect(prompt).toContain('No floating bottle.');
+    expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
   });
 
   it('renders outdoor toast as a wine lifestyle social scene rather than a studio fallback', () => {
@@ -156,9 +157,10 @@ describe('wine concept modes', () => {
 
     expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
     expect(prompt).toContain('SCENE_STYLE: real product-lifestyle outdoor wine photography');
-    expect(prompt).toContain('ACTION_ONLY_POLICY: No portrait subject. No hero human figure.');
+    expect(prompt).toContain('ACTION_ONLY_POLICY: No portrait subject. No hero character framing.');
     expect(prompt).toContain('partial seated bodies may appear only as supporting toast context');
     expect(prompt).toContain('garden hospitality cues');
+    expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
   });
 });

@@ -48,6 +48,9 @@ const FORBIDDEN_TERMS = [
 
 const REQUIRED_CLOSING_PHRASE =
     'The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.';
+const CONTEXTUAL_CLOSING_PHRASE =
+    'The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.';
+const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE];
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'hand',
@@ -86,19 +89,29 @@ function stripTermsFromText(text: string, terms: string[]): string {
 }
 
 function stripForbiddenTermsExceptClosing(prompt: string, terms: string[]): string {
-    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) {
-        const parts = prompt.split(REQUIRED_CLOSING_PHRASE);
-        const head = stripTermsFromText(parts[0] ?? '', terms);
-        return `${head.trim()} ${REQUIRED_CLOSING_PHRASE}`.trim();
+    for (const closingPhrase of CLOSING_PHRASES) {
+        if (prompt.includes(closingPhrase)) {
+            const parts = prompt.split(closingPhrase);
+            const head = stripTermsFromText(parts[0] ?? '', terms);
+            return `${head.trim()} ${closingPhrase}`.trim();
+        }
     }
     return stripTermsFromText(prompt, terms);
 }
 
-function appendClosingPhrase(prompt: string): string {
-    if (prompt.includes(REQUIRED_CLOSING_PHRASE)) return prompt;
+function resolveClosingPhrase(state: ProductStudioState): string {
+    const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
+    return schema?.allowsPersonPresence === true
+        ? CONTEXTUAL_CLOSING_PHRASE
+        : REQUIRED_CLOSING_PHRASE;
+}
+
+function appendClosingPhrase(prompt: string, state: ProductStudioState): string {
+    const closingPhrase = resolveClosingPhrase(state);
+    if (CLOSING_PHRASES.some((phrase) => prompt.includes(phrase))) return prompt;
     const trimmed = prompt.trim();
     const spacer = trimmed.endsWith('.') ? ' ' : '. ';
-    return `${trimmed}${spacer}${REQUIRED_CLOSING_PHRASE}`.trim();
+    return `${trimmed}${spacer}${closingPhrase}`.trim();
 }
 
 function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?: boolean }): string {
@@ -113,7 +126,10 @@ function sanitizePromptBeforeValidation(prompt: string, options?: { allowHands?:
 
 export function validatePrompt(prompt: string, options?: { allowHands?: boolean }): void {
     const lower = prompt.toLowerCase();
-    const scrubbed = lower.split(REQUIRED_CLOSING_PHRASE.toLowerCase()).join(' ');
+    const scrubbed = CLOSING_PHRASES.reduce(
+        (acc, phrase) => acc.split(phrase.toLowerCase()).join(' '),
+        lower
+    );
     console.log('[VALIDATION_TARGET] full prompt:', prompt);
     console.log('[VALIDATION_TARGET] scrubbed (closing phrase removed):', scrubbed);
     for (const term of FORBIDDEN_TERMS) {
@@ -2054,7 +2070,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
             ...buildStrictPackagingLayer(),
         ]);
         if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
-        finalPrompt = appendClosingPhrase(finalPrompt);
+        finalPrompt = appendClosingPhrase(finalPrompt, state);
         if (hasReferenceProductImage(state)) {
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
             finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
@@ -2092,7 +2108,7 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
     segments.push(buildAspectRatio(state));
 
     let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
-    finalPrompt = appendClosingPhrase(finalPrompt);
+    finalPrompt = appendClosingPhrase(finalPrompt, state);
     if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }
@@ -2158,7 +2174,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         ]);
         let finalPrompt = sceneResult.prompt;
         if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
-        finalPrompt = appendClosingPhrase(finalPrompt);
+        finalPrompt = appendClosingPhrase(finalPrompt, state);
         if (hasReferenceProductImage(state)) {
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
             finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
@@ -2226,7 +2242,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
     segments.push(buildAspectRatio(state));
 
     let finalPrompt = enforceMotionPromptCoherence(segments.filter(Boolean).join(' '), state);
-    finalPrompt = appendClosingPhrase(finalPrompt);
+    finalPrompt = appendClosingPhrase(finalPrompt, state);
     if (state.interaction === 'none') {
         finalPrompt = stripForbiddenTermsExceptClosing(finalPrompt, STRIP_TERMS_WHEN_NO_INTERACTION);
     }

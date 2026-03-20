@@ -486,6 +486,27 @@ function resolveWineEnvironmentVariation(
   return { variation: pickRandomWineEnvironment(), autoRandomize: true };
 }
 
+function resolveWineEnvironmentVariationForPhotoMode(
+  photoMode: string
+): NonNullable<StudioUIState['wineEnvironmentVariation']> | null {
+  switch (photoMode) {
+    case 'Social Table Served':
+      return 'luxury-dining';
+    case 'Outdoor Toast':
+      return 'sunlit-table';
+    case 'Hosting Pour':
+      return 'modern-kitchen';
+    case 'Dinner Pairing':
+      return 'luxury-dining';
+    case 'Picnic Gathering':
+      return 'sunlit-table';
+    case 'Celebration Chill':
+      return 'marble-bar';
+    default:
+      return null;
+  }
+}
+
 function resolveWineMoodProfile(state: ProductStudioState): NonNullable<StudioUIState['wineMoodProfile']> {
   const moodModifier = normalize(state.wineMoodModifier);
   const visualIntent = normalize(state.visualIntent);
@@ -1232,12 +1253,20 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(explicitWineEnvironment)
     : null;
+  const photoModeWineEnvironmentOverride = resolveWineEnvironmentVariationForPhotoMode(
+    String(resolvedPhotoMode || '')
+  );
   const effectiveWineEnvironment =
     winePrestigeMode && resolvedPhotoMode === 'Winery Scene'
       ? {
           variation: 'dark-cellar' as NonNullable<StudioUIState['wineEnvironmentVariation']>,
           autoRandomize: false,
         }
+      : winePrestigeMode && photoModeWineEnvironmentOverride
+        ? {
+            variation: photoModeWineEnvironmentOverride,
+            autoRandomize: false,
+          }
       : wineEnvironment;
   const wineMoodProfile = winePrestigeMode ? resolveWineMoodProfile(state) : undefined;
   const wineArchetypeNarrative = winePrestigeMode
