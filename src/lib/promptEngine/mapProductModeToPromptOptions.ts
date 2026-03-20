@@ -165,7 +165,12 @@ export function mapProductModeToPromptOptions(sceneState: SceneState): PromptOpt
   console.log('[LAYER STACK]', sortedLayers);
 
   const mapped: PromptOptions = {
-    sceneType: sceneState.sceneType === 'ecommerce-pdp' ? 'ecommerce-pdp' : 'studio-branding',
+    sceneType:
+      sceneState.sceneType === 'ecommerce-pdp'
+        ? 'ecommerce-pdp'
+        : sceneState.sceneType === 'lifestyle-real'
+          ? 'lifestyle-real'
+          : 'studio-branding',
     contentStyle: (String(sceneState.contentStyle || '').trim() as PromptOptions['contentStyle']) || '',
     creationIntent: (String(sceneState.creationIntent || '').trim() as PromptOptions['creationIntent']) || undefined,
     creationMode: mapCreationMode(String(sceneState.creationMode || '').trim()),
