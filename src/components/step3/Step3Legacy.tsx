@@ -1856,15 +1856,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   useEffect(() => {
     if (!isProductMode) return;
-    if (productStore.sceneType !== 'studio-branding') {
-      productStore.setSceneType('studio-branding');
+    const expectedSceneType = wineLifestyleProductModeActive ? 'lifestyle-real' : 'studio-branding';
+    if (productStore.sceneType !== expectedSceneType) {
+      productStore.setSceneType(expectedSceneType);
     }
-  }, [isProductMode, productStore]);
+  }, [isProductMode, productStore, wineLifestyleProductModeActive]);
 
   // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
-  // Product Studio must NEVER show Lifestyle/UGC sections.
-  // Keep all "environment/lifestyle" UI strictly disabled when `isProductMode` is true.
-  const isEnvironmentMode = !isProductMode;
+  // Wine lifestyle modes are the exception inside Product Studio: they must behave as environment scenes.
+  const isEnvironmentMode = !isProductMode || wineLifestyleProductModeActive;
 
   const normalizeHex = (value: unknown): string | null => {
     const raw = String(value ?? '').trim().toUpperCase();
@@ -2487,7 +2487,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
     if (payload.sceneType === 'lifestyle-real') {
       const leakedStudioKeys = getLifestyleStudioLeakKeys(payload);
-      if (leakedStudioKeys.length > 0) {
+      if (leakedStudioKeys.length > 0 && !wineLifestyleProductModeActive) {
         console.warn('Studio state leak detected', {
           sceneType: payload.sceneType,
           leakedStudioKeys,
@@ -2526,6 +2526,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
     if (!isProductMode) return;
+    if (wineLifestyleProductModeActive) return;
     setValues(prev => ({
       ...prev,
       studioPhotoMode: productStore.photoMode,
@@ -2553,6 +2554,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore.backgroundColor,
     productStore.accentColor,
     isProductMode,
+    wineLifestyleProductModeActive,
   ]);
 
 
@@ -2620,7 +2622,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Derived from sceneIntent - no longer computed independently
   // Derived from sceneIntent - no longer computed independently
-  const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
+  const isEcommerceMode = (isProductMode && !wineLifestyleProductModeActive) || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.ugcRealMode === true;
   const hasUploadedProductAsset = productCount > 0;
