@@ -298,7 +298,7 @@ export const winePipeline = {
     } else if (celebrationChillMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Celebration Chill. Editorial chilled wine service scene with cold hospitality cues, glasses, and restrained action context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour. HUMAN_PRESENCE: Cropped guests, partial hands, and casual cold-service interactions are allowed when they support the scene. SERVICE_CUES: Ice bucket, chilled bottle sleeve, cool tabletop service, or relaxed terrace hosting may appear. The bottle can be focal or secondary, but should feel naturally embedded in the service ritual. No frozen fantasy texture, no exaggerated vapor cloud, no nightclub bottle-service theatrics.',
+        content: 'PHOTO_MODE: Celebration Chill. Editorial fresh wine service scene with glasses and restrained hospitality action. FRESH_SERVICE_REALISM: Keep the service polished and premium, but dry, clean, and physically believable. No nightclub lighting, no fake frost glamour, no condensation styling, and no cold-prop theatrics. HUMAN_PRESENCE: Cropped guests, partial hands, and casual table interactions are allowed when they support the scene. SERVICE_CUES: Relaxed terrace hosting, elegant table service, or fresh hospitality context may appear. Avoid ice buckets, chilled sleeves, loose ice, puddles, wet stemware, or visibly soaked surfaces. The bottle can be focal or secondary, but should feel naturally embedded in the service ritual.',
       });
     }
 

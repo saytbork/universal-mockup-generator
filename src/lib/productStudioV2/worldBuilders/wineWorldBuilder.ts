@@ -51,7 +51,7 @@ export function buildWineWorld(
     return 'SCENE_STYLE: real product-lifestyle picnic wine photography with relaxed outdoor hospitality cues, simple shareable food, and premium natural light grounded in believable casual service context.';
   }
   if (photoMode === 'Celebration Chill') {
-    return 'SCENE_STYLE: real product-lifestyle chilled-wine photography with ice-bucket or cold-table service realism, restrained action context, and tactile condensation rather than synthetic frost glamour.';
+    return 'SCENE_STYLE: real product-lifestyle fresh wine hospitality photography with restrained action context, premium table service realism, and clean dry materials. No ice-bucket theatrics, no condensation glamour, and no wet-surface gimmicks.';
   }
   return 'SCENE_STYLE: real wine bottle photography with natural optical behavior and product-first fidelity.';
 }

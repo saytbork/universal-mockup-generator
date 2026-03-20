@@ -56,7 +56,7 @@ function buildServedWineGlassBlock(state: StudioUIState): string {
     case 'Picnic Gathering':
       return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a relaxed picnic service scene. Simple serveware, bread, fruit, board, blanket, or low-table cues may appear. The bottle may be upright on the spread, casually angled on the table, or integrated as one element of the shared picnic scene.`;
     case 'Celebration Chill':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a chilled hospitality setup. Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear. The bottle should feel naturally present within the service ritual rather than isolated as a packshot.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a fresh premium hospitality setup. Keep the glassware clean and dry-looking, with no visible condensation beads, water puddles, stray ice, or soaked table surfaces. The bottle should feel naturally present within the service ritual rather than isolated as a packshot.`;
     default:
       return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame.`;
   }
@@ -75,7 +75,7 @@ function resolveServedBottleOrientation(state: StudioUIState): string {
     case 'Picnic Gathering':
       return 'BOTTLE_ORIENTATION: Bottle may stand upright on the picnic spread, lean naturally against a real support, or rest at a believable tabletop or blanket lay angle. The bottle must never float or balance unnaturally.';
     case 'Celebration Chill':
-      return 'BOTTLE_ORIENTATION: Bottle may stand upright in cool-table service, sit in an ice-bucket or sleeve setup, or rest naturally within the chilled hospitality composition. Keep the support logic obvious and physically real.';
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright in fresh table service or rest naturally within the hospitality composition. Keep the support logic obvious and physically real. Do not place the bottle in melting ice, inside a bucket, or in visibly wet service props unless explicitly requested.';
     case 'Editorial Table':
     case 'Rose Tasting Table':
       return 'BOTTLE_ORIENTATION: Bottle may stand upright or rest at a subtle believable editorial angle on the surface if the still-life composition benefits from it. No floating object behavior. No impossible tilt.';

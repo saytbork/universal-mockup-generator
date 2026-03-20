@@ -219,7 +219,7 @@ describe('wine concept modes', () => {
     expect(picnicPrompt).not.toContain('This is the only addition to the scene');
     expect(picnicPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
 
-    expect(chillPrompt).toContain('Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear.');
+    expect(chillPrompt).toContain('Keep the glassware clean and dry-looking, with no visible condensation beads, water puddles, stray ice, or soaked table surfaces.');
     expect(chillPrompt).toContain('The bottle should feel naturally present within the service ritual rather than isolated as a packshot.');
     expect(chillPrompt).toContain('The bottle can be focal or secondary, but should feel naturally embedded in the service ritual.');
     expect(chillPrompt).toContain('Editorial lifestyle wine composition.');
@@ -227,5 +227,8 @@ describe('wine concept modes', () => {
     expect(chillPrompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
     expect(chillPrompt).not.toContain('This is the only addition to the scene');
     expect(chillPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
+    expect(chillPrompt).not.toContain('ice-bucket or cold-table service realism');
+    expect(chillPrompt).not.toContain('Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear.');
+    expect(chillPrompt).not.toContain('tactile condensation rather than synthetic frost glamour');
   });
 });
