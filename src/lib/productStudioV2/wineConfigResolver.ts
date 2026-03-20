@@ -42,23 +42,47 @@ function buildServedWineGlassBlock(state: StudioUIState): string {
     case 'Bottle + Glass':
       return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height is placed beside the bottle as a clean served presentation. The glass must be clearly visible in the frame. No pour-in-progress.`;
     case 'Editorial Table':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a restrained editorial tabletop arrangement. Minimal wine-appropriate tabletop context may appear, but the bottle remains the hero subject.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a restrained editorial tabletop arrangement. Minimal wine-appropriate tabletop context may appear, and the bottle may be foregrounded or integrated naturally into the composition.`;
     case 'Winery Scene':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height may appear near the bottle within an authentic cellar or tasting-room service context. Keep the environment real and secondary to bottle fidelity.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height may appear near the bottle within an authentic cellar or tasting-room service context. Keep the environment real, tactile, and photographically believable.`;
     case 'Rose Tasting Table':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a bright tasting-table setup. Fresh tasting accents and refined tabletop cues may appear, but the bottle remains commercially dominant.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a bright tasting-table setup. Fresh tasting accents and refined tabletop cues may appear, with the bottle reading as premium but not rigidly isolated from the scene.`;
     case 'Social Table Served':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a believable shared-table service scene. One or more glasses, restrained food cues, and real hospitality context may appear, but the bottle remains the readable hero subject.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a believable shared-table service scene. One or more glasses, restrained food cues, and real hospitality context may appear. The bottle may be primary, secondary, upright, or naturally resting within the table composition as long as the label fidelity is preserved when visible.`;
     case 'Outdoor Toast':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real outdoor toast setup. One or more glasses, raised-toast context, and relaxed garden or terrace hospitality cues may appear, while the bottle remains visible and premium.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real outdoor toast setup. One or more glasses, raised-toast context, and relaxed garden or terrace hospitality cues may appear. The glasses may take the foreground while the bottle supports the moment from the table or background.`;
     case 'Dinner Pairing':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real dining setup. One or two credible plated-food cues and tactile table materials may appear, but the bottle remains legible and product-first.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real dining setup. One or two credible plated-food cues and tactile table materials may appear. The bottle can stand, rest, or sit slightly secondary within the editorial food-and-table composition.`;
     case 'Picnic Gathering':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a relaxed picnic service scene. Simple serveware, bread, fruit, board, blanket, or low-table cues may appear, but the bottle remains clearly readable.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a relaxed picnic service scene. Simple serveware, bread, fruit, board, blanket, or low-table cues may appear. The bottle may be upright on the spread, casually angled on the table, or integrated as one element of the shared picnic scene.`;
     case 'Celebration Chill':
-      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a chilled hospitality setup. Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear, while the bottle remains the premium focal point.`;
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a chilled hospitality setup. Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear. The bottle should feel naturally present within the service ritual rather than isolated as a packshot.`;
     default:
       return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame.`;
+  }
+}
+
+function resolveServedBottleOrientation(state: StudioUIState): string {
+  const photoMode = resolveWinePhotoMode(state);
+
+  switch (photoMode) {
+    case 'Social Table Served':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright, rest naturally on the table, or appear at a believable editorial lay angle if the shared-table composition calls for it. No levitation. No impossible balancing. Any tilt or lay must read as gravity-coherent table placement, not product distortion.';
+    case 'Outdoor Toast':
+      return 'BOTTLE_ORIENTATION: Bottle may stand on the table, sit slightly behind the foreground glasses, or appear partially cropped as a supporting element within the toast scene. Keep placement real and stable. No levitation. No impossible angle.';
+    case 'Dinner Pairing':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright beside the place setting or rest naturally within the dining composition, including a believable tabletop lay angle when editorial framing calls for it. Placement must feel gravity-coherent and restaurant-real.';
+    case 'Picnic Gathering':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright on the picnic spread, lean naturally against a real support, or rest at a believable tabletop or blanket lay angle. The bottle must never float or balance unnaturally.';
+    case 'Celebration Chill':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright in cool-table service, sit in an ice-bucket or sleeve setup, or rest naturally within the chilled hospitality composition. Keep the support logic obvious and physically real.';
+    case 'Editorial Table':
+    case 'Rose Tasting Table':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright or rest at a subtle believable editorial angle on the surface if the still-life composition benefits from it. No floating object behavior. No impossible tilt.';
+    case 'Winery Scene':
+      return 'BOTTLE_ORIENTATION: Bottle may stand upright on a barrel, tasting table, or cellar surface, or rest at a believable low editorial angle within the winery composition. Keep the placement physically supported and photographically real.';
+    default:
+      return 'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal. The vertical axis is perpendicular to the ground plane. Camera angle does not imply bottle angle.';
   }
 }
 
@@ -129,7 +153,7 @@ export function buildWineTruthLayer(
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
         isPourAction
           ? 'BOTTLE_ORIENTATION: Bottle is supported from off-frame or by a cropped hand and held at a believable serving angle for active wine service. The bottle must not appear to levitate. The punt/base stays lower than the shoulder line and the whole bottle rotates as a single rigid object from a natural wrist or hand position. The mouth sits slightly above the receiving glass rim with the neck angled downward just enough for a controlled pour. The pour stream exits from the true bottle mouth only.'
-          : 'BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal. The vertical axis is perpendicular to the ground plane. Camera angle does not imply bottle angle.',
+          : resolveServedBottleOrientation(state),
       ].join(' ')
     : [
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',

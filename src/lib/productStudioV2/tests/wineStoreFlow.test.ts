@@ -127,6 +127,6 @@ describe('wine store flow', () => {
       micro: 'Countertop',
     });
     expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
-    expect(pourPrompt).toContain('Product-lifestyle hosting moment with active wine service.');
+    expect(pourPrompt).toContain('Editorial hosting moment with active wine service.');
   });
 });

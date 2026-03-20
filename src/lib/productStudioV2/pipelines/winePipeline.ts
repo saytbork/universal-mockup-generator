@@ -258,12 +258,12 @@ export const winePipeline = {
     } else if (editorialBottleTabletopMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Bottle remains the hero subject. BOTTLE_UPRIGHT: The bottle stands perfectly vertical. No tilt.',
+        content: 'PHOTO_MODE: Editorial Bottle Tabletop. Premium still-life tabletop. Stone, marble, or warm wood surfaces allowed. Props remain minimal and wine-appropriate. Think editorial still life rather than rigid catalog hero. The bottle may stand upright or rest at a subtle believable tabletop angle if the composition benefits from it. SURFACE_DISCIPLINE: Keep the styling tactile, asymmetrical, and photographed rather than showroom-clean.',
       });
     } else if (bottleInHandCutoutMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No visible identity cues. No torso. Minimal clean commercial backdrop. Bottle label remains fully visible and product-led.',
+        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No visible identity cues. No torso. Minimal clean commercial backdrop. The feeling should match a real held-bottle lifestyle cutout, not a sterile e-commerce grip. Preserve believable hand support, finger pressure, and natural handheld angle.',
       });
     } else if (roseTastingTableMode) {
       segments.push({
@@ -273,32 +273,32 @@ export const winePipeline = {
     } else if (socialTableServedMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Social Table Served. Product-lifestyle wine scene with the bottle as the readable hero on a real shared table. One or more glasses, tactile food cues, and restrained hosting context may appear, but the bottle remains the subject. TABLE_LANGUAGE: Use believable olives, grapes, charcuterie, bread, or plated small bites only when they support the scene naturally. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. No face-led framing. Incidental cropped hands, partial limbs, soft background figures, or out-of-focus seated presence may appear only to support the table action. HOSPITALITY_DISCIPLINE: The moment reads as real table service and product context, not staged CGI lifestyle. Keep props asymmetrical, lightly imperfect, and photographed rather than art-directed into a fake ad spread.',
+        content: 'PHOTO_MODE: Social Table Served. Editorial shared-table wine scene. The bottle can be primary or secondary within a believable hosting setup, and the frame may be table-led rather than bottle-led. TABLE_LANGUAGE: Use believable olives, grapes, charcuterie, bread, small plates, or imperfect real hospitality cues only when they support the scene naturally. HUMAN_PRESENCE: Partial hands, cropped torsos, seated background presence, and soft out-of-focus guests are allowed when they support the social table moment. Avoid portrait-led framing, but do not sterilize people out of the scene. HOSPITALITY_DISCIPLINE: The moment reads as authentic table service and editorial lifestyle photography, not staged CGI product theater. Overhead, three-quarter, and table-height compositions are all allowed. The bottle may stand upright or rest naturally within the spread.',
       });
     } else if (outdoorToastMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Outdoor Toast. Product-lifestyle outdoor wine moment with raised glasses and visible bottle setup. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. No group portrait framing. No crowd chaos. No nightlife vibe. Incidental hands, glass clinks, cropped limbs, or partial seated bodies may appear only as supporting toast context while the bottle remains visible, premium, and commercially legible. OUTDOOR_CONTEXT: Prefer lawn, terrace, picnic table, or relaxed garden hospitality cues over scenic-cinematic backgrounds. Keep the moment intimate and real, with sunlight and shadows behaving like an actual outdoor lunch or afternoon toast.',
+        content: 'PHOTO_MODE: Outdoor Toast. Editorial outdoor wine moment with raised glasses, relaxed hospitality, and believable bottle presence. The glasses may take the foreground while the bottle sits on the table, in the lower frame, or softly secondary in the setup. HUMAN_PRESENCE: Hands, clinking glasses, cropped limbs, and partial seated bodies are allowed and desirable when they create a real toast moment. Avoid stiff group portraits, nightlife chaos, or influencer-pose energy. OUTDOOR_CONTEXT: Prefer lawn, terrace, picnic table, patio, or relaxed garden hospitality cues over scenic-cinematic backgrounds. Keep the moment intimate, sunlit, and real, like an actual outdoor lunch or afternoon toast.',
       });
     } else if (hostingPourMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Hosting Pour. Product-lifestyle hosting moment with active wine service. POUR_REALISM: The bottle is naturally supported for the pour and pours into the receiving glass with believable hospitality physics. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. Only incidental hands, cropped arms, or partial body cues needed to support the pour action. The action is visible, but the bottle remains the hero subject. HOSTING_DISCIPLINE: Frame it like real service at a table, counter, or outdoor spread. No floating bottle. No robotic wrist angle. No theatrical liquid arc.',
+        content: 'PHOTO_MODE: Hosting Pour. Editorial hosting moment with active wine service. POUR_REALISM: The bottle is naturally supported for the pour and pours into the receiving glass with believable hospitality physics. HUMAN_PRESENCE: Cropped hands, arms, torso fragments, and real service cues are allowed and often necessary. Avoid face-led portrait framing, but do not strip the human action out of the scene. HOSTING_DISCIPLINE: Frame it like real service at a table, counter, bar, patio, or outdoor spread. The action may lead the image, with the bottle fully visible or partially cropped, as long as the support and pour feel real. No floating bottle. No robotic wrist angle. No theatrical liquid arc.',
       });
     } else if (dinnerPairingMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Dinner Pairing. Product-lifestyle dining scene with plated food, wine glasses, and tactile table context. FOOD_STYLING: Real dining cues only. No prop-styling overload. Use one or two credible plates, not a banquet spread. The bottle stays legible and commercially dominant within the hospitality setup. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. If any incidental presence appears, keep it cropped or softly backgrounded to support the action. TABLE_REALISM: Linen, wood, ceramic, or stone surfaces are welcome if they feel photographed and slightly imperfect, never like a CG restaurant set.',
+        content: 'PHOTO_MODE: Dinner Pairing. Editorial dining scene with plated food, wine glasses, and tactile table context. FOOD_STYLING: Real dining cues only. No prop-styling overload. Use one or two credible plates, not a banquet spread. The bottle can be upright beside the setting, naturally integrated into the table, or slightly secondary to the dish-and-glass relationship. HUMAN_PRESENCE: Cropped diners, hands reaching, or soft seated presence are allowed when they support the hospitality scene. TABLE_REALISM: Linen, wood, ceramic, or stone surfaces are welcome if they feel photographed and slightly imperfect, never like a CG restaurant set.',
       });
     } else if (picnicGatheringMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Picnic Gathering. Product-lifestyle picnic wine scene with picnic cues, natural sunlight, and relaxed real-world context. PICNIC_LANGUAGE: Think blanket, low table, shared board, bread, fruit, or simple serveware. Avoid floral fantasy setups and wedding-styled decor. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. If any incidental presence appears, keep it cropped, seated in the background, or softly out of focus to support the picnic action. LIFESTYLE_REALISM: No influencer fantasy styling. Keep the moment candid, premium, and believable with the bottle still clearly readable.',
+        content: 'PHOTO_MODE: Picnic Gathering. Editorial picnic wine scene with picnic cues, natural sunlight, and relaxed real-world context. PICNIC_LANGUAGE: Think blanket, low table, shared board, bread, fruit, simple serveware, and imperfect casual hosting. Avoid floral fantasy setups and wedding-styled decor. HUMAN_PRESENCE: Cropped guests, hands reaching, seated figures, and background presence are allowed when they create a believable picnic moment. LIFESTYLE_REALISM: No influencer fantasy styling. Keep the moment candid, premium, and believable. The bottle may be upright, casually placed, or resting within the spread rather than isolated as a hero packshot.',
       });
     } else if (celebrationChillMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Celebration Chill. Product-lifestyle chilled wine service scene with cold hospitality cues, glasses, and restrained action context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour. ACTION_ONLY_POLICY: No portrait subject. No hero character framing. If any incidental presence appears, keep it cropped or softly backgrounded to the service action. The bottle remains premium and readable. SERVICE_CUES: Ice bucket, chilled bottle sleeve, or cool tabletop service may appear, but the bottle remains premium and readable. No frozen fantasy texture, no exaggerated vapor cloud, no nightclub bottle-service theatrics.',
+        content: 'PHOTO_MODE: Celebration Chill. Editorial chilled wine service scene with cold hospitality cues, glasses, and restrained action context. COLD_SERVICE_REALISM: Real condensation, real bucket or table service, no nightclub lighting, no fake frost glamour. HUMAN_PRESENCE: Cropped guests, partial hands, and casual cold-service interactions are allowed when they support the scene. SERVICE_CUES: Ice bucket, chilled bottle sleeve, cool tabletop service, or relaxed terrace hosting may appear. The bottle can be focal or secondary, but should feel naturally embedded in the service ritual. No frozen fantasy texture, no exaggerated vapor cloud, no nightclub bottle-service theatrics.',
       });
     }
 
