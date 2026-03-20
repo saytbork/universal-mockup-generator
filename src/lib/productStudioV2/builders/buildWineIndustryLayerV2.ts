@@ -2,6 +2,18 @@ import type { StudioUIState } from '../types/studioTypes.ts';
 
 function buildWineMoodProfile(state: StudioUIState): string {
   const mood = state.wineMoodProfile || 'prestige';
+  const photoMode = String(state.photoMode || '').trim();
+  const lifestyleMode = new Set([
+    'Social Table Served',
+    'Outdoor Toast',
+    'Hosting Pour',
+    'Dinner Pairing',
+    'Picnic Gathering',
+    'Celebration Chill',
+  ]).has(photoMode);
+  if (lifestyleMode && (mood === 'prestige' || mood === 'ecommerce')) {
+    return 'WINE_MOOD_PROFILE: hospitality-lifestyle. Real photographed wine scene with natural ambient variation, tactile table depth, premium hospitality realism, and no clean-room ecommerce staging. Avoid CGI showroom polish and avoid hard-isolated packshot styling.';
+  }
   const moodMap: Record<string, string> = {
     prestige:
       'WINE_MOOD_PROFILE: prestige. Real photographed wine bottle with warm restrained light, moderate shadow depth, and strong product dominance.',
@@ -39,6 +51,15 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
   const motion = String(state.motion || 'static').trim().toLowerCase();
   const action = String(state.wineAction || 'static-presentation').trim();
   const environment = state.wineEnvironmentVariation || 'black-studio';
+  const photoMode = String(state.photoMode || '').trim();
+  const lifestyleMode = new Set([
+    'Social Table Served',
+    'Outdoor Toast',
+    'Hosting Pour',
+    'Dinner Pairing',
+    'Picnic Gathering',
+    'Celebration Chill',
+  ]).has(photoMode);
 
   return [
     'WINE_PHYSICS_PROFILE: enabled.',
@@ -52,6 +73,8 @@ export function buildWineIndustryLayerV2(state?: StudioUIState): string {
       : 'GRAVITY_RULE: Liquid obeys gravity. No splash chaos.',
     buildWineMoodProfile(state),
     `WINE_ENVIRONMENT_VARIATION: ${environment}.`,
-    `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Keep environment secondary to bottle fidelity. Real photographed surfaces only. No theatrical stylization. No CGI showroom depth. No render-engine polish.`,
+    lifestyleMode
+      ? `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} The environment must read as a real photographed place with tactile materials, imperfect depth, and believable lived-in hospitality cues. No CGI showroom depth. No render-engine polish. No synthetic set perfection.`
+      : `WINE_ENVIRONMENT_CONTEXT: ${buildWineEnvironmentContext(environment)} Keep environment secondary to bottle fidelity. Real photographed surfaces only. No theatrical stylization. No CGI showroom depth. No render-engine polish.`,
   ].join(' ');
 }

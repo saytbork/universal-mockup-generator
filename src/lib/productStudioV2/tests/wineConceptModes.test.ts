@@ -143,8 +143,13 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
     expect(prompt).toContain('HUMAN_PRESENCE: Cropped hands, arms, torso fragments, and real service cues are allowed and often necessary.');
     expect(prompt).toContain('The action may lead the image, with the bottle fully visible or partially cropped');
+    expect(prompt).toContain('Editorial lifestyle wine composition.');
+    expect(prompt).not.toContain('The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.');
     expect(prompt).toContain('No floating bottle.');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
+    expect(prompt).toContain('WINE_MOOD_PROFILE: hospitality-lifestyle.');
+    expect(prompt).not.toContain('WINE_MOOD_PROFILE: ecommerce.');
+    expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
     expect(prompt).not.toContain('This is the only addition to the scene');
   });
 
@@ -161,6 +166,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('The glasses may take the foreground while the bottle sits on the table');
     expect(prompt).toContain('partial seated bodies are allowed and desirable');
     expect(prompt).toContain('garden hospitality cues');
+    expect(prompt).toContain('Editorial lifestyle wine composition.');
+    expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
+    expect(prompt).not.toContain('Product-first framing.');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
     expect(prompt).toContain('raised-toast context');
     expect(prompt).not.toContain('This is the only addition to the scene');
@@ -184,27 +192,40 @@ describe('wine concept modes', () => {
     expect(socialPrompt).toContain('One or more glasses, restrained food cues, and real hospitality context may appear.');
     expect(socialPrompt).toContain('The bottle may be primary, secondary, upright, or naturally resting within the table composition');
     expect(socialPrompt).toContain('The bottle may stand upright or rest naturally within the spread.');
+    expect(socialPrompt).toContain('The environment must read as a real photographed place with tactile materials');
+    expect(socialPrompt).toContain('Editorial lifestyle wine composition.');
+    expect(socialPrompt).not.toContain('Product-first framing.');
     expect(socialPrompt).not.toContain('BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal.');
     expect(socialPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
     expect(socialPrompt).not.toContain('This is the only addition to the scene');
+    expect(socialPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
 
     expect(dinnerPrompt).toContain('One or two credible plated-food cues and tactile table materials may appear.');
     expect(dinnerPrompt).toContain('The bottle can stand, rest, or sit slightly secondary within the editorial food-and-table composition.');
     expect(dinnerPrompt).toContain('The bottle can be upright beside the setting, naturally integrated into the table, or slightly secondary');
+    expect(dinnerPrompt).toContain('Editorial lifestyle wine composition.');
+    expect(dinnerPrompt).not.toContain('Product-first framing.');
     expect(dinnerPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
     expect(dinnerPrompt).not.toContain('This is the only addition to the scene');
+    expect(dinnerPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
 
     expect(picnicPrompt).toContain('Simple serveware, bread, fruit, board, blanket, or low-table cues may appear.');
     expect(picnicPrompt).toContain('The bottle may be upright on the spread, casually angled on the table, or integrated as one element of the shared picnic scene.');
     expect(picnicPrompt).toContain('The bottle may be upright, casually placed, or resting within the spread rather than isolated as a hero packshot.');
+    expect(picnicPrompt).toContain('Editorial lifestyle wine composition.');
+    expect(picnicPrompt).not.toContain('Product-first framing.');
     expect(picnicPrompt).not.toContain('BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal.');
     expect(picnicPrompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
     expect(picnicPrompt).not.toContain('This is the only addition to the scene');
+    expect(picnicPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
 
     expect(chillPrompt).toContain('Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear.');
     expect(chillPrompt).toContain('The bottle should feel naturally present within the service ritual rather than isolated as a packshot.');
     expect(chillPrompt).toContain('The bottle can be focal or secondary, but should feel naturally embedded in the service ritual.');
+    expect(chillPrompt).toContain('Editorial lifestyle wine composition.');
+    expect(chillPrompt).not.toContain('Product-first framing.');
     expect(chillPrompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
     expect(chillPrompt).not.toContain('This is the only addition to the scene');
+    expect(chillPrompt).not.toContain('Keep environment secondary to bottle fidelity.');
   });
 });

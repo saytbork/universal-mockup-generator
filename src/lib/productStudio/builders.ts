@@ -50,7 +50,9 @@ const REQUIRED_CLOSING_PHRASE =
     'The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.';
 const CONTEXTUAL_CLOSING_PHRASE =
     'The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.';
-const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE];
+const WINE_LIFESTYLE_CLOSING_PHRASE =
+    'The scene should read as real photographed hospitality. Cropped hands, guests, table action, and service context may appear when the selected wine photo mode calls for them.';
+const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE, WINE_LIFESTYLE_CLOSING_PHRASE];
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'hand',
@@ -101,6 +103,20 @@ function stripForbiddenTermsExceptClosing(prompt: string, terms: string[]): stri
 
 function resolveClosingPhrase(state: ProductStudioState): string {
     const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
+    const wineLifestyleModes = new Set([
+        'Social Table Served',
+        'Outdoor Toast',
+        'Hosting Pour',
+        'Dinner Pairing',
+        'Picnic Gathering',
+        'Celebration Chill',
+    ]);
+    const isWineState =
+        String(state.industryProfile || '').trim().toLowerCase() === 'wine' ||
+        String(state.visualProfile || '').trim().toLowerCase().includes('wine');
+    if (isWineState && wineLifestyleModes.has(String(state.photoMode || '').trim())) {
+        return WINE_LIFESTYLE_CLOSING_PHRASE;
+    }
     return schema?.allowsPersonPresence === true
         ? CONTEXTUAL_CLOSING_PHRASE
         : REQUIRED_CLOSING_PHRASE;

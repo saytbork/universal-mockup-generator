@@ -121,6 +121,27 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   const interactionBias = buildInteractionCompositionBias(state?.interaction);
 
   if (state?.winePrestigeMode) {
+    const photoMode = String(state?.photoMode || '').trim();
+    const lifestyleMode = new Set([
+      'Social Table Served',
+      'Outdoor Toast',
+      'Hosting Pour',
+      'Dinner Pairing',
+      'Picnic Gathering',
+      'Celebration Chill',
+    ]).has(photoMode);
+
+    if (lifestyleMode) {
+      return [
+        'COMPOSITION:',
+        'Editorial lifestyle wine composition.',
+        'Allow table-led, action-led, or bottle-led framing depending on the selected scene.',
+        'Foreground glasses, cropped guests, food, and service gestures may share the frame naturally.',
+        'Bottle may be primary or secondary, but must remain physically believable and visually coherent when visible.',
+        'Avoid sterile centered packshot symmetry.',
+      ].join(' ');
+    }
+
     return [
       'COMPOSITION:',
       'Product-first framing.',
