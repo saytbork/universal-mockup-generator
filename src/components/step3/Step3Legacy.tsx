@@ -3236,7 +3236,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     )}
 
                     {/*  Photo Mode - ALWAYS visible (Hero lock bugfix) */}
-                    {true && (
+                    {!wineIndustryActive && (
                       <>
                         {/* ═══════════════════════════════════════════════════════════
                           1. PHOTO MODE — What am I making?

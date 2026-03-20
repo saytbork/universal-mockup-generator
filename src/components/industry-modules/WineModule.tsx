@@ -5,7 +5,6 @@ import {
   WINE_MODIFIERS,
   WINE_POUR_STYLE_OPTIONS,
   WINE_STYLE_ARCHETYPES,
-  ALL_WINE_ENVIRONMENTS_V4,
 } from '@/lib/productStudio/winePrestige';
 import type {
   ProductStudioState,
@@ -52,8 +51,17 @@ const WINE_SERVE_MODE_OPTIONS: Array<{ value: WineServeMode; label: string; desc
 ];
 
 const WINE_BOTTLE_FILL_OPTIONS: Array<{ value: WineBottleFillMode; label: string; description: string }> = [
-  { value: 'just-opened', label: 'Just Opened', description: 'Bottle is opened and nearly full' },
-  { value: 'partially-served', label: 'Partially Served', description: 'Bottle shows visible liquid reduction' },
+  { value: 'just-opened', label: 'Full', description: 'Bottle looks full or nearly full' },
+  { value: 'partially-served', label: 'Half', description: 'Bottle shows visible liquid reduction' },
+];
+
+const WINE_BOTTLE_STATE_OPTIONS: Array<{
+  value: 'sealed' | 'opened-with-cork-nearby';
+  label: string;
+  description: string;
+}> = [
+  { value: 'sealed', label: 'Closed', description: 'Retail-closed bottle with no visible opening' },
+  { value: 'opened-with-cork-nearby', label: 'Open', description: 'Bottle is open and ready for service' },
 ];
 
 const WINE_TYPE_OPTIONS: Array<{ value: WineTypeUI; label: string }> = [
@@ -122,12 +130,59 @@ const WINE_MICRO_VARIATIONS_OPTIONS = {
   ],
 };
 
+const WINE_LIFESTYLE_ENVIRONMENTS: WineEnvironmentV4[] = [
+  'Vineyard Golden Hour',
+  'Vineyard Blue Hour',
+  'Vineyard Misty Dawn',
+  'Fine Dining Table',
+  'Outdoor Terrace Dining',
+  'Rustic Estate Kitchen',
+  'Glass Winery Modern',
+  'Hillside Terroir Landscape',
+];
+
+const WINE_STUDIO_ENVIRONMENTS: WineEnvironmentV4[] = [
+  'Dark Luxury Studio',
+  'Concrete Architectural Studio',
+  'White Marble Studio',
+  'Oak Barrel Cellar',
+  'Stone Cave Cellar',
+  'Cathedral Wine Cellar',
+  'Private Wine Library',
+];
+
+const WINE_LIFESTYLE_ARCHETYPES: WineStyleArchetype[] = [
+  'Action Pour Photography',
+  'Cinematic Vineyard',
+  'Warm Tasting Room',
+  'Rustic Pairing Table',
+  'Outdoor Social Toast',
+  'Ice Bucket Chill',
+  'Bottle Inspection Handheld',
+];
+
+const WINE_STUDIO_ARCHETYPES: WineStyleArchetype[] = [
+  'Minimal Editorial Studio',
+  'Ultra Minimal Black Luxury',
+  'Backlit Premium Studio',
+  'Moody Wood Editorial',
+  'Macro Label Branding',
+  'Game Night Editorial',
+  'Grounded Vineyard Flatlay',
+];
+
+function withSelectedOption<T extends string>(options: T[], selected: T): T[] {
+  return options.includes(selected) ? options : [selected, ...options];
+}
+
 export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const wineType         = (useProductStudioStore((s) => s.wineType)         ?? 'auto')                    as WineTypeUI;
   const wineClosureType  = (useProductStudioStore((s) => s.wineClosureType)  ?? 'from-reference')          as WineClosureTypeUI;
   const wineServeMode    = (useProductStudioStore((s) => s.wineServeMode)    ?? 'bottle-only')             as WineServeMode;
   const wineBottleFillMode = (useProductStudioStore((s) => s.wineBottleFillMode) ?? 'just-opened')         as WineBottleFillMode;
+  const wineBottleState = useProductStudioStore((s) => s.wineBottleState) ?? 'sealed';
   const wineGlassType    =  useProductStudioStore((s) => s.wineGlassType)    ?? 'auto';
   const winePourStyle    =  useProductStudioStore((s) => s.winePourStyle);
   const wineLightingTone =  useProductStudioStore((s) => s.wineLightingTone);
@@ -166,11 +221,19 @@ export function WineModule() {
       ? 'served'
       : null;
   const currentServeMode: WineServeMode = forcedServeMode ?? wineServeMode;
+  const currentBottleState: 'sealed' | 'opened-with-cork-nearby' =
+    currentServeMode === 'served' || currentServeMode === 'pouring'
+      ? 'opened-with-cork-nearby'
+      : wineBottleState === 'opened-with-cork-nearby'
+        ? 'opened-with-cork-nearby'
+        : 'sealed';
   const currentBottleFillMode: WineBottleFillMode =
     currentServeMode === 'served'
       ? wineBottleFillMode
       : currentServeMode === 'pouring'
         ? 'partially-served'
+        : currentBottleState === 'opened-with-cork-nearby'
+          ? wineBottleFillMode
         : 'just-opened';
 
   const setWineUiState = (patch: Partial<ProductStudioState>): void => {
@@ -181,6 +244,11 @@ export function WineModule() {
     WINE_LIFESTYLE_SCENE_OPTIONS.some(option => option.value === photoMode) ? 'lifestyle' : 'studio';
   const visibleWineSceneOptions =
     wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_SCENE_OPTIONS : WINE_STUDIO_SCENE_OPTIONS;
+  const visibleWineArchetypes = wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ARCHETYPES : WINE_STUDIO_ARCHETYPES;
+  const visibleWineEnvironments = withSelectedOption(
+    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ENVIRONMENTS : WINE_STUDIO_ENVIRONMENTS,
+    wineEnvironment
+  );
 
   const setWineSceneFamily = (family: 'studio' | 'lifestyle') => {
     const store = useProductStudioStore.getState();
@@ -201,9 +269,10 @@ export function WineModule() {
     if (mode === 'bottle-only') {
       setWineUiState({
         wineServeMode: 'bottle-only',
-        wineBottleFillMode: 'just-opened',
+        wineBottleFillMode:
+          currentBottleState === 'opened-with-cork-nearby' ? currentBottleFillMode : 'just-opened',
         wineGlassMode: 'none',
-        wineBottleState: 'sealed',
+        wineBottleState: currentBottleState,
         wineAction: 'static-presentation',
         wineServeAmount: 'none',
       });
@@ -227,6 +296,42 @@ export function WineModule() {
       wineBottleState: 'opened-with-cork-nearby',
       wineAction: 'static-presentation',
       wineServeAmount: currentBottleFillMode,
+    });
+  };
+
+  const setBottleState = (nextBottleState: 'sealed' | 'opened-with-cork-nearby') => {
+    if (currentServeMode === 'served' || currentServeMode === 'pouring') return;
+    setWineUiState({
+      wineServeMode: 'bottle-only',
+      wineBottleState: nextBottleState,
+      wineBottleFillMode: nextBottleState === 'sealed' ? 'just-opened' : currentBottleFillMode,
+      wineGlassMode: 'none',
+      wineAction: 'static-presentation',
+      wineServeAmount: 'none',
+    });
+  };
+
+  const setBottleFill = (nextFillMode: WineBottleFillMode) => {
+    if (currentServeMode === 'pouring') return;
+    if (currentServeMode === 'served') {
+      setWineUiState({
+        wineServeMode: 'served',
+        wineBottleFillMode: nextFillMode,
+        wineBottleState: 'opened-with-cork-nearby',
+        wineGlassMode: 'filled',
+        wineAction: 'static-presentation',
+        wineServeAmount: nextFillMode,
+      });
+      return;
+    }
+
+    setWineUiState({
+      wineServeMode: 'bottle-only',
+      wineBottleFillMode: nextFillMode,
+      wineBottleState: 'opened-with-cork-nearby',
+      wineGlassMode: 'none',
+      wineAction: 'static-presentation',
+      wineServeAmount: 'none',
     });
   };
 
@@ -289,9 +394,11 @@ export function WineModule() {
           {/* ── WINE STYLE ARCHETYPE ─────────────────────────────── */}
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Look Preset</p>
-            <p className="text-[11px] text-gray-400 mb-2">Visual treatment only. Does not override the selected environment.</p>
+            <p className="text-[11px] text-gray-400 mb-2">
+              Visual treatment only. Filtered to the current wine family so the UI stays coherent.
+            </p>
             <div className="flex flex-wrap gap-2">
-              {WINE_STYLE_ARCHETYPES.map((archetype) => (
+              {visibleWineArchetypes.map((archetype) => (
                 <Chip
                   key={archetype}
                   selected={wineStyleArchetype === archetype}
@@ -305,7 +412,43 @@ export function WineModule() {
               ))}
             </div>
           </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
+            <p className="text-[11px] text-gray-400 mb-3">
+              Physical place and surface for the wine scene. Curated per family so studio and lifestyle do not mix blindly.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {visibleWineEnvironments.map((environment) => (
+                <Chip
+                  key={environment}
+                  selected={wineEnvironment === environment}
+                  onClick={() => setWineUiState({ wineEnvironment: environment })}
+                >
+                  {environment}
+                </Chip>
+              ))}
+            </div>
+          </div>
           {/* ── WINE TYPE ──────────────────────────────────────── */}
+          <div className="rounded-2xl border border-rose-200/70 bg-white/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Advanced Controls</p>
+                <p className="text-[11px] text-gray-400">
+                  Service physics, glassware, closure, finish, and micro-detail overrides.
+                </p>
+              </div>
+              <Chip
+                selected={advancedOpen}
+                onClick={() => setAdvancedOpen((prev) => !prev)}
+                title={advancedOpen ? 'Hide advanced wine controls' : 'Show advanced wine controls'}
+              >
+                {advancedOpen ? 'Hide Advanced' : 'Show Advanced'}
+              </Chip>
+            </div>
+          </div>
+          {advancedOpen && (
+          <>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Wine Type</p>
             <div className="flex flex-wrap gap-2">
@@ -324,7 +467,7 @@ export function WineModule() {
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Scene Service</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Scene</p>
             {(forcedServeMode === 'served' || forcedServeMode === 'pouring') && (
               <p className="text-[11px] text-violet-500 mb-1 font-medium">
                 ✦ {photoMode} enforces {forcedServeMode === 'pouring' ? 'Pouring' : 'Served'}
@@ -360,6 +503,32 @@ export function WineModule() {
             </p>
           </div>
           <div>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bottle</p>
+            {currentServeMode !== 'bottle-only' && (
+              <p className="text-[11px] text-violet-500 mb-1 font-medium">
+                ✦ {currentServeMode === 'pouring' ? 'Pouring' : 'Served'} forces an opened bottle
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {WINE_BOTTLE_STATE_OPTIONS.map((option) => (
+                <Chip
+                  key={option.value}
+                  selected={currentBottleState === option.value}
+                  disabled={currentServeMode !== 'bottle-only'}
+                  onClick={() => setBottleState(option.value)}
+                  title={option.description}
+                >
+                  {option.label}
+                </Chip>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              {currentBottleState === 'sealed'
+                ? 'Closed bottle for unopened hero or bottle-only scenes.'
+                : 'Open bottle. Required for scenes with glass service or pouring.'}
+            </p>
+          </div>
+          <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Closure</p>
             <div className="flex flex-wrap gap-2">
               {WINE_CLOSURE_OPTIONS.map((option) => (
@@ -373,24 +542,16 @@ export function WineModule() {
               ))}
             </div>
           </div>
-          {currentServeMode === 'served' && !isMacroLabelMode && (
+          {(currentServeMode === 'served' || currentBottleState === 'opened-with-cork-nearby') && !isMacroLabelMode && (
             <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Bottle Fill</p>
+              <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Fill</p>
               <div className="flex flex-wrap gap-2">
                 {WINE_BOTTLE_FILL_OPTIONS.map((option) => (
                   <Chip
                     key={option.value}
                     selected={currentBottleFillMode === option.value}
-                    onClick={() =>
-                      setWineUiState({
-                        wineServeMode: 'served',
-                        wineBottleFillMode: option.value,
-                        wineGlassMode: 'filled',
-                        wineBottleState: 'opened-with-cork-nearby',
-                        wineAction: 'static-presentation',
-                        wineServeAmount: option.value,
-                      })
-                    }
+                    disabled={currentServeMode === 'pouring'}
+                    onClick={() => setBottleFill(option.value)}
                     title={option.description}
                   >
                     {option.label}
@@ -398,9 +559,13 @@ export function WineModule() {
                 ))}
               </div>
               <p className="text-[11px] text-gray-400 mt-1">
-                {currentBottleFillMode === 'just-opened'
-                  ? 'Open bottle, nearly full, with a filled glass beside it.'
-                  : 'Open bottle with visible liquid reduction, plus filled glass.'}
+                {currentServeMode === 'served'
+                  ? currentBottleFillMode === 'just-opened'
+                    ? 'Opened bottle in a served scene that still reads full.'
+                    : 'Opened bottle in a served scene with reduced liquid.'
+                  : currentBottleFillMode === 'just-opened'
+                    ? 'Opened bottle-only scene that still reads full.'
+                    : 'Opened bottle-only scene with reduced liquid.'}
               </p>
             </div>
           )}
@@ -488,6 +653,9 @@ export function WineModule() {
                 </Chip>
               ))}
             </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Use sparingly. This is an override layer, not the main scene definition.
+            </p>
           </div>
           {/* ── MICRO VARIATIONS ────────────────────────────────── */}
           <div>
@@ -598,22 +766,8 @@ export function WineModule() {
               </div>
             </div>
           </div>
-          {/* ── WINE ENVIRONMENT ────────────────────────────────── */}
-          <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
-            <p className="text-[11px] text-gray-400 mb-3">Physical place and surface for the wine scene. This should work with any look preset.</p>
-            <div className="flex flex-wrap gap-2">
-              {ALL_WINE_ENVIRONMENTS_V4.map((environment) => (
-                <Chip
-                  key={environment}
-                  selected={wineEnvironment === environment}
-                  onClick={() => setWineUiState({ wineEnvironment: environment })}
-                >
-                  {environment}
-                </Chip>
-              ))}
-            </div>
-          </div>
+          </>
+          )}
         </div>
       )}
     </div>

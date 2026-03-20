@@ -15,11 +15,31 @@ import {
 } from './capabilityResolver';
 
 const normalize = (value: unknown): string => String(value || '').trim().toLowerCase();
+const DEFAULT_WINE_ENVIRONMENT = 'Dark Luxury Studio';
 const DEBUG_PROMPT_PIPELINE =
   import.meta.env.DEV || import.meta.env.VITE_DEBUG_PROMPT_PIPELINE === 'true';
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_PROMPT_PIPELINE) console.log(...args);
 };
+
+function resolveSelectedWineEnvironment(state: ProductStudioState): string {
+  const selectedWineEnvironment = String(state.wineEnvironment || '').trim();
+  const contextPreset = String(state.contextPreset || '').trim();
+
+  if (!contextPreset) return selectedWineEnvironment;
+  if (!selectedWineEnvironment) return contextPreset;
+
+  const normalizedWineEnvironment = normalize(selectedWineEnvironment);
+  const normalizedContextPreset = normalize(contextPreset);
+  if (
+    normalizedWineEnvironment === normalize(DEFAULT_WINE_ENVIRONMENT) &&
+    normalizedContextPreset !== normalizedWineEnvironment
+  ) {
+    return contextPreset;
+  }
+
+  return selectedWineEnvironment;
+}
 
 function deriveWineServeMode(state: ProductStudioState): 'bottle-only' | 'served' | 'pouring' {
   if (state.wineServeMode === 'bottle-only' || state.wineServeMode === 'served' || state.wineServeMode === 'pouring') {
@@ -1249,7 +1269,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
-  const explicitWineEnvironment = String(state.wineEnvironment || state.contextPreset || '').trim();
+  const explicitWineEnvironment = resolveSelectedWineEnvironment(state);
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(explicitWineEnvironment)
     : null;
