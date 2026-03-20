@@ -1270,6 +1270,9 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
   const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
   const explicitWineEnvironment = resolveSelectedWineEnvironment(state);
+  const hasExplicitManualWineEnvironment =
+    Boolean(String(state.wineEnvironment || '').trim()) &&
+    normalize(state.wineEnvironment) !== normalize(DEFAULT_WINE_ENVIRONMENT);
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(explicitWineEnvironment)
     : null;
@@ -1282,6 +1285,8 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
           variation: 'dark-cellar' as NonNullable<StudioUIState['wineEnvironmentVariation']>,
           autoRandomize: false,
         }
+      : winePrestigeMode && hasExplicitManualWineEnvironment && wineEnvironment
+        ? wineEnvironment
       : winePrestigeMode && photoModeWineEnvironmentOverride
         ? {
             variation: photoModeWineEnvironmentOverride,

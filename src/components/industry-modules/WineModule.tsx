@@ -252,7 +252,8 @@ export function WineModule() {
 
   const setWineSceneFamily = (family: 'studio' | 'lifestyle') => {
     const store = useProductStudioStore.getState();
-    store.setSceneType('studio-branding');
+    store.setMode(family === 'lifestyle' ? 'lifestyle-real' : 'studio');
+    store.setSceneType(family === 'lifestyle' ? 'lifestyle-real' : 'studio-branding');
     if (family === 'studio') {
       if (!WINE_STUDIO_SCENE_OPTIONS.some(option => option.value === photoMode)) {
         store.setPhotoMode('Hero Landing Page');

@@ -97,7 +97,7 @@ describe('wine store flow', () => {
     expect(prompt).not.toContain('WINE_GLASS:');
   });
 
-  it('keeps contextual wine lifestyle modes on the studio engine instead of routing to general lifestyle state', () => {
+  it('keeps contextual wine lifestyle modes on the lifestyle scene type while preserving wine prompt routing', () => {
     const store = useProductStudioStore.getState();
 
     store.addProduct(TEST_PRODUCT);
@@ -107,7 +107,8 @@ describe('wine store flow', () => {
     const socialState = useProductStudioStore.getState();
     const socialPrompt = generateProductJobs(socialState)[0]?.prompt ?? '';
 
-    expect(socialState.sceneType).toBe('studio-branding');
+    expect(socialState.sceneType).toBe('lifestyle-real');
+    expect(socialState.mode).toBe('lifestyle-real');
     expect(socialPrompt).toContain('PHOTO_MODE: Social Table Served.');
     expect(socialPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
 
@@ -117,7 +118,8 @@ describe('wine store flow', () => {
     const pourPrompt = generateProductJobs(pourState)[0]?.prompt ?? '';
 
     expect(pourState.photoMode).toBe('Hosting Pour');
-    expect(pourState.sceneType).toBe('studio-branding');
+    expect(pourState.sceneType).toBe('lifestyle-real');
+    expect(pourState.mode).toBe('lifestyle-real');
     expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
     expect(pourPrompt).toContain('Editorial hosting moment with active wine service.');
   });
@@ -138,5 +140,21 @@ describe('wine store flow', () => {
     expect(state.wineEnvironment).toBe('Marble Bar');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
     expect(prompt).not.toContain('WINE_ENVIRONMENT_VARIATION: black-studio.');
+  });
+
+  it('prefers manual wine environment over lifestyle photo-mode auto overrides', () => {
+    const store = useProductStudioStore.getState();
+
+    store.addProduct(TEST_PRODUCT);
+    store.setVisualProfile('wine');
+    store.setWineEnvironment('Marble Bar');
+    store.setPhotoMode('Outdoor Toast');
+
+    const state = useProductStudioStore.getState();
+    const prompt = generateProductJobs(state)[0]?.prompt ?? '';
+
+    expect(state.wineEnvironment).toBe('Marble Bar');
+    expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
+    expect(prompt).not.toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
   });
 });

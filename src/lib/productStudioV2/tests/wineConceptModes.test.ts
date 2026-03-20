@@ -63,6 +63,29 @@ describe('wine concept modes', () => {
     expect(prompt).not.toContain('visibly below retail-full level because wine has been poured into the glass');
   });
 
+  it('renders partially served bottles as clearly reduced instead of near-full', () => {
+    const mapped = toStudioV2State(
+      makeWineState('Social Table Served', {
+        sceneType: 'lifestyle-real',
+        wineServeMode: 'served',
+        wineBottleFillMode: 'partially-served',
+      } as any)
+    );
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('reading approximately half full or meaningfully served down');
+    expect(prompt).toContain('Do NOT let the bottle read as just-opened or nearly full.');
+    expect(prompt).not.toContain('The bottle remains near retail-full level with only a subtle reduction from first service.');
+  });
+
+  it('forbids loose closures in sealed bottle-only scenes', () => {
+    const mapped = toStudioV2State(makeWineState('Hero Landing Page'));
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(prompt).toContain('CLOSURE_RULE: No detached closure appears anywhere in the scene.');
+    expect(prompt).toContain('No spare cork or cap on the table.');
+  });
+
   it('renders lineup comparison as wine-family comparison instead of hero fallback', () => {
     const mapped = toStudioV2State(
       makeWineState('Wine Lineup Comparison', {

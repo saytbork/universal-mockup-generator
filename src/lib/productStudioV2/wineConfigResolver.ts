@@ -67,13 +67,13 @@ function resolveServedBottleOrientation(state: StudioUIState): string {
 
   switch (photoMode) {
     case 'Social Table Served':
-      return 'BOTTLE_ORIENTATION: Bottle may stand upright, rest naturally on the table, or appear at a believable editorial lay angle if the shared-table composition calls for it. No levitation. No impossible balancing. Any tilt or lay must read as gravity-coherent table placement, not product distortion.';
+      return 'BOTTLE_ORIENTATION: Bottle stands upright on the table or rests only if a clear physical support makes that placement obvious. No diagonal lay styling. No unsupported lean. No levitation. No impossible balancing.';
     case 'Outdoor Toast':
       return 'BOTTLE_ORIENTATION: Bottle may stand on the table, sit slightly behind the foreground glasses, or appear partially cropped as a supporting element within the toast scene. Keep placement real and stable. No levitation. No impossible angle.';
     case 'Dinner Pairing':
-      return 'BOTTLE_ORIENTATION: Bottle may stand upright beside the place setting or rest naturally within the dining composition, including a believable tabletop lay angle when editorial framing calls for it. Placement must feel gravity-coherent and restaurant-real.';
+      return 'BOTTLE_ORIENTATION: Bottle stands upright beside the place setting or sits naturally within the dining composition with obvious surface support. No decorative lay angle. Placement must feel gravity-coherent and restaurant-real.';
     case 'Picnic Gathering':
-      return 'BOTTLE_ORIENTATION: Bottle may stand upright on the picnic spread, lean naturally against a real support, or rest at a believable tabletop or blanket lay angle. The bottle must never float or balance unnaturally.';
+      return 'BOTTLE_ORIENTATION: Bottle stands upright on the picnic spread or leans only against a clear real support. No random diagonal bottle placement. The bottle must never float or balance unnaturally.';
     case 'Celebration Chill':
       return 'BOTTLE_ORIENTATION: Bottle may stand upright in fresh table service or rest naturally within the hospitality composition. Keep the support logic obvious and physically real. Do not place the bottle in melting ice, inside a bucket, or in visibly wet service props unless explicitly requested.';
     case 'Editorial Table':
@@ -144,11 +144,11 @@ export function buildWineTruthLayer(
         'The bottle is opened for service.',
         bottleFillState === 'just-opened'
           ? 'The bottle remains near retail-full level with only a subtle reduction from first service. It should read as freshly opened, not substantially depleted.'
-          : 'The bottle remains visibly below retail-full level because wine has been poured into the glass.',
+          : 'The bottle remains clearly reduced from retail-full level, reading approximately half full or meaningfully served down. It must not read as nearly full.',
         'CLOSURE_RULE: Exactly ONE removed closure exists in the scene — it rests on the surface (beside or near the bottle base). The closure is NOT attached to the bottle neck. There is NO closure on the bottle neck. There is NO duplicate closure. Do NOT show a capped or sealed bottle neck.',
         bottleFillState === 'just-opened'
           ? 'Do NOT reseal the bottle. Do NOT show a fully retail-full bottle. The fill should read as freshly opened service with only minimal depletion.'
-          : 'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level.',
+          : 'Do NOT reseal the bottle. Do NOT return the liquid to retail-full level. Do NOT let the bottle read as just-opened or nearly full.',
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
         isPourAction
@@ -159,6 +159,7 @@ export function buildWineTruthLayer(
         'BOTTLE_PRESERVATION_LOCK: The wine bottle must appear exactly as in the reference image.',
         'The bottle is sealed and closed. The closure is fully attached to the bottle neck.',
         'The bottle is filled to retail-full level.',
+        'CLOSURE_RULE: No detached closure appears anywhere in the scene. No spare cork or cap on the table. No duplicate closure.',
         'Do NOT open the bottle. Do NOT remove or detach the closure.',
         'Do NOT alter the liquid level. Do NOT add a half-empty appearance.',
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
