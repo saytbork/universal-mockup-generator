@@ -936,7 +936,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Social Table Served',
         scope: 'environment',
         description: 'Editorial shared-table wine scene with real hospitality context and believable bottle presence.',
-        basePrompt: 'editorial shared-table wine scene with bottle, one or more glasses, believable food pairing context, real hospitality asymmetry, cropped guests or hands allowed, photographed table realism without cgi showroom polish',
+        basePrompt: 'editorial shared-table wine scene with bottle, one or more glasses, believable food pairing context, real hospitality asymmetry, cropped guests or hands allowed, photographed table realism without cgi showroom polish, no tack-sharp facial features, no portrait-led people',
         subOptions: [
             { key: 'tableContext', label: 'Table Context', values: ['Minimal snacks', 'Shared plates', 'Hosting spread'] },
             { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },
@@ -944,6 +944,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Bottle must remain clearly visible and brand-legible',
             'No full-body portrait framing',
+            'No tack-sharp facial features; any guests stay cropped, partial, or softly out of focus',
             'No selfie or influencer aesthetic',
             'Food props must feel real and wine-appropriate',
             'Use shared-table asymmetry and tactile surface realism, not a perfect styled set',
@@ -958,7 +959,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Outdoor Toast',
         scope: 'environment',
         description: 'Editorial outdoor wine toast with natural daylight, raised glasses, and believable bottle presence.',
-        basePrompt: 'editorial outdoor wine toast scene with raised glasses, bottle visible in the setup or table context, natural daylight, relaxed premium hospitality, cropped guests allowed, believable celebration moment without synthetic set polish',
+        basePrompt: 'editorial outdoor wine toast scene with raised glasses, bottle visible in the setup or table context, natural daylight, relaxed premium hospitality, cropped guests allowed, believable celebration moment without synthetic set polish, no tack-sharp facial features, no portrait-led people',
         subOptions: [
             { key: 'setting', label: 'Setting', values: ['Garden', 'Terrace', 'Picnic lawn'] },
             { key: 'groupSize', label: 'Group Size', values: ['Two', 'Three', 'Four'] },
@@ -966,6 +967,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Bottle must stay visible in frame or clearly present on the table',
             'No chaotic crowd scene',
+            'If people appear, keep them cropped, partial, or softly out of focus',
             'No nightlife or party-club styling',
             'Hospitality realism only',
             'Prefer garden, terrace, or picnic realism over cinematic landscape drama',
@@ -980,7 +982,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Hosting Pour',
         scope: 'environment',
         description: 'Editorial wine hosting pour in a real hospitality setting.',
-        basePrompt: 'editorial hosting wine pour in a real hospitality setting, bottle actively pouring into a receiving glass, cropped host support allowed, premium hospitality realism, tactile table context, no cgi showroom feel',
+        basePrompt: 'editorial hosting wine pour in a real hospitality setting, bottle actively pouring into a receiving glass, cropped host support allowed, premium hospitality realism, tactile table context, no cgi showroom feel, no tack-sharp host identity framing',
         subOptions: [
             { key: 'setting', label: 'Setting', values: ['Indoor hosting', 'Outdoor hosting'] },
             { key: 'cropStyle', label: 'Crop Style', values: ['Hands only', 'Cropped torso'] },
@@ -989,6 +991,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'Bottle must be naturally supported by a real hand or cropped host presence',
             'No levitation or impossible pour angle',
             'No full visible face required',
+            'Keep any host presence cropped, partial, or outside focal priority',
             'Glass must read as the receiving vessel',
             'Frame as real table-side or hosting service, not an abstract pour demo',
         ],
@@ -1002,7 +1005,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Dinner Pairing',
         scope: 'environment',
         description: 'Editorial wine bottle with plated food and dining context in a premium but real setting.',
-        basePrompt: 'editorial wine dinner pairing scene with bottle, glasses, plated food, real dining table context, premium hospitality atmosphere, tactile materials, believable dining depth, no fake cgi restaurant set',
+        basePrompt: 'editorial wine dinner pairing scene with bottle, glasses, plated food, real dining table context, premium hospitality atmosphere, tactile materials, believable dining depth, no fake cgi restaurant set, no portrait-led diners or tack-sharp facial features',
         subOptions: [
             { key: 'diningMood', label: 'Dining Mood', values: ['Restaurant', 'Home dinner', 'Terrace dining'] },
             { key: 'foodDensity', label: 'Food Density', values: ['Minimal pairing', 'Balanced table', 'Shared meal'] },
@@ -1010,6 +1013,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'Bottle must remain a strong readable subject',
             'Food styling must feel real, not ad-prop fake',
+            'Any diners must stay secondary, cropped, partial, or softly out of focus',
             'No overloaded banquet table',
             'No theatrical set design',
             'Use limited plated-food context with believable dining materials',
@@ -1024,7 +1028,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Picnic Gathering',
         scope: 'environment',
         description: 'Editorial outdoor wine gathering with picnic cues and relaxed action context.',
-        basePrompt: 'editorial wine picnic gathering with bottle, glasses, relaxed outdoor setting, simple premium food context, natural sunlight, cropped guests allowed, lifestyle realism, no influencer fantasy styling or cgi set polish',
+        basePrompt: 'editorial wine picnic gathering with bottle, glasses, relaxed outdoor setting, simple premium food context, natural sunlight, cropped guests allowed, lifestyle realism, no influencer fantasy styling or cgi set polish, no tack-sharp facial features or posed portrait people',
         subOptions: [
             { key: 'setting', label: 'Setting', values: ['Blanket picnic', 'Low table picnic', 'Park table'] },
             { key: 'peoplePresence', label: 'People Presence', values: ['Hands only', 'Cropped people', 'Small group'] },
@@ -1032,6 +1036,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         constraints: [
             'No influencer picnic fantasy styling',
             'Bottle must remain visible and legible',
+            'Guests must stay incidental, cropped, partial, or softly out of focus',
             'No excessive props or floral overload',
             'Keep tone relaxed but premium',
             'Use casual hospitality cues, not wedding editorial picnic decor',
@@ -1046,7 +1051,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
         label: 'Celebration Chill',
         scope: 'environment',
         description: 'Editorial fresh wine service scene with glasses and restrained hospitality action, without gimmicky cold FX.',
-        basePrompt: 'editorial fresh wine service scene with glasses, restrained hospitality action context, believable premium atmosphere, real service materials, polished but natural table styling, no synthetic cold fx, no ice props, no puddles, no wet glassware',
+        basePrompt: 'editorial fresh wine service scene with glasses, restrained hospitality action context, believable premium atmosphere, real service materials, polished but natural table styling, no synthetic cold fx, no ice props, no puddles, no wet glassware, no tack-sharp facial features or portrait-led guests',
         subOptions: [
             { key: 'serviceStyle', label: 'Service Style', values: ['Fresh table service', 'Terrace service'] },
             { key: 'groupMood', label: 'Group Mood', values: ['Intimate', 'Small group'] },
@@ -1056,6 +1061,7 @@ export const PHOTO_MODE_SCHEMAS: Partial<Record<PhotoMode, EnvironmentPhotoModeS
             'No fake frost glamour, nightclub look, or cold-prop theatrics',
             'Bottle and service context must remain believable',
             'Social presence must stay secondary to the bottle',
+            'Any people must remain cropped, partial, or softly out of focus',
             'No visible ice cubes, water puddles, sweaty glass exteriors, or soaked surfaces unless explicitly requested',
         ],
         requiredPlacement: 'surface',

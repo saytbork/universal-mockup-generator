@@ -51,7 +51,7 @@ const REQUIRED_CLOSING_PHRASE =
 const CONTEXTUAL_CLOSING_PHRASE =
     'The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.';
 const WINE_LIFESTYLE_CLOSING_PHRASE =
-    'The scene should read as real photographed hospitality. Cropped hands, guests, table action, and service context may appear when the selected wine photo mode calls for them.';
+    'The scene should read as real photographed hospitality. Human presence, when it appears, must stay secondary: cropped hands, partial arms, torso fragments, clinking glasses, or soft out-of-focus guests only. No tack-sharp facial features. No portrait-led people. The moment stays product-led and service-led.';
 const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE, WINE_LIFESTYLE_CLOSING_PHRASE];
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [

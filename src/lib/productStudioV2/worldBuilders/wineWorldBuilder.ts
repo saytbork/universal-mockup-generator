@@ -36,22 +36,22 @@ export function buildWineWorld(
     return 'SCENE_STYLE: real wine photography in an authentic cellar or winery environment.';
   }
   if (photoMode === 'Social Table Served') {
-    return 'SCENE_STYLE: real product-lifestyle shared-table wine photography with hospitality context, tactile food cues, action-first framing, and strong bottle readability. The moment should feel like authentic table service, not stock lifestyle staging.';
+    return 'SCENE_STYLE: real product-lifestyle shared-table wine photography with hospitality context, tactile food cues, action-first framing, and strong bottle readability. Human presence stays incidental: cropped hands, partial torsos, or soft background blur only. No tack-sharp portrait subjects. The moment should feel like authentic table service, not stock lifestyle staging.';
   }
   if (photoMode === 'Outdoor Toast') {
-    return 'SCENE_STYLE: real product-lifestyle outdoor wine photography with toast energy, natural daylight, relaxed premium hospitality, and believable picnic-or-terrace action context.';
+    return 'SCENE_STYLE: real product-lifestyle outdoor wine photography with toast energy, natural daylight, relaxed premium hospitality, and believable picnic-or-terrace action context. Human presence should read as a toast moment, not a portrait: glasses and hands in focus, with facial features secondary, soft, cropped, or outside focal priority.';
   }
   if (photoMode === 'Hosting Pour') {
-    return 'SCENE_STYLE: real product-lifestyle hosting wine photography with active pour service and authentic hospitality framing rooted in table realism rather than showroom styling.';
+    return 'SCENE_STYLE: real product-lifestyle hosting wine photography with active pour service and authentic hospitality framing rooted in table realism rather than showroom styling. Human presence stays service-led and cropped. No tack-sharp host portrait.';
   }
   if (photoMode === 'Dinner Pairing') {
-    return 'SCENE_STYLE: real product-lifestyle wine dinner-pairing photography with tactile plated-food context, premium table texture, and refined hospitality atmosphere that still keeps the bottle commercially legible.';
+    return 'SCENE_STYLE: real product-lifestyle wine dinner-pairing photography with tactile plated-food context, premium table texture, and refined hospitality atmosphere that still keeps the bottle commercially legible. Diners, if present, remain incidental, partial, or softly out of focus rather than tack-sharp portrait subjects.';
   }
   if (photoMode === 'Picnic Gathering') {
-    return 'SCENE_STYLE: real product-lifestyle picnic wine photography with relaxed outdoor hospitality cues, simple shareable food, and premium natural light grounded in believable casual service context.';
+    return 'SCENE_STYLE: real product-lifestyle picnic wine photography with relaxed outdoor hospitality cues, simple shareable food, and premium natural light grounded in believable casual service context. Guests should read as a shared moment through crops, gestures, or soft background blur, never as tack-sharp portrait figures.';
   }
   if (photoMode === 'Celebration Chill') {
-    return 'SCENE_STYLE: real product-lifestyle fresh wine hospitality photography with restrained action context, premium table service realism, and clean dry materials. No ice-bucket theatrics, no condensation glamour, and no wet-surface gimmicks.';
+    return 'SCENE_STYLE: real product-lifestyle fresh wine hospitality photography with restrained action context, premium table service realism, and clean dry materials. Human presence stays secondary, cropped, or softly out of focus. No ice-bucket theatrics, no condensation glamour, and no wet-surface gimmicks.';
   }
   return 'SCENE_STYLE: real wine bottle photography with natural optical behavior and product-first fidelity.';
 }

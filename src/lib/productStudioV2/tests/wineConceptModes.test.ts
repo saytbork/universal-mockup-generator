@@ -142,6 +142,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
     expect(prompt).toContain('HUMAN_PRESENCE: Cropped hands, arms, torso fragments, and real service cues are allowed and often necessary.');
+    expect(prompt).toContain('No tack-sharp facial features should become the subject.');
     expect(prompt).toContain('The action may lead the image, with the bottle fully visible or partially cropped');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
     expect(prompt).not.toContain('The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.');
@@ -165,6 +166,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('SCENE_STYLE: real product-lifestyle outdoor wine photography');
     expect(prompt).toContain('The glasses may take the foreground while the bottle sits on the table');
     expect(prompt).toContain('partial seated bodies are allowed and desirable');
+    expect(prompt).toContain('Facial features must stay secondary, soft, cropped, or outside focal priority.');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
     expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
@@ -192,6 +194,7 @@ describe('wine concept modes', () => {
     expect(socialPrompt).toContain('One or more glasses, restrained food cues, and real hospitality context may appear.');
     expect(socialPrompt).toContain('The bottle may be primary, secondary, upright, or naturally resting within the table composition');
     expect(socialPrompt).toContain('The bottle may stand upright or rest naturally within the spread.');
+    expect(socialPrompt).toContain('Facial features must never become tack-sharp focal subjects.');
     expect(socialPrompt).toContain('The environment must read as a real photographed place with tactile materials');
     expect(socialPrompt).toContain('Editorial lifestyle wine composition.');
     expect(socialPrompt).not.toContain('Product-first framing.');
@@ -203,6 +206,7 @@ describe('wine concept modes', () => {
     expect(dinnerPrompt).toContain('One or two credible plated-food cues and tactile table materials may appear.');
     expect(dinnerPrompt).toContain('The bottle can stand, rest, or sit slightly secondary within the editorial food-and-table composition.');
     expect(dinnerPrompt).toContain('The bottle can be upright beside the setting, naturally integrated into the table, or slightly secondary');
+    expect(dinnerPrompt).toContain('Any facial features must stay out of focus, cropped, or clearly secondary to the bottle and table moment.');
     expect(dinnerPrompt).toContain('Editorial lifestyle wine composition.');
     expect(dinnerPrompt).not.toContain('Product-first framing.');
     expect(dinnerPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
@@ -212,6 +216,7 @@ describe('wine concept modes', () => {
     expect(picnicPrompt).toContain('Simple serveware, bread, fruit, board, blanket, or low-table cues may appear.');
     expect(picnicPrompt).toContain('The bottle may be upright on the spread, casually angled on the table, or integrated as one element of the shared picnic scene.');
     expect(picnicPrompt).toContain('The bottle may be upright, casually placed, or resting within the spread rather than isolated as a hero packshot.');
+    expect(picnicPrompt).toContain('No tack-sharp portrait facial features.');
     expect(picnicPrompt).toContain('Editorial lifestyle wine composition.');
     expect(picnicPrompt).not.toContain('Product-first framing.');
     expect(picnicPrompt).not.toContain('BOTTLE_ORIENTATION: Bottle stands perfectly upright. No tilt. No lean. No diagonal.');
@@ -222,6 +227,7 @@ describe('wine concept modes', () => {
     expect(chillPrompt).toContain('Keep the glassware clean and dry-looking, with no visible condensation beads, water puddles, stray ice, or soaked table surfaces.');
     expect(chillPrompt).toContain('The bottle should feel naturally present within the service ritual rather than isolated as a packshot.');
     expect(chillPrompt).toContain('The bottle can be focal or secondary, but should feel naturally embedded in the service ritual.');
+    expect(chillPrompt).toContain('Guests must remain secondary, soft, cropped, or outside focal priority rather than portrait subjects.');
     expect(chillPrompt).toContain('Editorial lifestyle wine composition.');
     expect(chillPrompt).not.toContain('Product-first framing.');
     expect(chillPrompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
