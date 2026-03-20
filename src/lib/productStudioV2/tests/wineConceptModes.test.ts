@@ -145,6 +145,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('Only incidental hands, cropped arms, or partial cues needed to support the pour action.');
     expect(prompt).toContain('No floating bottle.');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
+    expect(prompt).not.toContain('This is the only addition to the scene');
   });
 
   it('renders outdoor toast as a wine lifestyle social scene rather than a studio fallback', () => {
@@ -161,6 +162,39 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('partial seated bodies may appear only as supporting toast context');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
+    expect(prompt).toContain('raised-toast context');
+    expect(prompt).not.toContain('This is the only addition to the scene');
     expect(prompt).not.toContain('PHOTO_MODE_SCENE: Clean studio hero composition.');
+  });
+
+  it('keeps served lifestyle table modes contextual instead of collapsing to bottle-plus-one-glass only', () => {
+    const socialPrompt = generateStudioPromptV2(
+      toStudioV2State(makeWineState('Social Table Served', { sceneType: 'lifestyle-real' } as any))
+    );
+    const dinnerPrompt = generateStudioPromptV2(
+      toStudioV2State(makeWineState('Dinner Pairing', { sceneType: 'lifestyle-real' } as any))
+    );
+    const picnicPrompt = generateStudioPromptV2(
+      toStudioV2State(makeWineState('Picnic Gathering', { sceneType: 'lifestyle-real' } as any))
+    );
+    const chillPrompt = generateStudioPromptV2(
+      toStudioV2State(makeWineState('Celebration Chill', { sceneType: 'lifestyle-real' } as any))
+    );
+
+    expect(socialPrompt).toContain('One or more glasses, restrained food cues, and real hospitality context may appear');
+    expect(socialPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
+    expect(socialPrompt).not.toContain('This is the only addition to the scene');
+
+    expect(dinnerPrompt).toContain('One or two credible plated-food cues and tactile table materials may appear');
+    expect(dinnerPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
+    expect(dinnerPrompt).not.toContain('This is the only addition to the scene');
+
+    expect(picnicPrompt).toContain('Simple serveware, bread, fruit, board, blanket, or low-table cues may appear');
+    expect(picnicPrompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');
+    expect(picnicPrompt).not.toContain('This is the only addition to the scene');
+
+    expect(chillPrompt).toContain('Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear');
+    expect(chillPrompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
+    expect(chillPrompt).not.toContain('This is the only addition to the scene');
   });
 });

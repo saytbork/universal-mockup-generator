@@ -10,6 +10,10 @@ export type ResolvedWineConfig = {
   bottleFillState?: BottleFillState;
 };
 
+function resolveWinePhotoMode(state: StudioUIState): string {
+  return String(state.photoMode || '').trim();
+}
+
 function resolveWineGlassDescriptor(state: StudioUIState): string {
   const requested = String((state as any).wineGlassType || 'auto').trim().toLowerCase();
   const wineType = String(state.wineType || 'auto').trim().toLowerCase();
@@ -28,6 +32,34 @@ function resolveWineGlassDescriptor(state: StudioUIState): string {
     return 'a taller narrow white-wine style glass';
   }
   return 'a classic wine glass appropriate to the varietal';
+}
+
+function buildServedWineGlassBlock(state: StudioUIState): string {
+  const descriptor = resolveWineGlassDescriptor(state);
+  const photoMode = resolveWinePhotoMode(state);
+
+  switch (photoMode) {
+    case 'Bottle + Glass':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height is placed beside the bottle as a clean served presentation. The glass must be clearly visible in the frame. No pour-in-progress.`;
+    case 'Editorial Table':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a restrained editorial tabletop arrangement. Minimal wine-appropriate tabletop context may appear, but the bottle remains the hero subject.`;
+    case 'Winery Scene':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height may appear near the bottle within an authentic cellar or tasting-room service context. Keep the environment real and secondary to bottle fidelity.`;
+    case 'Rose Tasting Table':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a bright tasting-table setup. Fresh tasting accents and refined tabletop cues may appear, but the bottle remains commercially dominant.`;
+    case 'Social Table Served':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a believable shared-table service scene. One or more glasses, restrained food cues, and real hospitality context may appear, but the bottle remains the readable hero subject.`;
+    case 'Outdoor Toast':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real outdoor toast setup. One or more glasses, raised-toast context, and relaxed garden or terrace hospitality cues may appear, while the bottle remains visible and premium.`;
+    case 'Dinner Pairing':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a real dining setup. One or two credible plated-food cues and tactile table materials may appear, but the bottle remains legible and product-first.`;
+    case 'Picnic Gathering':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a relaxed picnic service scene. Simple serveware, bread, fruit, board, blanket, or low-table cues may appear, but the bottle remains clearly readable.`;
+    case 'Celebration Chill':
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height appears within a chilled hospitality setup. Restrained cold-service cues such as an ice bucket, chilled sleeve, or cool tabletop service may appear, while the bottle remains the premium focal point.`;
+    default:
+      return `WINE_GLASS: ${descriptor} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame.`;
+  }
 }
 
 /**
@@ -133,7 +165,7 @@ export function buildWineTruthLayer(
   const glassBlock = serveState !== 'none'
     ? isPourAction
       ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} stands upright directly beneath or just beside the bottle mouth as the receiving glass for the pour. The glass is partially filled and remains clearly visible in frame. The stream must land inside the glass opening, never beside it.`
-      : `WINE_GLASS: ${resolveWineGlassDescriptor(state)} filled with wine to approximately 1/3 height is placed next to the bottle. The glass must be clearly visible in the frame. This is the only addition to the scene — everything else matches the reference exactly.`
+      : buildServedWineGlassBlock(state)
     : 'NO_GLASS: No wine glass in the scene. No poured liquid. No extra props.';
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
