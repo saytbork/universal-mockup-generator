@@ -125,6 +125,15 @@ const INDUSTRY_CHIP_CONFIGS: IndustryChipConfig[] = [
   },
 ];
 
+const WINE_PRODUCT_LIFESTYLE_MODES = new Set<PhotoMode>([
+  'Social Table Served',
+  'Outdoor Toast',
+  'Hosting Pour',
+  'Dinner Pairing',
+  'Picnic Gathering',
+  'Celebration Chill',
+]);
+
 const SETTINGS_CARD_CLASS = 'rounded-2xl border border-gray-200 bg-white p-5 space-y-5';
 
 function PropertySettingsCard({
@@ -1616,6 +1625,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const industryProfile: IndustryProfile = productStore.industryProfile;
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const wineIndustryActive = industryProfile === 'wine' || winePrestigeModeActive;
+  const wineLifestyleProductModeActive =
+    isProductMode &&
+    wineIndustryActive &&
+    WINE_PRODUCT_LIFESTYLE_MODES.has(String(productStore.photoMode || '') as PhotoMode);
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
@@ -1839,6 +1852,16 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       productCameraRotation: productStore.rotation === 0 ? 0 : 5,
     }));
   }, [isProductMode, productStore.angle, productStore.distance, productStore.framing, productStore.rotation]);
+
+  useEffect(() => {
+    if (!isProductMode) return;
+    const desiredSceneType: ProductStudioState['sceneType'] = wineLifestyleProductModeActive
+      ? 'lifestyle-real'
+      : 'studio-branding';
+    if (productStore.sceneType !== desiredSceneType) {
+      productStore.setSceneType(desiredSceneType);
+    }
+  }, [isProductMode, wineLifestyleProductModeActive, productStore]);
 
   // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
   // Product Studio must NEVER show Lifestyle/UGC sections.
@@ -2550,7 +2573,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // Derived from sceneIntent - no longer computed independently
   // Derived from sceneIntent - no longer computed independently
-  const isEcommerceMode = isProductMode || values.sceneIntent === 'ecommerce';
+  const isEcommerceMode = (!wineLifestyleProductModeActive && isProductMode) || values.sceneIntent === 'ecommerce';
   // const isEnvironmentMode = values.sceneIntent === 'environment'; // REDUNDANT: Derived from productStore.sceneType now
   const isUGCMode = values.ugcRealMode === true;
   const hasUploadedProductAsset = productCount > 0;
@@ -2709,13 +2732,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   // If this instance is mounted as Product Mode, lock scene intent to ecommerce.
   useEffect(() => {
-    if (!isProductMode) return;
+    if (!isProductMode || wineLifestyleProductModeActive) return;
     if (values.sceneIntent !== 'ecommerce') {
       enableEcommerce();
     }
-  }, [isProductMode, values.sceneIntent, enableEcommerce]);
-
-
+  }, [isProductMode, wineLifestyleProductModeActive, values.sceneIntent, enableEcommerce]);
 
   // Scene Intent Handler: Enable Environment Mode
   const enableEnvironment = useCallback(() => {
@@ -2730,6 +2751,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (!wineLifestyleProductModeActive) return;
+    if (values.sceneIntent !== 'environment') {
+      enableEnvironment();
+    }
+  }, [wineLifestyleProductModeActive, values.sceneIntent, enableEnvironment]);
 
   const exitEcommerceToEnvironment = useCallback(() => {
     console.log('[SCENE INTENT CHANGE] exit ecommerce -> environment');
@@ -2773,6 +2801,12 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
 
   useEffect(() => {
+    if (wineLifestyleProductModeActive) {
+      if (values.sceneType !== 'lifestyle-real') {
+        updateValue('sceneType', 'lifestyle-real');
+      }
+      return;
+    }
     if (isProductMode || values.sceneIntent === 'ecommerce') {
       if (values.sceneType !== 'studio-branding') {
         updateValue('sceneType', 'studio-branding');
@@ -2782,7 +2816,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.sceneType !== 'lifestyle-real') {
       updateValue('sceneType', 'lifestyle-real');
     }
-  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
+  }, [isProductMode, wineLifestyleProductModeActive, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {

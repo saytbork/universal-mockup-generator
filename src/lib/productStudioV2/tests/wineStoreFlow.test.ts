@@ -96,4 +96,37 @@ describe('wine store flow', () => {
     expect(prompt).toContain('NO_GLASS: No wine glass in the scene.');
     expect(prompt).not.toContain('WINE_GLASS:');
   });
+
+  it('keeps contextual wine lifestyle modes on lifestyle-real state instead of falling back to studio-branding', () => {
+    const store = useProductStudioStore.getState();
+
+    store.addProduct(TEST_PRODUCT);
+    store.setVisualProfile('wine');
+    store.setPhotoMode('Social Table Served');
+
+    const socialState = useProductStudioStore.getState();
+    const socialPrompt = generateProductJobs(socialState)[0]?.prompt ?? '';
+
+    expect(socialState.sceneType).toBe('lifestyle-real');
+    expect(socialState.environmentContext).toEqual({
+      macro: 'Living Room',
+      micro: 'Coffee table',
+    });
+    expect(socialPrompt).toContain('PHOTO_MODE: Social Table Served.');
+    expect(socialPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
+
+    store.setPhotoMode('Hosting Pour');
+
+    const pourState = useProductStudioStore.getState();
+    const pourPrompt = generateProductJobs(pourState)[0]?.prompt ?? '';
+
+    expect(pourState.photoMode).toBe('Hosting Pour');
+    expect(pourState.sceneType).toBe('lifestyle-real');
+    expect(pourState.environmentContext).toEqual({
+      macro: 'Kitchen',
+      micro: 'Countertop',
+    });
+    expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
+    expect(pourPrompt).toContain('Product-lifestyle hosting moment with active wine service.');
+  });
 });
