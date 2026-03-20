@@ -699,38 +699,6 @@ const normalizeCreationModeForEmit = (raw: string): 'aesthetic' | 'lifestyle' | 
   return 'aesthetic';
 };
 
-const WINE_LIFESTYLE_STEP3_PHOTO_MODES = new Set<string>([
-  'Social Table Served',
-  'Outdoor Toast',
-  'Hosting Pour',
-  'Dinner Pairing',
-  'Picnic Gathering',
-  'Celebration Chill',
-]);
-
-const isWineLifestyleStep3PhotoMode = (photoMode?: string | null): boolean =>
-  WINE_LIFESTYLE_STEP3_PHOTO_MODES.has(String(photoMode || '').trim());
-
-const resolveWineLifestyleEnvironmentDefaults = (
-  photoMode?: string | null
-): { environment: string; environmentContext: NonNullable<Step3Values['environmentContext']> } => {
-  const normalizedMode = String(photoMode || '').trim();
-  switch (normalizedMode) {
-    case 'Outdoor Toast':
-    case 'Picnic Gathering':
-    case 'Celebration Chill':
-      return {
-        environment: 'Backyard / Patio',
-        environmentContext: { macro: 'Backyard / Patio', micro: 'Patio seating' },
-      };
-    default:
-      return {
-        environment: 'Kitchen',
-        environmentContext: { macro: 'Kitchen', micro: 'Countertop' },
-      };
-  }
-};
-
 const resolveStep3SceneType = (
   rawSceneType: Step3Values['sceneType'],
   normalizedCreationMode: ReturnType<typeof normalizeCreationModeForEmit>
@@ -766,16 +734,9 @@ const resolveStep3EmitState = (
   values: Step3Values,
   normalizedCreationMode: ReturnType<typeof normalizeCreationModeForEmit>
 ) => {
-  const wineLifestyleModeActive = isWineLifestyleStep3PhotoMode(values.studioPhotoMode);
-  const sceneType = wineLifestyleModeActive
-    ? 'lifestyle-real'
-    : resolveStep3SceneType(values.sceneType, normalizedCreationMode);
-  const sceneIntent = wineLifestyleModeActive ? 'environment' : values.sceneIntent;
-  const contentStyle = wineLifestyleModeActive
-    ? 'brand'
-    : resolveStep3ContentStyle(values.visualMode, sceneIntent);
-  const noPerson = values.noPerson;
-  const personIncluded = resolveStep3PersonIncluded(noPerson);
+  const sceneType = resolveStep3SceneType(values.sceneType, normalizedCreationMode);
+  const contentStyle = resolveStep3ContentStyle(values.visualMode, values.sceneIntent);
+  const personIncluded = resolveStep3PersonIncluded(values.noPerson);
   const isLuxuryVisualIntent = (values.visualIntent ?? 'editorial') === 'luxury';
   const forceNoMessiness =
     sceneType === 'lifestyle-real' &&
@@ -783,14 +744,12 @@ const resolveStep3EmitState = (
     values.ugcRealMode !== true;
   const forceHandsHolding =
     sceneType === 'lifestyle-real' &&
-    (values.productInteraction === 'holding' || values.studioPhotoMode === 'Hosting Pour') &&
+    values.productInteraction === 'holding' &&
     values.ugcRealMode !== true;
 
   return {
     sceneType,
-    sceneIntent,
     contentStyle,
-    noPerson,
     personIncluded,
     visualIntent: sceneType === 'lifestyle-real' ? (values.visualIntent ?? 'editorial') : undefined,
     allowMessiness: forceNoMessiness ? false : values.allowMessiness,
@@ -1657,8 +1616,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   const industryProfile: IndustryProfile = productStore.industryProfile;
   const winePrestigeModeActive = isWinePrestigeMode(productStore as ProductStudioState);
   const wineIndustryActive = industryProfile === 'wine' || winePrestigeModeActive;
-  const wineLifestyleSceneActive =
-    wineIndustryActive && isWineLifestyleStep3PhotoMode(productStore.photoMode);
   const isCoffeeIndustry = industryProfile === 'coffee';
   const activeIndustryRules = industryRules[industryProfile];
   const allowedStudioLightingValues: ProductStudioState['lighting'][] = [
@@ -2466,9 +2423,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       ...values,
       creationMode: normalizedCreationMode,
       sceneType: emitState.sceneType,
-      sceneIntent: emitState.sceneIntent,
       contentStyle: emitState.contentStyle,
-      noPerson: emitState.noPerson,
       visualIntent: emitState.visualIntent,
       allowMessiness: emitState.allowMessiness,
       handsHolding: emitState.handsHolding,
@@ -2508,7 +2463,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
     if (!isProductMode) return;
-    const wineLifestyleDefaults = resolveWineLifestyleEnvironmentDefaults(productStore.photoMode);
     setValues(prev => ({
       ...prev,
       studioPhotoMode: productStore.photoMode,
@@ -2522,19 +2476,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       studioFinish: productStore.finish,
       studioBackgroundColor: productStore.backgroundColor,
       studioAccentColor: productStore.accentColor,
-      ...(wineLifestyleSceneActive
-        ? {
-            sceneType: 'lifestyle-real' as const,
-            sceneIntent: 'environment' as const,
-            visualIntent: prev.visualIntent ?? 'editorial',
-            creationMode:
-              normalizeCreationModeForEmit(prev.creationMode) === 'studio' ? 'lifestyle' : prev.creationMode,
-            environment: prev.environment || wineLifestyleDefaults.environment,
-            environmentContext: prev.environmentContext || wineLifestyleDefaults.environmentContext,
-            productInteraction:
-              productStore.photoMode === 'Hosting Pour' ? 'holding' : prev.productInteraction,
-          }
-        : {}),
     }));
   }, [
     productStore.photoMode,
@@ -2549,7 +2490,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     productStore.backgroundColor,
     productStore.accentColor,
     isProductMode,
-    wineLifestyleSceneActive,
   ]);
 
 
@@ -2777,24 +2717,10 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // If this instance is mounted as Product Mode, lock scene intent to ecommerce.
   useEffect(() => {
     if (!isProductMode) return;
-    if (wineLifestyleSceneActive) {
-      if (values.sceneIntent !== 'environment') {
-        setValues(prev => {
-          const next: Step3Values = {
-            ...prev,
-            sceneIntent: 'environment',
-            compositionMode: '',
-          };
-          enforceSingleSelectLayers(next);
-          return next;
-        });
-      }
-      return;
-    }
     if (values.sceneIntent !== 'ecommerce') {
       enableEcommerce();
     }
-  }, [isProductMode, wineLifestyleSceneActive, values.sceneIntent, enableEcommerce]);
+  }, [isProductMode, values.sceneIntent, enableEcommerce]);
 
   // Scene Intent Handler: Enable Environment Mode
   const enableEnvironment = useCallback(() => {
@@ -2852,12 +2778,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   }, [isProductMode, values.sceneIntent, exitEcommerceToEnvironment]);
 
   useEffect(() => {
-    if (wineLifestyleSceneActive) {
-      if (values.sceneType !== 'lifestyle-real') {
-        updateValue('sceneType', 'lifestyle-real');
-      }
-      return;
-    }
     if (isProductMode || values.sceneIntent === 'ecommerce') {
       if (values.sceneType !== 'studio-branding') {
         updateValue('sceneType', 'studio-branding');
@@ -2867,7 +2787,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.sceneType !== 'lifestyle-real') {
       updateValue('sceneType', 'lifestyle-real');
     }
-  }, [isProductMode, wineLifestyleSceneActive, values.sceneIntent, values.sceneType, updateValue]);
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {
