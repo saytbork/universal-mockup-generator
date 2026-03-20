@@ -172,6 +172,10 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('No floating bottle.');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
     expect(prompt).toContain('WINE_MOOD_PROFILE: hospitality-lifestyle.');
+    expect(prompt).toContain('ULTRA_REAL_HUMAN_REALISM_LOCK:');
+    expect(prompt).toContain('No waxy skin. No plastic skin. No rubber fingers.');
+    expect(prompt).toContain('ANATOMY_LOCK: Exactly five fingers per visible hand');
+    expect(prompt).toContain('FACE_SECONDARY_REALISM:');
     expect(prompt).not.toContain('WINE_MOOD_PROFILE: ecommerce.');
     expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
     expect(prompt).not.toContain('This is the only addition to the scene');
@@ -192,6 +196,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('Facial features must stay secondary, soft, cropped, or outside focal priority.');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
+    expect(prompt).toContain('BACKGROUND_HUMAN_REALISM:');
+    expect(prompt).toContain('HAND_FOCUS_REALISM:');
+    expect(prompt).toContain('FACE_SECONDARY_REALISM:');
     expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
     expect(prompt).not.toContain('Product-first framing.');
     expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: sunlit-table.');

@@ -86,6 +86,49 @@ function resolveServedBottleOrientation(state: StudioUIState): string {
   }
 }
 
+function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState): string {
+  const photoMode = resolveWinePhotoMode(state);
+
+  if (serveState === 'none') return '';
+
+  const lifestyleHumanModes = new Set([
+    'Social Table Served',
+    'Outdoor Toast',
+    'Hosting Pour',
+    'Dinner Pairing',
+    'Picnic Gathering',
+    'Celebration Chill',
+    'Hands Pouring Wine',
+    'Bottle In Hand Cutout',
+  ]);
+
+  if (!lifestyleHumanModes.has(photoMode)) return '';
+
+  const handLedModes = new Set([
+    'Hosting Pour',
+    'Hands Pouring Wine',
+    'Bottle In Hand Cutout',
+    'Outdoor Toast',
+  ]);
+
+  const parts = [
+    'ULTRA_REAL_HUMAN_REALISM_LOCK: Any visible human presence must read as real photographed anatomy, never CGI, never mannequin-like, never beauty-rendered.',
+    'Skin must preserve natural pore texture, fine lines, tendon transitions, knuckle folds, nail beds, cuticles, and subtle tonal variation.',
+    'No waxy skin. No plastic skin. No rubber fingers. No doll-like hands. No synthetic smoothing. No AI glamour skin retouching.',
+    'ANATOMY_LOCK: Exactly five fingers per visible hand, believable thumb placement, natural finger taper, realistic joint spacing, and physically coherent wrist angles.',
+    'CONTACT_LOCK: When hands touch the bottle or glass, show believable grip pressure, subtle skin compression, real contact shadows, and correct micro-occlusion.',
+    'NEGATIVE_HUMAN_RENDERING: No extra fingers. No fused fingers. No broken wrists. No duplicated limbs. No floating hands. No impossible manicure symmetry. No CGI guest rendering.',
+    'BACKGROUND_HUMAN_REALISM: Any cropped guest, arm, torso fragment, shoulder, or softly visible face must read as optically photographed human presence with natural asymmetry, believable skin transitions, and non-idealized proportions.',
+    'FACE_SECONDARY_REALISM: If partial faces or facial fragments appear, preserve natural eyelid shape, lip texture, skin grain, and subtle asymmetry. No doll-face smoothness. No porcelain skin. No synthetic smile symmetry. No AI beauty-filter look.',
+  ];
+
+  if (handLedModes.has(photoMode)) {
+    parts.push('HAND_FOCUS_REALISM: If hands are prominent, they must look optically captured with true skin texture, natural asymmetry, and commercial-photo realism rather than synthetic hero-hand illustration.');
+  }
+
+  return parts.join(' ');
+}
+
 /**
  * WINE TRUTH LAYER — simplified model
  *
@@ -192,6 +235,7 @@ export function buildWineTruthLayer(
       ? `WINE_GLASS: ${resolveWineGlassDescriptor(state)} stands upright directly beneath or just beside the bottle mouth as the receiving glass for the pour. The glass is partially filled and remains clearly visible in frame. The stream must land inside the glass opening, never beside it.`
       : buildServedWineGlassBlock(state)
     : 'NO_GLASS: No wine glass in the scene. No poured liquid. No extra props.';
+  const humanRealismLock = buildWineHumanRealismLock(state, serveState);
 
   const sparklingLock = buildSparklingPhysicsLockV3(isSparkling, carbonationLevel);
 
@@ -205,7 +249,7 @@ export function buildWineTruthLayer(
     'The label is a locked photographic region. Treat it as immutable.',
   ].join(' ');
 
-  return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
+  return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, humanRealismLock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
 }
 
 function buildSparklingPhysicsLockV3(isSparkling: boolean, carbonationLevel: string): string {
