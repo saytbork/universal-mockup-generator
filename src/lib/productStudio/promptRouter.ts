@@ -1249,7 +1249,7 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     splashMotionIntensity === 'Explosive';
   const winePrestigeMode = wineEnabledProfiles.has(industryProfile);
   const winePrestigeV2Mode = false;
-  const explicitWineEnvironment = String(state.contextPreset || state.wineEnvironment || '').trim();
+  const explicitWineEnvironment = String(state.wineEnvironment || state.contextPreset || '').trim();
   const wineEnvironment = winePrestigeMode
     ? resolveWineEnvironmentVariation(explicitWineEnvironment)
     : null;

@@ -121,4 +121,22 @@ describe('wine store flow', () => {
     expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
     expect(pourPrompt).toContain('Editorial hosting moment with active wine service.');
   });
+
+  it('prefers manual wine environment over stale context preset when building wine prompts', () => {
+    const store = useProductStudioStore.getState();
+
+    store.addProduct(TEST_PRODUCT);
+    store.setVisualProfile('wine');
+    store.setPhotoMode('Editorial Bottle Tabletop');
+    store.setContextPreset('Dark Luxury Studio');
+    store.setWineEnvironment('Marble Bar');
+
+    const state = useProductStudioStore.getState();
+    const prompt = generateProductJobs(state)[0]?.prompt ?? '';
+
+    expect(state.contextPreset).toBe('Dark Luxury Studio');
+    expect(state.wineEnvironment).toBe('Marble Bar');
+    expect(prompt).toContain('WINE_ENVIRONMENT_VARIATION: marble-bar.');
+    expect(prompt).not.toContain('WINE_ENVIRONMENT_VARIATION: black-studio.');
+  });
 });
