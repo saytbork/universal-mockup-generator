@@ -144,7 +144,7 @@ export function buildWineTruthLayer(
         'The bottle is opened for service.',
         bottleFillState === 'just-opened'
           ? 'The bottle remains near retail-full level with only a subtle reduction from first service. It should read as freshly opened, not substantially depleted.'
-          : 'The bottle remains clearly reduced from retail-full level, reading approximately half full or meaningfully served down. It must not read as nearly full.',
+          : 'The bottle remains visibly below retail-full level, reading approximately half full or meaningfully served down. It must not read as nearly full.',
         'CLOSURE_RULE: Exactly ONE removed closure exists in the scene — it rests on the surface (beside or near the bottle base). The closure is NOT attached to the bottle neck. There is NO closure on the bottle neck. There is NO duplicate closure. Do NOT show a capped or sealed bottle neck.',
         bottleFillState === 'just-opened'
           ? 'Do NOT reseal the bottle. Do NOT show a fully retail-full bottle. The fill should read as freshly opened service with only minimal depletion.'
