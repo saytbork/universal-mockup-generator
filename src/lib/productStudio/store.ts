@@ -2013,14 +2013,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Celebration Chill',
             ];
             const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine', 'Hosting Pour'];
-            const wineLifestyleSceneModes: PhotoMode[] = [
-                'Social Table Served',
-                'Outdoor Toast',
-                'Hosting Pour',
-                'Dinner Pairing',
-                'Picnic Gathering',
-                'Celebration Chill',
-            ];
             const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
             const wineLineupMode = effectiveMode === 'Wine Lineup Comparison';
             const normalizedIndustryProfile = String(state.industryProfile || '').trim().toLowerCase();
@@ -2032,7 +2024,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const isWinePhotoMode = allowed.includes(effectiveMode as PhotoMode) && isWineState;
             const isServedWineMode = servedWineModes.includes(effectiveMode);
             const isPourWineMode = pourWineModes.includes(effectiveMode);
-            const isWineLifestyleSceneMode = wineLifestyleSceneModes.includes(effectiveMode);
             const isWineSceneOwnedMode = wineSceneOwnedModes.includes(effectiveMode);
             const fallbackServeMode = deriveWineServeMode(state);
             const fallbackBottleFillMode = deriveWineBottleFillMode(state);
@@ -2051,40 +2042,18 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                     : resolvedWineServeMode === 'pouring'
                         ? 'partially-served'
                         : 'just-opened';
-            const resolvedWineLifestyleEnvironmentContext =
-                !isWineLifestyleSceneMode
-                    ? null
-                    : (() => {
-                        switch (effectiveMode) {
-                            case 'Hosting Pour':
-                                return { macro: 'Kitchen', micro: 'Countertop' } as ProductStudioState['environmentContext'];
-                            case 'Outdoor Toast':
-                            case 'Picnic Gathering':
-                                return { macro: 'Backyard / Patio', micro: 'Patio seating' } as ProductStudioState['environmentContext'];
-                            case 'Dinner Pairing':
-                            case 'Social Table Served':
-                                return { macro: 'Living Room', micro: 'Coffee table' } as ProductStudioState['environmentContext'];
-                            case 'Celebration Chill':
-                                return { macro: 'Living Room', micro: 'Coffee table' } as ProductStudioState['environmentContext'];
-                            default:
-                                return { macro: 'Kitchen', micro: 'Countertop' } as ProductStudioState['environmentContext'];
-                        }
-                    })();
-
             const common: Partial<ProductStudioState> = {
                 photoMode: effectiveMode,
                 visualStyle: undefined,
                 specialEffects: [],
                 placement: resolvedPlacement,
                 ...(isWinePhotoMode
-                    ? { sceneType: isWineLifestyleSceneMode ? 'lifestyle-real' : 'studio-branding' as ProductStudioState['sceneType'] }
+                    ? { sceneType: 'studio-branding' as ProductStudioState['sceneType'] }
                     : {}),
                 // Preserve environment once user enables it from PHOTO TYPE.
-                environmentContext: isWineLifestyleSceneMode
-                    ? resolvedWineLifestyleEnvironmentContext
-                    : shouldUseEnvironment
-                        ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
-                        : null,
+                environmentContext: shouldUseEnvironment
+                    ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
+                    : null,
                 handsHolding: resolvedHandsHolding,
                 interaction: resolvedInteraction,
                 // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes
