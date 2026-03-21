@@ -87,7 +87,7 @@ const WINE_STUDIO_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; descri
   { value: 'Winery Scene', label: 'Winery Scene', description: 'Cellar or winery environment' },
 ];
 
-const WINE_LIFESTYLE_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
+const WINE_CONTEXTUAL_SCENE_OPTIONS: Array<{ value: PhotoMode; label: string; description: string }> = [
   { value: 'Social Table Served', label: 'Social Table', description: 'Bottle-first shared table scene with glasses, food, and real hospitality context' },
   { value: 'Outdoor Toast', label: 'Outdoor Toast', description: 'Bottle-led outdoor setup with toast action, cropped people, and natural daylight' },
   { value: 'Hosting Pour', label: 'Hosting Pour', description: 'Bottle hero during a real pour, with cropped arms or hands only' },
@@ -130,17 +130,6 @@ const WINE_MICRO_VARIATIONS_OPTIONS = {
   ],
 };
 
-const WINE_LIFESTYLE_ENVIRONMENTS: WineEnvironmentV4[] = [
-  'Vineyard Golden Hour',
-  'Vineyard Blue Hour',
-  'Vineyard Misty Dawn',
-  'Fine Dining Table',
-  'Outdoor Terrace Dining',
-  'Rustic Estate Kitchen',
-  'Glass Winery Modern',
-  'Hillside Terroir Landscape',
-];
-
 const WINE_STUDIO_ENVIRONMENTS: WineEnvironmentV4[] = [
   'Dark Luxury Studio',
   'Concrete Architectural Studio',
@@ -149,16 +138,6 @@ const WINE_STUDIO_ENVIRONMENTS: WineEnvironmentV4[] = [
   'Stone Cave Cellar',
   'Cathedral Wine Cellar',
   'Private Wine Library',
-];
-
-const WINE_LIFESTYLE_ARCHETYPES: WineStyleArchetype[] = [
-  'Action Pour Photography',
-  'Cinematic Vineyard',
-  'Warm Tasting Room',
-  'Rustic Pairing Table',
-  'Outdoor Social Toast',
-  'Ice Bucket Chill',
-  'Bottle Inspection Handheld',
 ];
 
 const WINE_STUDIO_ARCHETYPES: WineStyleArchetype[] = [
@@ -240,31 +219,9 @@ export function WineModule() {
     useProductStudioStore.setState(patch);
   };
 
-  const wineSceneFamily: 'studio' | 'lifestyle' =
-    WINE_LIFESTYLE_SCENE_OPTIONS.some(option => option.value === photoMode) ? 'lifestyle' : 'studio';
-  const visibleWineSceneOptions =
-    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_SCENE_OPTIONS : WINE_STUDIO_SCENE_OPTIONS;
-  const visibleWineArchetypes = wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ARCHETYPES : WINE_STUDIO_ARCHETYPES;
-  const visibleWineEnvironments = withSelectedOption(
-    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ENVIRONMENTS : WINE_STUDIO_ENVIRONMENTS,
-    wineEnvironment
-  );
-
-  const setWineSceneFamily = (family: 'studio' | 'lifestyle') => {
-    const store = useProductStudioStore.getState();
-    store.setMode(family === 'lifestyle' ? 'lifestyle-real' : 'studio');
-    store.setSceneType(family === 'lifestyle' ? 'lifestyle-real' : 'studio-branding');
-    if (family === 'studio') {
-      if (!WINE_STUDIO_SCENE_OPTIONS.some(option => option.value === photoMode)) {
-        store.setPhotoMode('Hero Landing Page');
-      }
-      return;
-    }
-
-    if (!WINE_LIFESTYLE_SCENE_OPTIONS.some(option => option.value === photoMode)) {
-      store.setPhotoMode('Social Table Served');
-    }
-  };
+  const visibleWineSceneOptions = [...WINE_STUDIO_SCENE_OPTIONS, ...WINE_CONTEXTUAL_SCENE_OPTIONS];
+  const visibleWineArchetypes = WINE_STUDIO_ARCHETYPES;
+  const visibleWineEnvironments = withSelectedOption(WINE_STUDIO_ENVIRONMENTS, wineEnvironment);
 
   const setWineServeMode = (mode: WineServeMode) => {
     if (mode === 'bottle-only') {
@@ -350,34 +307,11 @@ export function WineModule() {
       {isOpen && (
         <div className="mt-4 space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
-            <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in studio or product-in-context lifestyle.</p>
-            <div className="flex flex-wrap gap-2">
-              <Chip
-                selected={wineSceneFamily === 'studio'}
-                onClick={() => setWineSceneFamily('studio')}
-                title="Product-first wine scenes"
-              >
-                Wine Studio
-              </Chip>
-              <Chip
-                selected={wineSceneFamily === 'lifestyle'}
-                onClick={() => setWineSceneFamily('lifestyle')}
-                title="Product-in-context wine moments"
-              >
-                Wine Lifestyle
-              </Chip>
-            </div>
-          </div>
-
-          <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">
-              {wineSceneFamily === 'lifestyle' ? 'Wine Lifestyle' : 'Scene'}
+              Scene
             </p>
             <p className="text-[11px] text-gray-400 mb-2">
-              {wineSceneFamily === 'lifestyle'
-                ? 'Product-led wine context scenes. Real action and hospitality cues are allowed, but the bottle stays the hero and people stay incidental.'
-                : 'Wine-specific shot selection. This is the primary scene authority for wine.'}
+              Wine-specific shot selection. Contextual service modes stay inside Product Studio and must not switch the builder out of studio.
             </p>
             <div className="flex flex-wrap gap-2">
               {visibleWineSceneOptions.map((option) => (
@@ -396,7 +330,7 @@ export function WineModule() {
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Look Preset</p>
             <p className="text-[11px] text-gray-400 mb-2">
-              Visual treatment only. Filtered to the current wine family so the UI stays coherent.
+              Visual treatment only. Filtered to the studio wine set so the UI stays coherent.
             </p>
             <div className="flex flex-wrap gap-2">
               {visibleWineArchetypes.map((archetype) => (
@@ -416,7 +350,7 @@ export function WineModule() {
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
             <p className="text-[11px] text-gray-400 mb-3">
-              Physical place and surface for the wine scene. Curated per family so studio and lifestyle do not mix blindly.
+              Physical place and surface for the wine scene. Contextual modes can still use hospitality language without changing the studio builder state.
             </p>
             <div className="flex flex-wrap gap-2">
               {visibleWineEnvironments.map((environment) => (

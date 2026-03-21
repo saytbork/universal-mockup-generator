@@ -240,7 +240,7 @@ function resolveWineStatePatch(
     };
 }
 
-const WINE_LIFESTYLE_PHOTO_MODES: PhotoMode[] = [
+const WINE_CONTEXTUAL_PHOTO_MODES: PhotoMode[] = [
     'Social Table Served',
     'Outdoor Toast',
     'Hosting Pour',
@@ -1957,11 +1957,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 ? 'Hero Landing Page'
                 : resolvedMode;
             const hadEnvironmentEnabled = state.environmentContext != null;
-            const isWineLifestylePhotoMode = WINE_LIFESTYLE_PHOTO_MODES.includes(effectiveMode);
+            const isWineContextualPhotoMode = WINE_CONTEXTUAL_PHOTO_MODES.includes(effectiveMode);
             const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
             // Preserve environment only when the user is already in Lifestyle mode.
-            // This prevents any stale env state from forcing Studio -> Lifestyle on photo mode changes.
-            const shouldUseEnvironment = hadEnvironmentEnabled && (alreadyInLifestyle || isWineLifestylePhotoMode);
+            // Contextual wine photo modes must not force Product Studio out of studio mode.
+            const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle && isWineContextualPhotoMode;
             const schema = PHOTO_MODE_SCHEMAS[effectiveMode];
             const allowedInteractions = getPhotoModeAllowedInteractions(effectiveMode);
             let resolvedPlacement: ProductPlacement = state.placement;
@@ -2059,12 +2059,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 placement: resolvedPlacement,
                 ...(isWinePhotoMode
                     ? {
-                        sceneType: (isWineLifestylePhotoMode
-                            ? 'lifestyle-real'
-                            : 'studio-branding') as ProductStudioState['sceneType'],
-                        mode: (isWineLifestylePhotoMode
-                            ? 'lifestyle-real'
-                            : 'studio') as ProductStudioState['mode'],
+                        sceneType: 'studio-branding' as ProductStudioState['sceneType'],
+                        mode: 'studio' as ProductStudioState['mode'],
                     }
                     : {}),
                 // Preserve environment once user enables it from PHOTO TYPE.
