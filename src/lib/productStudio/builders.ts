@@ -2088,8 +2088,11 @@ function assembleSingleProductPrompt(state: ProductStudioState, product: Product
         if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
         finalPrompt = appendClosingPhrase(finalPrompt, state);
         if (hasReferenceProductImage(state)) {
+            // LESS STRICT: Only strip category priors, but DO NOT prepend hard lock.
+            // This allows the model to use the reference as a guide, but not as pixel-truth.
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-            finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
+            // Optionally, add a softer reference note:
+            finalPrompt = `Use the uploaded product image as a visual guide for geometry, proportions, and label, but allow natural photographic interpretation. ${finalPrompt}`;
         }
         console.log('2. Generated Prompt Parts (V2):', [finalPrompt]);
         console.log('3. FINAL PROMPT (V2):', finalPrompt);
@@ -2192,8 +2195,11 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
         finalPrompt = appendClosingPhrase(finalPrompt, state);
         if (hasReferenceProductImage(state)) {
+            // LESS STRICT: Only strip category priors, but DO NOT prepend hard lock.
+            // This allows the model to use the reference as a guide, but not as pixel-truth.
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-            finalPrompt = `${resolveReferenceProductHardLock(finalPrompt)} ${finalPrompt}`;
+            // Optionally, add a softer reference note:
+            finalPrompt = `Use the uploaded product images as visual guides for geometry, proportions, and label, but allow natural photographic interpretation. ${finalPrompt}`;
         }
         console.log('2. Generated Prompt Parts (V2 Bundle):', [finalPrompt]);
         console.log('3. FINAL PROMPT (V2 Bundle):', finalPrompt);
