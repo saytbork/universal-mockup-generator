@@ -1258,7 +1258,8 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
     if (state.aspectRatio === '1:1') {
         base.push(
             'square integrity lock: render native 1:1 composition with true scene detail to all four edges (top, bottom, left, right)',
-            'no narrow centered subject with synthetic side expansion, no vertical edge cloning, no blurred lateral padding'
+            'no narrow centered subject with synthetic side expansion, no vertical edge cloning, no blurred lateral padding',
+            'no white bars, no white padding, no blank strips at top or bottom, no empty space at any edge, the scene must fill the entire square frame edge-to-edge with real content'
         );
     }
 
