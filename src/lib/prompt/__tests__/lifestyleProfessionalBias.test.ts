@@ -175,7 +175,7 @@ describe('LifestyleProfessionalBiasBuilder', () => {
       aspectRatio: '1:1 (Square)',
     } as any);
 
+    expect(mapped.lighting).toMatch(/early morning natural light/i);
     expect(mapped.lighting).toMatch(/warm ambient indoor lighting/i);
-    expect(mapped.lighting).not.toMatch(/morning|midday|afternoon|evening/i);
   });
 });

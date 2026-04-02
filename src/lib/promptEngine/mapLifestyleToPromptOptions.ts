@@ -666,6 +666,18 @@ const LIFESTYLE_9X16_VERTICAL_FILL_RULE =
     'VERTICAL FILL RULE (CRITICAL): The subject must occupy at least 85–90% of the vertical frame height. The head should be positioned close to the top edge of the frame. Feet may be partially cropped if necessary. No excessive empty space above or below the subject.';
 
 /**
+ * TIME OF DAY → Physical light characteristics and atmosphere
+ */
+const TIME_SEMANTIC_MAP: Record<string, string> = {
+    'Morning': 'early morning natural light with cool blue undertones, soft directional rays, fresh atmospheric quality',
+    'Midday': 'bright midday sunlight with neutral white color temperature, strong overhead illumination, minimal shadows',
+    'Afternoon': 'warm afternoon light with slight golden undertones, balanced illumination, medium-length shadows',
+    'Golden Hour': 'golden hour sunlight with rich orange-amber color temperature, long dramatic shadows, warm glow on skin',
+    'Evening': 'fading evening light with purple-blue undertones, warm indoor ambient mixing with cool exterior',
+    'Night': 'nighttime lighting with artificial indoor warmth, deep shadows, limited light sources visible'
+};
+
+/**
  * LIGHTING STYLE → Physical light source behavior and shadow characteristics
  */
 const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
@@ -678,12 +690,12 @@ const LIGHTING_SEMANTIC_MAP: Record<string, string> = {
     'Mood Lighting': 'low-key dramatic lighting with selective illumination, deeper shadows, and intentional atmospheric contrast',
     'Night Mode': 'dark low-light scene with artificial highlights, ambient night exposure, and visible shadow depth',
     'Flash Photo': 'harsh direct on-camera flash with bright frontal exposure, hard falloff, and snapshot-style shadow edges',
-    'Natural window': 'natural ambient daylight with soft shadows, realistic falloff, and clean window-style illumination across the scene',
-    'Soft diffused': 'soft diffused cloudy light with low contrast, muted highlights, and even shadow transitions',
-    'Direct sunlight': 'bright direct sunlight with crisp hard-edged shadows, high contrast, and clean outdoor-style highlights',
-    'Indoor artificial': 'warm ambient indoor lighting from practical sources with gentle falloff, comfortable room tone, and believable household warmth',
-    'Moody/dramatic': 'low-key dramatic lighting with selective illumination, deeper shadows, and intentional atmospheric contrast',
-    'Phone flashlight': 'harsh direct on-camera flash with bright frontal exposure, hard falloff, and snapshot-style shadow edges'
+    'Natural window': 'natural window light entering from the side, soft directional quality with gentle shadow falloff, graduated illumination across face',
+    'Soft diffused': 'soft diffused lighting with minimal harsh shadows, even illumination wrapping around subject, gentle gradations',
+    'Direct sunlight': 'direct hard sunlight with strong contrast, defined crisp shadows, bright specular highlights on skin',
+    'Indoor artificial': 'indoor artificial lighting with typical home color temperature, mixed light sources, realistic ambient',
+    'Moody/dramatic': 'moody low-key dramatic lighting with deep shadows, selective illumination, strong light-to-dark ratio',
+    'Phone flashlight': 'harsh direct phone flashlight illumination, uneven hot-spot exposure, realistic smartphone flash behavior'
 };
 
 /**
@@ -2173,6 +2185,7 @@ export function mapLifestyleToPromptOptions(
             resolvedSceneType === 'lifestyle-real' &&
             String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury' &&
             Boolean((sceneState as any).ugcRealMode) !== true;
+        const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
         const lightingStyleLabel = sceneState.lightingStyle || 'Natural Light';
         const looksOutdoor = (() => {
             const s = String(mapped.setting || '').trim();
@@ -2205,9 +2218,9 @@ export function mapLifestyleToPromptOptions(
 
         mapped.lighting = isLuxuryLifestyleMode
             ? 'editorial interior lighting context'
-            : lightingSemantic;
+            : `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
-        console.log('[MAP] lighting:', sceneState.lightingStyle, '→', mapped.lighting);
+        console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
 
     if (isUGCMode && !isEcommerceBlankSpaceActive) {
