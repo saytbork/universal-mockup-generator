@@ -16,6 +16,7 @@ type PricingPlan = {
   name: string;
   monthlyPrice: string;
   yearlyPrice: string;
+  monthlyEquivalent?: string;
   monthlyCaption: string;
   yearlyCaption: string;
   highlights: string[];
@@ -56,19 +57,10 @@ const studioYearlyUrl = getEnv('VITE_STRIPE_LINK_STUDIO_YEARLY') ?? DEFAULT_STUD
 
 const pricing: PricingPlan[] = [
   {
-    name: 'Free',
-    monthlyPrice: '$0',
-    yearlyPrice: '$0',
-    monthlyCaption: 'per month',
-    yearlyCaption: 'per year',
-    highlights: ['2 credits (one-time)', 'Watermark', 'Community support'],
-    cta: 'Get Started Free',
-    isFree: true,
-  },
-  {
-    name: 'Creator – Monthly',
+    name: 'Creator',
     monthlyPrice: '$19',
     yearlyPrice: '$137',
+    monthlyEquivalent: '$11.42/mo billed yearly',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: ['20 credits/month', '2 videos/month', 'No watermark', 'Standard support'],
@@ -76,14 +68,13 @@ const pricing: PricingPlan[] = [
     checkoutUrl: creatorMonthlyUrl,
     monthlyUrl: creatorMonthlyUrl,
     yearlyUrl: creatorYearlyUrl,
-    badge: 'Most Popular',
-    featured: true,
     metadata: { plan: 'creator', credits: 20 },
   },
   {
-    name: 'Studio – Monthly',
+    name: 'Studio',
     monthlyPrice: '$29',
     yearlyPrice: '$244',
+    monthlyEquivalent: '$20.33/mo billed yearly',
     monthlyCaption: 'per month',
     yearlyCaption: 'per year',
     highlights: ['60 credits/month', '6 videos/month', 'No watermark', 'Priority support'],
@@ -91,6 +82,8 @@ const pricing: PricingPlan[] = [
     checkoutUrl: studioMonthlyUrl, // fallback
     monthlyUrl: studioMonthlyUrl,
     yearlyUrl: studioYearlyUrl,
+    badge: 'Most Popular',
+    featured: true,
     metadata: { plan: 'studio', credits: 60 },
   },
 ];
@@ -303,6 +296,49 @@ const ScaleCatalog = () => (
 type LandingPageProps = {
   disableSeo?: boolean;
 };
+
+const homepageCarouselImages = [
+  {
+    src: '/images/home-carousel/cafe.webp',
+    alt: 'Coffee product render',
+    label: 'Coffee',
+  },
+  {
+    src: '/images/home-carousel/corona.webp',
+    alt: 'Beer bottle beach render',
+    label: 'Beverage',
+  },
+  {
+    src: '/images/home-carousel/lifestyle-soda.webp',
+    alt: 'Lifestyle soda product render',
+    label: 'Lifestyle',
+  },
+  {
+    src: '/images/home-carousel/nomi-lifestyle.webp',
+    alt: 'Skincare lifestyle render',
+    label: 'Skincare',
+  },
+  {
+    src: '/images/home-carousel/nomi.webp',
+    alt: 'Skincare packshot render',
+    label: 'Packshot',
+  },
+  {
+    src: '/images/home-carousel/soda.webp',
+    alt: 'Soda can product render on ice',
+    label: 'Studio',
+  },
+  {
+    src: '/images/home-carousel/will-red.webp',
+    alt: 'Red wine dining render',
+    label: 'Dining',
+  },
+  {
+    src: '/images/home-carousel/will-white.webp',
+    alt: 'White wine vineyard render',
+    label: 'Vineyard',
+  },
+] as const;
 
 const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
   const navigate = useNavigate();
@@ -673,7 +709,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <header className="relative min-h-[85vh] flex flex-col justify-center overflow-hidden border-b border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+      <header className="relative overflow-hidden border-b border-gray-100 dark:border-white/5 bg-white dark:bg-black">
         {/* Animated Gradient Background */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.08),transparent_50%)] animate-pulse" />
@@ -712,26 +748,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 flex flex-col items-center">
-          {/* Factual Trust Row */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-12"
-          >
-            {[
-              "Built for ecommerce product pages",
-              "Product Mode and UGC Mode separated",
-              "Consistent outputs at scale"
-            ].map(statement => (
-              <div key={statement} className="flex items-center gap-2 text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500/50" />
-                {statement}
-              </div>
-            ))}
-          </motion.div>
-
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 sm:py-20 flex flex-col items-center">
           {/* SaaS Headline & Mechanism */}
           <div className="max-w-6xl mx-auto text-center space-y-6">
             <motion.h1
@@ -740,7 +757,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
               className="text-4xl sm:text-7xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight text-balance"
             >
-              Upload one product photo. Generate sell-ready ecommerce visuals instantly.
+              Turn one product photo into ads, PDP images, and hero renders.
             </motion.h1>
 
             <motion.p
@@ -749,7 +766,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               transition={{ duration: 1, delay: 0.3 }}
               className="text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-4xl mx-auto leading-relaxed font-normal text-balance"
             >
-              Turn a single product image into AI-generated studio and lifestyle photos in under 60 seconds. No prompts. No redesign.
+              Generate launch-ready product visuals in under 60 seconds. No prompts, no reshoots, no creative bottlenecks.
             </motion.p>
           </div>
 
@@ -771,340 +788,164 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
               No email required · Ready in under 60 seconds
             </p>
             <button
-              onClick={handleSmoothScroll('#before-after')}
+              onClick={handleSmoothScroll('#how-it-works')}
               className="relative mt-2 inline-flex items-center justify-center px-6 py-3 font-semibold text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
             >
-              See the Before → After
+              See How It Works
               <span className="absolute left-0 right-0 -bottom-1 h-0.5 origin-left scale-x-0 bg-indigo-600 dark:bg-indigo-400 transition-transform duration-300 group-hover:scale-x-100" />
             </button>
           </motion.div>
-        </div>
-      </header>
+          <div id="before-after" className="w-full mt-12 sm:mt-16 space-y-6">
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                All visuals below are generated automatically from a single product upload.
+              </p>
+            </div>
 
-      {/* Modern Auto-Scrolling Before/After Carousel */}
-      <section id="before-after" className="bg-white dark:bg-black py-6 sm:py-16 overflow-hidden">
-        {/* Support line above carousel */}
-        <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-            All visuals below are generated automatically from a single product upload.
-          </p>
-        </div>
-        
-        <div className="max-w-6xl mx-auto px-6 mb-8 sm:mb-12">
-          <div className="text-center space-y-4">
-            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
-              Real World Results
-            </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">
-              From product upload to sell-ready visuals
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
-              Product images for ecommerce and product photos for ads generated in minutes, not days, at a fraction of traditional production cost.
-            </p>
-          </div>
-        </div>
+            <div className="relative w-full group overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
 
-        {/* Full-width carousel container */}
-        <div className="relative w-full group overflow-hidden">
-          {/* Gradient fade edges - fixed positioning */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none" />
-
-          {/* Scroll viewport (supports mouse drag + native swipe) */}
-          <div
-            ref={carouselViewportRef}
-            className="landing-carousel-viewport w-full overflow-x-auto overflow-y-hidden select-none cursor-grab active:cursor-grabbing"
-            style={{
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-            tabIndex={0}
-            aria-label="Carousel: drag or swipe to browse product examples"
-            onPointerEnter={() => {
-              carouselPausedRef.current = true;
-            }}
-            onPointerLeave={() => {
-              if (carouselDraggingRef.current) return;
-              carouselPausedRef.current = false;
-            }}
-            onFocus={() => {
-              carouselPausedRef.current = true;
-            }}
-            onBlur={() => {
-              if (carouselDraggingRef.current) return;
-              carouselPausedRef.current = false;
-            }}
-            onKeyDown={(e) => {
-              const viewport = carouselViewportRef.current;
-              if (!viewport) return;
-              if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                viewport.scrollLeft += 120;
-              } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                viewport.scrollLeft -= 120;
-              }
-            }}
-            onWheel={(e) => {
-              const viewport = carouselViewportRef.current;
-              if (!viewport) return;
-              // Optional: hold Shift to wheel-scroll horizontally without blocking page scroll.
-              if (e.shiftKey && Math.abs(e.deltaY) > 0) {
-                viewport.scrollLeft += e.deltaY;
-                e.preventDefault();
-              }
-            }}
-            onPointerDown={(e) => {
-              // For touch, native swipe-scroll is best (keeps vertical page scroll natural).
-              if (e.pointerType !== 'mouse') return;
-              const viewport = carouselViewportRef.current;
-              if (!viewport) return;
-              carouselDraggingRef.current = true;
-              carouselPausedRef.current = true;
-              carouselDragStateRef.current = { startX: e.clientX, startScrollLeft: viewport.scrollLeft };
-              viewport.setPointerCapture?.(e.pointerId);
-            }}
-            onPointerMove={(e) => {
-              if (!carouselDraggingRef.current) return;
-              const viewport = carouselViewportRef.current;
-              if (!viewport) return;
-              const { startX, startScrollLeft } = carouselDragStateRef.current;
-              const dx = e.clientX - startX;
-              viewport.scrollLeft = startScrollLeft - dx;
-              // Wrap within the duplicated content to keep it "infinite"
-              const half = viewport.scrollWidth / 2;
-              if (half) {
-                if (viewport.scrollLeft <= 0) viewport.scrollLeft += half;
-                if (viewport.scrollLeft >= half) viewport.scrollLeft -= half;
-              }
-            }}
-            onPointerUp={(e) => {
-              if (e.pointerType !== 'mouse') return;
-              carouselDraggingRef.current = false;
-            }}
-            onPointerCancel={(e) => {
-              if (e.pointerType !== 'mouse') return;
-              carouselDraggingRef.current = false;
-            }}
-          >
-            <div className="flex w-max">
-              {/* First set of paired images - grouped with gap between groups */}
-
-              {/* Sequence group - Manual Pairs + Before + 5 After images */}
-              <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
-                {/* Pair 1 */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/01-before.jpg" alt="Pair 1 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/01-after.jpg" alt="Pair 1 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pair 2 */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/02-before.jpg" alt="Pair 2 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/02-after.jpg" alt="Pair 2 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pair 3 (New) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/before-3.jpg" alt="Pair 3 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/after-3.jpg" alt="Pair 3 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sequence Group (Pair 4) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="flex divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
-                      <img
-                        src="/slider/before 4.jpg"
-                        alt="Product packshot"
-                        loading="lazy"
-                        draggable="false"
-                        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                      />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                        Before
-                      </span>
-                    </div>
-                    {[1, 2, 3, 4].map((seqNum) => (
+              <div
+                ref={carouselViewportRef}
+                className="landing-carousel-viewport w-full overflow-x-auto overflow-y-hidden select-none cursor-grab active:cursor-grabbing"
+                style={{
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+                tabIndex={0}
+                aria-label="Carousel: drag or swipe to browse product examples"
+                onPointerEnter={() => {
+                  carouselPausedRef.current = true;
+                }}
+                onPointerLeave={() => {
+                  if (carouselDraggingRef.current) return;
+                  carouselPausedRef.current = false;
+                }}
+                onFocus={() => {
+                  carouselPausedRef.current = true;
+                }}
+                onBlur={() => {
+                  if (carouselDraggingRef.current) return;
+                  carouselPausedRef.current = false;
+                }}
+                onKeyDown={(e) => {
+                  const viewport = carouselViewportRef.current;
+                  if (!viewport) return;
+                  if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    viewport.scrollLeft += 120;
+                  } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    viewport.scrollLeft -= 120;
+                  }
+                }}
+                onWheel={(e) => {
+                  const viewport = carouselViewportRef.current;
+                  if (!viewport) return;
+                  if (e.shiftKey && Math.abs(e.deltaY) > 0) {
+                    viewport.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                  }
+                }}
+                onPointerDown={(e) => {
+                  if (e.pointerType !== 'mouse') return;
+                  const viewport = carouselViewportRef.current;
+                  if (!viewport) return;
+                  carouselDraggingRef.current = true;
+                  carouselPausedRef.current = true;
+                  carouselDragStateRef.current = { startX: e.clientX, startScrollLeft: viewport.scrollLeft };
+                  viewport.setPointerCapture?.(e.pointerId);
+                }}
+                onPointerMove={(e) => {
+                  if (!carouselDraggingRef.current) return;
+                  const viewport = carouselViewportRef.current;
+                  if (!viewport) return;
+                  const { startX, startScrollLeft } = carouselDragStateRef.current;
+                  const dx = e.clientX - startX;
+                  viewport.scrollLeft = startScrollLeft - dx;
+                  const half = viewport.scrollWidth / 2;
+                  if (half) {
+                    if (viewport.scrollLeft <= 0) viewport.scrollLeft += half;
+                    if (viewport.scrollLeft >= half) viewport.scrollLeft -= half;
+                  }
+                }}
+                onPointerUp={(e) => {
+                  if (e.pointerType !== 'mouse') return;
+                  carouselDraggingRef.current = false;
+                }}
+                onPointerCancel={(e) => {
+                  if (e.pointerType !== 'mouse') return;
+                  carouselDraggingRef.current = false;
+                }}
+              >
+                <div className="flex w-max">
+                  <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
+                    {homepageCarouselImages.map((image) => (
                       <div
-                        key={`seq-${seqNum}`}
-                        className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]"
+                        key={image.src}
+                        className="shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 shadow-sm"
                       >
-                        <img
-                          src={`/slider/after 4 - sec${seqNum}.jpg`}
-                          alt={`Product sequence ${seqNum}`}
-                          loading="lazy"
-                          draggable="false"
-                          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                        />
-                        <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                          {seqNum}
-                        </span>
+                        <div className="relative w-[220px] sm:w-[260px] md:w-[300px] lg:w-[320px] aspect-square">
+                          <img
+                            src={image.src}
+                            alt={image.alt}
+                            loading="lazy"
+                            draggable="false"
+                            className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                          />
+                          <span className="absolute left-3 top-3 rounded-full bg-white/90 dark:bg-black/70 px-3 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-[0.16em]">
+                            {image.label}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
 
-                {/* Pair 5 (New) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/before-5.png" alt="Pair 5 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/after-5.jpg" alt="Pair 5 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Duplicate set for seamless loop */}
-              <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
-                {/* Pair 1 */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/01-before.jpg" alt="Pair 1 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/01-after.jpg" alt="Pair 1 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pair 2 */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/02-before.jpg" alt="Pair 2 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/02-after.jpg" alt="Pair 2 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pair 3 (New) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/before-3.jpg" alt="Pair 3 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/after-3.jpg" alt="Pair 3 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sequence Group (Pair 4) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="flex divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
-                      <img
-                        src="/slider/before 4.jpg"
-                        alt="Product packshot"
-                        loading="lazy"
-                        draggable="false"
-                        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                      />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                        Before
-                      </span>
-                    </div>
-                    {[1, 2, 3, 4].map((seqNum) => (
+                  <div className="flex gap-6 sm:gap-8 lg:gap-10 mr-8 sm:mr-12 lg:mr-16">
+                    {homepageCarouselImages.map((image) => (
                       <div
-                        key={`seq2-${seqNum}`}
-                        className="relative w-[150px] sm:w-[180px] md:w-[210px] lg:w-[240px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]"
+                        key={`${image.src}-duplicate`}
+                        className="shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 shadow-sm"
                       >
-                        <img
-                          src={`/slider/after 4 - sec${seqNum}.jpg`}
-                          alt={`Product sequence ${seqNum}`}
-                          loading="lazy"
-                          draggable="false"
-                          className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                        />
-                        <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">
-                          {seqNum}
-                        </span>
+                        <div className="relative w-[220px] sm:w-[260px] md:w-[300px] lg:w-[320px] aspect-square">
+                          <img
+                            src={image.src}
+                            alt={image.alt}
+                            loading="lazy"
+                            draggable="false"
+                            className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                          />
+                          <span className="absolute left-3 top-3 rounded-full bg-white/90 dark:bg-black/70 px-3 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-[0.16em]">
+                            {image.label}
+                          </span>
+                        </div>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* Pair 5 (New) */}
-                <div className="shrink-0 rounded-xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10">
-                  <div className="grid grid-cols-2 w-[300px] sm:w-[360px] md:w-[420px] lg:w-[480px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] divide-x divide-gray-100 dark:divide-white/10">
-                    <div className="relative">
-                      <img src="/slider/before-5.png" alt="Pair 5 Before" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-white/90 dark:bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">Before</span>
-                    </div>
-                    <div className="relative">
-                      <img src="/slider/after-5.jpg" alt="Pair 5 After" className="absolute inset-0 h-full w-full object-cover pointer-events-none" />
-                      <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white uppercase tracking-wide">After</span>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <div className="flex justify-center">
+              <a
+                href="#pricing"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5"
+              >
+                See Pricing Options
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* CTA after carousel */}
-        <div className="flex justify-center pt-12">
-          <a
-            href="#pricing"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5"
-          >
-            See Pricing Options
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </a>
-        </div>
-        <div className="max-w-5xl mx-auto px-6 pt-6">
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Built to reduce coordination across photo shoots, designers, and renders while keeping outputs publish-ready.
-          </p>
-        </div>
-
-        {/* Carousel CSS helpers */}
         <style>{`
           .landing-carousel-viewport::-webkit-scrollbar { display: none; }
         `}</style>
-      </section>
+      </header>
 
       <section className="bg-white dark:bg-black py-6 sm:py-14 border-b border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto px-6 space-y-5">
@@ -1187,63 +1028,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           <p className="text-center text-sm md:text-base text-gray-600 dark:text-gray-400">
             Same workflow. Different visual contexts.
           </p>
-        </div>
-      </section>
-
-      <section className="bg-gray-50 dark:bg-white/[0.02]">
-        <div className="max-w-6xl mx-auto px-6 py-6 sm:py-24 space-y-10">
-          <div className="text-center space-y-3">
-            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
-              What you can create
-            </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Create visuals your store can publish immediately</h2>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Ready for product pages, ecommerce listings, ads, and landing pages without rework.
-            </p>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-3">
-            {[
-              {
-                title: 'Product (Studio)',
-                description:
-                  'Clean, professional product mockups. No people. No distractions. Just your product, perfectly presented.',
-                uses: ['Product pages', 'Marketplaces', 'Catalogs', 'Ads requiring clean shots'],
-              },
-              {
-                title: 'Lifestyle (UGC)',
-                description:
-                  'Natural, real-world scenes with people interacting with your product. Designed to feel authentic and conversion-focused.',
-                uses: ['Social ads', 'PDP galleries', 'Influencer-style content'],
-              },
-              {
-                title: 'Lifestyle (Editorial)',
-                description: 'Curated, premium lifestyle visuals for brand storytelling and campaigns.',
-                uses: ['Launches', 'Brand pages', 'High-end campaigns'],
-              },
-            ].map(card => (
-              <div
-                key={card.title}
-                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-6 text-left space-y-4 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-colors duration-300"
-              >
-                <div className="space-y-2">
-                  <p className="text-gray-900 dark:text-white text-lg font-semibold">{card.title}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{card.description}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-500">Use for</p>
-                  <ul className="space-y-2 text-sm text-gray-900 dark:text-gray-300">
-                    {card.uses.map(item => (
-                      <li key={item} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -1618,41 +1402,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
         </div>
       </section>
 
-      {/* Sophisticated Audience Cluster */}
-      <section className="bg-white dark:bg-black/95 py-6 sm:py-24">
-        <div className="max-w-6xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-4">
-            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-bold tracking-[0.2em] border border-indigo-100/50 dark:border-indigo-500/20">
-              Perfect for Teams
-            </span>
-            <h2 className="text-4xl md:text-5xl text-gray-900 dark:text-white font-bold tracking-tight text-balance">Who this is for</h2>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Built for ecommerce brands, supplement companies, beauty and wellness products, DTC teams, and paid media operators.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 max-w-4xl mx-auto">
-            {[
-              { label: 'Ecommerce Brands', weight: 'font-extrabold', size: 'text-lg sm:text-2xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Supplement Companies', weight: 'font-semibold', size: 'text-base sm:text-xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Beauty & Skincare Teams', weight: 'font-bold', size: 'text-base sm:text-lg', color: 'text-indigo-600/80', bg: 'bg-indigo-50/50 border-indigo-100/50' },
-              { label: 'Wellness Product Teams', weight: 'font-medium', size: 'text-lg sm:text-2xl', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'DTC Operators', weight: 'font-bold', size: 'text-base sm:text-xl', color: 'text-indigo-600', bg: 'bg-indigo-50 border-indigo-100' },
-              { label: 'Paid Media Teams', weight: 'font-normal', size: 'text-base sm:text-lg', color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
-              { label: 'Performance Marketers', weight: 'font-semibold', size: 'text-base sm:text-lg', color: 'text-gray-900', bg: 'bg-gray-50 border-gray-200' },
-            ].map((item, i) => (
-              <div
-                key={item.label}
-                className={`max-w-full px-5 py-3 sm:px-6 sm:py-4 rounded-full border transition-all hover:scale-105 cursor-default flex items-center gap-3 text-center leading-tight ${item.bg} ${item.color} ${item.weight} ${item.size}`}
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                {item.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="bg-gray-50 dark:bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-6 py-6 sm:py-24 space-y-10">
           <div className="text-center space-y-3">
@@ -1741,10 +1490,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white tracking-tight text-balance">Plans built for launch velocity</h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-              Monthly cost is typically lower than a single traditional product photo shoot, while supporting ongoing output for ecommerce and ad campaigns.
-            </p>
-            <p className="text-sm text-gray-600 max-w-3xl mx-auto">
-              Generate multiple production-ready images without per-image creative coordination overhead.
+              Choose the plan that matches your output volume and keep producing ecommerce visuals without traditional shoot overhead.
             </p>
 
             <div className="mt-8 flex justify-center">
@@ -1776,7 +1522,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
             {pricing.map(plan => {
               const isYearly = billingCycle === 'yearly';
               const cadenceLabel = isYearly ? plan.yearlyCaption : plan.monthlyCaption;
@@ -1809,9 +1555,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                         / {isYearly ? 'year' : 'mo'}
                       </span>
                     </div>
-                    <p className={`text-xs font-medium leading-relaxed ${isFeatured ? 'text-indigo-200/50' : 'text-gray-400'}`}>
-                      {cadenceLabel}
-                    </p>
+                    <div className="space-y-1">
+                      <p className={`text-xs font-medium leading-relaxed ${isFeatured ? 'text-indigo-200/50' : 'text-gray-400'}`}>
+                        {cadenceLabel}
+                      </p>
+                      {isYearly && plan.monthlyEquivalent && (
+                        <p className={`text-xs font-semibold leading-relaxed ${isFeatured ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                          {plan.monthlyEquivalent}
+                        </p>
+                      )}
+                    </div>
                   </header>
 
                   <ul className="space-y-4 flex-1">
@@ -1828,17 +1581,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
                       const targetUrl = isYearly
                         ? plan.yearlyUrl || plan.monthlyUrl || plan.checkoutUrl
                         : plan.monthlyUrl || plan.checkoutUrl || plan.yearlyUrl;
-
-                      if (plan.isFree) {
-                        return (
-                          <Link
-                            to="/login"
-                            className="block w-full text-center px-6 py-4 rounded-xl border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
-                          >
-                            {plan.cta}
-                          </Link>
-                        );
-                      }
 
                       return (
                         <a
@@ -1860,6 +1602,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
 
           <p className="text-center text-sm text-gray-600">
             1 credit equals 1 image generation in Fast Mode. PRO mode consumes 3 credits per execution.
+          </p>
+
+          <p className="text-center text-sm text-gray-600">
+            Want to try it first? <Link to="/app" className="font-semibold text-indigo-600 hover:text-indigo-700">Start free with 2 images.</Link>
           </p>
 
           {selectedPlan && (
