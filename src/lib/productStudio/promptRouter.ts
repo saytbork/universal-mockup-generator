@@ -1238,10 +1238,16 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       resolvedPhotoMode === 'Celebration Chill');
   const isWineLineupMode =
     industryProfile === 'wine' && resolvedPhotoMode === 'Wine Lineup Comparison';
+  const isWineBottleOnlySceneMode =
+    industryProfile === 'wine' &&
+    (resolvedPhotoMode === 'Hero Landing Page' ||
+      resolvedPhotoMode === 'Winery Scene' ||
+      resolvedPhotoMode === 'Editorial Table' ||
+      resolvedPhotoMode === 'Editorial Bottle Tabletop');
   const stateWineServeMode = deriveWineServeMode(state);
   const stateWineBottleFillMode = deriveWineBottleFillMode(state);
   const resolvedWineServeMode =
-    isWineHeroLanding
+    isWineBottleOnlySceneMode
       ? 'bottle-only'
       : isWinePourMode
         ? 'pouring'

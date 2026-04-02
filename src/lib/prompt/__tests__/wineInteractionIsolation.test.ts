@@ -58,4 +58,22 @@ describe('wine interaction isolation', () => {
     expect(finalPrompt).not.toContain('HAND_');
     expect(finalPrompt).not.toContain('FRAMING_BIAS');
   });
+
+  test('winery scene overrides stale pour state and stays bottle-only', () => {
+    const state = buildWineState({
+      photoMode: 'Winery Scene',
+      wineAction: 'controlled-pour',
+      wineServeMode: 'pouring',
+      wineBottleFillMode: 'partially-served',
+      wineGlassMode: 'filled',
+    });
+
+    const mapped = toStudioV2State(state);
+
+    expect(mapped.photoMode).toBe('Winery Scene');
+    expect(mapped.wineServeMode).toBe('bottle-only');
+    expect(mapped.wineAction).toBe('static-presentation');
+    expect(mapped.wineGlassMode).toBe('none');
+    expect(mapped.wineBottleState).toBe('sealed');
+  });
 });

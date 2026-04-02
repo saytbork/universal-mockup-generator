@@ -757,6 +757,41 @@ const resolveStep3EmitState = (
   };
 };
 
+const mapStudioProductTypeToStep3Label = (kind: string | undefined): Step3Values['productType'] => {
+  switch (String(kind || '').trim()) {
+    case 'capsules':
+      return 'Capsules';
+    case 'gummies':
+      return 'Gummies';
+    case 'drops':
+      return 'Drops';
+    case 'powder':
+      return 'Powder';
+    case 'skincare':
+      return 'Skincare';
+    case 'device':
+      return 'Device';
+    case 'custom':
+      return 'Custom';
+    default:
+      return 'Capsules';
+  }
+};
+
+const mapStudioPackagingToStep3Label = (mode: string | undefined): Step3Values['productPackaging'] =>
+  String(mode || '').trim() === 'with-box' ? 'With box' : 'Without box';
+
+const mapStudioScaleToStep3Label = (scale: string | undefined): Step3Values['productScale'] => {
+  switch (String(scale || '').trim()) {
+    case 'small-handheld':
+      return 'Small handheld';
+    case 'large-object':
+      return 'Large object';
+    default:
+      return 'Medium tabletop';
+  }
+};
+
 const resolveStep3UiMode = (
   sceneType: 'studio-branding' | 'lifestyle-real',
   isEcommerceMode: boolean
@@ -2443,6 +2478,35 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     };
     let payload: Step3Values = rawPayload;
 
+    if (isProductMode) {
+      payload = {
+        ...payload,
+        creationMode: 'studio',
+        creationIntent: 'product',
+        sceneType: 'studio-branding',
+        contentStyle: 'product',
+        productType: mapStudioProductTypeToStep3Label(productStore.definition?.kind),
+        productPackaging: mapStudioPackagingToStep3Label(productStore.packagingMode),
+        productScale: mapStudioScaleToStep3Label(productStore.physicalScaleLabel),
+        productCameraSystem: productStore.cameraUiSystemLabel || payload.productCameraSystem,
+        productCameraAngle: productStore.cameraUiAngleLabel || payload.productCameraAngle,
+        productCameraDistance: productStore.cameraUiDistanceLabel || payload.productCameraDistance,
+        productCameraRotation: productStore.rotation,
+        productFramingGuide: productStore.cameraUiFramingLabel || payload.productFramingGuide,
+        studioPhotoMode: productStore.photoMode,
+        studioAlignment: productStore.alignment,
+        studioShadow: productStore.shadow,
+        studioProps: productStore.props,
+        studioIngredientLayout: productStore.ingredientLayout,
+        studioInteraction: productStore.interaction,
+        studioLens: productStore.lens,
+        studioLightingRig: productStore.lightingRig,
+        studioFinish: productStore.finish,
+        studioBackgroundColor: productStore.backgroundColor,
+        studioAccentColor: productStore.accentColor,
+      } as Step3Values;
+    }
+
     if (payload.sceneType === 'lifestyle-real') {
       const leakedStudioKeys = getLifestyleStudioLeakKeys(payload);
       if (leakedStudioKeys.length > 0) {
@@ -2477,7 +2541,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (onValuesChange) {
       onValuesChange(payload);
     }
-  }, [values, onValuesChange, isProductMode, wineLifestyleHandsRequired]);
+  }, [values, onValuesChange, isProductMode, wineLifestyleHandsRequired, productStore]);
 
   // PHASE 3.5: Sync productStore values to Step3Values for prompt injection
   useEffect(() => {
@@ -3030,6 +3094,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
           >
             <div className="space-y-6">
 
+              <div className={SECTION_GROUP_CLASS}>
+                <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'EXPORT PROFILE' : 'OUTPUT PROFILE'}</p>
+                <div className="flex flex-wrap gap-2">
+                  {([
+                    { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
+                    { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
+                    { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
+                  ] as const).map(opt => (
+                    <Chip
+                      key={opt.id}
+                      onClick={() => {
+                        productStore.setQualityProfile(opt.id as OutputQualityProfile);
+                        markSectionTouched('product-setup');
+                      }}
+                      selected={productStore.qualityProfile === opt.id}
+                      description={opt.desc}
+                    >
+                      {opt.label}
+                    </Chip>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
+                  Defines the global creative intent of the generated prompt.
+                </p>
+              </div>
+
               {/* ============================================================
                    1. INDUSTRY PROFILE — Defines everything that follows
                    ============================================================ */}
@@ -3087,34 +3177,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                       return <ActiveIndustryModule {...modulePropsByIndustry[industryProfile]} />;
                     })()}
-
                     {/* ─── 2. PHOTO MODE ─────────────────────────── */}
-                    {/* ─── 3. OUTPUT PROFILE ──────────────────────── */}
-                    <div className={SECTION_GROUP_CLASS}>
-                      <p className={GROUP_LABEL_CLASS}>{wineIndustryActive ? 'EXPORT PROFILE' : 'OUTPUT PROFILE'}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {([
-                          { id: 'luxury-brand', label: 'Luxury Campaign', desc: 'High-end campaign polish with premium materials and tonal depth.' },
-                          { id: 'ecommerce-conversion', label: 'Conversion', desc: 'Max legibility and clean hierarchy for ads and PDP performance.' },
-                          { id: 'clinical', label: 'Clinical', desc: 'Sterile precision, strict readability, and neutral product truth.' },
-                        ] as const).map(opt => (
-                          <Chip
-                            key={opt.id}
-                            onClick={() => {
-                              productStore.setQualityProfile(opt.id as OutputQualityProfile);
-                              markSectionTouched('product-setup');
-                            }}
-                            selected={productStore.qualityProfile === opt.id}
-                            description={opt.desc}
-                          >
-                            {opt.label}
-                          </Chip>
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">
-                        Defines the global creative intent of the generated prompt.
-                      </p>
-                    </div>
 
                     {/* ─── 4. PHYSICAL PLACEMENT ──────────────────── */}
                     {!wineIndustryActive && (
