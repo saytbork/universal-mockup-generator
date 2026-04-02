@@ -7012,68 +7012,6 @@ If the model attempts to create a scene or environment, override it and force a 
                   <Sun className="theme-icon-dark" size={18} />
                 </span>
               </button>
-
-              <div className={`w-full max-w-[340px] space-y-3 transition-all duration-300 ${shouldDimModeSelector ? 'coachmark-dim' : ''}`}>
-                <div
-                  ref={modeToggleRef}
-                  className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'coachmark-focus ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
-                >
-                  <div
-                    className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleModeSwitch('ugc')}
-                    className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
-                  >
-                    LIFESTYLE
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleModeSwitch('product')}
-                    className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
-                  >
-                    STUDIO
-                  </button>
-                </div>
-
-                {showModeGuide && activeModeGuideStep === 2 && (
-                  <div className="coachmark-card rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 2 of 3</p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Select a mode</p>
-                        <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
-                          Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={dismissModeGuide}
-                        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/50 dark:hover:text-white"
-                      >
-                        Skip
-                      </button>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <button
-                        type="button"
-                        onClick={rewindModeGuide}
-                        className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[11px] font-semibold text-gray-600 transition hover:border-gray-300 hover:text-gray-900 dark:bg-white/5 dark:border-white/10 dark:text-white/60 dark:hover:text-white"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="button"
-                        onClick={advanceModeGuide}
-                        className="rounded-full bg-indigo-600 px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </header>
 
@@ -7227,8 +7165,8 @@ If the model attempts to create a scene or environment, override it and force a 
                           ref={uploaderRef}
                           onImageUpload={handleImageUpload}
                           uploadedImagePreview={uploadedImagePreview}
-                          disabled={!hasSelectedIntent}
-                          lockedMessage="Select a mode to start."
+                          disabled={false}
+                          lockedMessage=""
                         />
                       </div>
 
@@ -7321,60 +7259,6 @@ If the model attempts to create a scene or environment, override it and force a 
                           </div>
                         </div>
                       )}
-
-                      {!isProductPlacement && (
-                        <div className="border border-gray-200 bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                              <span className="p-1.5 rounded-lg bg-gray-100 border border-gray-200 dark:bg-black/20 dark:border-white/10">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                              </span>
-                              <div className="flex flex-col">
-                                <span className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase flex items-center gap-2">
-                                  Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
-                                </span>
-                                <span className="text-[10px] text-gray-500">Upload model for exact facial match</span>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={isModelReferenceEnabled}
-                              aria-label="Enable model reference"
-                              disabled={!hasUploadedProduct && !hasModelReference}
-                              onClick={() => {
-                                if (!hasUploadedProduct && !hasModelReference) return;
-                                if (isModelReferenceEnabled) {
-                                  setIsModelReferenceEnabled(false);
-                                  if (hasModelReference) {
-                                    handleClearModelReference();
-                                  }
-                                  return;
-                                }
-                                setIsModelReferenceEnabled(true);
-                              }}
-                              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white ${isModelReferenceEnabled ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-200 border-gray-200'} ${(!hasUploadedProduct && !hasModelReference) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                              <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border border-gray-200 ring-0 transition duration-200 ease-in-out ${isModelReferenceEnabled ? 'translate-x-5' : 'translate-x-0'}`}></span>
-                            </button>
-                          </div>
-                          {isModelReferenceEnabled && (
-                            <div className="mt-4 space-y-4">
-                              <ModelReferencePanel
-                                onFileSelect={handleModelReferenceUpload}
-                                previewUrl={modelReferencePreview}
-                                notes={modelReferenceNotes}
-                                onNotesChange={setModelReferenceNotes}
-                                onClear={handleClearModelReference}
-                                lockAccessories={modelReferenceLockAccessories}
-                                onLockAccessoriesChange={setModelReferenceLockAccessories}
-                                disabled={!hasUploadedProduct}
-                                lockedMessage="Upload a source product first to attach a model."
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -7388,17 +7272,17 @@ If the model attempts to create a scene or environment, override it and force a 
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
-                        02 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
+                        02 / Output Mode
                       </p>
                     </div>
-                    {showModeGuide && activeModeGuideStep === 3 && (
+                    {showModeGuide && activeModeGuideStep === 2 && (
                       <div className="coachmark-card rounded-2xl border border-gray-200 bg-white/95 px-4 py-4 shadow-sm dark:bg-black/70 dark:border-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%]">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 3 of 3</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Choose a style</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Step 2 of 3</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Select a mode</p>
                             <p className="text-[12px] leading-relaxed text-gray-500 dark:text-white/50">
-                              Once the mode is selected, use these settings to shape the look without guessing where to begin.
+                              Choose <span className="font-semibold text-gray-700 dark:text-white/80">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-700 dark:text-white/80">Studio</span> for product-first images.
                             </p>
                           </div>
                           <button
@@ -7427,6 +7311,48 @@ If the model attempts to create a scene or environment, override it and force a 
                         </div>
                       </div>
                     )}
+                    {!hasUploadedProduct && (
+                      <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
+                        Locked until previous step is complete
+                      </div>
+                    )}
+                    <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
+                      <div className={`w-full max-w-[340px] space-y-3 transition-all duration-300 ${shouldDimModeSelector ? 'coachmark-dim' : ''}`}>
+                        <div
+                          ref={modeToggleRef}
+                          className={`relative flex w-full items-center rounded-full bg-gray-100 p-1 shadow-inner transition-all duration-500 dark:bg-white/10 dark:backdrop-blur-[20px] dark:backdrop-saturate-[180%] ${highlightModeToggle ? 'coachmark-focus ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-gray-50 dark:ring-offset-black bg-indigo-50/40 dark:bg-white/15' : ''}`}
+                        >
+                          <div
+                            className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] dark:bg-white ${isProductPlacement ? 'translate-x-full' : 'translate-x-0'}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleModeSwitch('ugc')}
+                            className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${!isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${!isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                          >
+                            LIFESTYLE
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleModeSwitch('product')}
+                            className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
+                          >
+                            STUDIO
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    ref={customizeRef}
+                    className="flex flex-col gap-6 transition-all"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
+                        03 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
+                      </p>
+                    </div>
                     {!hasUploadedProduct && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
@@ -7470,16 +7396,49 @@ If the model attempts to create a scene or environment, override it and force a 
                           hasFirstGenerationComplete={hasFirstGenerationComplete}
                         />
                       )}
+
+                      {!isProductPlacement && (
+                        <details className="mt-4 border border-gray-200 pt-3 group bg-white p-4 rounded-lg dark:bg-white/5 dark:border-white/10">
+                          <summary className="cursor-pointer list-none flex items-center justify-between text-[11px] font-bold tracking-[0.2em] text-gray-500 hover:text-indigo-600 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <span className="p-1.5 rounded-lg bg-gray-100 border border-gray-200 dark:bg-black/20 dark:border-white/10">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-[11px] font-bold tracking-[0.2em] text-gray-500 uppercase flex items-center gap-2">
+                                  Model Reference {hasModelReference && <span className="text-success text-[14px]">✓</span>}
+                                </span>
+                                <span className="text-[10px] text-gray-500">Upload model for exact facial match</span>
+                              </div>
+                            </div>
+                            <span className="text-xs transition-transform group-open:rotate-180">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                            </span>
+                          </summary>
+                          <div className="mt-4 space-y-4">
+                            <ModelReferencePanel
+                              onFileSelect={handleModelReferenceUpload}
+                              previewUrl={modelReferencePreview}
+                              notes={modelReferenceNotes}
+                              onNotesChange={setModelReferenceNotes}
+                              onClear={handleClearModelReference}
+                              lockAccessories={modelReferenceLockAccessories}
+                              onLockAccessoriesChange={setModelReferenceLockAccessories}
+                              disabled={!hasUploadedProduct}
+                              lockedMessage="Upload a source product first to attach a model."
+                            />
+                          </div>
+                        </details>
+                      )}
                     </div>
                   </div>
 
                   <div
-                    ref={customizeRef}
                     className="flex flex-col gap-6 transition-all"
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
-                        03 / Generate
+                        04 / Generate
                       </p>
                     </div>
                     {!hasUploadedProduct && !hideProductMode && (
