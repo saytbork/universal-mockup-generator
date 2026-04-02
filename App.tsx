@@ -7337,7 +7337,7 @@ If the model attempts to create a scene or environment, override it and force a 
                             onClick={() => handleModeSwitch('product')}
                             className={`relative z-10 flex-1 px-3 sm:px-6 py-2 rounded-full text-[9px] sm:text-[10px] font-bold tracking-widest transition-colors duration-300 ${isProductPlacement ? 'text-gray-900' : 'text-gray-500 hover:text-gray-600'} ${isProductPlacement ? 'dark:text-black' : 'dark:text-white/60 dark:hover:text-white/80'}`}
                           >
-                            STUDIO
+                            PRODUCT
                           </button>
                         </div>
                       </div>
@@ -7350,7 +7350,7 @@ If the model attempts to create a scene or environment, override it and force a 
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
-                        03 / {isProductPlacement ? 'Product Studio' : 'Build Your Character'}
+                        03 / {isProductPlacement ? 'Product Builder' : 'Build Your Character'}
                       </p>
                     </div>
                     {!hasUploadedProduct && (
