@@ -122,6 +122,8 @@ describe('wine store flow', () => {
     expect(pourState.mode).toBe('studio');
     expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
     expect(pourPrompt).toContain('Editorial hosting moment with active wine service.');
+    expect(pourPrompt).toContain('The pour must show a visible cropped hand or forearm physically supporting the bottle.');
+    expect(pourPrompt).not.toContain('The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.');
   });
 
   it('prefers manual wine environment over stale context preset when building wine prompts', () => {

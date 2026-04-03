@@ -44,10 +44,13 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('SCENE_STYLE: real wine hospitality photography with controlled pour motion.');
     expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
     expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
+    expect(prompt).toContain('SUPPORT_REQUIREMENT: A visible cropped hand or forearm must be in frame physically supporting the bottle.');
+    expect(prompt).toContain('HAND_REQUIREMENT: A visible cropped hand or forearm must support the bottle during the pour.');
     expect(prompt).toContain('must not look suspended');
     expect(prompt).toContain('No levitating bottle.');
-    expect(prompt).toContain('supported from off-frame or by a cropped hand');
+    expect(prompt).toContain('supported by a visible cropped hand or forearm');
     expect(prompt).toContain('Never emit liquid from below the bottle rim');
+    expect(prompt).not.toContain('The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.');
   });
 
   it('preserves just-opened served bottles as near-full service instead of half-empty', () => {
@@ -164,7 +167,7 @@ describe('wine concept modes', () => {
     expect(mapped.wineAction).toBe('controlled-pour');
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
-    expect(prompt).toContain('HUMAN_PRESENCE: Cropped hands, arms, torso fragments, and real service cues are allowed and often necessary.');
+    expect(prompt).toContain('HUMAN_PRESENCE: A visible cropped hand, arm, or forearm must support the bottle during the pour.');
     expect(prompt).toContain('No tack-sharp facial features should become the subject.');
     expect(prompt).toContain('The action may lead the image, with the bottle fully visible or partially cropped');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
@@ -176,6 +179,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('No waxy skin. No plastic skin. No rubber fingers.');
     expect(prompt).toContain('ANATOMY_LOCK: Exactly five fingers per visible hand');
     expect(prompt).toContain('FACE_SECONDARY_REALISM:');
+    expect(prompt).toContain('HAND_FOCUS_REALISM: A visible cropped hand or forearm must physically support the bottle.');
     expect(prompt).not.toContain('WINE_MOOD_PROFILE: ecommerce.');
     expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
     expect(prompt).not.toContain('This is the only addition to the scene');

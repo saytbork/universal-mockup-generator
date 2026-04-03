@@ -52,7 +52,9 @@ const CONTEXTUAL_CLOSING_PHRASE =
     'The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.';
 const WINE_LIFESTYLE_CLOSING_PHRASE =
     'The scene should read as real photographed hospitality. Human presence, when it appears, must stay secondary: cropped hands, partial arms, torso fragments, clinking glasses, or soft out-of-focus guests only. No tack-sharp facial features. No portrait-led people. The moment stays product-led and service-led.';
-const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE, WINE_LIFESTYLE_CLOSING_PHRASE];
+const WINE_POUR_CLOSING_PHRASE =
+    'The pour must show a visible cropped hand or forearm physically supporting the bottle. No floating bottle. No invisible off-frame support. No full person or face-led framing. Keep the action product-led and service-real.';
+const CLOSING_PHRASES = [REQUIRED_CLOSING_PHRASE, CONTEXTUAL_CLOSING_PHRASE, WINE_LIFESTYLE_CLOSING_PHRASE, WINE_POUR_CLOSING_PHRASE];
 
 const STRIP_TERMS_WHEN_NO_INTERACTION = [
     'hand',
@@ -103,6 +105,11 @@ function stripForbiddenTermsExceptClosing(prompt: string, terms: string[]): stri
 
 function resolveClosingPhrase(state: ProductStudioState): string {
     const schema = PHOTO_MODE_SCHEMAS[state.photoMode];
+    const winePourModes = new Set([
+        'Bottle + Glass Pour',
+        'Hands Pouring Wine',
+        'Hosting Pour',
+    ]);
     const wineLifestyleModes = new Set([
         'Social Table Served',
         'Outdoor Toast',
@@ -114,6 +121,9 @@ function resolveClosingPhrase(state: ProductStudioState): string {
     const isWineState =
         String(state.industryProfile || '').trim().toLowerCase() === 'wine' ||
         String(state.visualProfile || '').trim().toLowerCase().includes('wine');
+    if (isWineState && winePourModes.has(String(state.photoMode || '').trim())) {
+        return WINE_POUR_CLOSING_PHRASE;
+    }
     if (isWineState && wineLifestyleModes.has(String(state.photoMode || '').trim())) {
         return WINE_LIFESTYLE_CLOSING_PHRASE;
     }

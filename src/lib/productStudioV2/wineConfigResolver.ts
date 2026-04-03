@@ -92,6 +92,7 @@ function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState)
   if (serveState === 'none') return '';
 
   const lifestyleHumanModes = new Set([
+    'Bottle + Glass Pour',
     'Social Table Served',
     'Outdoor Toast',
     'Hosting Pour',
@@ -105,6 +106,7 @@ function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState)
   if (!lifestyleHumanModes.has(photoMode)) return '';
 
   const handLedModes = new Set([
+    'Bottle + Glass Pour',
     'Hosting Pour',
     'Hands Pouring Wine',
     'Bottle In Hand Cutout',
@@ -121,7 +123,7 @@ function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState)
   ];
 
   if (handLedModes.has(photoMode)) {
-    parts.push('HAND_FOCUS_REALISM: If hands are prominent, they must look optically captured with true skin texture, natural asymmetry, and commercial-photo realism rather than synthetic hero-hand illustration.');
+    parts.push('HAND_FOCUS_REALISM: A visible cropped hand or forearm must physically support the bottle. Hands must look optically captured with true skin texture, natural asymmetry, and commercial-photo realism rather than synthetic hero-hand illustration. No invisible support. No floating bottle.');
   }
 
   return parts.join(' ');
@@ -193,7 +195,7 @@ export function buildWineTruthLayer(
         'Do NOT deform, warp, or stretch the bottle silhouette or proportions.',
         'GEOMETRY_LOCK: Preserve exact bottle height-to-width ratio, shoulder curvature, neck length, and base width from the reference.',
         isPourAction
-          ? 'BOTTLE_ORIENTATION: Bottle is supported from off-frame or by a cropped hand and held at a believable serving angle for active wine service. The bottle must not appear to levitate. The punt/base stays lower than the shoulder line and the whole bottle rotates as a single rigid object from a natural wrist or hand position. The mouth sits slightly above the receiving glass rim with the neck angled downward just enough for a controlled pour. The pour stream exits from the true bottle mouth only.'
+          ? 'BOTTLE_ORIENTATION: Bottle is physically supported by a visible cropped hand or forearm and held at a believable serving angle for active wine service. The support must be visible in frame. No invisible off-frame hold. The bottle must not appear to levitate. The punt/base stays lower than the shoulder line and the whole bottle rotates as a single rigid object from a natural wrist or hand position. The mouth sits slightly above the receiving glass rim with the neck angled downward just enough for a controlled pour. The pour stream exits from the true bottle mouth only.'
           : resolveServedBottleOrientation(state),
       ].join(' ')
     : [
