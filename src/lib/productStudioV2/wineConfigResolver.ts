@@ -113,13 +113,11 @@ function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState)
 
   const parts = [
     'ULTRA_REAL_HUMAN_REALISM_LOCK: Any visible human presence must read as real photographed anatomy, never CGI, never mannequin-like, never beauty-rendered.',
-    'Skin must preserve natural pore texture, fine lines, tendon transitions, knuckle folds, nail beds, cuticles, and subtle tonal variation.',
-    'No waxy skin. No plastic skin. No rubber fingers. No doll-like hands. No synthetic smoothing. No AI glamour skin retouching.',
+    'Skin must preserve natural pore texture, fine lines, knuckle folds, nail beds, and believable tonal variation. No waxy skin. No plastic skin. No rubber fingers. No synthetic smoothing.',
     'ANATOMY_LOCK: Exactly five fingers per visible hand, believable thumb placement, natural finger taper, realistic joint spacing, and physically coherent wrist angles.',
-    'CONTACT_LOCK: When hands touch the bottle or glass, show believable grip pressure, subtle skin compression, real contact shadows, and correct micro-occlusion.',
-    'NEGATIVE_HUMAN_RENDERING: No extra fingers. No fused fingers. No broken wrists. No duplicated limbs. No floating hands. No impossible manicure symmetry. No CGI guest rendering.',
-    'BACKGROUND_HUMAN_REALISM: Any cropped guest, arm, torso fragment, shoulder, or softly visible face must read as optically photographed human presence with natural asymmetry, believable skin transitions, and non-idealized proportions.',
-    'FACE_SECONDARY_REALISM: If partial faces or facial fragments appear, preserve natural eyelid shape, lip texture, skin grain, and subtle asymmetry. No doll-face smoothness. No porcelain skin. No synthetic smile symmetry. No AI beauty-filter look.',
+    'CONTACT_LOCK: When hands touch the bottle or glass, show believable grip pressure, subtle skin compression, and correct contact shadows. NEGATIVE_HUMAN_RENDERING: No extra fingers. No fused fingers. No broken wrists. No duplicated limbs. No floating hands. No CGI guest rendering.',
+    'BACKGROUND_HUMAN_REALISM: Any cropped guest, arm, torso fragment, shoulder, or softly visible face must read as optically photographed human presence with natural asymmetry and believable skin transitions.',
+    'FACE_SECONDARY_REALISM: If partial faces appear, preserve natural eyelid shape, lip texture, skin grain, and subtle asymmetry. No doll-face smoothness. No porcelain skin. No AI beauty-filter look.',
   ];
 
   if (handLedModes.has(photoMode)) {
@@ -217,16 +215,11 @@ export function buildWineTruthLayer(
   // The label is a photographic asset — not a generative element.
   const labelLock = [
     'LABEL_PRESERVATION_LOCK: The bottle label region must be preserved exactly as in the reference image.',
-    'The label must NOT be regenerated, redrawn, reinterpreted, or approximated.',
-    'Treat the label as a fixed photographic surface — not a generative element.',
-    'Every word, letter, number, logo, graphic element, typographic style, spacing, alignment, color, and font must be PIXEL-IDENTICAL to the reference image.',
-    'Do NOT rewrite, translate, paraphrase, or invent any text on the label.',
-    'Do NOT change font, size, weight, spacing, color, or position of any label element.',
-    'Do NOT replace, invent, or omit the brand name, product name, varietal, vintage year, or any other text.',
-    'Do NOT derive label content from wineType, closureType, or any other state variable.',
-    'If reproduction of label text is not achievable at full fidelity, preserve the reference image label region without any modification.',
-    'LABEL_GEOMETRY_LOCK: The label surface must remain flat, undistorted, and non-warped regardless of bottle orientation or tilt angle. Do NOT apply perspective warp, barrel distortion, or any geometric deformation to the label area. The label panel reads as a flat rectangle on the bottle surface in all orientations.',
-    'The label is the highest-priority locked region in the image.',
+    'Treat the label as a fixed photographic surface, not a generative element.',
+    'Do NOT regenerate, rewrite, translate, paraphrase, invent, replace, omit, or reposition any label text or graphics.',
+    'Typography, spacing, alignment, color, and printed artwork must remain pixel-identical to the reference image.',
+    'If full-fidelity reproduction is not achievable, preserve the reference label region unchanged.',
+    'LABEL_GEOMETRY_LOCK: Keep the label flat, undistorted, and non-warped in every bottle orientation. No perspective warp, barrel distortion, or geometric remapping of the label area.',
   ].join(' ');
 
   // GLASS — only for served mode
@@ -244,9 +237,7 @@ export function buildWineTruthLayer(
   // LABEL_FINAL_ANCHOR uses imperative restatement, not prose description of label content.
   const labelRepeat = [
     'LABEL_FINAL_ANCHOR:',
-    'All text on the bottle — brand name, product name, varietal, vintage, and every other typographic element — must match the reference image exactly.',
-    'No new text. No altered text. No invented text. No removed text.',
-    'The label is a locked photographic region. Treat it as immutable.',
+    'All visible bottle text must match the reference image exactly. No new, altered, invented, or removed text.',
   ].join(' ');
 
   return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, humanRealismLock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
