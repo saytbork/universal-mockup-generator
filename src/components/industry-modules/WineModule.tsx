@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Chip } from '@/components/ui/Chip';
 import {
   WINE_LIGHTING_TONES,
@@ -170,9 +170,10 @@ const WINE_LIFESTYLE_ARCHETYPES: WineStyleArchetype[] = [
   'Bottle Inspection Handheld',
 ];
 
-function withSelectedOption<T extends string>(options: T[], selected: T): T[] {
-  return options.includes(selected) ? options : [selected, ...options];
-}
+const DEFAULT_WINE_ENVIRONMENT_BY_FAMILY: Record<'studio' | 'lifestyle', WineEnvironmentV4> = {
+  studio: 'Dark Luxury Studio',
+  lifestyle: 'Fine Dining Table',
+};
 
 export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
@@ -244,10 +245,18 @@ export function WineModule() {
     wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_SCENE_OPTIONS : WINE_STUDIO_SCENE_OPTIONS;
   const visibleWineArchetypes =
     wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ARCHETYPES : WINE_STUDIO_ARCHETYPES;
-  const visibleWineEnvironments = withSelectedOption(
-    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ENVIRONMENTS : WINE_STUDIO_ENVIRONMENTS,
-    wineEnvironment
-  );
+  const visibleWineEnvironments =
+    wineSceneFamily === 'lifestyle' ? WINE_LIFESTYLE_ENVIRONMENTS : WINE_STUDIO_ENVIRONMENTS;
+
+  const getArchetypeDisabledReason = (archetype: WineStyleArchetype): string | null => {
+    if (archetype === 'Action Pour Photography' && currentServeMode !== 'pouring') {
+      return 'Requires a pouring scene.';
+    }
+    if (archetype === 'Bottle Inspection Handheld' && photoMode !== 'Bottle In Hand Cutout') {
+      return 'Requires a hand-held bottle scene.';
+    }
+    return null;
+  };
 
   const setWineSceneFamily = (family: 'studio' | 'lifestyle') => {
     const store = useProductStudioStore.getState();
@@ -265,6 +274,20 @@ export function WineModule() {
       store.setPhotoMode('Social Table Served');
     }
   };
+
+  useEffect(() => {
+    const store = useProductStudioStore.getState();
+
+    if (wineStyleArchetype && !visibleWineArchetypes.includes(wineStyleArchetype)) {
+      store.setWineStyleArchetype(null);
+    }
+
+    if (!visibleWineEnvironments.includes(wineEnvironment)) {
+      const fallbackEnvironment = DEFAULT_WINE_ENVIRONMENT_BY_FAMILY[wineSceneFamily];
+      store.setWineEnvironment(fallbackEnvironment);
+      store.setContextPreset(fallbackEnvironment);
+    }
+  }, [wineSceneFamily, wineStyleArchetype, wineEnvironment, visibleWineArchetypes, visibleWineEnvironments]);
 
   const setWineServeMode = (mode: WineServeMode) => {
     if (mode === 'bottle-only') {
@@ -400,18 +423,31 @@ export function WineModule() {
             </p>
             <div className="flex flex-wrap gap-2">
               {visibleWineArchetypes.map((archetype) => (
-                <Chip
-                  key={archetype}
-                  selected={wineStyleArchetype === archetype}
-                  onClick={() => {
-                    const next = wineStyleArchetype === archetype ? null : archetype;
-                    useProductStudioStore.getState().setWineStyleArchetype(next);
-                  }}
-                >
-                  {archetype}
-                </Chip>
+                (() => {
+                  const disabledReason = getArchetypeDisabledReason(archetype);
+                  return (
+                    <Chip
+                      key={archetype}
+                      selected={wineStyleArchetype === archetype}
+                      disabled={Boolean(disabledReason)}
+                      tooltip={disabledReason ?? undefined}
+                      onClick={() => {
+                        if (disabledReason) return;
+                        const next = wineStyleArchetype === archetype ? null : archetype;
+                        useProductStudioStore.getState().setWineStyleArchetype(next);
+                      }}
+                    >
+                      {archetype}
+                    </Chip>
+                  );
+                })()
               ))}
             </div>
+            {visibleWineArchetypes.some((archetype) => getArchetypeDisabledReason(archetype)) && (
+              <p className="text-[11px] text-gray-400 mt-1">
+                Presets that conflict with the current scene stay disabled instead of being silently ignored.
+              </p>
+            )}
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-2">Environment</p>
