@@ -1566,6 +1566,7 @@ const App: React.FC = () => {
   const [showModeGuide, setShowModeGuide] = useState(false);
   const [highlightModeToggle, setHighlightModeToggle] = useState(false);
   const [activeModeGuideStep, setActiveModeGuideStep] = useState<1 | 2 | 3>(1);
+  const [showPostUploadModeNudge, setShowPostUploadModeNudge] = useState(false);
   const [ugcRealSettings, setUgcRealSettings] = useState<UGCRealModeSettings>(() => createDefaultUGCRealSettings());
   const [formulationExpertEnabled, setFormulationExpertEnabled] = useState(false);
   const [formulationExpertPreset, setFormulationExpertPreset] = useState(FORMULATION_EXPERT_PRESETS[0].value);
@@ -4393,6 +4394,8 @@ const App: React.FC = () => {
 
   const handleModeSwitch = useCallback((nextMode: 'ugc' | 'product') => {
     handleOptionChange('contentStyle', nextMode, 'Mode');
+    setShowPostUploadModeNudge(false);
+    setShowModeGuide(false);
     scrollToBuilderSettings();
   }, [handleOptionChange, scrollToBuilderSettings]);
 
@@ -4424,6 +4427,7 @@ const App: React.FC = () => {
 
   const dismissModeGuide = useCallback(() => {
     setShowModeGuide(false);
+    setShowPostUploadModeNudge(false);
   }, []);
 
   const advanceModeGuide = useCallback(() => {
@@ -4598,6 +4602,9 @@ const App: React.FC = () => {
 
       // ACTIVATE STEP 3
       setStep(3);
+      setActiveModeGuideStep(2);
+      setShowPostUploadModeNudge(true);
+      setShowModeGuide(true);
 
       advanceOnboardingFromStep(2);
     },
@@ -7314,6 +7321,26 @@ If the model attempts to create a scene or environment, override it and force a 
                     {!hasUploadedProduct && (
                       <div className="rounded-lg border border-gray-200 bg-white/70 px-3 py-2 text-[11px] text-gray-500 dark:bg-black/20 dark:border-white/10 dark:text-white/50">
                         Locked until previous step is complete
+                      </div>
+                    )}
+                    {hasUploadedProduct && showPostUploadModeNudge && (
+                      <div className="rounded-2xl border border-indigo-200 bg-indigo-50/90 px-4 py-4 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.34em] text-indigo-600">Next Step</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Choose your output mode</p>
+                            <p className="text-[12px] leading-relaxed text-gray-600 dark:text-white/60">
+                              Pick <span className="font-semibold text-gray-900 dark:text-white">Lifestyle</span> for people and environments, or <span className="font-semibold text-gray-900 dark:text-white">Product</span> for product-first visuals.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowPostUploadModeNudge(false)}
+                            className="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700 dark:border-indigo-500/30 dark:bg-white/5 dark:text-indigo-200"
+                          >
+                            Hide
+                          </button>
+                        </div>
                       </div>
                     )}
                     <div className={hasUploadedProduct ? '' : 'opacity-50 pointer-events-none select-none'}>
