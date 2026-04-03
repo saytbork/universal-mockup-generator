@@ -1956,12 +1956,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const effectiveMode: PhotoMode = splashBlockedInWineMode || macroDewBlockedInWineMode
                 ? 'Hero Landing Page'
                 : resolvedMode;
-            const hadEnvironmentEnabled = state.environmentContext != null;
             const isWineContextualPhotoMode = WINE_CONTEXTUAL_PHOTO_MODES.includes(effectiveMode);
-            const alreadyInLifestyle = state.mode === 'lifestyle-real' && state.sceneType === 'lifestyle-real';
-            // Preserve environment only when the user is already in Lifestyle mode.
-            // Contextual wine photo modes must not force Product Studio out of studio mode.
-            const shouldUseEnvironment = hadEnvironmentEnabled && alreadyInLifestyle && isWineContextualPhotoMode;
+            const contextualWineEnvironmentContext =
+                isWineContextualPhotoMode
+                    ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
+                    : null;
             const schema = PHOTO_MODE_SCHEMAS[effectiveMode];
             const allowedInteractions = getPhotoModeAllowedInteractions(effectiveMode);
             let resolvedPlacement: ProductPlacement = state.placement;
@@ -2032,6 +2031,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 normalizedVisualProfile === 'wine' ||
                 isWinePrestigeMode(state);
             const isWinePhotoMode = allowed.includes(effectiveMode as PhotoMode) && isWineState;
+            const shouldUseEnvironment = isWinePhotoMode && isWineContextualPhotoMode;
             const isServedWineMode = servedWineModes.includes(effectiveMode);
             const isPourWineMode = pourWineModes.includes(effectiveMode);
             const isWineSceneOwnedMode = wineSceneOwnedModes.includes(effectiveMode);
@@ -2059,14 +2059,15 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 placement: resolvedPlacement,
                 ...(isWinePhotoMode
                     ? {
-                        sceneType: 'studio-branding' as ProductStudioState['sceneType'],
-                        mode: 'studio' as ProductStudioState['mode'],
+                        sceneType: (
+                            isWineContextualPhotoMode ? 'lifestyle-real' : 'studio-branding'
+                        ) as ProductStudioState['sceneType'],
+                        mode: (
+                            isWineContextualPhotoMode ? 'lifestyle-real' : 'studio'
+                        ) as ProductStudioState['mode'],
                     }
                     : {}),
-                // Preserve environment once user enables it from PHOTO TYPE.
-                environmentContext: shouldUseEnvironment
-                    ? (state.environmentContext ?? { macro: 'kitchen', micro: getDefaultMicroPlace('kitchen') })
-                    : null,
+                environmentContext: isWinePhotoMode ? contextualWineEnvironmentContext : null,
                 handsHolding: resolvedHandsHolding,
                 interaction: resolvedInteraction,
                 // CLEANUP: Clear ingredients when leaving Ingredient Stack/Flat Lay modes

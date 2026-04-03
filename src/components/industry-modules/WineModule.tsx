@@ -350,7 +350,7 @@ export function WineModule() {
       {isOpen && (
         <div className="mt-4 space-y-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene Family</p>
+            <p className="text-xs uppercase tracking-[0.15em] text-gray-500 font-semibold mb-1">Scene</p>
             <p className="text-[11px] text-gray-400 mb-2">Choose whether this wine render lives in studio or product-in-context lifestyle.</p>
             <div className="flex flex-wrap gap-2">
               <Chip
