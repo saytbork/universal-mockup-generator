@@ -97,7 +97,7 @@ describe('wine store flow', () => {
     expect(prompt).not.toContain('WINE_GLASS:');
   });
 
-  it('keeps contextual wine service modes inside studio scene type while preserving wine prompt routing', () => {
+  it('moves contextual wine service modes into lifestyle scene type while preserving wine prompt routing', () => {
     const store = useProductStudioStore.getState();
 
     store.addProduct(TEST_PRODUCT);
@@ -107,8 +107,8 @@ describe('wine store flow', () => {
     const socialState = useProductStudioStore.getState();
     const socialPrompt = generateProductJobs(socialState)[0]?.prompt ?? '';
 
-    expect(socialState.sceneType).toBe('studio-branding');
-    expect(socialState.mode).toBe('studio');
+    expect(socialState.sceneType).toBe('lifestyle-real');
+    expect(socialState.mode).toBe('lifestyle-real');
     expect(socialPrompt).toContain('PHOTO_MODE: Social Table Served.');
     expect(socialPrompt).toContain('WINE_ENVIRONMENT_VARIATION: luxury-dining.');
 
@@ -118,8 +118,8 @@ describe('wine store flow', () => {
     const pourPrompt = generateProductJobs(pourState)[0]?.prompt ?? '';
 
     expect(pourState.photoMode).toBe('Hosting Pour');
-    expect(pourState.sceneType).toBe('studio-branding');
-    expect(pourState.mode).toBe('studio');
+    expect(pourState.sceneType).toBe('lifestyle-real');
+    expect(pourState.mode).toBe('lifestyle-real');
     expect(pourPrompt).toContain('WINE_ENVIRONMENT_VARIATION: modern-kitchen.');
     expect(pourPrompt).toContain('Editorial hosting moment with active wine service.');
   });
