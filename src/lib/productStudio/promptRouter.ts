@@ -1218,24 +1218,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
       resolvedPhotoMode === 'Rose Tasting Table' ||
-      resolvedPhotoMode === 'Social Table Served' ||
-      resolvedPhotoMode === 'Outdoor Toast' ||
-      resolvedPhotoMode === 'Hosting Pour' ||
-      resolvedPhotoMode === 'Dinner Pairing' ||
-      resolvedPhotoMode === 'Picnic Gathering' ||
-      resolvedPhotoMode === 'Celebration Chill');
+      resolvedPhotoMode === 'Hosting Pour');
   const isWineServedPresentationMode =
     industryProfile === 'wine' &&
     (resolvedPhotoMode === 'Bottle + Glass' ||
       resolvedPhotoMode === 'Bottle + Glass Pour' ||
       resolvedPhotoMode === 'Hands Pouring Wine' ||
       resolvedPhotoMode === 'Rose Tasting Table' ||
-      resolvedPhotoMode === 'Social Table Served' ||
-      resolvedPhotoMode === 'Outdoor Toast' ||
-      resolvedPhotoMode === 'Hosting Pour' ||
-      resolvedPhotoMode === 'Dinner Pairing' ||
-      resolvedPhotoMode === 'Picnic Gathering' ||
-      resolvedPhotoMode === 'Celebration Chill');
+      resolvedPhotoMode === 'Hosting Pour');
   const isWineLineupMode =
     industryProfile === 'wine' && resolvedPhotoMode === 'Wine Lineup Comparison';
   const isWineBottleOnlySceneMode =

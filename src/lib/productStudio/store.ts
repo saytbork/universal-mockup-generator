@@ -2015,11 +2015,6 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 'Bottle + Glass Pour',
                 'Hands Pouring Wine',
                 'Rose Tasting Table',
-                'Social Table Served',
-                'Outdoor Toast',
-                'Dinner Pairing',
-                'Picnic Gathering',
-                'Celebration Chill',
             ];
             const pourWineModes: PhotoMode[] = ['Bottle + Glass Pour', 'Hands Pouring Wine', 'Hosting Pour'];
             const wineSceneOwnedModes: PhotoMode[] = ['Hero Landing Page', 'Winery Scene', 'Editorial Table', 'Editorial Bottle Tabletop'];
