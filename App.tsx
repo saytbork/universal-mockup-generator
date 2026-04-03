@@ -4604,7 +4604,14 @@ const App: React.FC = () => {
       setStep(3);
       setActiveModeGuideStep(2);
       setShowPostUploadModeNudge(true);
-      setShowModeGuide(true);
+      setShowModeGuide(false);
+      if (typeof window !== 'undefined') {
+        window.requestAnimationFrame(() => {
+          window.setTimeout(() => {
+            pulseModeToggle();
+          }, 120);
+        });
+      }
 
       advanceOnboardingFromStep(2);
     },
@@ -7272,10 +7279,10 @@ If the model attempts to create a scene or environment, override it and force a 
                   <div
                     ref={uploadRef}
                     className={`flex flex-col gap-6 transition-all duration-300 ${
-                      showModeGuide && activeModeGuideStep === 3
+                      showModeGuide && activeModeGuideStep === 2
                         ? 'coachmark-focus rounded-[24px] ring-2 ring-indigo-500/60 ring-offset-4 ring-offset-gray-50 dark:ring-offset-black'
                         : ''
-                    } ${shouldDimBuilderSettings ? 'coachmark-dim' : ''}`}
+                    } ${shouldDimModeSelector ? 'coachmark-dim' : ''}`}
                   >
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] uppercase tracking-[0.4em] text-indigo-600 font-bold">
