@@ -1889,15 +1889,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   useEffect(() => {
     if (!isProductMode) return;
-    const targetSceneType = wineLifestylePhotoModeActive ? 'lifestyle-real' : 'studio-branding';
-    const targetMode = wineLifestylePhotoModeActive ? 'lifestyle-real' : 'studio';
-    if (productStore.sceneType !== targetSceneType) {
-      productStore.setSceneType(targetSceneType);
+    if (productStore.sceneType !== 'studio-branding') {
+      productStore.setSceneType('studio-branding');
     }
-    if (productStore.mode !== targetMode) {
-      productStore.setMode(targetMode);
+    if (productStore.mode !== 'studio') {
+      productStore.setMode('studio');
     }
-  }, [isProductMode, productStore, wineLifestylePhotoModeActive]);
+  }, [isProductMode, productStore]);
 
   // Derived state for Environment (Strict Rule: Studio = No Environment, Lifestyle = Always Environment)
   const isEnvironmentMode = !isProductMode;
@@ -2496,49 +2494,32 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     let payload: Step3Values = rawPayload;
 
     if (isProductMode) {
-      if (wineLifestylePhotoModeActive) {
-        payload = {
-          ...payload,
-          creationMode: 'aesthetic',
-          creationIntent: 'brand',
-          sceneType: 'lifestyle-real',
-          sceneIntent: 'environment',
-          contentStyle: 'brand',
-          visualIntent: payload.visualIntent ?? 'editorial',
-          noPerson: false,
-          personIncluded: true,
-          handsHolding: wineLifestyleHandsRequired || payload.handsHolding,
-          environmentContext: payload.environmentContext ?? { macro: 'Kitchen', micro: 'Countertop' },
-          environment: payload.environment || 'Kitchen',
-        } as Step3Values;
-      } else {
-        payload = {
-          ...payload,
-          creationMode: 'studio',
-          creationIntent: 'product',
-          sceneType: 'studio-branding',
-          contentStyle: 'product',
-          productType: mapStudioProductTypeToStep3Label(productStore.definition?.physical?.kind),
-          productPackaging: mapStudioPackagingToStep3Label(productStore.packagingMode),
-          productScale: mapStudioScaleToStep3Label(productStore.physicalScaleLabel),
-          productCameraSystem: productStore.cameraUiSystemLabel || payload.productCameraSystem,
-          productCameraAngle: productStore.cameraUiAngleLabel || payload.productCameraAngle,
-          productCameraDistance: productStore.cameraUiDistanceLabel || payload.productCameraDistance,
-          productCameraRotation: productStore.rotation,
-          productFramingGuide: productStore.cameraUiFramingLabel || payload.productFramingGuide,
-          studioPhotoMode: productStore.photoMode,
-          studioAlignment: productStore.alignment,
-          studioShadow: productStore.shadow,
-          studioProps: productStore.props,
-          studioIngredientLayout: productStore.ingredientLayout,
-          studioInteraction: productStore.interaction,
-          studioLens: productStore.lens,
-          studioLightingRig: productStore.lightingRig,
-          studioFinish: productStore.finish,
-          studioBackgroundColor: productStore.backgroundColor,
-          studioAccentColor: productStore.accentColor,
-        } as Step3Values;
-      }
+      payload = {
+        ...payload,
+        creationMode: 'studio',
+        creationIntent: 'product',
+        sceneType: 'studio-branding',
+        contentStyle: 'product',
+        productType: mapStudioProductTypeToStep3Label(productStore.definition?.physical?.kind),
+        productPackaging: mapStudioPackagingToStep3Label(productStore.packagingMode),
+        productScale: mapStudioScaleToStep3Label(productStore.physicalScaleLabel),
+        productCameraSystem: productStore.cameraUiSystemLabel || payload.productCameraSystem,
+        productCameraAngle: productStore.cameraUiAngleLabel || payload.productCameraAngle,
+        productCameraDistance: productStore.cameraUiDistanceLabel || payload.productCameraDistance,
+        productCameraRotation: productStore.rotation,
+        productFramingGuide: productStore.cameraUiFramingLabel || payload.productFramingGuide,
+        studioPhotoMode: productStore.photoMode,
+        studioAlignment: productStore.alignment,
+        studioShadow: productStore.shadow,
+        studioProps: productStore.props,
+        studioIngredientLayout: productStore.ingredientLayout,
+        studioInteraction: productStore.interaction,
+        studioLens: productStore.lens,
+        studioLightingRig: productStore.lightingRig,
+        studioFinish: productStore.finish,
+        studioBackgroundColor: productStore.backgroundColor,
+        studioAccentColor: productStore.accentColor,
+      } as Step3Values;
     }
 
     if (payload.sceneType === 'lifestyle-real') {
@@ -2596,27 +2577,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         studioAccentColor: productStore.accentColor,
       };
 
-      if (wineLifestylePhotoModeActive) {
-        next.sceneType = 'lifestyle-real';
-        next.sceneIntent = 'environment';
-        next.creationIntent = 'brand';
-        next.creationMode = 'Aesthetic Builder';
-        next.visualIntent = next.visualIntent ?? 'editorial';
-        next.noPerson = false;
-        next.personIncluded = true;
-        next.handsHolding = wineLifestyleHandsRequired || next.handsHolding;
-        next.productInteraction = wineLifestyleHandsRequired ? 'holding' : next.productInteraction;
-        next.environmentContext = next.environmentContext ?? { macro: 'Kitchen', micro: 'Countertop' };
-        next.environment = next.environment || 'Kitchen';
-      } else {
-        next.sceneType = 'studio-branding';
-        next.sceneIntent = 'ecommerce';
-        next.creationIntent = 'product';
-        next.creationMode = 'studio';
-        next.noPerson = true;
-        next.personIncluded = false;
-        next.handsHolding = false;
-      }
+      next.sceneType = 'studio-branding';
+      next.sceneIntent = 'ecommerce';
+      next.creationIntent = 'product';
+      next.creationMode = 'studio';
+      next.noPerson = true;
+      next.personIncluded = false;
+      next.handsHolding = wineLifestyleHandsRequired;
+      next.productInteraction = wineLifestyleHandsRequired ? 'holding' : next.productInteraction;
 
       enforceSingleSelectLayers(next);
       return next;
@@ -2925,9 +2893,8 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
   useEffect(() => {
     if (isProductMode) {
-      const targetSceneType = wineLifestylePhotoModeActive ? 'lifestyle-real' : 'studio-branding';
-      if (values.sceneType !== targetSceneType) {
-        updateValue('sceneType', targetSceneType);
+      if (values.sceneType !== 'studio-branding') {
+        updateValue('sceneType', 'studio-branding');
       }
       return;
     }
@@ -2940,7 +2907,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     if (values.sceneType !== 'lifestyle-real') {
       updateValue('sceneType', 'lifestyle-real');
     }
-  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue, wineLifestylePhotoModeActive]);
+  }, [isProductMode, values.sceneIntent, values.sceneType, updateValue]);
 
   useEffect(() => {
     if (values.sceneIntent === 'ecommerce') {

@@ -81,7 +81,7 @@ describe('wine photo mode state normalization', () => {
     expect(state.bundle.secondaryProductIds).toEqual([TEST_PRODUCTS[1].id]);
   });
 
-  it('normalizes hosting pour into a pouring wine lifestyle state', () => {
+  it('normalizes hosting pour into a pouring wine studio state', () => {
     useProductStudioStore.setState({
       ...structuredClone(DEFAULT_PRODUCT_STUDIO_STATE),
       industryProfile: 'wine',
@@ -98,8 +98,8 @@ describe('wine photo mode state normalization', () => {
     useProductStudioStore.getState().setPhotoMode('Hosting Pour');
 
     const state = useProductStudioStore.getState();
-    expect(state.sceneType).toBe('lifestyle-real');
-    expect(state.mode).toBe('lifestyle-real');
+    expect(state.sceneType).toBe('studio-branding');
+    expect(state.mode).toBe('studio');
     expect(state.wineServeMode).toBe('pouring');
     expect(state.wineBottleFillMode).toBe('partially-served');
     expect(state.wineGlassMode).toBe('filled');

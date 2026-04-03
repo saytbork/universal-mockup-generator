@@ -2059,12 +2059,8 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
                 placement: resolvedPlacement,
                 ...(isWinePhotoMode
                     ? {
-                        sceneType: (
-                            isWineContextualPhotoMode ? 'lifestyle-real' : 'studio-branding'
-                        ) as ProductStudioState['sceneType'],
-                        mode: (
-                            isWineContextualPhotoMode ? 'lifestyle-real' : 'studio'
-                        ) as ProductStudioState['mode'],
+                        sceneType: 'studio-branding' as ProductStudioState['sceneType'],
+                        mode: 'studio' as ProductStudioState['mode'],
                     }
                     : {}),
                 environmentContext: isWinePhotoMode ? contextualWineEnvironmentContext : null,
