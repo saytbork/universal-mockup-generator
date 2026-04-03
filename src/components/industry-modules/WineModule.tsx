@@ -175,6 +175,50 @@ const DEFAULT_WINE_ENVIRONMENT_BY_FAMILY: Record<'studio' | 'lifestyle', WineEnv
   lifestyle: 'Fine Dining Table',
 };
 
+const ARCHETYPE_ALLOWED_ENVIRONMENTS: Partial<Record<WineStyleArchetype, WineEnvironmentV4[]>> = {
+  'Cinematic Vineyard': [
+    'Vineyard Golden Hour',
+    'Vineyard Blue Hour',
+    'Vineyard Misty Dawn',
+    'Hillside Terroir Landscape',
+  ],
+  'Warm Tasting Room': [
+    'Glass Winery Modern',
+    'Fine Dining Table',
+    'Outdoor Terrace Dining',
+    'Rustic Estate Kitchen',
+  ],
+  'Rustic Pairing Table': [
+    'Fine Dining Table',
+    'Outdoor Terrace Dining',
+    'Rustic Estate Kitchen',
+  ],
+  'Outdoor Social Toast': [
+    'Vineyard Golden Hour',
+    'Vineyard Blue Hour',
+    'Vineyard Misty Dawn',
+    'Outdoor Terrace Dining',
+    'Hillside Terroir Landscape',
+  ],
+  'Ice Bucket Chill': [
+    'Glass Winery Modern',
+    'Fine Dining Table',
+    'Outdoor Terrace Dining',
+  ],
+  'Grounded Vineyard Flatlay': [
+    'Vineyard Golden Hour',
+    'Vineyard Blue Hour',
+    'Vineyard Misty Dawn',
+    'Hillside Terroir Landscape',
+  ],
+  'Bottle Inspection Handheld': [
+    'Glass Winery Modern',
+    'Fine Dining Table',
+    'Outdoor Terrace Dining',
+    'Rustic Estate Kitchen',
+  ],
+};
+
 export function WineModule() {
   const [isOpen, setIsOpen] = useState(true);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -255,6 +299,10 @@ export function WineModule() {
     if (archetype === 'Bottle Inspection Handheld' && photoMode !== 'Bottle In Hand Cutout') {
       return 'Requires a hand-held bottle scene.';
     }
+    const allowedEnvironments = ARCHETYPE_ALLOWED_ENVIRONMENTS[archetype];
+    if (allowedEnvironments && !allowedEnvironments.includes(wineEnvironment)) {
+      return `Conflicts with ${wineEnvironment}.`;
+    }
     return null;
   };
 
@@ -287,7 +335,11 @@ export function WineModule() {
       store.setWineEnvironment(fallbackEnvironment);
       store.setContextPreset(fallbackEnvironment);
     }
-  }, [wineSceneFamily, wineStyleArchetype, wineEnvironment, visibleWineArchetypes, visibleWineEnvironments]);
+
+    if (wineStyleArchetype && getArchetypeDisabledReason(wineStyleArchetype)) {
+      store.setWineStyleArchetype(null);
+    }
+  }, [wineSceneFamily, wineStyleArchetype, wineEnvironment, visibleWineArchetypes, visibleWineEnvironments, getArchetypeDisabledReason]);
 
   const setWineServeMode = (mode: WineServeMode) => {
     if (mode === 'bottle-only') {
