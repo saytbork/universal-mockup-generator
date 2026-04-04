@@ -2564,6 +2564,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     setValues(prev => {
       const next: Step3Values = {
         ...prev,
+        productType: mapStudioProductTypeToStep3Label(productStore.definition?.physical?.kind),
+        productPackaging: mapStudioPackagingToStep3Label(productStore.packagingMode),
+        productScale: mapStudioScaleToStep3Label(productStore.physicalScaleLabel),
         studioPhotoMode: productStore.photoMode,
         studioAlignment: productStore.alignment,
         studioShadow: productStore.shadow,
@@ -2590,6 +2593,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       return next;
     });
   }, [
+    productStore.definition?.physical?.kind,
+    productStore.packagingMode,
+    productStore.physicalScaleLabel,
     productStore.photoMode,
     productStore.alignment,
     productStore.shadow,
