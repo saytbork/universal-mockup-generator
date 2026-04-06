@@ -6380,7 +6380,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         <div className="space-y-6">
           <p className="text-xs text-gray-500 dark:text-white/50">
             {wineIndustryActive
-              ? 'Define how multiple bottles are grouped and rendered together.'
+              ? 'Define how 2 to 5 uploaded bottles are grouped and rendered together.'
               : 'Define how products are grouped, bundled, and positioned.'}
           </p>
           {/* BUNDLE PRESETS (Mode: Single/Duo/Trio/Kit) */}
@@ -6414,10 +6414,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                 const isSelected = productStore.bundle.enabled && productStore.bundle.selectedBundleId === bundle.id;
                 // Mapping specific IDs to labels as per request
                 let label = bundle.name;
-                if (bundle.id === 'daily_duo') label = 'Duo';
-                if (bundle.id === 'essentials_trio') label = 'Trio';
-                if (bundle.id === 'launch_showcase') label = 'Launch Showcase Set';
-                if (bundle.id === 'hero_lineup') label = 'Kit';
+                if (wineIndustryActive) {
+                  if (bundle.id === 'daily_duo') label = '2 Bottles';
+                  if (bundle.id === 'essentials_trio') label = '3 Bottles';
+                  if (bundle.id === 'launch_showcase') label = '3-4 Showcase';
+                  if (bundle.id === 'hero_lineup') label = '3-5 Lineup';
+                } else {
+                  if (bundle.id === 'daily_duo') label = 'Duo';
+                  if (bundle.id === 'essentials_trio') label = 'Trio';
+                  if (bundle.id === 'launch_showcase') label = 'Launch Showcase Set';
+                  if (bundle.id === 'hero_lineup') label = 'Kit';
+                }
 
                 return (
                   <Chip
