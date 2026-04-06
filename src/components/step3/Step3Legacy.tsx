@@ -8006,42 +8006,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </div>
 
                       <div className="space-y-2">
-                        <span className="text-xs text-gray-600 dark:text-white/60">
-                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {(isCreatorPro
-                            ? (['Female', 'Male', 'Mix', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
-                            : (['Female', 'Male', 'Mix'] as const)
-                          ).map(option => {
-                            const mixDisabled = option === 'Mix' && values.personCount !== 'group';
-                            return (
-                              <Chip
-                                title={mixDisabled ? 'Mix is only available when Person count is Group.' : (GENDER_TOOLTIPS[option] || option)}
-                                key={option}
-                                onClick={() => {
-                                  if (mixDisabled) return;
-                                  updateValue('gender', option as any);
-                                  if (option === 'Mix' && values.personCount === 'group') {
-                                    updateValue('ethnicity', 'Mixed');
-                                  } else if (values.ethnicity === 'Mixed') {
-                                    updateValue('ethnicity', 'Non-specific');
-                                  }
-                                  markSectionTouched('creator');
-                                }}
-                                selected={values.gender === (option as any)}
-                                size="md"
-                                disabled={mixDisabled}
-                                tooltip={mixDisabled ? 'Only available for Group.' : undefined}
-                              >
-                                {option}
-                              </Chip>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-gray-600 dark:text-white/60">Person count</span>
                           <p className="text-[11px] text-gray-400 dark:text-white/40">Choose single creator, a couple, or a small group.</p>
@@ -8088,6 +8052,42 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                           >
                             Group
                           </Chip>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <span className="text-xs text-gray-600 dark:text-white/60">
+                          {values.personCount === 'couple' ? 'Primary gender' : 'Gender'}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(isCreatorPro
+                            ? (['Female', 'Male', 'Mix', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
+                            : (['Female', 'Male', 'Mix'] as const)
+                          ).map(option => {
+                            const mixDisabled = option === 'Mix' && values.personCount !== 'group';
+                            return (
+                              <Chip
+                                title={mixDisabled ? 'Mix is only available when Person count is Group.' : (GENDER_TOOLTIPS[option] || option)}
+                                key={option}
+                                onClick={() => {
+                                  if (mixDisabled) return;
+                                  updateValue('gender', option as any);
+                                  if (option === 'Mix' && values.personCount === 'group') {
+                                    updateValue('ethnicity', 'Mixed');
+                                  } else if (values.ethnicity === 'Mixed') {
+                                    updateValue('ethnicity', 'Non-specific');
+                                  }
+                                  markSectionTouched('creator');
+                                }}
+                                selected={values.gender === (option as any)}
+                                size="md"
+                                disabled={mixDisabled}
+                                tooltip={mixDisabled ? 'Only available for Group.' : undefined}
+                              >
+                                {option}
+                              </Chip>
+                            );
+                          })}
                         </div>
                       </div>
 
