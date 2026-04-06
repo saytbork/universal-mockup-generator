@@ -213,4 +213,21 @@ describe('IdentityBuilder group composition realism', () => {
     expect(productOutput).toContain('Do not omit any uploaded product.');
     expect(constraintsOutput).toContain('Exactly 4 uploaded products are provided and all 4 must appear in the final image.');
   });
+
+  it('avoids phantom hand contact and oversized hero scaling in group background/showing scenes', () => {
+    const productOutput = new ProductBuilder().build(
+      makeOptions({
+        productInteraction: 'background',
+        handsHolding: false,
+        productAssets: [{ id: 'p1', label: 'Wine Bottle' } as any],
+      })
+    );
+
+    expect(productOutput).toContain('PLACING RULE'.replace('PLACING', 'PLACEMENT'));
+    expect(productOutput).toContain('Keep the product at believable tabletop or shared-scene scale within the group.');
+    expect(productOutput).toContain('no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product');
+    expect(productOutput).toContain('if no one is actively holding it, the product must rest naturally on a surface');
+    expect(productOutput).not.toContain('HAND CONTACT INTEGRATION: fingers must wrap around the product');
+    expect(productOutput).not.toContain('Product must be physically closer to the camera than the face/body.');
+  });
 });

@@ -53,12 +53,20 @@ export class ProductBuilder implements PromptBuilder {
         const isEcommerceCanvasOverlay =
             options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
         const hasMultipleProducts = productAssets.length > 1;
+        const interactionValue = String(options.productInteraction || '').trim().toLowerCase();
+        const hasActiveHandContact =
+            options.handsHolding === true ||
+            interactionValue === 'holding' ||
+            interactionValue === 'hands-only-crop';
+        const isGroupScene = options.personCount === 'group';
+        const isBackgroundOrShowingGroup =
+            isGroupScene && (interactionValue === 'background' || interactionValue === 'showing');
 
         let prompt = isEcommerceBlankSpaceMode
             ? this.buildEcommerceBlankProductInsertion(options)
             : isEcommerceCanvasOverlay
               ? this.buildEcommerceCanvasProductInsertion(options, hasMultipleProducts)
-              : this.buildProductInsertion(hasMultipleProducts, productAssets.length);
+              : this.buildProductInsertion(options, hasMultipleProducts, productAssets.length);
 
         if (effectiveHeightNotes) {
             prompt += ` Respect real-world scale: ${effectiveHeightNotes}.`;
@@ -123,7 +131,9 @@ export class ProductBuilder implements PromptBuilder {
             prompt +=
                 isProductOnly
                     ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
-                    : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
+                    : isBackgroundOrShowingGroup
+                        ? ' PLACEMENT RULE: Keep the product at believable tabletop or shared-scene scale within the group. Do not upscale it into an oversized foreground hero prop. The product may sit on the same plane as hands, tableware, or nearby people, but must remain fully readable and naturally proportioned to the environment.'
+                        : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
         }
 
         const mappedMaterial = productMaterial
@@ -198,7 +208,12 @@ export class ProductBuilder implements PromptBuilder {
     `.trim().replace(/\s+/g, ' ');
     }
 
-    private buildProductInsertion(hasMultipleProducts: boolean, productCount: number): string {
+    private buildProductInsertion(options: PromptOptions, hasMultipleProducts: boolean, productCount: number): string {
+        const interactionValue = String(options.productInteraction || '').trim().toLowerCase();
+        const hasActiveHandContact =
+            options.handsHolding === true ||
+            interactionValue === 'holding' ||
+            interactionValue === 'hands-only-crop';
         return `
       ${hasMultipleProducts
         ? `Use all ${productCount} uploaded product images as exact products to place in the scene. Every uploaded product must appear as its own separate item and must match its own reference exactly.`
@@ -235,13 +250,13 @@ export class ProductBuilder implements PromptBuilder {
         ? 'All uploaded products must look naturally photographed inside this environment, not pasted or floating.'
         : 'The product must look naturally photographed inside this environment, not pasted or floating.'}
       
-      Integrate the product physically into the environment:
+        Integrate the product physically into the environment:
       - match real lighting direction,
       - match color temperature and contrast,
       - generate accurate shadow casting under the jar/bottle,
-      - apply micro-occlusion where the hand touches the product,
-      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,
-      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,
+      ${hasActiveHandContact
+        ? '- apply micro-occlusion where the hand touches the product,\n      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,\n      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,'
+        : '- no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product,\n      - if no one is actively holding it, the product must rest naturally on a surface with clean contact and no phantom support,'}
       - generate correct reflections on glass, plastic, or metal,
       - preserve the exact design, size, colors, and branding of the uploaded product.
     `.trim().replace(/\s+/g, ' ');
