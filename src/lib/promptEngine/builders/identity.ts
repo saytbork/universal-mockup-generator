@@ -245,6 +245,7 @@ export class IdentityBuilder implements PromptBuilder {
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
         const personCount = options.personCount;
+        const isGroup = personCount === 'group';
         const genderValue = String(options.gender || personDetails?.gender || '').trim().toLowerCase();
         const isMixedGenderGroup =
             personCount === 'group' &&
@@ -609,28 +610,36 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
                     personDetails.ethnicity !== 'Non-specific'
                 ) {
                     parts.push(
-                        `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
+                        isGroup
+                            ? `PRIMARY SUBJECT ETHNICITY ANCHOR: Person A MUST visually read as ${personDetails.ethnicity}. Other group members must still remain visibly distinct individuals, not ethnicity-matched duplicates.`
+                            : `ETHNICITY ANCHOR: Subject MUST visually read as ${personDetails.ethnicity}. Do not drift to a different ethnicity.`
                     );
                 }
 
                 // Gender anchor
                 if (personDetails?.gender) {
                     parts.push(
-                        `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
+                        isGroup
+                            ? `PRIMARY SUBJECT GENDER ANCHOR: Person A MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not force the entire group into the same gender presentation.`
+                            : `GENDER ANCHOR: Subject MUST visually read as ${sanitizePart(String(personDetails.gender), isUgcMode)}. Do not drift.`
                     );
                 }
 
                 // Skin tone anchor
                 if (personDetails?.skinTone) {
                     parts.push(
-                        `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
+                        isGroup
+                            ? `PRIMARY SUBJECT SKIN TONE ANCHOR: Person A MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Additional group members must not collapse into the same skin tone clone unless explicitly required.`
+                            : `SKIN TONE ANCHOR: Subject MUST visually match ${sanitizePart(String(personDetails.skinTone), isUgcMode)}. Do not drift to a different skin tone.`
                     );
                 }
 
                 // Eye color anchor
                 if (personDetails?.eyeColor) {
                     parts.push(
-                        `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
+                        isGroup
+                            ? `PRIMARY SUBJECT EYE COLOR ANCHOR: Person A eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not mirror the same eye color across the full group by default.`
+                            : `EYE COLOR ANCHOR: Eyes MUST be ${sanitizePart(String(personDetails.eyeColor), isUgcMode)}. Do not drift.`
                     );
                 }
 
@@ -650,8 +659,12 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
                 // Body Type
                 if (personDetails?.bodyType) {
                     const build = sanitizePart(`${personDetails.bodyType} build`, isUgcMode);
-                    identityParts.push(build);
-                    parts.push(`BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`);
+                    identityParts.push(isGroup ? `Person A with ${build}` : build);
+                    parts.push(
+                        isGroup
+                            ? `PRIMARY SUBJECT BUILD ANCHOR: Person A must have a ${build}. Other group members must not all inherit the exact same body proportions.`
+                            : `BUILD ANCHOR: Subject must have a ${build}. Do not drift to a very different build.`
+                    );
 
                     const bodyTypeKey = String(personDetails.bodyType).trim().toLowerCase();
                     const physiqueAnchor =
@@ -692,8 +705,12 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
                     ].filter(Boolean);
                     if (hairParts.length > 0) {
                         const hairText = sanitizePart(`${hairParts.join(' ')} hair`, isUgcMode);
-                        identityParts.push(hairText);
-                        parts.push(`HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`);
+                        identityParts.push(isGroup ? `Person A with ${hairText}` : hairText);
+                        parts.push(
+                            isGroup
+                                ? `PRIMARY SUBJECT HAIR ANCHOR: Person A hair MUST match: ${hairText}. The rest of the group must show clear visible variation in hair length, texture, color, or styling so they do not read as clones.`
+                                : `HAIR ANCHOR: Hair MUST match: ${hairText}. Do not drift to a different hair length/texture/color.`
+                        );
                     }
                 }
 
@@ -977,6 +994,18 @@ Captured by smartphone so fine edges may appear soft or broken.
                     parts.push(
                         sanitizePart(
                             'MIXED GROUP CASTING: The final group must visibly read as mixed-gender and mixed-ethnicity. Do not collapse the cast into all-women, all-men, or same-ethnicity lookalikes.',
+                            isUgcMode
+                        )
+                    );
+                    parts.push(
+                        sanitizePart(
+                            'ANTI-CLONE GROUP RULE: People B/C/D must visibly differ from Person A and from each other in face shape, nose, jawline, eye spacing, hairstyle, hair color, skin undertone, body proportions, and styling cadence. Avoid same-face repetition, sibling energy, copy-paste grooming, or uniform expression across the group.',
+                            isUgcMode
+                        )
+                    );
+                    parts.push(
+                        sanitizePart(
+                            'CAST SPREAD RULE: The group should feel like a genuinely mixed cast, not one base model repeated. Vary height impression, head shape, hair silhouette, complexion undertone, and age read slightly across the group while staying in the same adult cohort and overall brand world.',
                             isUgcMode
                         )
                     );

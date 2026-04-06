@@ -61,6 +61,8 @@ describe('IdentityBuilder group composition realism', () => {
     expect(output).toContain('GROUP DIVERSITY RULE: This must be a visibly mixed-gender group');
     expect(output).toContain('ETHNIC DIVERSITY RULE: The group must show visibly varied ethnic backgrounds');
     expect(output).toContain('MIXED GROUP CASTING: The final group must visibly read as mixed-gender and mixed-ethnicity.');
+    expect(output).toContain('ANTI-CLONE GROUP RULE:');
+    expect(output).toContain('CAST SPREAD RULE:');
     expect(output).not.toContain('ETHNICITY ANCHOR: Subject MUST visually read as');
   });
 
