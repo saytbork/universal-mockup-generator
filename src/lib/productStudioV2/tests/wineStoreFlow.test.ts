@@ -93,6 +93,8 @@ describe('wine store flow', () => {
     expect(jobs).toHaveLength(1);
     expect(prompt).toContain('PHOTO_MODE: Wine Lineup Comparison.');
     expect(prompt).toContain('BUNDLE: Exactly 2 products must appear in the scene.');
+    expect(prompt).toContain('Use the uploaded product images as visual guides for geometry, proportions, and label');
+    expect(prompt).not.toContain('Use the uploaded product image as a visual guide for geometry, proportions, and label');
     expect(prompt).toContain('NO_GLASS: No wine glass in the scene.');
     expect(prompt).not.toContain('WINE_GLASS:');
   });
