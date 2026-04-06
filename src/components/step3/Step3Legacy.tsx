@@ -1211,6 +1211,10 @@ const ETHNICITY_TOOLTIPS: Record<string, string> = {
   'White / European descent': 'Subject with European ancestry traits.',
   'Black / African descent': 'Subject with African ancestry traits.',
   'Latino / Hispanic': 'Subject with Latino heritage traits.',
+  'Asian': 'Subject with East or Southeast Asian traits.',
+  'Middle Eastern': 'Subject with Middle Eastern ancestry traits.',
+  'South Asian': 'Subject with South Asian ancestry traits.',
+  'Mixed': 'Mixed-ethnicity casting. Use this for diverse group composition.',
 };
 
 const CAMERA_TYPE_TOOLTIPS: Record<string, string> = {
@@ -2775,10 +2779,17 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
       if (next.personCount !== 'group' && next.gender === 'Mix') {
         next.gender = 'Female';
       }
+      if (!(next.personCount === 'group' && next.gender === 'Mix') && next.ethnicity === 'Mixed') {
+        next.ethnicity = 'Non-specific';
+      }
+      if (next.personCount === 'group' && next.gender === 'Mix') {
+        next.ethnicity = 'Mixed';
+      }
 
       const changed =
         next.personCount !== prev.personCount ||
         next.gender !== prev.gender ||
+        next.ethnicity !== prev.ethnicity ||
         next.editSecondaryPerson !== prev.editSecondaryPerson ||
         next.noPerson !== prev.noPerson ||
         next.personIncluded !== prev.personIncluded ||
@@ -8004,6 +8015,11 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                                 onClick={() => {
                                   if (mixDisabled) return;
                                   updateValue('gender', option as any);
+                                  if (option === 'Mix' && values.personCount === 'group') {
+                                    updateValue('ethnicity', 'Mixed');
+                                  } else if (values.ethnicity === 'Mixed') {
+                                    updateValue('ethnicity', 'Non-specific');
+                                  }
                                   markSectionTouched('creator');
                                 }}
                                 selected={values.gender === (option as any)}
@@ -8071,34 +8087,53 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       <div className="space-y-2">
                         <span className="text-xs text-gray-600 dark:text-white/60">Ethnicity</span>
                         <div className="flex flex-wrap gap-2">
-                          {(isCreatorPro
-                            ? ([
-                              'Non-specific',
-                              'White / European descent',
-                              'Black / African descent',
-                              'Latino / Hispanic',
-                              'Asian',
-                              'Middle Eastern',
-                              'South Asian',
-                              'Mixed',
-                            ] as const)
-                            : ([
-                              'Non-specific',
-                              'White / European descent',
-                              'Black / African descent',
-                              'Latino / Hispanic',
-                            ] as const)
-                          ).map(option => (
-                            <Chip
-                              title={ETHNICITY_TOOLTIPS[option] || option}
-                              key={option}
-                              onClick={() => { updateValue('ethnicity', option); markSectionTouched('creator'); }}
-                              selected={values.ethnicity === option}
-                              size="md"
-                            >
-                              {option}
-                            </Chip>
-                          ))}
+                          {(() => {
+                            const mixedGroupEthnicityLocked =
+                              values.personCount === 'group' && values.gender === 'Mix';
+                            return (isCreatorPro
+                              ? ([
+                                'Non-specific',
+                                'White / European descent',
+                                'Black / African descent',
+                                'Latino / Hispanic',
+                                'Asian',
+                                'Middle Eastern',
+                                'South Asian',
+                                'Mixed',
+                              ] as const)
+                              : ([
+                                'Non-specific',
+                                'White / European descent',
+                                'Black / African descent',
+                                'Latino / Hispanic',
+                                'Mixed',
+                              ] as const)
+                            ).map(option => {
+                              const optionDisabled =
+                                mixedGroupEthnicityLocked && option !== 'Mixed';
+                              return (
+                                <Chip
+                                  title={
+                                    optionDisabled
+                                      ? 'When Gender is Mix for a Group, Ethnicity is locked to Mix to avoid twin-like casting.'
+                                      : (ETHNICITY_TOOLTIPS[option] || option)
+                                  }
+                                  key={option}
+                                  onClick={() => {
+                                    if (optionDisabled) return;
+                                    updateValue('ethnicity', option);
+                                    markSectionTouched('creator');
+                                  }}
+                                  selected={values.ethnicity === option}
+                                  size="md"
+                                  disabled={optionDisabled}
+                                  tooltip={optionDisabled ? 'Locked to Mix for mixed groups.' : undefined}
+                                >
+                                  {option === 'Mixed' ? 'Mix' : option}
+                                </Chip>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                       </div>
