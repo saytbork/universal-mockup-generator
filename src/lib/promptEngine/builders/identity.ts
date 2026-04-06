@@ -1134,7 +1134,22 @@ Captured by smartphone so fine edges may appear soft or broken.
         }
 
         if (personDetails?.wardrobeStyle) {
-            parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle, isUgcMode)}`);
+            if (options.personCount === 'group') {
+                parts.push(
+                    `WARDROBE ANCHOR (GROUP): Person A wears ${sanitizePart(personDetails.wardrobeStyle, isUgcMode)}. The rest of the group must stay in the same brand world but wear visibly different garments, silhouettes, layers, color shades, and styling details. No uniform outfits. No repeated tops. No same-color clone styling across the cast.`
+                );
+            } else {
+                parts.push(`wearing ${sanitizePart(personDetails.wardrobeStyle, isUgcMode)}`);
+            }
+        }
+
+        if (options.personCount === 'group') {
+            parts.push(
+                sanitizePart(
+                    'GROUP WARDROBE VARIATION: Every person must have distinct clothing. Vary garment type, neckline, sleeve length, layering, fit, fabric texture, color tone, and styling details across the group. Keep them coordinated, not identical. Avoid uniforms, matching sets, repeated color blocking, or copy-paste outfit duplication.',
+                    isUgcMode
+                )
+            );
         }
 
         if (personDetails?.productInteraction) {

@@ -66,6 +66,28 @@ describe('IdentityBuilder group composition realism', () => {
     expect(output).not.toContain('ETHNICITY ANCHOR: Subject MUST visually read as');
   });
 
+  it('forces wardrobe variation across group members instead of repeating the same outfit', () => {
+    const builder = new IdentityBuilder();
+    const output = builder.build(
+      makeOptions({
+        personDetails: {
+          age: 30,
+          gender: 'Mix',
+          wardrobeStyle: 'clean premium casual wardrobe',
+          facialExpression: 'Calm & Serene',
+          eyeDirection: 'Looking at camera' as any,
+          skinRealism: 'raw, unretouched skin with gentle natural variation and minimal emphasis on pores',
+          productInteraction: 'holding product naturally',
+        },
+      })
+    );
+
+    expect(output).toContain('WARDROBE ANCHOR (GROUP): Person A wears clean premium casual wardrobe.');
+    expect(output).toContain('GROUP WARDROBE VARIATION: Every person must have distinct clothing.');
+    expect(output).toContain('No uniform outfits.');
+    expect(output).toContain('No same-color clone styling across the cast.');
+  });
+
   it('maps group product framing without collapsing into single-hero composition', () => {
     const mapped = mapLifestyleToPromptOptions(
       {
