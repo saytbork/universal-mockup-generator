@@ -448,7 +448,7 @@ export interface Step3Values {
   secondaryHairLength: string;
   secondaryHairTexture: string;
   secondaryHairColor: string;
-  gender: 'Female' | 'Male' | 'Trans' | 'Non-binary' | 'Trans woman' | 'Trans man' | 'Gender non-conforming';
+  gender: 'Female' | 'Male' | 'Mix' | 'Trans' | 'Non-binary' | 'Trans woman' | 'Trans man' | 'Gender non-conforming';
   skinTone: string; // Now 7 refined options
   ethnicity: string;
   bodyType: 'Slim' | 'Average' | 'Curvy' | 'Plus size';
@@ -843,7 +843,7 @@ const COLOR_PICKER_HIDDEN_INPUT_CLASS =
   'absolute inset-0 cursor-pointer opacity-0';
 
 // EXPANDED GENDER OPTIONS - Exact spec (6 options)
-const GENDER_OPTIONS = ['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'];
+const GENDER_OPTIONS = ['Female', 'Male', 'Mix', 'Trans', 'Non-binary', 'Gender non-conforming'];
 
 export type ExpertRole =
   | 'none'
@@ -1203,6 +1203,7 @@ const EYE_DIRECTION_TOOLTIPS: Record<string, string> = {
 const GENDER_TOOLTIPS: Record<string, string> = {
   Female: 'Female-presenting subject.',
   Male: 'Male-presenting subject.',
+  Mix: 'Mixed-gender group. Only available when Person count is Group.',
 };
 
 const ETHNICITY_TOOLTIPS: Record<string, string> = {
@@ -2771,8 +2772,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
         next.sceneOrderChaos = 'Controlled' as any;
       }
 
+      if (next.personCount !== 'group' && next.gender === 'Mix') {
+        next.gender = 'Female';
+      }
+
       const changed =
         next.personCount !== prev.personCount ||
+        next.gender !== prev.gender ||
         next.editSecondaryPerson !== prev.editSecondaryPerson ||
         next.noPerson !== prev.noPerson ||
         next.personIncluded !== prev.personIncluded ||
@@ -7987,19 +7993,78 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {(isCreatorPro
-                            ? (['Female', 'Male', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
-                            : (['Female', 'Male'] as const)
-                          ).map(option => (
+                            ? (['Female', 'Male', 'Mix', 'Trans', 'Non-binary', 'Gender non-conforming'] as const)
+                            : (['Female', 'Male', 'Mix'] as const)
+                          ).map(option => {
+                            const mixDisabled = option === 'Mix' && values.personCount !== 'group';
+                            return (
+                              <Chip
+                                title={mixDisabled ? 'Mix is only available when Person count is Group.' : (GENDER_TOOLTIPS[option] || option)}
+                                key={option}
+                                onClick={() => {
+                                  if (mixDisabled) return;
+                                  updateValue('gender', option as any);
+                                  markSectionTouched('creator');
+                                }}
+                                selected={values.gender === (option as any)}
+                                size="md"
+                                disabled={mixDisabled}
+                                tooltip={mixDisabled ? 'Only available for Group.' : undefined}
+                              >
+                                {option}
+                              </Chip>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-gray-600 dark:text-white/60">Person count</span>
+                          <p className="text-[11px] text-gray-400 dark:text-white/40">Choose single creator, a couple, or a small group.</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
                           <Chip
-                            title={GENDER_TOOLTIPS[option] || option}
-                            key={option}
-                            onClick={() => { updateValue('gender', option as any); markSectionTouched('creator'); }}
-                            selected={values.gender === (option as any)}
+                            title={PERSON_COUNT_TOOLTIPS.single}
+                            onClick={() => {
+                              updateValue('personCount', 'single');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'single'}
                             size="md"
-                            >
-                              {option}
-                            </Chip>
-                          ))}
+                          >
+                            Single
+                          </Chip>
+                          <Chip
+                            title={PERSON_COUNT_TOOLTIPS.couple}
+                            onClick={() => {
+                              updateValue('personCount', 'couple');
+                              updateValue('editSecondaryPerson', true);
+                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
+                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'couple'}
+                            size="md"
+                          >
+                            Couple
+                          </Chip>
+                          <Chip
+                            title={PERSON_COUNT_TOOLTIPS.group}
+                            onClick={() => {
+                              if (isUGCMode) return;
+                              updateValue('personCount', 'group');
+                              updateValue('editSecondaryPerson', false);
+                              markSectionTouched('creator');
+                            }}
+                            selected={values.personCount === 'group'}
+                            size="md"
+                            disabled={isUGCMode}
+                            tooltip={isUGCMode ? 'Group not compatible with UGC mode.' : undefined}
+                          >
+                            Group
+                          </Chip>
                         </div>
                       </div>
 
@@ -8064,53 +8129,6 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
 
                     <section className="space-y-6">
                       <div className="space-y-3 border-t border-gray-200/60 pt-6 dark:border-white/10">
-                        <div className="space-y-1">
-                          <span className="text-xs font-medium text-gray-600 dark:text-white/60">Person count</span>
-                          <p className="text-[11px] text-gray-400 dark:text-white/40">Choose single creator, a couple, or a small group.</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Chip
-                            title={PERSON_COUNT_TOOLTIPS.single}
-                            onClick={() => {
-                              updateValue('personCount', 'single');
-                              updateValue('editSecondaryPerson', false);
-                              markSectionTouched('creator');
-                            }}
-                            selected={values.personCount === 'single'}
-                            size="md"
-                          >
-                            Single
-                          </Chip>
-                          <Chip
-                            title={PERSON_COUNT_TOOLTIPS.couple}
-                            onClick={() => {
-                              updateValue('personCount', 'couple');
-                              updateValue('editSecondaryPerson', true);
-                              if (!values.coupleStaging) updateValue('coupleStaging', 'Together (side-by-side)');
-                              if (!values.secondaryAge || values.secondaryAge === 30) updateValue('secondaryAge', Math.min(90, Math.max(18, values.age + 2)));
-                              markSectionTouched('creator');
-                            }}
-                            selected={values.personCount === 'couple'}
-                            size="md"
-                          >
-                            Couple
-                          </Chip>
-                          <Chip
-                            title={PERSON_COUNT_TOOLTIPS.group}
-                            onClick={() => {
-                              if (isUGCMode) return;
-                              updateValue('personCount', 'group');
-                              updateValue('editSecondaryPerson', false);
-                              markSectionTouched('creator');
-                            }}
-                            selected={values.personCount === 'group'}
-                            size="md"
-                            disabled={isUGCMode}
-                            tooltip={isUGCMode ? 'Group not compatible with UGC mode.' : undefined}
-                          >
-                            Group
-                          </Chip>
-                        </div>
                         {values.personCount === 'couple' && (
                           <div className="space-y-2">
                             <span className="text-xs text-gray-600 dark:text-white/60">Sex pairing</span>
