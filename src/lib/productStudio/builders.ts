@@ -2206,11 +2206,10 @@ function assembleBundlePrompt(state: ProductStudioState): string {
         if (terminalParts.length > 0) finalPrompt = `${finalPrompt} ${terminalParts.join(' ')}`;
         finalPrompt = appendClosingPhrase(finalPrompt, state);
         if (hasReferenceProductImage(state)) {
-            // LESS STRICT: Only strip category priors, but DO NOT prepend hard lock.
-            // This allows the model to use the reference as a guide, but not as pixel-truth.
+            // Keep category priors stripped, but make bundle references exact and
+            // commercially polished so lineup scenes do not drift into a raw/doc feel.
             finalPrompt = stripCategoryPriorsFromPrompt(finalPrompt);
-            // Optionally, add a softer reference note:
-            finalPrompt = `Use the uploaded product images as visual guides for geometry, proportions, and label, but allow natural photographic interpretation. ${finalPrompt}`;
+            finalPrompt = `Use the uploaded product images as the exact products to place in the scene. Preserve each product's exact geometry, proportions, labels, closures, materials, and branding. Do not reinterpret, restyle, approximate, or swap any product. Render the scene with premium commercial polish while keeping real photographic behavior. ${finalPrompt}`;
         }
         console.log('2. Generated Prompt Parts (V2 Bundle):', [finalPrompt]);
         console.log('3. FINAL PROMPT (V2 Bundle):', finalPrompt);

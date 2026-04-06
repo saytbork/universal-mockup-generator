@@ -255,6 +255,12 @@ export const winePipeline = {
         type: 'guardrail',
         content: 'PHOTO_MODE: Wine Lineup Comparison. Multiple bottles shown as a refined brand-family lineup. Clean spacing. Premium shadow geometry. Color variation across bottles is desirable. BOTTLE_UPRIGHT: All bottles stand perfectly vertical. No tilt on any bottle.',
       });
+      if ((wineEffectiveState as any)?.bundle?.enabled && String((wineEffectiveState as any)?.visualIntent || 'campaign').trim() === 'campaign') {
+        segments.push({
+          type: 'guardrail',
+          content: 'CAMPAIGN_LINEUP_POLISH: The lineup must read as premium brand-campaign photography, not raw documentary capture. Keep the finish elevated, clean, and art-directed with refined tonal separation, sculpted bottle edge definition, polished but believable highlight control, and elegant shadow depth. Avoid gritty, flat, underlit, noisy, or harshly raw rendering. Sensor texture, if present, must stay extremely subtle and never become a visible stylistic effect.',
+        });
+      }
     } else if (editorialBottleTabletopMode) {
       segments.push({
         type: 'guardrail',
