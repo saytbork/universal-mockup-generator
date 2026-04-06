@@ -195,6 +195,7 @@ export interface PromptOptions {
     selfieMode?: string;      // Unified Selfie Mode
     selfieType?: string;      // Legacy
     personCount?: 'single' | 'couple' | 'group';
+    groupDiversityMode?: 'mixed-gender-mixed-ethnicity';
     coupleSex?: 'same' | 'different';
     coupleStaging?: string;
     secondaryPersonDetails?: Partial<PersonDetails>;

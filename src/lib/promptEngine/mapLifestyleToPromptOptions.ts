@@ -1294,8 +1294,12 @@ export function mapLifestyleToPromptOptions(
         // AGE, GENDER, ETHNICITY (Always respect unless Model Ref)
         mapped.personDetails.age = sceneState.age;
         const genderValue = (sceneState.gender || '').trim();
+        const isMixedGenderGroup =
+            String(mapped.personCount || sceneState.personCount || '').trim().toLowerCase() === 'group' &&
+            genderValue.toLowerCase() === 'mix';
         if (genderValue) {
             mapped.personDetails.gender = genderValue;
+            mapped.gender = genderValue;
         }
         const normalizedGenderValue = genderValue.toLowerCase();
         let genderPresentation: 'masculine' | 'feminine' | 'neutral' | undefined =
@@ -1319,14 +1323,20 @@ export function mapLifestyleToPromptOptions(
             (mapped as any).genderPresentation = genderPresentation;
             mapped.personDetails.genderPresentation = genderPresentation;
         }
-        if (
+        if (isMixedGenderGroup) {
+            delete mapped.personDetails.ethnicity;
+            delete mapped.ethnicity;
+            mapped.groupDiversityMode = 'mixed-gender-mixed-ethnicity';
+        } else if (
             sceneState.ethnicity &&
             sceneState.ethnicity !== 'Prefer not to specify' &&
             sceneState.ethnicity !== 'Non-specific'
         ) {
             mapped.personDetails.ethnicity = sceneState.ethnicity;
+            mapped.ethnicity = sceneState.ethnicity;
         } else {
             delete mapped.personDetails.ethnicity;
+            delete mapped.ethnicity;
         }
         if (sceneState.bodyType) {
             mapped.personDetails.bodyType = sceneState.bodyType;

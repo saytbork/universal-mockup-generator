@@ -133,7 +133,10 @@ export class ProductBuilder implements PromptBuilder {
         }
 
         if (productAssets.length > 1) {
-            prompt += ' There are multiple distinct product cutouts supplied. Arrange every unique product in the final scene, keeping each one fully visible and recognizable while avoiding any invented packaging. Treat them as a cohesive collection in the same frame.';
+            prompt += ` There are exactly ${productAssets.length} distinct uploaded product cutouts supplied. Every one of those ${productAssets.length} uploaded products must appear in the final scene.`;
+            prompt += ' Arrange every unique product in the final scene, keeping each one fully visible, individually recognizable, and structurally faithful to its own reference.';
+            prompt += ' Do not omit any uploaded product. Do not merge two products into one. Do not invent extra products, flavors, bottles, jars, boxes, or hybrid packaging.';
+            prompt += ' Treat them as a cohesive collection in the same frame while preserving each uploaded product exactly as provided.';
         } else if (isMultiProductPackaging) {
             prompt += ' This product photo shows a packaging kit that contains several items. Keep the box, lid, and every interior product fully visible—never crop away the inserts or swap them for a single bottle. Preserve the real-world packaging layout exactly as photographed.';
         }

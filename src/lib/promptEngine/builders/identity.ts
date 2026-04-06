@@ -245,6 +245,10 @@ export class IdentityBuilder implements PromptBuilder {
         const age = personDetails?.age || 30;
         const ageGroupLabel = age >= 75 ? 'elder' : 'adult';
         const personCount = options.personCount;
+        const genderValue = String(options.gender || personDetails?.gender || '').trim().toLowerCase();
+        const isMixedGenderGroup =
+            personCount === 'group' &&
+            (options.groupDiversityMode === 'mixed-gender-mixed-ethnicity' || genderValue === 'mix');
         const isCouple = personCount === 'couple';
         const primarySubjectNoun = personCount && personCount !== 'single' ? 'PRIMARY SUBJECT' : 'Subject';
         const primaryHairColorSpecified = Boolean(personDetails?.hairColor);
@@ -592,7 +596,14 @@ ${primaryHairColorSpecified ? 'Hair color may be dyed; keep the explicitly selec
             // SKIP manual controls if randomCharacterActive
             if (!options.randomCharacterActive) {
                 // Ethnicity anchor (only when explicitly selected)
-                if (
+                if (isMixedGenderGroup) {
+                    parts.push(
+                        'GROUP DIVERSITY RULE: This must be a visibly mixed-gender group with both masculine-presenting and feminine-presenting people in frame.'
+                    );
+                    parts.push(
+                        'ETHNIC DIVERSITY RULE: The group must show visibly varied ethnic backgrounds, skin tones, facial structures, and hair characteristics. Do not make them read as siblings, twins, clones, or near-duplicate faces.'
+                    );
+                } else if (
                     personDetails?.ethnicity &&
                     personDetails.ethnicity !== 'Prefer not to specify' &&
                     personDetails.ethnicity !== 'Non-specific'
@@ -962,6 +973,14 @@ Captured by smartphone so fine edges may appear soft or broken.
                         isUgcMode
                     )
                 );
+                if (isMixedGenderGroup) {
+                    parts.push(
+                        sanitizePart(
+                            'MIXED GROUP CASTING: The final group must visibly read as mixed-gender and mixed-ethnicity. Do not collapse the cast into all-women, all-men, or same-ethnicity lookalikes.',
+                            isUgcMode
+                        )
+                    );
+                }
             }
 
             if (identityMode === 'auto' && identityVariationToken) {
