@@ -2195,7 +2195,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
             const scaleInstruction = productsWithHeight.length > 0
                 ? ` CRITICAL SCALE REQUIREMENT: Preserve exact real-world height proportions between all products. ${productsWithHeight.join('; ')}. Products MUST appear proportionally sized according to their specified heights. DO NOT render all products at equal size.`
                 : '';
-            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
+            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} uploaded products from the reference images provided. Each uploaded reference must appear exactly once as its own distinct product. Do not omit any uploaded product. Do not duplicate any uploaded product. Do not substitute one uploaded product for another. Do not create unlabeled stand-ins, lookalikes, extra SKUs, or filler products. Each product must be clearly visible, distinct, and match its own reference image exactly. Do not mix, blend, merge, or invent products. Do not create hybrid versions.`;
         })() : '';
         const terminalParts = normalizePromptSegments([
             bundleInfo,
@@ -2242,7 +2242,7 @@ function assembleBundlePrompt(state: ProductStudioState): string {
                 ? ` CRITICAL SCALE REQUIREMENT: Preserve exact real-world height proportions between all products. ${productsWithHeight.join('; ')}. Products MUST appear proportionally sized according to their specified heights. DO NOT render all products at equal size.`
                 : '';
             
-            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} products from the reference images provided - do not mix, blend, or invent products. Each product must be clearly visible, distinct, and match its reference image exactly. Do not merge multiple products into one or create hybrid versions.`;
+            return `BUNDLE: Exactly ${productCount} products must appear in the scene. Products: ${productLabels}. Mode: ${state.bundle.mode}. Layout: ${state.bundle.layout}.${scaleInstruction} CRITICAL: Show ALL ${productCount} uploaded products from the reference images provided. Each uploaded reference must appear exactly once as its own distinct product. Do not omit any uploaded product. Do not duplicate any uploaded product. Do not substitute one uploaded product for another. Do not create unlabeled stand-ins, lookalikes, extra SKUs, or filler products. Each product must be clearly visible, distinct, and match its own reference image exactly. Do not mix, blend, merge, or invent products. Do not create hybrid versions.`;
         })() : '';
         
         const finalParts = normalizePromptSegments([
