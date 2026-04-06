@@ -52,12 +52,13 @@ export class ProductBuilder implements PromptBuilder {
         const isEcommerceBlankSpaceMode = options.ecommerceBlankSpaceMode;
         const isEcommerceCanvasOverlay =
             options.creationMode === 'bg-replace' && options.ecommerceSidePlacementFlag === true;
+        const hasMultipleProducts = productAssets.length > 1;
 
         let prompt = isEcommerceBlankSpaceMode
             ? this.buildEcommerceBlankProductInsertion(options)
             : isEcommerceCanvasOverlay
-              ? this.buildEcommerceCanvasProductInsertion(options)
-              : this.buildProductInsertion();
+              ? this.buildEcommerceCanvasProductInsertion(options, hasMultipleProducts)
+              : this.buildProductInsertion(hasMultipleProducts, productAssets.length);
 
         if (effectiveHeightNotes) {
             prompt += ` Respect real-world scale: ${effectiveHeightNotes}.`;
@@ -169,7 +170,7 @@ export class ProductBuilder implements PromptBuilder {
 
     }
 
-    private buildEcommerceCanvasProductInsertion(options: PromptOptions): string {
+    private buildEcommerceCanvasProductInsertion(options: PromptOptions, hasMultipleProducts: boolean): string {
         const bgLine = options.bgGradient
             ? `Replace the background with a clean gradient background at ${options.bgGradient.angle ?? 90}° from ${options.bgGradient.startColor} to ${options.bgGradient.endColor}.`
             : options.bgColor
@@ -177,8 +178,12 @@ export class ProductBuilder implements PromptBuilder {
               : 'Replace the background with a clean neutral solid or gradient background.';
 
         return `
-      Use the uploaded product image as the exact product. Preserve exact colors, label layout, typography, geometry, proportions, and material.
-      Do not redesign, replace, or reinterpret the product.
+      ${hasMultipleProducts
+        ? 'Use all uploaded product images as exact products. Every uploaded product must remain a separate real object in the final image. Preserve each product’s exact colors, label layout, typography, geometry, proportions, and material.'
+        : 'Use the uploaded product image as the exact product. Preserve exact colors, label layout, typography, geometry, proportions, and material.'}
+      ${hasMultipleProducts
+        ? 'Do not redesign, replace, reinterpret, merge, swap, or omit any uploaded product.'
+        : 'Do not redesign, replace, or reinterpret the product.'}
 
 	      Background replacement (hero canvas overlay):
       Remove the original environment completely.
@@ -193,9 +198,11 @@ export class ProductBuilder implements PromptBuilder {
     `.trim().replace(/\s+/g, ' ');
     }
 
-    private buildProductInsertion(): string {
+    private buildProductInsertion(hasMultipleProducts: boolean, productCount: number): string {
         return `
-      Use the uploaded product image as the exact product to place in the scene.
+      ${hasMultipleProducts
+        ? `Use all ${productCount} uploaded product images as exact products to place in the scene. Every uploaded product must appear as its own separate item and must match its own reference exactly.`
+        : 'Use the uploaded product image as the exact product to place in the scene.'}
       Preserve:
       - exact colors,
       - exact label design,
@@ -205,10 +212,16 @@ export class ProductBuilder implements PromptBuilder {
       - exact geometry,
       - exact proportions.
       
-      Do not redesign, replace, or reinterpret the product.
+      ${hasMultipleProducts
+        ? 'Do not redesign, replace, reinterpret, merge, swap, or omit any uploaded product. Do not let one uploaded product inherit another product’s label, shape, cap, flavor, or branding.'
+        : 'Do not redesign, replace, or reinterpret the product.'}
 
-      Focus: the product is on the primary focus plane and must be tack sharp. The label must be crisp and fully readable. Do not let the product fall out of focus or into the background.
-      Typography fidelity: preserve the label artwork and printed text exactly from the reference product. Do not redraw, re-typeset, or re-render the label typography.
+      ${hasMultipleProducts
+        ? 'Focus: every uploaded product must stay on a readable focus plane. Each label must be crisp and fully readable. Do not let any uploaded product fall out of focus, mutate into another product, or disappear into the background.'
+        : 'Focus: the product is on the primary focus plane and must be tack sharp. The label must be crisp and fully readable. Do not let the product fall out of focus or into the background.'}
+      ${hasMultipleProducts
+        ? 'Typography fidelity: preserve each label artwork and printed text exactly from its own reference product. Do not redraw, re-typeset, or re-render any label typography.'
+        : 'Typography fidelity: preserve the label artwork and printed text exactly from the reference product. Do not redraw, re-typeset, or re-render the label typography.'}
       
       Integrate it physically into the environment using "Active Insert Mode":
       - match lighting to the room,
@@ -218,7 +231,9 @@ export class ProductBuilder implements PromptBuilder {
       - preserve all printed elements clearly and accurately,
       - keep edges and silhouette identical to the uploaded object.
       
-      The product must look naturally photographed inside this environment, not pasted or floating.
+      ${hasMultipleProducts
+        ? 'All uploaded products must look naturally photographed inside this environment, not pasted or floating.'
+        : 'The product must look naturally photographed inside this environment, not pasted or floating.'}
       
       Integrate the product physically into the environment:
       - match real lighting direction,

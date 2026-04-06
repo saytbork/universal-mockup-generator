@@ -184,6 +184,8 @@ describe('IdentityBuilder group composition realism', () => {
 
     expect(productOutput).toContain('There are exactly 4 distinct uploaded product cutouts supplied.');
     expect(productOutput).toContain('Every one of those 4 uploaded products must appear in the final scene.');
+    expect(productOutput).toContain('Use all 4 uploaded product images as exact products to place in the scene.');
+    expect(productOutput).toContain('Do not let one uploaded product inherit another product’s label, shape, cap, flavor, or branding.');
     expect(productOutput).toContain('Do not omit any uploaded product.');
     expect(constraintsOutput).toContain('Exactly 4 uploaded products are provided and all 4 must appear in the final image.');
   });
