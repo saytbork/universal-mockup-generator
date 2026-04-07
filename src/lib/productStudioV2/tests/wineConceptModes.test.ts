@@ -28,6 +28,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('bottleState=open; serveState=served;');
     expect(prompt).toContain('COMPOSITION: BOTTLE_AND_GLASS. Opened service bottle and filled wine glass.');
     expect(prompt).toContain('PHOTO_MODE: Bottle + Glass.');
+    expect(prompt).toContain('Natural cylindrical perspective, lens compression, and real bottle rotation are allowed.');
+    expect(prompt).toContain('No abnormal warp beyond real bottle curvature and camera perspective.');
+    expect(prompt).toContain('preserve only real cylindrical label perspective');
     expect(prompt).not.toContain('Sealed bottle and filled wine glass.');
   });
 
@@ -50,6 +53,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('No levitating bottle.');
     expect(prompt).toContain('supported by a visible cropped hand or forearm');
     expect(prompt).toContain('Never emit liquid from below the bottle rim');
+    expect(prompt).toContain('Natural cylindrical perspective, lens compression, and real bottle rotation are allowed.');
+    expect(prompt).toContain('Do NOT bend, shear, melt, stretch, ripple, split, redraw, or semantically recompose the label.');
+    expect(prompt).toContain('Do not break, reflow, remap, or recompose label text under service tilt.');
     expect(prompt).not.toContain('The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.');
   });
 

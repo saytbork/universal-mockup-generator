@@ -587,6 +587,7 @@ export function buildWineTextIntegrityConstraint(): string {
     'All visible text on the bottle — front label, back label, neck foil, capsule — must match the reference image exactly.',
     'Text reproduction must be character-accurate, not paraphrased or approximated.',
     'If text cannot be reproduced with full fidelity, the reference image label region must be preserved unchanged.',
+    'Allow only real cylindrical perspective from bottle curvature and camera angle. Do not break, reflow, remap, or recompose label text under service tilt.',
   ].join(' ');
 }
 

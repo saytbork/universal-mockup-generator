@@ -221,7 +221,9 @@ export function buildWineTruthLayer(
     'Do NOT regenerate, rewrite, translate, paraphrase, invent, replace, omit, or reposition any label text or graphics.',
     'Typography, spacing, alignment, color, and printed artwork must remain pixel-identical to the reference image.',
     'If full-fidelity reproduction is not achievable, preserve the reference label region unchanged.',
-    'LABEL_GEOMETRY_LOCK: Keep the label flat, undistorted, and non-warped in every bottle orientation. No perspective warp, barrel distortion, or geometric remapping of the label area.',
+    serveState !== 'none'
+      ? 'LABEL_GEOMETRY_LOCK: Preserve the label as a rigid printed surface attached to the bottle. Natural cylindrical perspective, lens compression, and real bottle rotation are allowed. Do NOT bend, shear, melt, stretch, ripple, split, redraw, or semantically recompose the label. No abnormal warp beyond real bottle curvature and camera perspective.'
+      : 'LABEL_GEOMETRY_LOCK: Keep the label flat, undistorted, and non-warped. No barrel distortion, geometric remapping, melted typography, or synthetic label deformation.',
   ].join(' ');
 
   // GLASS — only for served mode
@@ -240,6 +242,9 @@ export function buildWineTruthLayer(
   const labelRepeat = [
     'LABEL_FINAL_ANCHOR:',
     'All visible bottle text must match the reference image exactly. No new, altered, invented, or removed text.',
+    serveState !== 'none'
+      ? 'If the bottle is tilted for service, preserve only real cylindrical label perspective. Text and artwork must remain intact and rigid on the bottle surface.'
+      : 'Keep the label rigid, front-faithful, and undeformed.',
   ].join(' ');
 
   return [engineStatusBlock, configBlock, bottlePreservationBlock, labelLock, glassBlock, humanRealismLock, sparklingLock, labelRepeat].filter(Boolean).join(' ');
