@@ -59,6 +59,26 @@ describe('wine concept modes', () => {
     expect(prompt).not.toContain('The scene must contain only the product and environmental elements. No people, no visible human anatomical elements, no human presence unless explicitly defined by Product Interaction.');
   });
 
+  it('keeps hands pouring wine mode strictly hands-led with full pour physics and no integrity-cues artifact', () => {
+    const mapped = toStudioV2State(makeWineState('Hands Pouring Wine'));
+    const prompt = generateStudioPromptV2(mapped);
+
+    expect(mapped.wineServeMode).toBe('pouring');
+    expect(mapped.wineAction).toBe('controlled-pour');
+    expect(prompt).toContain('COMPOSITION: HANDS_POURING_WINE.');
+    expect(prompt).toContain('Hands and forearms only.');
+    expect(prompt).toContain('No background people.');
+    expect(prompt).toContain('SUPPORT_REQUIREMENT: A visible cropped hand or forearm must be in frame physically supporting the bottle.');
+    expect(prompt).toContain('BOTTLE_TILT_PHYSICS:');
+    expect(prompt).toContain('LIQUID_STREAM_PHYSICS:');
+    expect(prompt).toContain('SPATIAL_RELATIONSHIP:');
+    expect(prompt).toContain('PHOTO_MODE: Hands Pouring Wine.');
+    expect(prompt).toContain('Keep the scene strictly hands-led and product-led');
+    expect(prompt).toContain('SCENE_STYLE: real hospitality wine photography with cropped-hands service framing, product-led pour action');
+    expect(prompt).not.toContain('integrity cues');
+    expect(prompt).not.toContain('identity cues');
+  });
+
   it('preserves just-opened served bottles as near-full service instead of half-empty', () => {
     const mapped = toStudioV2State(
       makeWineState('Bottle + Glass', {

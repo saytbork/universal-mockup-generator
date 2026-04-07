@@ -17,7 +17,7 @@ export function buildWineWorld(
     return 'SCENE_STYLE: real wine hospitality photography with controlled pour motion.';
   }
   if (photoMode === 'Hands Pouring Wine') {
-    return 'SCENE_STYLE: real hospitality wine photography with cropped-hands service framing.';
+    return 'SCENE_STYLE: real hospitality wine photography with cropped-hands service framing, product-led pour action, and no extra human presence beyond the supporting hands or forearms.';
   }
   if (photoMode === 'Wine Lineup Comparison') {
     return 'SCENE_STYLE: real wine lineup photography with clean varietal spacing and brand-family balance.';

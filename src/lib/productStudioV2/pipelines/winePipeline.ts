@@ -174,7 +174,7 @@ export const winePipeline = {
     } else if (handsPouringMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. No visible identity cues. No torso. Bottle and glass remain primary subjects with premium service framing. The wine stream must begin at the bottle mouth only, with continuous contact to the lip and neck opening.',
+        content: 'COMPOSITION: HANDS_POURING_WINE. Cropped hands-only hospitality service pour. Hands and forearms only. No torso. No background people. Bottle and glass remain primary subjects with premium service framing. SUPPORT_REQUIREMENT: A visible cropped hand or forearm must be in frame physically supporting the bottle. No invisible support. No floating bottle. BOTTLE_TILT_PHYSICS: The bottle is rotated to a believable service angle driven by the visible wrist and grip. The mouth end is lower than the shoulder and aimed toward the receiving glass, while the base remains visually plausible and not excessively kicked upward. LIQUID_STREAM_PHYSICS: The wine stream exits exclusively from the bottle mouth and front lip. The stream follows a short gravity-coherent downward arc into the receiving glass opening. The stream must not originate from the sidewall, label area, or below the true rim. SPATIAL_RELATIONSHIP: The bottle mouth must sit just above and slightly inward from the glass rim, with the glass acting as the receiving vessel rather than a side prop. Label remains legible despite pour tilt.',
       });
     } else if (lineupMode) {
       segments.push({
@@ -184,7 +184,7 @@ export const winePipeline = {
     } else if (bottleInHandCutoutMode) {
       segments.push({
         type: 'composition',
-        content: 'COMPOSITION: BOTTLE_IN_HAND_CUTOUT. Single cropped hand holds the bottle against a clean backdrop. No visible identity cues. No torso. Label remains front-readable and dominant.',
+        content: 'COMPOSITION: BOTTLE_IN_HAND_CUTOUT. Single cropped hand holds the bottle against a clean backdrop. No torso. Label remains front-readable and dominant.',
       });
     } else if (roseTastingTableMode) {
       segments.push({
@@ -248,7 +248,7 @@ export const winePipeline = {
     } else if (handsPouringMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. A visible cropped hand or forearm must support the bottle in frame at all times. No visible identity cues. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects. The pour must begin at the true bottle mouth with a gravity-coherent stream path into the glass.',
+        content: 'PHOTO_MODE: Hands Pouring Wine. Cropped hands-only service action. A visible cropped hand or forearm must support the bottle in frame at all times. No full person. Premium tasting-room or fine-dining mood with bottle and glass as the main subjects. Keep the scene strictly hands-led and product-led, with no portrait cues and no extra human presence. The pour must begin at the true bottle mouth with a gravity-coherent stream path into the glass.',
       });
     } else if (lineupMode) {
       segments.push({
@@ -269,7 +269,7 @@ export const winePipeline = {
     } else if (bottleInHandCutoutMode) {
       segments.push({
         type: 'guardrail',
-        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No visible identity cues. No torso. Minimal clean commercial backdrop. The feeling should match a real held-bottle lifestyle cutout, not a sterile e-commerce grip. Preserve believable hand support, finger pressure, and natural handheld angle.',
+        content: 'PHOTO_MODE: Bottle In Hand Cutout. Single cropped hand or forearm only. No torso. Minimal clean commercial backdrop. The feeling should match a real held-bottle lifestyle cutout, not a sterile e-commerce grip. Preserve believable hand support, finger pressure, and natural handheld angle.',
       });
     } else if (roseTastingTableMode) {
       segments.push({
