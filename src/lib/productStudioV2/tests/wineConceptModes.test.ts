@@ -168,7 +168,7 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('serveState=pouring;');
     expect(prompt).toContain('PHOTO_MODE: Hosting Pour.');
     expect(prompt).toContain('HUMAN_PRESENCE: A visible cropped hand, arm, or forearm must support the bottle during the pour.');
-    expect(prompt).toContain('No tack-sharp facial features should become the subject.');
+    expect(prompt).toContain('Any facial features must remain secondary, soft, cropped, or behind the action.');
     expect(prompt).toContain('The action may lead the image, with the bottle fully visible or partially cropped');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
     expect(prompt).not.toContain('The scene must remain product-first. Any non-product presence must stay incidental, cropped, or background-only, never the subject.');
@@ -179,6 +179,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('No waxy skin. No plastic skin. No rubber fingers.');
     expect(prompt).toContain('ANATOMY_LOCK: Exactly five fingers per visible hand');
     expect(prompt).toContain('FACE_SECONDARY_REALISM:');
+    expect(prompt).toContain('No airbrushed beauty-campaign skin.');
+    expect(prompt).toContain('No glossy synthetic eyes.');
+    expect(prompt).toContain('No mannequin facial rendering.');
     expect(prompt).toContain('HAND_FOCUS_REALISM: A visible cropped hand or forearm must physically support the bottle.');
     expect(prompt).not.toContain('WINE_MOOD_PROFILE: ecommerce.');
     expect(prompt).not.toContain('Keep environment secondary to bottle fidelity.');
@@ -196,8 +199,9 @@ describe('wine concept modes', () => {
     expect(prompt).toContain('PHOTO_MODE: Outdoor Toast.');
     expect(prompt).toContain('SCENE_STYLE: real product-lifestyle outdoor wine photography');
     expect(prompt).toContain('The glasses may take the foreground while the bottle sits on the table');
-    expect(prompt).toContain('partial seated bodies are allowed and desirable');
-    expect(prompt).toContain('Facial features must stay secondary, soft, cropped, or outside focal priority.');
+    expect(prompt).toContain('partial seated bodies, and softly defocused background guests are allowed and desirable');
+    expect(prompt).toContain('Faces must stay secondary, soft, cropped, or outside focal priority.');
+    expect(prompt).toContain('No porcelain skin, no doll-face smoothness');
     expect(prompt).toContain('garden hospitality cues');
     expect(prompt).toContain('Editorial lifestyle wine composition.');
     expect(prompt).toContain('BACKGROUND_HUMAN_REALISM:');
@@ -228,7 +232,8 @@ describe('wine concept modes', () => {
     expect(socialPrompt).toContain('One or more glasses, restrained food cues, and real hospitality context may appear.');
     expect(socialPrompt).toContain('The bottle may be primary, secondary, upright, or naturally resting within the table composition');
     expect(socialPrompt).toContain('The bottle may stand upright or rest naturally within the spread.');
-    expect(socialPrompt).toContain('Facial features must never become tack-sharp focal subjects.');
+    expect(socialPrompt).toContain('Facial features must never become tack-sharp focal subjects and must remain secondary rather than portrait-led.');
+    expect(socialPrompt).toContain('Faces are allowed only if they remain secondary');
     expect(socialPrompt).toContain('The environment must read as a real photographed place with tactile materials');
     expect(socialPrompt).toContain('Editorial lifestyle wine composition.');
     expect(socialPrompt).not.toContain('Product-first framing.');

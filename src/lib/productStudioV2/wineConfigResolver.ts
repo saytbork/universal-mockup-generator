@@ -118,8 +118,8 @@ function buildWineHumanRealismLock(state: StudioUIState, serveState: ServeState)
     'Skin must preserve natural pore texture, fine lines, knuckle folds, nail beds, and believable tonal variation. No waxy skin. No plastic skin. No rubber fingers. No synthetic smoothing.',
     'ANATOMY_LOCK: Exactly five fingers per visible hand, believable thumb placement, natural finger taper, realistic joint spacing, and physically coherent wrist angles.',
     'CONTACT_LOCK: When hands touch the bottle or glass, show believable grip pressure, subtle skin compression, and correct contact shadows. NEGATIVE_HUMAN_RENDERING: No extra fingers. No fused fingers. No broken wrists. No duplicated limbs. No floating hands. No CGI guest rendering.',
-    'BACKGROUND_HUMAN_REALISM: Any cropped guest, arm, torso fragment, shoulder, or softly visible face must read as optically photographed human presence with natural asymmetry and believable skin transitions.',
-    'FACE_SECONDARY_REALISM: If partial faces appear, preserve natural eyelid shape, lip texture, skin grain, and subtle asymmetry. No doll-face smoothness. No porcelain skin. No AI beauty-filter look.',
+    'BACKGROUND_HUMAN_REALISM: Any cropped guest, arm, torso fragment, shoulder, hand, or softly visible background face must read as optically photographed human presence with natural asymmetry, believable skin transitions, real pore texture, and unretouched hospitality realism. No showroom-perfect background people.',
+    'FACE_SECONDARY_REALISM: If faces appear in wine lifestyle scenes, they must remain secondary, softly defocused, partially cropped, or clearly behind the action. Preserve natural eyelid shape, lip texture, skin grain, visible pore texture, subtle asymmetry, and real adult facial structure. No doll-face smoothness. No porcelain skin. No AI beauty-filter look. No airbrushed beauty-campaign skin. No glossy synthetic eyes. No mannequin facial rendering.',
   ];
 
   if (handLedModes.has(photoMode)) {
