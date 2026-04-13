@@ -1263,6 +1263,7 @@ function buildIntegrityConstraints(state: ProductStudioState): string {
         'no letterbox or pillarbox bars',
         'no mirrored edge extension, no duplicated side strips, no blurred side-fill bands',
         'scene content must fill the full requested aspect ratio edge-to-edge (no fake padding or border-like filler)',
+        'NO PLATFORM: Product sits directly on the studio floor or surface — no raised block, no slab, no granite tile base, no stone pedestal, no acrylic riser, no display stand, no elevated platform of any kind. The product base must touch the ground plane directly.',
     ];
 
     if (state.aspectRatio === '1:1') {
