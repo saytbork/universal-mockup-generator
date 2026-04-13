@@ -795,30 +795,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('Image generation failed.');
     }
     
-    // Determine user's plan for metadata/debugging.
-    const userRecord = authenticatedEmail ? await getUser(authenticatedEmail) : null;
+    // Fetch user record in parallel with image post-processing
+    const [userRecord, maybeWatermarkedImage] = await Promise.all([
+      authenticatedEmail ? getUser(authenticatedEmail) : Promise.resolve(null),
+      (async () => {
+        return isAnonymousTrial && !isAdminUser && !isPreview
+          ? await applyLogoWatermarkToPngBase64(encodedImage)
+          : encodedImage;
+      })(),
+    ]);
     const userPlan = userRecord ? normalizePlan(userRecord.plan) : 'anonymous';
-    
-    const maybeWatermarkedImage = isAnonymousTrial && !isAdminUser && !isPreview
-      ? await applyLogoWatermarkToPngBase64(encodedImage)
-      : encodedImage;
 
     const baseBuffer = Buffer.from(maybeWatermarkedImage, 'base64');
-    const initialMetadata = await sharp(baseBuffer, { failOn: 'none' }).metadata();
-    const initialWidth = Number(initialMetadata.width || 0);
-    const initialHeight = Number(initialMetadata.height || 0);
     const targetMinEdge = requestedImageSize === 'AUTO' ? 0 : imageSizeToEdge(requestedImageSize);
-    const deliveredEdge = Math.max(initialWidth, initialHeight);
-    const sizeDegraded = targetMinEdge > 0 && deliveredEdge > 0 && deliveredEdge < targetMinEdge;
-    if (sizeDegraded) {
-      console.warn('[IMAGE_SIZE_DEGRADED]', {
-        actualModel,
-        requestedImageSize,
-        targetMinEdge,
-        deliveredEdge,
-        aspectRatio,
-      });
-    }
 
     const upscaleResult = await maybeUpscaleImage({
       buffer: baseBuffer,
@@ -832,6 +821,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const width = Number(outputMetadata.width || 0);
     const height = Number(outputMetadata.height || 0);
     const effectiveEdge = Math.max(width, height);
+    const deliveredEdge = effectiveEdge;
+    const sizeDegraded = targetMinEdge > 0 && deliveredEdge > 0 && deliveredEdge < targetMinEdge;
+    if (sizeDegraded) {
+      console.warn('[IMAGE_SIZE_DEGRADED]', {
+        actualModel,
+        requestedImageSize,
+        targetMinEdge,
+        deliveredEdge,
+        aspectRatio,
+      });
+    }
     const imageMeta = {
       actualModel,
       requestedImageSize,
@@ -864,19 +864,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const fileExtension = 'png';
     const fileName = `generations/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
     const file = bucket.file(fileName);
+    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
-    await file.save(buffer, {
+    // Fire-and-forget: upload to Firebase in background so we don't block the response
+    file.save(buffer, {
       metadata: {
         contentType,
         cacheControl: 'public, max-age=31536000, immutable',
       },
+    }).then(() => file.makePublic()).catch(err => {
+      console.error('[GCS_UPLOAD_ERROR]', err?.message || err);
     });
-
-    // Make file publicly accessible (fixes CORS)
-    await file.makePublic();
-    
-    // Use public URL instead of signed URL
-    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
     await addDebugLog('generate.success', {
       aspectRatio,
