@@ -137,7 +137,7 @@ const resolveApiKey = (
   const strategy: ApiKeyResolution['strategy'] =
     rawStrategy === 'env-first' || rawStrategy === 'body-only' || rawStrategy === 'env-only'
       ? (rawStrategy as ApiKeyResolution['strategy'])
-      : 'body-first';
+      : 'env-first';
 
   const candidates: Array<{ key: string; source: ApiKeyResolution['source'] }> =
     strategy === 'env-first'

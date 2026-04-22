@@ -15,7 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1nCgjRcjb-rdBNvRyhB2EXh
 
 1. Install dependencies:
    `npm install`
-2. Copy `.env.example` to `.env.local` and set `API_KEY` to your Gemini API key (or start the dev server and paste a key into the in-app prompt). You can also add `VITE_GOOGLE_CLIENT_ID` (from Google Identity Services) to enable one-click Google login, plus comma-separated `VITE_ADMIN_EMAILS` for accounts that should bypass plan limits.
+2. Copy `.env.example` to `.env.local` and set `API_KEY` to your Gemini API key for local frontend builds (or start the dev server and paste a key into the in-app prompt). You can also add `VITE_GOOGLE_CLIENT_ID` (from Google Identity Services) to enable one-click Google login, plus comma-separated `VITE_ADMIN_EMAILS` for accounts that should bypass plan limits.
 3. Run the app:
    `npm run dev`
 
@@ -96,12 +96,13 @@ gsutil cors set cors.json gs://boostugc-6d83f.firebasestorage.app
 
 1. Create a new Vercel project and import this repository (or link the local folder with `vercel link`).
 2. Set the project environment variables:
-  - `API_KEY`: Gemini API key that has both image and VEO video access.
+  - `GOOGLE_API_KEY`: Gemini/Google API key used by `api/generate` on Vercel for image generation.
+  - Optional legacy frontend build var: `API_KEY`
 3. Keep the default build settings:
    - Framework Preset: **Vite**
    - Build Command: `npm run build`
    - Output Directory: `dist`
-4. Deploy. Vercel serves the `dist` output as a static site and the client-side app reads the key at build time. If you need to rotate the key, update the variable in Vercel and redeploy.
+4. Deploy. Vercel serves the `dist` output as a static site and `api/generate` reads `GOOGLE_API_KEY` server-side at runtime. If you need to rotate the key, update the variable in Vercel and redeploy.
 
 ### Optional: In-app AI support assistant (OpenAI)
 
@@ -120,4 +121,4 @@ This repo includes an optional support widget inside `/app` backed by a Vercel F
 - `OPENAI_SUPPORT_MODEL` (default: `gpt-4o-mini`)
 - `SUPPORT_AI_RL_MAX` (requests per 10 minutes, default: `20`)
 
-The API key is server-side only (never exposed to the browser).
+`OPENAI_API_KEY` is only for the optional support assistant above. It is not used for image generation.

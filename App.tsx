@@ -2414,17 +2414,21 @@ const App: React.FC = () => {
       setHasTrialBypass(true);
     }
 
+    if (envApiKey) {
+      window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+      setApiKey(envApiKey);
+      setManualApiKey('');
+      setIsKeySelected(true);
+      setIsUsingStoredKey(false);
+      return;
+    }
+
     const storedKey = window.localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedKey) {
       setApiKey(storedKey);
       setManualApiKey(storedKey);
       setIsKeySelected(true);
       setIsUsingStoredKey(true);
-      return;
-    }
-
-    if (envApiKey) {
-      setIsKeySelected(true);
       return;
     }
 
@@ -2703,7 +2707,7 @@ const App: React.FC = () => {
 
     if (isInvalidKey) {
       return {
-        message: 'Your API Key is invalid. Please select a valid key to continue.',
+        message: 'Your Gemini/Google API key is invalid. Please select a valid key to continue.',
         invalidateKey: true,
       };
     }
@@ -2718,7 +2722,7 @@ const App: React.FC = () => {
 
     if (isQuotaExceeded) {
       return {
-        message: "API quota exceeded. Please select a different API key, or check your current key's plan and billing details.",
+        message: "Gemini/Google API quota exceeded. Please select a different key, or check your current key's plan and billing details.",
         invalidateKey: false,
       };
     }
@@ -2781,18 +2785,12 @@ const App: React.FC = () => {
     }
   }, [apiKeyError]);
 
-  const getActiveApiKeyOrNotify = useCallback((notify: (message: string) => void): string | null => {
+  const getActiveApiKeyOrNotify = useCallback((): string => {
     if (GEMINI_DISABLED) {
-      return null;
+      return '';
     }
-    const resolvedKey = apiKey || envApiKey;
-    if (!resolvedKey) {
-      notify('Please add your access key to continue.');
-      requireNewApiKey();
-      return null;
-    }
-    return resolvedKey;
-  }, [apiKey, envApiKey, requireNewApiKey, GEMINI_DISABLED]);
+    return envApiKey || apiKey || '';
+  }, [apiKey, envApiKey, GEMINI_DISABLED]);
 
   const toggleSimpleMode = useCallback(() => {
     setIsSimpleMode(prev => {
@@ -5834,10 +5832,7 @@ If the model attempts to create a scene or environment, override it and force a 
             : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
         lastAspectRatioRef.current = aspectRatio;
 
-        const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-        if (!resolvedApiKey) {
-          return;
-        }
+        const resolvedApiKey = getActiveApiKeyOrNotify();
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
@@ -6246,10 +6241,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
       // Ecommerce PDP Image Builder: force square canvases for overlays (hard rule).
       const aspectRatio = ECOMMERCE_PDP_ASPECT_RATIO;
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        return;
-      }
+      const resolvedApiKey = getActiveApiKeyOrNotify();
 
       const mapSlotKeyToPdpSlot = (slotKey: EcommerceSlotKey): EcommercePdpSlot => {
         switch (slotKey) {
@@ -6517,8 +6509,7 @@ If the model attempts to create a scene or environment, override it and force a 
     setImageError(null);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) return;
+      const resolvedApiKey = getActiveApiKeyOrNotify();
 
       const aspectRatio = resolveOutputAspectRatio();
       const productParts: any[] = [];
@@ -6691,11 +6682,7 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError('Image editing is disabled while Gemini is off.');
         return;
       }
-      const resolvedApiKey = getActiveApiKeyOrNotify(setImageError);
-      if (!resolvedApiKey) {
-        setIsImageLoading(false);
-        return;
-      }
+      const resolvedApiKey = getActiveApiKeyOrNotify();
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio =
