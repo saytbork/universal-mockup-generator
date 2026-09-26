@@ -9,6 +9,7 @@ import { addActivity } from '../server/lib/activity.js';
 import { addDebugLog } from '../server/lib/debugLog.js';
 import { bucket } from '../server/lib/firebaseAdmin.js';
 import sharp from 'sharp';
+import { rateLimit } from '../server/lib/rateLimit.js';
 
 const parseBody = async (req: VercelRequest) => {
   if (req.body && typeof req.body === 'object') return req.body;
@@ -48,14 +49,6 @@ type PreserveReferenceResolution = {
   reason: 'client_true' | 'client_false' | 'default_false';
   requested?: boolean;
   wasCoerced: boolean;
-};
-
-type ApiKeyResolution = {
-  bodyLength: number;
-  envLength: number;
-  key: string;
-  source: 'body' | 'env' | 'missing';
-  strategy: 'body-first' | 'env-first' | 'body-only' | 'env-only';
 };
 
 type DebugMeta = {
@@ -123,55 +116,6 @@ const resolvePreserveReferenceImage = (
     reason: normalizedRequested === false ? 'client_false' : 'default_false',
     requested: normalizedRequested,
     wasCoerced: false,
-  };
-};
-
-const resolveApiKey = (
-  bodyApiKey: unknown,
-  envApiKey: unknown,
-  preferredStrategy?: unknown
-): ApiKeyResolution => {
-  const bodyValue = typeof bodyApiKey === 'string' ? bodyApiKey.trim() : '';
-  const envValue = typeof envApiKey === 'string' ? envApiKey.trim() : '';
-  const rawStrategy = typeof preferredStrategy === 'string' ? preferredStrategy.trim().toLowerCase() : '';
-  const strategy: ApiKeyResolution['strategy'] =
-    rawStrategy === 'env-first' || rawStrategy === 'body-only' || rawStrategy === 'env-only'
-      ? (rawStrategy as ApiKeyResolution['strategy'])
-      : 'env-first';
-
-  const candidates: Array<{ key: string; source: ApiKeyResolution['source'] }> =
-    strategy === 'env-first'
-      ? [
-          { key: envValue, source: 'env' },
-          { key: bodyValue, source: 'body' },
-        ]
-      : strategy === 'body-only'
-        ? [{ key: bodyValue, source: 'body' }]
-        : strategy === 'env-only'
-          ? [{ key: envValue, source: 'env' }]
-          : [
-              { key: bodyValue, source: 'body' },
-              { key: envValue, source: 'env' },
-            ];
-
-  for (const candidate of candidates) {
-    if (candidate.key) {
-      return {
-        bodyLength: bodyValue.length,
-        envLength: envValue.length,
-        key: candidate.key,
-        source: candidate.source,
-        strategy,
-      };
-    }
-  }
-
-  return {
-    bodyLength: 0,
-    envLength: 0,
-    key: '',
-    source: 'missing',
-    strategy,
   };
 };
 
@@ -364,7 +308,12 @@ const parseCookies = (req: VercelRequest) => {
     }, {});
 };
 
-const getGuestSecret = () => process.env.SESSION_SECRET || process.env.MAGIC_TOKEN_SECRET || 'guest-fallback-secret';
+const getGuestSecret = () => {
+  const secret = process.env.GUEST_TRIAL_SECRET || process.env.SESSION_SECRET || process.env.MAGIC_TOKEN_SECRET;
+  if (secret) return secret;
+  if (String(process.env.VERCEL_ENV || '').toLowerCase() !== 'production') return 'local-development-only';
+  throw new Error('Guest trial secret is not configured');
+};
 const getHeaderString = (value: string | string[] | undefined) => (Array.isArray(value) ? String(value[0] || '') : String(value || ''));
 
 const getUtcDayBucket = () => {
@@ -561,27 +510,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isAnonymousTrial = !authenticatedEmail;
   const body = await parseBody(req);
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
-  const requestHost = getHeaderString(req.headers.host).trim().toLowerCase();
-  const isProjectsPreviewHost =
-    requestHost === 'projects.vercel.app' || requestHost.endsWith('.projects.vercel.app');
-  const isPreview = vercelEnv === 'preview' || isProjectsPreviewHost;
+  const isPreview = vercelEnv === 'preview';
   const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
-  const headerBypassRaw = Array.isArray(req.headers['x-trial-bypass-code'])
-    ? req.headers['x-trial-bypass-code'][0]
-    : req.headers['x-trial-bypass-code'];
-  const headerBypassCode = String(headerBypassRaw || '').trim().toUpperCase();
-  const bodyBypassCode = typeof body.trialBypassCode === 'string' ? body.trialBypassCode.trim().toUpperCase() : '';
-  const testerBypassCode = String(process.env.TESTER_UPGRADE_CODE || '8714').trim();
-  const bypassCodes = new Set([
-    '2999',
-    '8714',
-    testerBypassCode.toUpperCase(),
-  ]);
-  const bypassByCode = Boolean(
-    (headerBypassCode && bypassCodes.has(headerBypassCode)) ||
-    (bodyBypassCode && bypassCodes.has(bodyBypassCode))
-  );
-  const bypassCreditLimits = isPreview || unlimitedEnv || bypassByCode;
+  const bypassCreditLimits = isPreview || unlimitedEnv;
+  const clientIpForLimit = getClientIp(req);
+  const ipLimit = await rateLimit({ key: clientIpForLimit, max: isAnonymousTrial ? 4 : 10, windowSeconds: 60, namespace: 'generate-ip' });
+  if (!ipLimit.ok) {
+    res.status(429).json({ error: 'Too many generation requests. Please wait a moment.' });
+    return;
+  }
+  if (authenticatedEmail) {
+    const userLimit = await rateLimit({ key: authenticatedEmail.toLowerCase(), max: isAdminUser ? 20 : 5, windowSeconds: 60, namespace: 'generate-user' });
+    if (!userLimit.ok) {
+      res.status(429).json({ error: 'Too many generation requests. Please wait a moment.' });
+      return;
+    }
+  }
   let guestId: string | null = null;
   let shouldSetGuestCookie = false;
   let guestIpUsageKey: string | null = null;
@@ -645,7 +589,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
   const DEFAULT_MODEL = 'gemini-2.5-flash-image';
+  const allowedModels = new Set(String(process.env.ALLOWED_GOOGLE_IMAGE_MODELS || DEFAULT_MODEL).split(',').map(value => value.trim()).filter(Boolean));
   const model = typeof body.model === 'string' && body.model.trim() ? body.model.trim() : DEFAULT_MODEL;
+  if (!allowedModels.has(model)) {
+    res.status(400).json({ error: 'Unsupported image model' });
+    return;
+  }
   console.log('MODEL RECEIVED:', model);
   const aspectRatio = typeof body.aspectRatio === 'string' ? body.aspectRatio : '1:1';
   const imageStrength = typeof body.imageStrength === 'number' ? body.imageStrength : undefined;
@@ -654,18 +603,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[IMAGE STRENGTH RECEIVED]', imageStrength);
   console.log('[GUIDANCE SCALE RECEIVED]', guidanceScale);
   console.log('[NEGATIVE PROMPT RECEIVED]', negativePrompt);
-  const apiKeyResolution = resolveApiKey(
-    body.apiKey,
-    process.env.GOOGLE_API_KEY,
-    process.env.GOOGLE_API_KEY_STRATEGY
-  );
-  const envApiKey = apiKeyResolution.source === 'env' ? apiKeyResolution.key : String(process.env.GOOGLE_API_KEY || '').trim();
-  const bodyApiKey = apiKeyResolution.source === 'body' ? apiKeyResolution.key : (typeof body.apiKey === 'string' ? body.apiKey.trim() : '');
-  const apiKey = apiKeyResolution.key;
-  console.log('[GENAI] GOOGLE_API_KEY length:', apiKeyResolution.envLength);
-  console.log('[GENAI] body.apiKey length:', apiKeyResolution.bodyLength);
-  console.log('[GENAI] resolved api key source:', apiKeyResolution.source);
-  console.log('[GENAI] api key strategy:', apiKeyResolution.strategy);
+  const apiKey = String(process.env.GOOGLE_API_KEY || '').trim();
+  console.log('[GENAI] GOOGLE_API_KEY configured:', Boolean(apiKey));
   const debugMeta = normalizeDebugMeta(body?.debugMeta);
   const partsValidation = validateGenerateParts(parts, {
     maxInlineImages: MAX_INLINE_IMAGES,
@@ -693,7 +632,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       aspectRatio,
       debugMeta,
       email,
-      error: 'No Google API key available (body or env)',
+      error: 'Google API key is not configured',
       event: 'generate.reject.missing_api_key',
       model,
       res,
@@ -702,18 +641,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   if (!apiKey.startsWith('AIza')) {
-    res.status(500).json({ error: 'Resolved Google API key has invalid format (expected API key)' });
+    res.status(500).json({ error: 'Server Google API key has invalid format' });
     return;
   }
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
-    const creditMode = isProjectsPreviewHost
-      ? 'projects-preview-host'
-      : isPreview
-      ? 'preview'
-      : (unlimitedEnv ? 'unlimited-env' : (bypassByCode ? 'tester-code' : (vercelEnv || 'standard')));
-    console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, host=${requestHost || 'unknown'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
+    const creditMode = isPreview ? 'preview' : (unlimitedEnv ? 'unlimited-env' : (vercelEnv || 'standard'));
+    console.log(`[CREDITS] Mode=${creditMode} (VERCEL_ENV=${vercelEnv || 'undefined'}, UNLIMITED_CREDITS=${unlimitedEnv})`);
     if (bypassCreditLimits) {
       console.log('[CREDITS] Skipped decrement in preview/unlimited mode');
     } else {
@@ -743,7 +678,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const generateWithRetry = async () => {
-      const maxAttempts = 4;
+      const maxAttempts = 2;
       let lastError: unknown = null;
       const modelsToTry = [model];
       for (const candidateModel of modelsToTry) {
@@ -845,8 +780,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       isPreview,
       userPlan,
       model,
-      apiKeySource: apiKeyResolution.source,
-      apiKeyStrategy: apiKeyResolution.strategy,
+      apiKeySource: 'server',
       preserveReferenceImage: {
         requested: preserveReference.requested,
         effective: preserveReference.effective,
@@ -953,17 +887,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messageText.includes('api_key_invalid') ||
       messageText.includes('api key not valid');
     if (isApiKeyInvalid) {
-      console.error('[GENAI] API_KEY_INVALID from server key in this deployment', {
-        googleApiKeyLength: envApiKey.length,
-        bodyApiKeyLength: bodyApiKey.length,
-        apiKeySource: apiKeyResolution.source,
-        vercelEnv,
-      });
-      res.status(500).json({
-        error: apiKeyResolution.source === 'body'
-          ? 'CLIENT_GOOGLE_API_KEY_INVALID (Provided key is invalid or restricted)'
-          : 'SERVER_GOOGLE_API_KEY_INVALID (Env key is invalid or restricted)',
-      });
+      console.error('[GENAI] API_KEY_INVALID from server key in this deployment', { vercelEnv });
+      res.status(500).json({ error: 'SERVER_GOOGLE_API_KEY_INVALID' });
       return;
     }
     await addDebugLog('generate.error', {
@@ -986,6 +911,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...debugMeta,
       });
     }
-    res.status(500).json({ error: error?.message || 'Generation failed' });
+    res.status(500).json({ error: 'Generation failed' });
   }
 }
