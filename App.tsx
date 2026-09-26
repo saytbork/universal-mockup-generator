@@ -786,6 +786,15 @@ const normalizeGeminiModel = (raw?: string) => raw || '';
 const DEFAULT_GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
 const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_IMAGE_MODEL ?? '';
 const GEMINI_IMAGE_MODEL = normalizeGeminiModel(GOOGLE_MODEL) || DEFAULT_GEMINI_IMAGE_MODEL;
+const IMAGE_MODEL_OPTIONS = [
+  { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5' },
+  { value: 'gemini-3.1-flash-image', label: 'Gemini 3.1' },
+] as const;
+type ImageModelChoice = (typeof IMAGE_MODEL_OPTIONS)[number]['value'];
+const resolveImageModelChoice = (model: string): ImageModelChoice =>
+  IMAGE_MODEL_OPTIONS.some(option => option.value === model)
+    ? (model as ImageModelChoice)
+    : DEFAULT_GEMINI_IMAGE_MODEL;
 
 const VIDEO_CREDIT_COST = 15;
 
@@ -1526,6 +1535,11 @@ const App: React.FC = () => {
   );
   const [storyboardScenes, setStoryboardScenes] = useState<StoryboardScene[]>(() => [initialSceneRef.current!]);
   const [activeSceneId, setActiveSceneId] = useState<string>(initialSceneRef.current!.id);
+  const [selectedImageModel, setSelectedImageModel] = useState<ImageModelChoice>(() =>
+    resolveImageModelChoice(GEMINI_IMAGE_MODEL)
+  );
+  const isImageModelQaVisible =
+    typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
@@ -6002,7 +6016,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
@@ -6011,6 +6025,7 @@ If the model attempts to create a scene or environment, override it and force a 
               sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
               mode: String(promptOptions.creationMode || options.creationMode || ''),
               aspectRatio,
+              imageModel: selectedImageModel,
             },
           }),
         });
@@ -6120,6 +6135,7 @@ If the model attempts to create a scene or environment, override it and force a 
     [
       isRandomCharacterEnabled,
       randomizeCharacterParameters,
+      selectedImageModel,
       activeProducts,
       planTier,
       planCreditLimit,
@@ -6318,7 +6334,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
@@ -6499,7 +6515,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             preserveReferenceImage: false,
@@ -6625,7 +6641,7 @@ If the model attempts to create a scene or environment, override it and force a 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: GEMINI_IMAGE_MODEL,
+          model: selectedImageModel,
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
             { text: prompt.trim() },
@@ -7460,6 +7476,39 @@ If the model attempts to create a scene or environment, override it and force a 
                             onFocusCapture={showGenerateBar}
                             onBlurCapture={scheduleGenerateBarAutoHide}
                           >
+                            {isImageModelQaVisible && (
+                              <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50/90 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                                <div className="min-w-0">
+                                  <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/45">
+                                    QA Image Model
+                                  </div>
+                                  <div className="text-[10px] text-gray-500 dark:text-white/40">
+                                    Same scene and prompt, switch only the renderer.
+                                  </div>
+                                </div>
+                                <div className="flex shrink-0 rounded-full bg-gray-200/80 p-1 dark:bg-black/30">
+                                  {IMAGE_MODEL_OPTIONS.map(modelOption => {
+                                    const active = selectedImageModel === modelOption.value;
+                                    return (
+                                      <button
+                                        key={modelOption.value}
+                                        type="button"
+                                        onClick={() => setSelectedImageModel(modelOption.value)}
+                                        disabled={isImageLoading}
+                                        aria-pressed={active}
+                                        className={`rounded-full px-3 py-1.5 text-[10px] font-semibold transition ${
+                                          active
+                                            ? 'bg-indigo-600 text-white shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900 dark:text-white/55 dark:hover:text-white'
+                                        } disabled:cursor-not-allowed disabled:opacity-50`}
+                                      >
+                                        {modelOption.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={() => {
