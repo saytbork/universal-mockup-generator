@@ -11,10 +11,11 @@ export const normalizeEmail = (email = '') => email.trim().toLowerCase();
 export const generateVerificationCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
-const getSecret = () =>
-  process.env.EMAIL_VERIFICATION_SECRET ||
-  process.env.API_KEY ||
-  'fallback-secret';
+const getSecret = () => {
+  const secret = String(process.env.EMAIL_VERIFICATION_SECRET || '').trim();
+  if (!secret) throw new Error('EMAIL_VERIFICATION_SECRET is not configured');
+  return secret;
+};
 
 const signPayload = (payload: string) =>
   crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
@@ -51,7 +52,10 @@ export const parseVerificationCookie = (cookieHeader?: string | null): ParsedCoo
   if (!token || !signature) return null;
   try {
     const payloadStr = Buffer.from(token, 'base64url').toString('utf8');
-    if (signPayload(payloadStr) !== signature) return null;
+    const expected = signPayload(payloadStr);
+    const providedBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expected);
+    if (providedBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(providedBuffer, expectedBuffer)) return null;
     const parsed = JSON.parse(payloadStr) as ParsedCookie;
     if (!parsed.email || !parsed.code || !parsed.expiresAt) return null;
     return parsed;
@@ -66,7 +70,10 @@ let transport: nodemailer.Transporter | null | undefined;
 export const getMailTransport = () => {
   if (transport !== undefined) return transport;
   if (!process.env.SMTP_HOST) {
-    console.warn('SMTP_HOST not set. Codes will be logged, not emailed.');
+    if (String(process.env.VERCEL_ENV || '').toLowerCase() === 'production') {
+      throw new Error('SMTP_HOST is not configured');
+    }
+    console.warn('SMTP_HOST not set. Email verification transport is disabled.');
     transport = null;
     return transport;
   }
