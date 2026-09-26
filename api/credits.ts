@@ -10,7 +10,6 @@ import {
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
 const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
-const DEFAULT_TESTER_UPGRADE_CODE = '8714';
 const DEFAULT_TESTER_UPGRADE_BONUS_CREDITS = 99999;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
@@ -40,7 +39,7 @@ const parseAmount = (raw: unknown) => {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
-  if (action !== 'consume' && action !== 'refund' && action !== 'redeem') {
+  if (action !== 'consume' && action !== 'redeem') {
     res.status(400).json({ error: 'Invalid action' });
     return;
   }
@@ -72,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const testerBonus = parseBonus(process.env.TESTER_UPGRADE_BONUS_CREDITS, DEFAULT_TESTER_UPGRADE_BONUS_CREDITS);
 
       const matchesRequired = requiredCode ? normalized === requiredCode : false;
-      const matchesTester = normalized === normalizeCode(DEFAULT_TESTER_UPGRADE_CODE) || (testerCode.length > 0 && normalized === testerCode);
+      const matchesTester = testerCode.length > 0 && normalized === testerCode;
       const matchesTrialCoupon = normalized === trialCouponCode;
       if (!matchesRequired && !matchesTester && !matchesTrialCoupon) {
         res.status(400).json({ error: 'Invalid code' });
