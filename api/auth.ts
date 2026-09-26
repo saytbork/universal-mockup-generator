@@ -49,7 +49,7 @@ const getRequestOrigin = (req: VercelRequest): string => {
 
 const buildSessionCookie = (email: string, req: VercelRequest) => {
   const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
-  const secureFlag = proto === 'https' ? '; Secure' : '';
+  const secureFlag = String(process.env.VERCEL_ENV || '').toLowerCase() === 'production' || proto === 'https' ? '; Secure' : '';
   const token = createSessionToken(email);
   return `session_email=${encodeURIComponent(token)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=604800`;
 };
