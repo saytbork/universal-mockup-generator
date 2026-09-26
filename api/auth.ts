@@ -16,7 +16,6 @@ const DASHBOARD_REDIRECT_PATH = '/app';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
-const DEFAULT_TRIAL_COUPON_CODE = '2999';
 const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
@@ -112,7 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const requiredCode = normalizeCode(process.env.INVITATION_CODE);
-      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
+      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE);
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
@@ -120,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
       const normalizedCode = normalizeCode(invitationCode);
       const matchesRequired = Boolean(requiredCode && normalizedCode === requiredCode);
-      const matchesTrialCoupon = normalizedCode === trialCouponCode;
+      const matchesTrialCoupon = Boolean(trialCouponCode && normalizedCode === trialCouponCode);
       const isRecognizedCode = matchesRequired || matchesTrialCoupon;
       if (normalizedCode && isDisposable) {
         res.status(400).json({ error: 'Invitation code requires a non-temporary email address' });
@@ -202,7 +201,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       try {
         const requiredCode = normalizeCode(process.env.INVITATION_CODE);
-        const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
+        const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE);
         const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
         const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
         const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
@@ -227,7 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const alreadyClaimed = Boolean(user.inviteUsed);
 
           if (plan === 'free' && !alreadyClaimed) {
-            const isTrialCoupon = normalizedInvitationCode === trialCouponCode;
+            const isTrialCoupon = Boolean(trialCouponCode && normalizedInvitationCode === trialCouponCode);
             if (isTrialCoupon) {
               const redemption = await tryConsumeTrialCouponRedemption(normalizedInvitationCode);
               if (!redemption.ok) {
