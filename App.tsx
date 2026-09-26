@@ -925,10 +925,8 @@ type AiStudioApi = {
   openSelectKey: () => Promise<void>;
 };
 
-const getEnvApiKey = (): string | undefined => {
-  const fromProcess = process.env.API_KEY;
-  return fromProcess ? fromProcess.trim() : undefined;
-};
+// Google AI credentials are server-only. The browser must never read an API key.
+const getEnvApiKey = (): string | undefined => undefined;
 
 const fileToBase64 = (file: File): Promise<{ base64: string, mimeType: string }> => {
   return new Promise((resolve, reject) => {
@@ -3830,22 +3828,27 @@ const App: React.FC = () => {
         setShowPlanModal(false);
         return;
       }
-      const targetUrl = PLAN_CONFIG[tier].stripeUrl;
-      if (!targetUrl) return;
-      try {
-        const url = new URL(targetUrl);
-        if (userEmail) {
-          url.searchParams.set('prefilled_email', userEmail);
-        } else {
-          setPlanNotice(
-            'You can check out now. To sync credits to your account, sign in with a magic link or Google first.'
-          );
-        }
-        window.open(url.toString(), '_blank', 'noopener,noreferrer');
-      } catch (err) {
-        console.error(err);
-        setPlanNotice('Could not open checkout. Please try again.');
+      if (!userEmail) {
+        setPlanNotice('Please sign in to continue to checkout.');
+        return;
       }
+      void (async () => {
+        try {
+          const response = await fetch('/api/stripe/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: tier }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || typeof data?.url !== 'string') {
+            throw new Error('Checkout session failed');
+          }
+          window.location.assign(data.url);
+        } catch (err) {
+          console.error(err);
+          setPlanNotice('Could not open checkout. Please try again.');
+        }
+      })();
     },
     [isSimpleMode, userEmail]
   );
