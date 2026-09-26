@@ -13,7 +13,7 @@ export type UserRecord = {
 
 const DEFAULT_UNLIMITED_EMAILS: string[] = ['juanamisano@gmail.com'];
 const UNLIMITED_EMAILS = new Set(
-  `${process.env.ADMIN_EMAILS || ''},${process.env.UNLIMITED_CREDITS_EMAILS || ''},${process.env.VITE_ADMIN_EMAILS || ''},${DEFAULT_UNLIMITED_EMAILS.join(',')}`
+  `${process.env.ADMIN_EMAILS || ''},${process.env.UNLIMITED_CREDITS_EMAILS || ''},${DEFAULT_UNLIMITED_EMAILS.join(',')}`
     .split(',')
     .map(email => email.trim().toLowerCase())
     .filter(Boolean)
