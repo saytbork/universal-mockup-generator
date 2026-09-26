@@ -37,10 +37,19 @@ export async function rateLimit({
   if (hasKV) {
     const bucket = Math.floor(now / (safeWindowSeconds * 1000));
     const kvKey = `rl:${namespace}:${safeKey}:${bucket}`;
-    const kv = await getKv();
-    const count = await kv.incr(kvKey);
-    if (count === 1) await kv.expire(kvKey, safeWindowSeconds);
-    return { ok: count <= safeMax, remaining: Math.max(0, safeMax - count) };
+    try {
+      const kv = await getKv();
+      const count = await kv.incr(kvKey);
+      if (count === 1) await kv.expire(kvKey, safeWindowSeconds);
+      return { ok: count <= safeMax, remaining: Math.max(0, safeMax - count) };
+    } catch (error) {
+      // Preview must remain testable when its isolated KV binding is unavailable.
+      // Production stays fail-closed so a Redis outage cannot disable abuse protection.
+      if (String(process.env.VERCEL_ENV || '').toLowerCase() === 'production') {
+        throw error;
+      }
+      console.warn('Rate limit KV unavailable outside production; using ephemeral limiter', error);
+    }
   }
 
   const memKey = `rl:${namespace}:${safeKey}`;
