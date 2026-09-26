@@ -795,9 +795,7 @@ const PLAN_UNLOCK_CODES: Record<string, PlanTier> = {
   STUDIO290: 'studio',
 };
 const PREVIEW_ACCESS_CODE = '2999';
-const TESTER_UPGRADE_CODE = import.meta.env.VITE_TESTER_CODE || '8714';
-const TRIAL_BYPASS_CODE = '8714';
-const BYPASS_CODE_VALUES = new Set([PREVIEW_ACCESS_CODE, TRIAL_BYPASS_CODE, TESTER_UPGRADE_CODE.toUpperCase(), 'CODE']);
+const BYPASS_CODE_VALUES = new Set([PREVIEW_ACCESS_CODE, 'CODE']);
 const DEBUG_PROMPT_PIPELINE =
   import.meta.env.DEV || import.meta.env.VITE_DEBUG_PROMPT_PIPELINE === 'true';
 const debugLog = (...args: unknown[]) => {
@@ -6050,8 +6048,6 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
-            apiKey: resolvedApiKey,
-            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
             debugMeta: {
               promptHash,
               sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
@@ -6376,8 +6372,6 @@ If the model attempts to create a scene or environment, override it and force a 
             aspectRatio,
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
             preserveReferenceImage: false,
-            apiKey: resolvedApiKey,
-            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
 
@@ -6565,8 +6559,6 @@ If the model attempts to create a scene or environment, override it and force a 
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             preserveReferenceImage: false,
-            apiKey: resolvedApiKey,
-            trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
           }),
         });
 
@@ -6703,8 +6695,6 @@ If the model attempts to create a scene or environment, override it and force a 
           ],
           aspectRatio,
           preserveReferenceImage: isProductPlacement,
-          apiKey: resolvedApiKey,
-          trialBypassCode: shouldSendTrialBypassHeader ? trialBypassHeaderValue : undefined,
         }),
       });
 
