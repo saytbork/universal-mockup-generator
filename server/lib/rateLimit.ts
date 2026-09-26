@@ -12,8 +12,7 @@ type RateLimitResult = {
 
 const hasKV =
   !!process.env.KV_REST_API_URL &&
-  !!process.env.KV_REST_API_TOKEN &&
-  !!process.env.KV_REST_API_READ_ONLY_TOKEN;
+  !!process.env.KV_REST_API_TOKEN;
 
 const memory = new Map<string, { count: number; resetAt: number }>();
 
