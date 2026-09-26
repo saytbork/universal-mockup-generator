@@ -243,24 +243,28 @@ export default function Dashboard() {
       setPlanNotice("To downgrade, cancel the subscription from your Stripe receipt or contact support.");
       return;
     }
-    const targetUrl = PLAN_CONFIG[tier].stripeUrl;
-    if (!targetUrl) {
-      setPlanNotice("Checkout is not configured yet.");
-      return;
-    }
     const email = String(user?.email || "").trim();
     if (!email) {
       setPlanNotice("Please sign in to continue.");
       return;
     }
-    try {
-      const url = new URL(targetUrl);
-      url.searchParams.set("prefilled_email", email);
-      window.open(url.toString(), "_blank", "noopener,noreferrer");
-    } catch (err) {
-      console.error(err);
-      setPlanNotice("Could not open checkout. Please try again.");
-    }
+    void (async () => {
+      try {
+        const response = await fetch("/api/stripe/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: tier }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || typeof data?.url !== "string") {
+          throw new Error("Checkout session failed");
+        }
+        window.location.assign(data.url);
+      } catch (err) {
+        console.error(err);
+        setPlanNotice("Could not open checkout. Please try again.");
+      }
+    })();
   };
 
   const filteredAdminUsers = useMemo(() => {
