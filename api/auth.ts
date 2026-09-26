@@ -35,11 +35,14 @@ const parseAction = (req: VercelRequest) => {
 };
 
 const getRequestOrigin = (req: VercelRequest): string => {
-  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const envBase = process.env.BASE_URL?.trim();
   if (envBase) {
     return envBase.replace(/\/+$/, '');
   }
+  if (String(process.env.VERCEL_ENV || '').toLowerCase() === 'production') {
+    return 'https://perfectmockup.com';
+  }
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
   return `${proto}://${host}`.replace(/\/+$/, '');
 };
