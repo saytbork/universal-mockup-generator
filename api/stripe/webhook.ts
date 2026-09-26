@@ -4,6 +4,19 @@ import { getStripe } from "../../server/lib/stripeClient.js";
 import { setUser, getUser } from "../../server/lib/store.js";
 import { addActivity } from "../../server/lib/activity.js";
 
+const hasKV = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
+const claimStripeEvent = async (eventId: string): Promise<boolean> => {
+  if (!hasKV) return true;
+  const { kv } = await import("@vercel/kv");
+  const result = await kv.set(`stripe:event:${eventId}`, "processing", { nx: true, ex: 60 * 60 * 24 * 30 });
+  return result === "OK";
+};
+const releaseStripeEvent = async (eventId: string | null) => {
+  if (!hasKV || !eventId) return;
+  const { kv } = await import("@vercel/kv");
+  await kv.del(`stripe:event:${eventId}`);
+};
+
 export const config = {
   api: {
     bodyParser: false,
@@ -24,6 +37,7 @@ const secrets = [
 ].filter(Boolean) as string[];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  let claimedEventId: string | null = null;
   if (req.method !== "POST") {
     res.status(405).send("Method not allowed");
     return;
@@ -51,6 +65,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     event = constructed;
 
+    if (!(await claimStripeEvent(event.id))) {
+      res.status(200).json({ received: true, duplicate: true });
+      return;
+    }
+    claimedEventId = event.id;
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -74,7 +94,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        const email = invoice.customer_email || (invoice.customer as string);
+        let email = invoice.customer_email || "";
+        if (!email && invoice.customer) {
+          const customer = await stripe.customers.retrieve(invoice.customer as string);
+          if (!customer.deleted) email = String(customer.email || "");
+        }
         if (email) {
           const user = await getUser(email);
           const nextCredits = (user.subscriptionRemaining || 0) + 20;
@@ -103,7 +127,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error("Webhook handler error", error);
+    await releaseStripeEvent(claimedEventId).catch(() => undefined);
+    console.error("Webhook handler error");
     res.status(500).json({ error: "Webhook processing failed" });
   }
 }

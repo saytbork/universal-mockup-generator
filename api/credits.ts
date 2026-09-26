@@ -10,7 +10,6 @@ import {
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
 const DEFAULT_TRIAL_COUPON_CODE = '2999';
 const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
-const DEFAULT_TESTER_UPGRADE_CODE = '8714';
 const DEFAULT_TESTER_UPGRADE_BONUS_CREDITS = 99999;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
@@ -40,7 +39,7 @@ const parseAmount = (raw: unknown) => {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = parseAction(req);
-  if (action !== 'consume' && action !== 'refund' && action !== 'redeem') {
+  if (action !== 'consume' && action !== 'redeem') {
     res.status(400).json({ error: 'Invalid action' });
     return;
   }
@@ -55,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const isUnlimited = isUnlimitedCreditsEmail(email);
-  const { amount, bucket, code } = req.body || {};
+  const { amount, code } = req.body || {};
   const creditAmount = parseAmount(amount) ?? 1;
   try {
     if (action === 'redeem') {
@@ -72,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const testerBonus = parseBonus(process.env.TESTER_UPGRADE_BONUS_CREDITS, DEFAULT_TESTER_UPGRADE_BONUS_CREDITS);
 
       const matchesRequired = requiredCode ? normalized === requiredCode : false;
-      const matchesTester = normalized === normalizeCode(DEFAULT_TESTER_UPGRADE_CODE) || (testerCode.length > 0 && normalized === testerCode);
+      const matchesTester = testerCode.length > 0 && normalized === testerCode;
       const matchesTrialCoupon = normalized === trialCouponCode;
       if (!matchesRequired && !matchesTester && !matchesTrialCoupon) {
         res.status(400).json({ error: 'Invalid code' });
@@ -168,22 +167,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return;
     }
-    // refund
-    const targetBucket =
-      bucket === 'trial' || bucket === 'invite' || bucket === 'subscription' ? bucket : 'subscription';
-    for (let i = 0; i < creditAmount; i += 1) {
-      await refundCredit(email, targetBucket);
-    }
-    const user = await getUser(email);
-    await addActivity(email, 'image', { delta: creditAmount, refund: true });
-    res.json({
-      ok: true,
-      credits: user.credits ?? getEffectiveCredits(user),
-      remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
-      trial_remaining: user.trialRemaining ?? 0,
-      invite_remaining: user.inviteRemaining ?? 0,
-      subscription_remaining: user.subscriptionRemaining ?? 0,
-    });
   } catch (error) {
     console.error('consume credit error', error);
     res.status(500).json({ error: 'Unable to consume credit' });
