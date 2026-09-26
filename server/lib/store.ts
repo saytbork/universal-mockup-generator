@@ -27,8 +27,7 @@ export const isUnlimitedCreditsEmail = (email: string) => {
 const memoryStore = new Map<string, UserRecord>();
 const hasKV =
   !!process.env.KV_REST_API_URL &&
-  !!process.env.KV_REST_API_TOKEN &&
-  !!process.env.KV_REST_API_READ_ONLY_TOKEN;
+  !!process.env.KV_REST_API_TOKEN;
 
 const userKey = (email: string) => `user:${email}`;
 const USERS_INDEX_KEY = 'users:index';
