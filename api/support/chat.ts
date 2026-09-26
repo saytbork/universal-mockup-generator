@@ -191,8 +191,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!response.ok) {
-      const text = await response.text().catch(() => '');
-      res.status(502).json({ error: `OpenAI error: ${response.status}`, details: text, reply: 'I had an issue contacting the assistant.' });
+      await response.text().catch(() => '');
+      res.status(502).json({ error: 'Support provider request failed', reply: 'I had an issue contacting the assistant.' });
       return;
     }
 
@@ -205,6 +205,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ ok: true, reply, remaining: rl.remaining });
   } catch (error: any) {
-    res.status(500).json({ error: error?.message || 'Support failed', reply: 'Internal error. Please try again.' });
+    console.error('Support assistant failed', error);
+    res.status(500).json({ error: 'Support failed', reply: 'Internal error. Please try again.' });
   }
 }
