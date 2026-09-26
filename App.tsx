@@ -1951,18 +1951,6 @@ const App: React.FC = () => {
     return String(window.localStorage.getItem(TRIAL_BYPASS_KEY) || '').trim().toUpperCase();
   }, []);
   const isTrialBypassActive = hasTrialBypass || isDevBypass || isProjectsPreviewBypass || isAdmin;
-  const shouldSendTrialBypassHeader = useMemo(() => {
-    if (isProjectsPreviewBypass) return true;
-    const stored = getStoredBypassCode();
-    return BYPASS_CODE_VALUES.has(stored);
-  }, [getStoredBypassCode, isProjectsPreviewBypass]);
-  const trialBypassHeaderValue = useMemo(() => {
-    if (isProjectsPreviewBypass) return PREVIEW_ACCESS_CODE;
-    const stored = getStoredBypassCode();
-    if (!stored) return TRIAL_BYPASS_CODE;
-    if (stored === 'CODE') return TRIAL_BYPASS_CODE;
-    return stored;
-  }, [getStoredBypassCode, isProjectsPreviewBypass]);
   const hasUploadedProduct = activeProducts.length > 0 || productAssets.length > 0;
   const ritualNoProductMode =
     !isProductPlacement &&
@@ -2530,13 +2518,6 @@ const App: React.FC = () => {
     }
   }, [isProjectsPreviewBypass]);
 
-  useEffect(() => {
-    if (!isAdmin) return;
-    setHasTrialBypass(true);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(TRIAL_BYPASS_KEY, TRIAL_BYPASS_CODE);
-    }
-  }, [isAdmin]);
 
   useEffect(() => {
     setStoryboardScenes(prev =>
@@ -3898,26 +3879,6 @@ const App: React.FC = () => {
       }
     } catch (err) {
       console.warn('Plan code redeem failed', err);
-    }
-    if (
-      normalized === PREVIEW_ACCESS_CODE ||
-      normalized === TRIAL_BYPASS_CODE ||
-      normalized === TESTER_UPGRADE_CODE.toUpperCase()
-    ) {
-      setHasTrialBypass(true);
-      setRemoteCredits(99999);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(TRIAL_BYPASS_KEY, normalized);
-      }
-      setPlanCodeInput('');
-      setPlanCodeError(null);
-      setPlanNotice(
-        normalized === PREVIEW_ACCESS_CODE
-          ? 'Access code applied: preview access enabled.'
-          : 'Access code applied: +99999 credits enabled.'
-      );
-      setShowPlanModal(false);
-      return;
     }
     const tier = PLAN_UNLOCK_CODES[normalized];
     if (!tier) {
@@ -5829,8 +5790,6 @@ If the model attempts to create a scene or environment, override it and force a 
             ? resolveOutputAspectRatio()
             : (promptOptions.aspectRatio || options.aspectRatio || '1:1');
         lastAspectRatioRef.current = aspectRatio;
-
-        const resolvedApiKey = getActiveApiKeyOrNotify();
         const resolvedUgcStyle = (promptOptions.ugcStyle ?? 'optimized').toLowerCase();
         const naturalMode = resolvedUgcStyle === 'natural';
         const rawMode = !!promptOptions.ugcRealModeActive;
@@ -6037,12 +5996,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
-              : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: payload.parts,
@@ -6194,8 +6148,7 @@ If the model attempts to create a scene or environment, override it and force a 
       setRemoteCredits,
       lifestylePrompt,
       lifestyleStep3Values,
-      resolveOutputAspectRatio,
-      shouldSendTrialBypassHeader
+      resolveOutputAspectRatio
     ]
   );
 
@@ -6237,7 +6190,6 @@ If the model attempts to create a scene or environment, override it and force a 
 
       // Ecommerce PDP Image Builder: force square canvases for overlays (hard rule).
       const aspectRatio = ECOMMERCE_PDP_ASPECT_RATIO;
-      const resolvedApiKey = getActiveApiKeyOrNotify();
 
       const mapSlotKeyToPdpSlot = (slotKey: EcommerceSlotKey): EcommercePdpSlot => {
         switch (slotKey) {
@@ -6360,12 +6312,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
-              : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
@@ -6473,7 +6420,6 @@ If the model attempts to create a scene or environment, override it and force a 
     isAdmin,
     setRemoteCredits,
     resolvedPlanTier,
-    shouldSendTrialBypassHeader,
   ]);
 
   const handleGenerateNarrativeSequenceClick = useCallback(async () => {
@@ -6503,7 +6449,6 @@ If the model attempts to create a scene or environment, override it and force a 
     setImageError(null);
 
     try {
-      const resolvedApiKey = getActiveApiKeyOrNotify();
 
       const aspectRatio = resolveOutputAspectRatio();
       const productParts: any[] = [];
@@ -6548,12 +6493,7 @@ If the model attempts to create a scene or environment, override it and force a 
 
         const response = await fetch('/api/generate', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(shouldSendTrialBypassHeader
-              ? { 'x-trial-bypass-code': trialBypassHeaderValue }
-              : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: GEMINI_IMAGE_MODEL,
             parts: [{ text: finalPrompt }, ...productParts],
@@ -6622,7 +6562,6 @@ If the model attempts to create a scene or environment, override it and force a 
     isTrialBypassActive,
     isTrialLocked,
     shouldTrackLocalCredits,
-    shouldSendTrialBypassHeader,
     currentPlan.label,
     planCreditLimit,
     remainingCredits,
@@ -6674,19 +6613,13 @@ If the model attempts to create a scene or environment, override it and force a 
         setImageError('Image editing is disabled while Gemini is off.');
         return;
       }
-      const resolvedApiKey = getActiveApiKeyOrNotify();
       const base64Image = generatedImageUrl.split(',')[1];
 
       const aspectRatio =
         isProductPlacement ? resolveOutputAspectRatio() : (lastAspectRatioRef.current || options.aspectRatio || '1:1');
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(shouldSendTrialBypassHeader
-            ? { 'x-trial-bypass-code': trialBypassHeaderValue }
-            : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: GEMINI_IMAGE_MODEL,
           parts: [
@@ -6772,7 +6705,6 @@ If the model attempts to create a scene or environment, override it and force a 
     resolveOutputAspectRatio,
     setRemoteCredits,
     setShowPlanModal,
-    shouldSendTrialBypassHeader,
   ]);
 
   const handleEditImage = useCallback(async () => {
