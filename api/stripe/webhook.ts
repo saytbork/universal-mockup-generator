@@ -5,6 +5,11 @@ import { setUser, getUser } from "../../server/lib/store.js";
 import { addActivity } from "../../server/lib/activity.js";
 
 const hasKV = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
+const PLAN_CREDITS: Record<string, number> = { creator: 20, studio: 60 };
+const normalizePlan = (value: unknown) => {
+  const plan = String(value || '').trim().toLowerCase();
+  return plan === 'creator' || plan === 'studio' ? plan : null;
+};
 const claimStripeEvent = async (eventId: string): Promise<boolean> => {
   if (!hasKV) return true;
   const { kv } = await import("@vercel/kv");
@@ -76,16 +81,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const session = event.data.object as Stripe.Checkout.Session;
         const email = session.customer_email || "";
         if (email) {
-          const plan = (session.metadata?.plan || 'basic').toString().toLowerCase();
+          const plan = normalizePlan(session.metadata?.plan);
+          if (!plan) throw new Error('Checkout session is missing a valid plan');
+          const planCredits = PLAN_CREDITS[plan];
           await setUser(email, {
             plan,
-            subscriptionRemaining: 20,
+            subscriptionRemaining: planCredits,
             trialRemaining: 0,
             inviteRemaining: 0,
           });
           if (session.customer) {
             await stripe.customers.update(session.customer as string, {
-              metadata: { ...(session.metadata || {}), subscription_remaining: "20", plan },
+              metadata: { ...(session.metadata || {}), subscription_remaining: String(planCredits), plan, email },
             });
           }
           await addActivity(email, "upgrade", { source: "checkout.session.completed" });
@@ -101,20 +108,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         if (email) {
           const user = await getUser(email);
-          const nextCredits = (user.subscriptionRemaining || 0) + 20;
-          await setUser(email, { subscriptionRemaining: nextCredits });
-          if (invoice.customer) {
-            await stripe.customers.update(invoice.customer as string, {
-              metadata: { ...(invoice.metadata || {}), subscription_remaining: String(nextCredits) },
+          const customer = invoice.customer
+            ? await stripe.customers.retrieve(invoice.customer as string)
+            : null;
+          const customerPlan = customer && !customer.deleted ? normalizePlan(customer.metadata?.plan) : null;
+          const plan = normalizePlan(user.plan) || customerPlan;
+          if (!plan) break;
+          const planCredits = PLAN_CREDITS[plan];
+          await setUser(email, { plan, subscriptionRemaining: planCredits });
+          if (customer && !customer.deleted) {
+            await stripe.customers.update(customer.id, {
+              metadata: { ...customer.metadata, subscription_remaining: String(planCredits), plan, email },
             });
           }
-          await addActivity(email, "upgrade", { source: "invoice.payment_succeeded", credits: nextCredits });
+          await addActivity(email, "upgrade", { source: "invoice.payment_succeeded", credits: planCredits, plan });
         }
         break;
       }
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const email = subscription.metadata?.email;
+        let email = subscription.metadata?.email || '';
+        if (!email && subscription.customer) {
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          if (!customer.deleted) email = String(customer.email || '');
+        }
         if (email) {
           await setUser(email, { plan: "free", subscriptionRemaining: 0 });
           await addActivity(email, "upgrade", { source: "customer.subscription.deleted" });
