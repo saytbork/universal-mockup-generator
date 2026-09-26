@@ -263,9 +263,7 @@ const maybeUpscaleImage = async (input: {
   };
 };
 
-const hasKV =
-  !!process.env.KV_REST_API_URL &&
-  !!(process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_READ_ONLY_TOKEN);
+const hasKV = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
 const GUEST_TRIAL_COOKIE = 'pm_guest_trial';
 const GUEST_TRIAL_TTL_SECONDS = 60 * 60 * 24;
 const GUEST_DAILY_WINDOW_SECONDS = 60 * 60 * 24 * 2;
@@ -511,8 +509,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = await parseBody(req);
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
-  const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true';
+  const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true' && vercelEnv !== 'production';
   const bypassCreditLimits = isPreview || unlimitedEnv;
+  if (isAnonymousTrial && vercelEnv === 'production' && !hasKV) {
+    res.status(503).json({ error: 'Free generation is temporarily unavailable' });
+    return;
+  }
   const clientIpForLimit = getClientIp(req);
   const ipLimit = await rateLimit({ key: clientIpForLimit, max: isAnonymousTrial ? 4 : 10, windowSeconds: 60, namespace: 'generate-ip' });
   if (!ipLimit.ok) {
@@ -568,11 +570,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
     } else {
-      console.log('[CREDITS] Anonymous trial limit bypass active (preview/unlimited mode)', {
-        vercelEnv,
-        requestHost,
-        isProjectsPreviewHost,
-      });
+      console.log('[CREDITS] Anonymous trial limit bypass active in trusted non-production mode', { vercelEnv });
     }
   }
   const email = authenticatedEmail || guestId || undefined;
@@ -584,7 +582,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const MAX_INLINE_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB per image
   const rawBodyString = JSON.stringify(body);
   if (Buffer.byteLength(rawBodyString, 'utf8') > MAX_BODY_SIZE) {
-    res.status(413).json({ error: 'Payload too large (max 5MB)' });
+    res.status(413).json({ error: 'Payload too large (max 10MB)' });
     return;
   }
   const parts = Array.isArray(body.parts) ? body.parts : null;
