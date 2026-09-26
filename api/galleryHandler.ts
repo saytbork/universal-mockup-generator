@@ -2,6 +2,8 @@
 import admin, { adminDB, adminStorage, FieldValue } from "../server/firebase/admin.mjs";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { checkAuth } from "../server/lib/checkAuth.js";
+import { getUser } from "../server/lib/store.js";
+import sharp from "sharp";
 
 type GalleryMeta = {
   width?: number;
@@ -34,16 +36,6 @@ const parseSingleQueryParam = (value: string | string[] | undefined): string => 
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Add CORS headers for frontend requests
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
 
   const action = parseAction(req);
   const galleryDisabled = String(process.env.GALLERY_DISABLED || '').toLowerCase() === 'true';
@@ -84,15 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(405).json({ error: "Method not allowed" });
         }
 
-        const { imageUrl, userId, plan, meta } = req.body || {};
-
+        const email = checkAuth(req);
+        if (!email) return res.status(401).json({ error: "Unauthorized" });
+        const { imageUrl, meta } = req.body || {};
         if (!imageUrl) return res.status(400).json({ error: "Missing imageUrl" });
-        if (!userId || userId === 'guest') {
-          return res.status(400).json({ error: "Missing or invalid userId. Email must be loaded before saving gallery items." });
-        }
-        if (!plan) return res.status(400).json({ error: "Missing plan" });
 
-        const normalizedUserId = String(userId).trim().toLowerCase();
+        const normalizedUserId = String(email).trim().toLowerCase();
+        const user = await getUser(normalizedUserId);
+        const plan = String(user.plan || 'free').trim().toLowerCase();
         const rawImageUrl = String(imageUrl).trim();
         const isDataUrl = rawImageUrl.toLowerCase().startsWith('data:');
 
@@ -104,7 +95,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (!match) {
             return res.status(400).json({ error: "Invalid data URL format" });
           }
-          const mimeType = match[1] || 'image/png';
+          const mimeType = String(match[1] || '').toLowerCase();
+          const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
+          if (!allowedMimeTypes.has(mimeType)) {
+            return res.status(415).json({ error: "Unsupported image type" });
+          }
           const base64Data = match[2] || '';
           const buffer = Buffer.from(base64Data, 'base64');
 
@@ -116,6 +111,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
           }
 
+          try {
+            await sharp(buffer, { failOn: 'error' }).metadata();
+          } catch {
+            return res.status(400).json({ error: "Invalid image data" });
+          }
           const ext = mimeType.includes('jpeg') ? 'jpg' : mimeType.includes('webp') ? 'webp' : 'png';
           const timestamp = Date.now();
           const safeUserPath = normalizedUserId.replace(/[^a-z0-9@._-]+/g, '_');
@@ -149,7 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const ref = await adminDB.collection("gallery").add({
           imageUrl: finalImageUrl,
           userId: normalizedUserId,
-          plan: String(plan).trim().toLowerCase(),
+          plan,
           createdAt: FieldValue.serverTimestamp(),
           width: meta?.width,
           height: meta?.height,
@@ -167,8 +167,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(405).json({ error: "Method not allowed" });
         }
 
+        const email = checkAuth(req);
+        if (!email) return res.status(401).json({ error: "Unauthorized" });
+        const normalizedEmail = String(email).trim().toLowerCase();
         const snapshot = await adminDB
           .collection("gallery")
+          .where("userId", "==", normalizedEmail)
           .orderBy("createdAt", "desc")
           .limit(200)
           .get();
@@ -211,13 +215,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: "Invalid url" });
         }
 
-        if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+        if (parsedUrl.protocol !== "https:") {
           return res.status(400).json({ error: "Unsupported url protocol" });
+        }
+        const configuredHosts = String(process.env.GALLERY_PROXY_ALLOWED_HOSTS || '')
+          .split(',')
+          .map(value => value.trim().toLowerCase())
+          .filter(Boolean);
+        const allowedHosts = new Set([
+          'storage.googleapis.com',
+          'firebasestorage.googleapis.com',
+          ...configuredHosts,
+        ]);
+        if (!allowedHosts.has(parsedUrl.hostname.toLowerCase())) {
+          return res.status(403).json({ error: "Image host is not allowed" });
         }
 
         const upstream = await fetch(parsedUrl.toString(), {
           method: "GET",
-          redirect: "follow",
+          redirect: "error",
+          signal: AbortSignal.timeout(8000),
         });
 
         if (!upstream.ok) {
@@ -230,7 +247,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const bytes = Buffer.from(await upstream.arrayBuffer());
-        const maxBytes = 25 * 1024 * 1024;
+        const maxBytes = 10 * 1024 * 1024;
         if (bytes.byteLength > maxBytes) {
           return res.status(413).json({ error: "Image too large to proxy" });
         }
@@ -313,8 +330,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       errorMessage = "Firebase configuration error. Please check environment variables.";
     } else if (error.code === 'permission-denied') {
       errorMessage = "Database permission denied. Please check Firestore rules.";
-    } else if (error.message) {
-      errorMessage = error.message;
     }
 
     return res.status(500).json({ error: errorMessage });
