@@ -925,10 +925,8 @@ type AiStudioApi = {
   openSelectKey: () => Promise<void>;
 };
 
-const getEnvApiKey = (): string | undefined => {
-  const fromProcess = process.env.API_KEY;
-  return fromProcess ? fromProcess.trim() : undefined;
-};
+// Google AI credentials are server-only. The browser must never read an API key.
+const getEnvApiKey = (): string | undefined => undefined;
 
 const fileToBase64 = (file: File): Promise<{ base64: string, mimeType: string }> => {
   return new Promise((resolve, reject) => {
