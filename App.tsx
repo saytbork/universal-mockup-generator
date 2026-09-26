@@ -783,8 +783,9 @@ const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === '
 // Model normalization removed. Image models must be passed exactly as written.
 const normalizeGeminiModel = (raw?: string) => raw || '';
 
-const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
-const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
+const DEFAULT_GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_IMAGE_MODEL ?? '';
+const GEMINI_IMAGE_MODEL = normalizeGeminiModel(GOOGLE_MODEL) || DEFAULT_GEMINI_IMAGE_MODEL;
 
 const VIDEO_CREDIT_COST = 15;
 
