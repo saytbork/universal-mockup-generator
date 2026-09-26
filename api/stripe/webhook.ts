@@ -4,6 +4,14 @@ import { getStripe } from "../../server/lib/stripeClient.js";
 import { setUser, getUser } from "../../server/lib/store.js";
 import { addActivity } from "../../server/lib/activity.js";
 
+const hasKV = !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
+const claimStripeEvent = async (eventId: string): Promise<boolean> => {
+  if (!hasKV) return true;
+  const { kv } = await import("@vercel/kv");
+  const result = await kv.set(`stripe:event:${eventId}`, "processing", { nx: true, ex: 60 * 60 * 24 * 30 });
+  return result === "OK";
+};
+
 export const config = {
   api: {
     bodyParser: false,
@@ -50,6 +58,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
     event = constructed;
+
+    if (!(await claimStripeEvent(event.id))) {
+      res.status(200).json({ received: true, duplicate: true });
+      return;
+    }
 
     switch (event.type) {
       case "checkout.session.completed": {
