@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
   const isUnlimited = isUnlimitedCreditsEmail(email);
-  const { amount, bucket, code } = req.body || {};
+  const { amount, code } = req.body || {};
   const creditAmount = parseAmount(amount) ?? 1;
   try {
     if (action === 'redeem') {
@@ -167,22 +167,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return;
     }
-    // refund
-    const targetBucket =
-      bucket === 'trial' || bucket === 'invite' || bucket === 'subscription' ? bucket : 'subscription';
-    for (let i = 0; i < creditAmount; i += 1) {
-      await refundCredit(email, targetBucket);
-    }
-    const user = await getUser(email);
-    await addActivity(email, 'image', { delta: creditAmount, refund: true });
-    res.json({
-      ok: true,
-      credits: user.credits ?? getEffectiveCredits(user),
-      remaining_credits: isUnlimited ? 999_999 : getEffectiveCredits(user),
-      trial_remaining: user.trialRemaining ?? 0,
-      invite_remaining: user.inviteRemaining ?? 0,
-      subscription_remaining: user.subscriptionRemaining ?? 0,
-    });
   } catch (error) {
     console.error('consume credit error', error);
     res.status(500).json({ error: 'Unable to consume credit' });
