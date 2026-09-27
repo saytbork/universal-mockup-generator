@@ -1832,6 +1832,40 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     console.warn(`Industry interaction enforcement: profile=${industryProfile} forcing interaction to none`);
   }
   v2State.interaction = sanitizedInteractionCanonical;
+
+  // Final interaction authority must also own physical presence. Persisted/legacy
+  // state can contain placement="surface" while the selected interaction is a
+  // hold, which otherwise emits contradictory PHYSICAL_PRESENCE directives.
+  const heldInteractionProfiles = new Set<ProductStudioState['interaction']>([
+    'cropped-hand',
+    'supported-hold',
+    'holding',
+    'two-hand-hold',
+    'presenting',
+    'framed-presentation',
+    'capsule-display',
+  ]);
+  if (heldInteractionProfiles.has(sanitizedInteractionCanonical)) {
+    v2State.physicalPresence = 'held';
+    v2State.physicalPlacement = 'held';
+    v2State.placementContext = 'hand-supported hold with natural ergonomic contact';
+    v2State.groundingMode = 'hand-grounded';
+  } else if (sanitizedInteractionCanonical === 'applying-opening') {
+    v2State.physicalPresence = 'contact';
+    v2State.physicalPlacement = 'held';
+    v2State.placementContext = 'active hand contact for a single opening or application action';
+    v2State.groundingMode = 'hand-grounded';
+  } else if (
+    sanitizedInteractionCanonical === 'none' ||
+    sanitizedInteractionCanonical === 'passive-presence' ||
+    sanitizedInteractionCanonical === 'resting-interaction'
+  ) {
+    v2State.physicalPresence = 'surface';
+    v2State.physicalPlacement = 'surface';
+    v2State.placementContext = 'grounded base contact on a stable surface';
+    v2State.groundingMode = 'surface-grounded';
+  }
+
   v2State.packagingBehavior = packagingBehavior;
   debugLog('[ENVIRONMENT RESOLVED]', v2State.environmentPreset || '');
 
