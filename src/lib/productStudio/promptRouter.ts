@@ -203,6 +203,24 @@ function inferRequestedModifiers(state: ProductStudioState): StudioUIState['requ
   if (hasExplicit('Floating Particles')) {
     requested.add('particles');
   }
+  if (hasExplicit('Caustic Light Ripples')) {
+    requested.add('caustics');
+  }
+  if (hasExplicit('Prism Rainbow Refractions')) {
+    requested.add('prism');
+  }
+  if (hasExplicit('Glass Refraction Panels')) {
+    requested.add('glassRefraction');
+  }
+  if (hasExplicit('Micro Mist Halo')) {
+    requested.add('mist');
+  }
+  if (hasExplicit('Shadow Pattern Projection')) {
+    requested.add('shadowPattern');
+  }
+  if (hasExplicit('Gel Smear Editorial')) {
+    requested.add('gelSmear');
+  }
   if (hasExplicit('Acrylic Blocks')) {
     requested.add('acrylic');
   }
