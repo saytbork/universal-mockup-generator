@@ -39,8 +39,8 @@ const getKv = async () => {
 
 const defaultUser = (): UserRecord => ({
   plan: 'free',
-  credits: 2,
-  trialRemaining: 2,
+  credits: 1,
+  trialRemaining: 1,
   inviteRemaining: 0,
   subscriptionRemaining: 0,
   createdAt: Date.now(),
@@ -71,7 +71,7 @@ const normalizeUserRecord = (input: UserRecord | any): UserRecord => {
     typeof input?.subscriptionRemaining === 'number';
 
   const legacyCredits = Number(input?.credits ?? 0);
-  let trialRemaining = hasBuckets ? Number(input?.trialRemaining ?? 0) : (plan === 'free' ? Math.min(2, legacyCredits || 2) : 0);
+  let trialRemaining = hasBuckets ? Number(input?.trialRemaining ?? 0) : (plan === 'free' ? Math.min(1, legacyCredits || 1) : 0);
   let inviteRemaining = hasBuckets ? Number(input?.inviteRemaining ?? 0) : (plan === 'free' ? Math.max(legacyCredits - trialRemaining, 0) : 0);
   let subscriptionRemaining = hasBuckets ? Number(input?.subscriptionRemaining ?? 0) : (plan !== 'free' ? Math.max(legacyCredits, 0) : 0);
 
