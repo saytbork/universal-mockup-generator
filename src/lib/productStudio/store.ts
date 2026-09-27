@@ -1655,7 +1655,20 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
 
             return updates;
         }),
-    setMicroPlace: (place) => set({ microPlace: place }),
+    setMicroPlace: (place) =>
+        set((state) => {
+            console.warn('[ENV][LEGACY WRITE] setMicroPlace is deprecated, use setEnvironmentContext');
+            // Keep the canonical environmentContext in sync for persisted/legacy callers.
+            // A micro-only write must not create a second source of truth.
+            const macro = state.environmentContext?.macro ?? state.environmentMacro ?? 'studio';
+            return {
+                microPlace: place,
+                environmentContext: {
+                    macro,
+                    micro: place,
+                },
+            };
+        }),
     setCustomEnvironmentText: (text) =>
         set((state) => {
             const trimmed = String(text || '').trim();
