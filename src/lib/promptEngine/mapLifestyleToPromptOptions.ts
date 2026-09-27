@@ -2264,9 +2264,16 @@ export function mapLifestyleToPromptOptions(
         }
     }
 
+    // Lifestyle Creative Direction is the aesthetic authority for every
+    // environment scene with a person. UI creationMode values are labels such as
+    // "Aesthetic Builder", so checking them against internal mapper values
+    // ("aesthetic"/"lifestyle") silently disabled Brand/Editorial/Luxury.
     const isLifestyleAdvertising =
-        (sceneState.creationMode === 'lifestyle' || sceneState.creationMode === 'aesthetic') &&
-        personIncluded;
+        resolvedSceneType === 'lifestyle-real' &&
+        isEnvironmentSceneIntent &&
+        personIncluded &&
+        isUGCMode !== true &&
+        mapped.ugcRealModeActive !== true;
     if (isLifestyleAdvertising) {
         const resolvedVisualIntent = String(mapped.visualIntent || 'editorial').toLowerCase();
         const settingLabel = String(
