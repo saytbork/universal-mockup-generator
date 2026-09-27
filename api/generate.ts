@@ -638,10 +638,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     return;
   }
-  if (!apiKey.startsWith('AIza')) {
-    res.status(500).json({ error: 'Server Google API key has invalid format' });
-    return;
-  }
 
   let creditResult: Awaited<ReturnType<typeof consumeCredit>> | null = null;
   if (!isAnonymousTrial) {
