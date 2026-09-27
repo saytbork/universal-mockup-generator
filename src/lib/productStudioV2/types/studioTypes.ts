@@ -249,6 +249,14 @@ export interface StudioUIState {
   ingredientLayout?: string;
   /** Composition alignment hint from Studio UI. */
   alignment?: 'left' | 'center' | 'right' | 'centered' | 'left-space' | 'right-space' | string;
+  /** Creative Direction advanced controls forwarded from the canonical Product Studio store. */
+  creativeTheme?: string;
+  propDensity?: string;
+  surface?: string;
+  scale?: string;
+  spacing?: string;
+  lightStyle?: string;
+  negativeSpace?: string;
 
   // ── Brand palette / background color injection ──────────────────────────────
   /** Source of palette for background resolution: 'Use product label colors' | 'Brand Colors' | 'Custom' */
