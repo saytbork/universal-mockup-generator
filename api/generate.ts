@@ -177,18 +177,16 @@ const buildGenerateImageRequest = ({
   config: {
     responseModalities: [Modality.IMAGE],
     safetySettings: [],
-    generationConfig: {
-      responseMimeType: 'image/png',
+    imageConfig: {
       aspectRatio,
-      preserveReferenceImage: effectivePreserveReferenceImage,
-      ...(imageStrength !== undefined ? { imageStrength } : {}),
-      guidanceScale: guidanceScale !== undefined ? guidanceScale : 8,
-      ...(negativePrompt !== undefined ? { negativePrompt } : {}),
-      temperature: 0.05,
-      topP: 0.85,
-      seed: crypto.randomUUID(),
     },
-  } as any,
+    // Keep only GenerateContentConfig fields supported by the current @google/genai SDK.
+    // Legacy Imagen-style controls (imageStrength, guidanceScale, negativePrompt,
+    // preserveReferenceImage) are intentionally enforced by prompt/reference inputs,
+    // not sent as unsupported Gemini generateContent config fields.
+    temperature: 0.05,
+    topP: 0.85,
+  },
 });
 
 const shouldRetryGenerateContentError = (
@@ -873,6 +871,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subscription_remaining: user.subscriptionRemaining ?? 0,
     });
   } catch (error: any) {
+    // Provider diagnostics: log only sanitized status/code/message metadata.
+    // Never log keys, headers, prompts, parts, image data, request bodies, or user identity.
+    let providerPayload: any = null;
+    const providerRawMessage = String(error?.message || '');
+    try {
+      providerPayload = JSON.parse(providerRawMessage);
+    } catch {
+      providerPayload = null;
+    }
+    const providerError = providerPayload?.error || providerPayload || {};
+    const providerMessage = String(providerError?.message || providerRawMessage || 'Generation failed')
+      .replace(/AIza[0-9A-Za-z_-]+/g, '[REDACTED_API_KEY]')
+      .replace(/Bearer\s+[0-9A-Za-z._-]+/gi, 'Bearer [REDACTED]')
+      .slice(0, 280);
+    console.error('[GENAI_PROVIDER_ERROR]', {
+      provider: 'google-genai',
+      httpStatus: Number(error?.status || 0) || undefined,
+      providerStatus: providerError?.status,
+      providerCode: providerError?.code,
+      providerMessage,
+      model,
+      apiVersion: 'v1beta',
+    });
+
     const rawErrorText = JSON.stringify(error || {}).toLowerCase();
     const messageText = String(error?.message || '').toLowerCase();
     const isApiKeyInvalid =
