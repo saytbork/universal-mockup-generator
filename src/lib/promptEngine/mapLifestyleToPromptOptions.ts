@@ -62,8 +62,8 @@ const resolveLifestyleHandsHolding = (input: {
         return Boolean(input.handsHolding);
     }
 
-    const interactionLabel = String(input.productInteraction || '').trim();
-    if (interactionLabel === 'Holding' && input.ugcRealMode !== true) {
+    const interactionLabel = String(input.productInteraction || '').trim().toLowerCase();
+    if (interactionLabel === 'holding' && input.ugcRealMode !== true) {
         return true;
     }
 
@@ -1055,6 +1055,9 @@ export function mapLifestyleToPromptOptions(
         sceneType: resolvedSceneType,
         ugcStyle: existingOptions.ugcStyle ?? 'optimized',
         placement: sceneState.placement,
+        // Preserve the canonical UI interaction at top level. ProductBuilder and
+        // professional-bias layers read this field directly.
+        productInteraction: sceneState.productInteraction,
         handsHolding: resolveLifestyleHandsHolding({
             resolvedSceneType,
             productInteraction: (sceneState as any).productInteraction,
