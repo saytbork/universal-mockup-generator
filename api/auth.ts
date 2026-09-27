@@ -16,7 +16,6 @@ const DASHBOARD_REDIRECT_PATH = '/app';
 const DEFAULT_REGISTRATION_NOTIFY_EMAIL = 'juanamisano@gmail.com';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_INVITE_BONUS_CREDITS = 10;
-const DEFAULT_TRIAL_COUPON_CODE = '2999';
 const DEFAULT_TRIAL_COUPON_BONUS_CREDITS = 20;
 
 const parseBonus = (value: string | undefined, fallback: number) => {
@@ -36,18 +35,21 @@ const parseAction = (req: VercelRequest) => {
 };
 
 const getRequestOrigin = (req: VercelRequest): string => {
-  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const envBase = process.env.BASE_URL?.trim();
   if (envBase) {
     return envBase.replace(/\/+$/, '');
   }
+  if (String(process.env.VERCEL_ENV || '').toLowerCase() === 'production') {
+    return 'https://perfectmockup.com';
+  }
+  const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
   const proto = (req.headers['x-forwarded-proto'] as string) || (host.includes('localhost') ? 'http' : 'https');
   return `${proto}://${host}`.replace(/\/+$/, '');
 };
 
 const buildSessionCookie = (email: string, req: VercelRequest) => {
   const proto = (req.headers['x-forwarded-proto'] as string) || (req.headers.host?.includes('localhost') ? 'http' : 'https');
-  const secureFlag = proto === 'https' ? '; Secure' : '';
+  const secureFlag = String(process.env.VERCEL_ENV || '').toLowerCase() === 'production' || proto === 'https' ? '; Secure' : '';
   const token = createSessionToken(email);
   return `session_email=${encodeURIComponent(token)}; Path=/; HttpOnly${secureFlag}; SameSite=Lax; Max-Age=604800`;
 };
@@ -112,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
       const requiredCode = normalizeCode(process.env.INVITATION_CODE);
-      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
+      const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE);
       const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
       const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
       const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
@@ -120,7 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isDisposable = disposableDomains.some((d) => domain.toLowerCase().includes(d));
       const normalizedCode = normalizeCode(invitationCode);
       const matchesRequired = Boolean(requiredCode && normalizedCode === requiredCode);
-      const matchesTrialCoupon = normalizedCode === trialCouponCode;
+      const matchesTrialCoupon = Boolean(trialCouponCode && normalizedCode === trialCouponCode);
       const isRecognizedCode = matchesRequired || matchesTrialCoupon;
       if (normalizedCode && isDisposable) {
         res.status(400).json({ error: 'Invitation code requires a non-temporary email address' });
@@ -202,7 +204,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       try {
         const requiredCode = normalizeCode(process.env.INVITATION_CODE);
-        const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE || DEFAULT_TRIAL_COUPON_CODE);
+        const trialCouponCode = normalizeCode(process.env.TRIAL_COUPON_CODE);
         const inviteBonus = parseBonus(process.env.INVITATION_BONUS_CREDITS, DEFAULT_INVITE_BONUS_CREDITS);
         const trialCouponBonus = parseBonus(process.env.TRIAL_COUPON_BONUS_CREDITS, DEFAULT_TRIAL_COUPON_BONUS_CREDITS);
         const disposableDomains = ['mailinator.com', 'yopmail.com', '10minutemail', 'guerrillamail.com'];
@@ -227,7 +229,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const alreadyClaimed = Boolean(user.inviteUsed);
 
           if (plan === 'free' && !alreadyClaimed) {
-            const isTrialCoupon = normalizedInvitationCode === trialCouponCode;
+            const isTrialCoupon = Boolean(trialCouponCode && normalizedInvitationCode === trialCouponCode);
             if (isTrialCoupon) {
               const redemption = await tryConsumeTrialCouponRedemption(normalizedInvitationCode);
               if (!redemption.ok) {

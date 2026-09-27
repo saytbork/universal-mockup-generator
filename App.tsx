@@ -783,8 +783,18 @@ const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION === '
 // Model normalization removed. Image models must be passed exactly as written.
 const normalizeGeminiModel = (raw?: string) => raw || '';
 
-const GEMINI_IMAGE_MODEL = normalizeGeminiModel('gemini-2.5-flash-image') || 'gemini-2.5-flash-image';
-const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_MODEL ?? '';
+const DEFAULT_GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
+const GOOGLE_MODEL = import.meta.env.VITE_GOOGLE_IMAGE_MODEL ?? '';
+const GEMINI_IMAGE_MODEL = normalizeGeminiModel(GOOGLE_MODEL) || DEFAULT_GEMINI_IMAGE_MODEL;
+const IMAGE_MODEL_OPTIONS = [
+  { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5' },
+  { value: 'gemini-3.1-flash-image', label: 'Gemini 3.1' },
+] as const;
+type ImageModelChoice = (typeof IMAGE_MODEL_OPTIONS)[number]['value'];
+const resolveImageModelChoice = (model: string): ImageModelChoice =>
+  IMAGE_MODEL_OPTIONS.some(option => option.value === model)
+    ? (model as ImageModelChoice)
+    : DEFAULT_GEMINI_IMAGE_MODEL;
 
 const VIDEO_CREDIT_COST = 15;
 
@@ -925,10 +935,8 @@ type AiStudioApi = {
   openSelectKey: () => Promise<void>;
 };
 
-const getEnvApiKey = (): string | undefined => {
-  const fromProcess = process.env.API_KEY;
-  return fromProcess ? fromProcess.trim() : undefined;
-};
+// Google AI credentials are server-only. The browser must never read an API key.
+const getEnvApiKey = (): string | undefined => undefined;
 
 const fileToBase64 = (file: File): Promise<{ base64: string, mimeType: string }> => {
   return new Promise((resolve, reject) => {
@@ -1527,6 +1535,11 @@ const App: React.FC = () => {
   );
   const [storyboardScenes, setStoryboardScenes] = useState<StoryboardScene[]>(() => [initialSceneRef.current!]);
   const [activeSceneId, setActiveSceneId] = useState<string>(initialSceneRef.current!.id);
+  const [selectedImageModel, setSelectedImageModel] = useState<ImageModelChoice>(() =>
+    resolveImageModelChoice(GEMINI_IMAGE_MODEL)
+  );
+  const isImageModelQaVisible =
+    typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
@@ -3830,22 +3843,27 @@ const App: React.FC = () => {
         setShowPlanModal(false);
         return;
       }
-      const targetUrl = PLAN_CONFIG[tier].stripeUrl;
-      if (!targetUrl) return;
-      try {
-        const url = new URL(targetUrl);
-        if (userEmail) {
-          url.searchParams.set('prefilled_email', userEmail);
-        } else {
-          setPlanNotice(
-            'You can check out now. To sync credits to your account, sign in with a magic link or Google first.'
-          );
-        }
-        window.open(url.toString(), '_blank', 'noopener,noreferrer');
-      } catch (err) {
-        console.error(err);
-        setPlanNotice('Could not open checkout. Please try again.');
+      if (!userEmail) {
+        setPlanNotice('Please sign in to continue to checkout.');
+        return;
       }
+      void (async () => {
+        try {
+          const response = await fetch('/api/stripe/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: tier }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || typeof data?.url !== 'string') {
+            throw new Error('Checkout session failed');
+          }
+          window.location.assign(data.url);
+        } catch (err) {
+          console.error(err);
+          setPlanNotice('Could not open checkout. Please try again.');
+        }
+      })();
     },
     [isSimpleMode, userEmail]
   );
@@ -5998,7 +6016,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: payload.parts,
             aspectRatio,
             preserveReferenceImage,
@@ -6007,6 +6025,7 @@ If the model attempts to create a scene or environment, override it and force a 
               sceneType: String((promptOptions as any).sceneType || (options as any).sceneType || ''),
               mode: String(promptOptions.creationMode || options.creationMode || ''),
               aspectRatio,
+              imageModel: selectedImageModel,
             },
           }),
         });
@@ -6116,6 +6135,7 @@ If the model attempts to create a scene or environment, override it and force a 
     [
       isRandomCharacterEnabled,
       randomizeCharacterParameters,
+      selectedImageModel,
       activeProducts,
       planTier,
       planCreditLimit,
@@ -6314,7 +6334,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             // Keep Output Format aspect ratio (do not lock to the uploaded product image dimensions).
@@ -6495,7 +6515,7 @@ If the model attempts to create a scene or environment, override it and force a 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: GEMINI_IMAGE_MODEL,
+            model: selectedImageModel,
             parts: [{ text: finalPrompt }, ...productParts],
             aspectRatio,
             preserveReferenceImage: false,
@@ -6621,7 +6641,7 @@ If the model attempts to create a scene or environment, override it and force a 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: GEMINI_IMAGE_MODEL,
+          model: selectedImageModel,
           parts: [
             { inlineData: { data: base64Image, mimeType: 'image/png' } },
             { text: prompt.trim() },
@@ -7456,6 +7476,39 @@ If the model attempts to create a scene or environment, override it and force a 
                             onFocusCapture={showGenerateBar}
                             onBlurCapture={scheduleGenerateBarAutoHide}
                           >
+                            {isImageModelQaVisible && (
+                              <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50/90 px-3 py-2 dark:border-white/10 dark:bg-white/5">
+                                <div className="min-w-0">
+                                  <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-gray-500 dark:text-white/45">
+                                    QA Image Model
+                                  </div>
+                                  <div className="text-[10px] text-gray-500 dark:text-white/40">
+                                    Same scene and prompt, switch only the renderer.
+                                  </div>
+                                </div>
+                                <div className="flex shrink-0 rounded-full bg-gray-200/80 p-1 dark:bg-black/30">
+                                  {IMAGE_MODEL_OPTIONS.map(modelOption => {
+                                    const active = selectedImageModel === modelOption.value;
+                                    return (
+                                      <button
+                                        key={modelOption.value}
+                                        type="button"
+                                        onClick={() => setSelectedImageModel(modelOption.value)}
+                                        disabled={isImageLoading}
+                                        aria-pressed={active}
+                                        className={`rounded-full px-3 py-1.5 text-[10px] font-semibold transition ${
+                                          active
+                                            ? 'bg-indigo-600 text-white shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900 dark:text-white/55 dark:hover:text-white'
+                                        } disabled:cursor-not-allowed disabled:opacity-50`}
+                                      >
+                                        {modelOption.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={() => {

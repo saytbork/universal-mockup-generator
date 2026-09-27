@@ -45,8 +45,8 @@ export interface DeleteGalleryResponse {
 /**
  * Add image to gallery
  * @param imageUrl - Public URL of uploaded image
- * @param userId - Firebase Auth user ID
- * @param plan - Subscription plan (free, creator, studio)
+ * @param userId - Legacy caller argument; ownership is derived from the authenticated server session.
+ * @param plan - Legacy caller argument; plan is derived from the server-side user record.
  * @param meta - Optional metadata
  * @returns Promise with new document ID
  */
@@ -61,8 +61,6 @@ export async function addToGallery(
             '/api/galleryHandler?action=add',
             {
                 imageUrl,
-                userId,
-                plan,
                 meta: meta || {},
             }
         );

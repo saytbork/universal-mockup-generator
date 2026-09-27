@@ -9,7 +9,6 @@ export const PLAN_CONFIG: Record<
     allowStudio: boolean;
     allowCaption: boolean;
     priceLabel: string;
-    stripeUrl?: string;
   }
 > = {
   free: {
@@ -27,7 +26,6 @@ export const PLAN_CONFIG: Record<
     allowStudio: true,
     allowCaption: true,
     priceLabel: '$19/mo',
-    stripeUrl: 'https://buy.stripe.com/14A28tb1Sgr0b2Y5HBeIw02',
   },
   studio: {
     label: 'Studio',
@@ -36,7 +34,6 @@ export const PLAN_CONFIG: Record<
     allowStudio: true,
     allowCaption: true,
     priceLabel: '$29/mo',
-    stripeUrl: 'https://buy.stripe.com/7sYfZj1ricaKdb6da3eIw01',
   },
 };
 
