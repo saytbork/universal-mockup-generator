@@ -1002,7 +1002,7 @@ function normalizePhysicalPresence(state: ProductStudioState): {
   const physicalPresence =
     placement === 'held'
       ? 'held'
-      : placement === 'air-suspended'
+      : placement === 'air' || placement === 'floating' || placement === 'air-suspended'
         ? 'suspended'
         : placement === 'supported'
           ? 'supported'
