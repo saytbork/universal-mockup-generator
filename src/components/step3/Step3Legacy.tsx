@@ -371,7 +371,8 @@ export interface LifestyleStep3Props {
 }
 
 const LIFESTYLE_STUDIO_LEAK_KEYS = new Set<string>([
-  'handsHolding',
+  // handsHolding is a canonical Lifestyle interaction field. It must survive
+  // the Studio-field isolation pass or "Holding" is silently downgraded.
   'productStudioInteraction',
   'productType',
   'productTypeCustom',
@@ -2703,10 +2704,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
   // ensuring the studio UI block (and its photo mode chips) always renders when the V2 engine is active.
 
   useEffect(() => {
+    // Do not let the transient productCount=0 render overwrite a user's
+    // Lifestyle interaction. Upload state and Step 3 can settle on different
+    // React ticks; mutating the canonical interaction here caused Holding to
+    // become Background immediately before prompt generation.
+    // The UI is already disabled while no product is uploaded, so no state
+    // mutation is required.
     if (hasUploadedProductAsset) return;
-    if (values.productInteraction === 'background') return;
-    updateValue('productInteraction', 'background');
-  }, [hasUploadedProductAsset, values.productInteraction, updateValue]);
+  }, [hasUploadedProductAsset]);
 
   useEffect(() => {
     if (uiSceneType !== 'lifestyle-real') return;
