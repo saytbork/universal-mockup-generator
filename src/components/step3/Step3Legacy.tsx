@@ -7922,9 +7922,19 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                         key={option.value}
                         title={VISUAL_INTENT_TOOLTIPS[option.value]}
                         onClick={() => {
-                          updateValue('visualIntent', option.value);
+                          // Creative Direction owns the Lifestyle aesthetic mode.
+                          // Entering UGC enables its dominant capture pipeline; leaving
+                          // UGC must explicitly tear that pipeline down so stale
+                          // smartphone/selfie/domestic semantics cannot contaminate
+                          // Editorial, Brand, or Luxury.
                           if (option.value === 'ugc') {
+                            updateValue('visualIntent', 'ugc');
                             setVisualMode('ugc');
+                          } else {
+                            if (values.visualMode === 'ugc' || values.ugcRealMode === true) {
+                              setVisualMode('default');
+                            }
+                            updateValue('visualIntent', option.value);
                           }
                           markSectionTouched('creator');
                         }}
