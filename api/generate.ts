@@ -505,6 +505,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isAdminUser = authenticatedEmail ? ADMIN_EMAILS.includes(authenticatedEmail.toLowerCase().trim()) : false;
   const isAnonymousTrial = !authenticatedEmail;
   const body = await parseBody(req);
+  if (isAnonymousTrial && String(process.env.VERCEL_ENV || '').trim().toLowerCase() === 'production') {
+    res.status(401).json({
+      error: 'Sign in with your email to generate your free image.',
+      auth_required: true,
+      reason: 'email_required',
+    });
+    return;
+  }
   const vercelEnv = String(process.env.VERCEL_ENV || '').trim().toLowerCase();
   const isPreview = vercelEnv === 'preview';
   const unlimitedEnv = process.env.UNLIMITED_CREDITS === 'true' && vercelEnv !== 'production';
