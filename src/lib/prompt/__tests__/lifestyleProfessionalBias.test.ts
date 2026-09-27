@@ -178,4 +178,49 @@ describe('LifestyleProfessionalBiasBuilder', () => {
     expect(mapped.lighting).toMatch(/early morning natural light/i);
     expect(mapped.lighting).toMatch(/warm ambient indoor lighting/i);
   });
+  it('activates professional creative-direction layers for current Aesthetic Builder UI value', () => {
+    const mapped = mapLifestyleToPromptOptions({
+      sceneType: 'lifestyle-real',
+      creationMode: 'Aesthetic Builder',
+      contentStyle: 'brand',
+      visualMode: 'default',
+      visualIntent: 'brand',
+      environmentContext: { macro: 'Kitchen', micro: 'Countertop' },
+      environment: 'Kitchen',
+      noPerson: false,
+      personIncluded: true,
+      age: 30,
+      gender: 'Female',
+      skinTone: 'Medium Neutral',
+      ethnicity: 'Non-specific',
+      bodyType: 'Average',
+      hair: 'Medium',
+      hairLength: 'Shoulder',
+      hairTexture: 'Wavy',
+      hairColor: 'Dark brown',
+      facialExpression: 'Calm & Serene',
+      eyeDirection: 'Looking at camera',
+      appearanceLevel: 'Regular',
+      pose: 'Relaxed Portrait',
+      skinRealism: 'Raw / Real',
+      timeOfDay: 'Afternoon',
+      lightingStyle: 'Natural',
+      shotType: 'Medium',
+      cameraType: 'DSLR / mirrorless camera',
+      cameraAngle: 'Eye level',
+      framing: 'Rule of thirds',
+      productProminence: 'product-first',
+      productInteraction: 'holding',
+      productStructure: 'single',
+      aspectRatio: '1:1 (Square)',
+    } as any);
+
+    expect(mapped.creationMode).toBe('aesthetic');
+    expect(mapped.visualIntent).toBe('brand');
+    expect(mapped.ugcRealModeActive).toBe(false);
+    expect(mapped.lifestyleAdvertisingProfile).toMatch(/brand|campaign|commercial/i);
+    expect(mapped.lifestyleEnvironmentInterpretation).toMatch(/real photographed|real-location|photographic/i);
+    expect(mapped.lifestyleHardRestrictions).not.toBe('');
+  });
+
 });
