@@ -1538,8 +1538,9 @@ const App: React.FC = () => {
   const [selectedImageModel, setSelectedImageModel] = useState<ImageModelChoice>(() =>
     resolveImageModelChoice(GEMINI_IMAGE_MODEL)
   );
-  const isImageModelQaVisible =
-    typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
+  // Temporary QA control: keep the image-model A/B selector visible on main/production
+  // while validating Gemini 2.5 vs 3.1. Remove this flag after migration.
+  const isImageModelQaVisible = true;
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
