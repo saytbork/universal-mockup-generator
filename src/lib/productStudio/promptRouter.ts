@@ -1344,6 +1344,14 @@ export function toStudioV2State(state: ProductStudioState): StudioUIState {
     cameraRotation: resolvedCamera.cameraRotation,
     framingGuide: resolvedCamera.framingGuide,
     requestedModifiers,
+    // Creative Direction advanced controls
+    creativeTheme: state.creativeTheme,
+    propDensity: state.propDensity,
+    surface: state.surface,
+    scale: state.scale,
+    spacing: state.spacing,
+    lightStyle: state.lightStyle,
+    negativeSpace: state.negativeSpace,
     // Bundle state (for framing logic)
     ...(state.bundle?.enabled && state.bundle.primaryProductId
       ? { bundle: { enabled: true, primaryProductId: state.bundle.primaryProductId } }
