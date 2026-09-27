@@ -28,7 +28,8 @@ function resolveGroundingMode(state?: StudioUIState): string {
 
   const presence = resolvePhysicalPresence(state);
   if (presence === 'suspended') return 'controlled-floating';
-  if (presence === 'held') return 'hand-grounded';
+  if (presence === 'held' || presence === 'contact') return 'hand-grounded';
+  if (presence === 'supported') return 'support-grounded';
   return 'surface-grounded';
 }
 
