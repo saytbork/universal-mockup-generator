@@ -13,8 +13,8 @@ export const PLAN_CONFIG: Record<
 > = {
   free: {
     label: 'Free',
-    description: '2 credits · watermark · comunidad · sin videos',
-    creditLimit: 2,
+    description: '1 free image · watermark · comunidad · sin videos',
+    creditLimit: 1,
     allowStudio: false,
     allowCaption: false,
     priceLabel: '$0',
