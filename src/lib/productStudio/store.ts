@@ -1893,6 +1893,7 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             // Missing modes here cause setPhotoMode to silently coerce to 'Hero Landing Page'.
             const allowed: PhotoMode[] = [
                 'Hero Landing Page',
+                'Color Pop Hero',
                 'Ingredient Stack',
                 'Ingredient Flat Lay',
                 'Acrylic Blocks',
