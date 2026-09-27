@@ -41,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const recent = await listActivity(email, 30);
       const hasSpend = recent.some(item => item.type === 'image' && Number(item.meta?.delta ?? 0) < 0);
       if (!hasSpend) {
-        user = await setUser(email, { trialRemaining: 2, plan: user.plan ?? 'free' });
+        user = await setUser(email, { trialRemaining: 1, plan: user.plan ?? 'free' });
       }
     } catch (err) {
       // Never fail /me due to activity lookups.
