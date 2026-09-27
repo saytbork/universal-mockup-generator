@@ -1022,7 +1022,9 @@ function normalizePhysicalPresence(state: ProductStudioState): {
       ? 'controlled-floating'
       : physicalPresence === 'held'
         ? 'hand-grounded'
-        : 'surface-grounded';
+        : physicalPresence === 'supported'
+          ? 'support-grounded'
+          : 'surface-grounded';
 
   return { physicalPresence, placementContext, groundingMode };
 }
