@@ -77,4 +77,37 @@ describe('promptRouter interaction isolation', () => {
     const second = toStudioV2State(state);
     expect(first).not.toBe(second);
   });
+
+  test('holding interaction owns held physical presence even with stale surface placement', () => {
+    const state = buildState({
+      visualProfile: 'default',
+      placement: 'surface',
+      interaction: 'holding' as any,
+      productStudioInteraction: 'holding' as any,
+    } as any);
+
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.interaction).toBe('holding');
+    expect(v2State.physicalPresence).toBe('held');
+    expect(v2State.physicalPlacement).toBe('held');
+    expect(v2State.groundingMode).toBe('hand-grounded');
+  });
+
+  test('passive interaction stays surface-grounded', () => {
+    const state = buildState({
+      visualProfile: 'default',
+      placement: 'held',
+      interaction: 'passive-presence' as any,
+      productStudioInteraction: 'passive-presence' as any,
+    } as any);
+
+    const v2State = toStudioV2State(state);
+
+    expect(v2State.interaction).toBe('passive-presence');
+    expect(v2State.physicalPresence).toBe('surface');
+    expect(v2State.physicalPlacement).toBe('surface');
+    expect(v2State.groundingMode).toBe('surface-grounded');
+  });
+
 });
