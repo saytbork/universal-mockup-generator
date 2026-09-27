@@ -84,6 +84,24 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
   ).trim();
   const hasEnvironmentContext = rawEnvironment.length > 0;
   const heroNegativeSpace = String(state?.photoModeConfig?.heroLandingPage?.negativeSpace || '').trim().toLowerCase();
+  const advancedNegativeSpace = String(state?.negativeSpace || '').trim().toLowerCase();
+  const scale = String(state?.scale || '').trim().toLowerCase();
+  const spacing = String(state?.spacing || '').trim().toLowerCase();
+  const advancedCompositionRules = [
+    scale === 'dominant' ? 'PRODUCT_SCALE_RULE: Product dominates the frame.' :
+      scale === 'balanced' ? 'PRODUCT_SCALE_RULE: Balanced product-to-frame ratio.' :
+      scale === 'oversized' ? 'PRODUCT_SCALE_RULE: Oversized product presence.' : '',
+    spacing === 'compact' ? 'PRODUCT_SPACING_RULE: Compact visual arrangement.' :
+      spacing === 'balanced' ? 'PRODUCT_SPACING_RULE: Balanced visual breathing room.' :
+      spacing === 'airy' ? 'PRODUCT_SPACING_RULE: Airy composition with extensive breathing room.' : '',
+    !heroNegativeSpace && advancedNegativeSpace === 'subtle'
+      ? 'ADVANCED_NEGATIVE_SPACE_RULE: Subtle negative space for airiness.'
+      : !heroNegativeSpace && advancedNegativeSpace === 'intentional'
+        ? 'ADVANCED_NEGATIVE_SPACE_RULE: Intentional copy-safe negative space.'
+        : !heroNegativeSpace && advancedNegativeSpace === 'heavy'
+          ? 'ADVANCED_NEGATIVE_SPACE_RULE: Strong minimal negative-space emphasis.'
+          : '',
+  ].filter(Boolean);
   const alignmentRule = (() => {
     if (alignment === 'left' || alignment === 'left-space') {
       return 'HERO_ALIGNMENT_RULE: Product shifted left-of-center with controlled right-side copy-safe negative space.';
@@ -299,6 +317,7 @@ export function buildComposition(authority: StudioAuthorityBundle, state?: Studi
     ingredientStackMode
       ? 'CRITICAL_COMPOSITION_GUARD: If composition resembles flat lay, overhead layout, or top-down table shot, regenerate using front-facing perspective.'
       : '',
+    ...advancedCompositionRules,
     ...interactionBias,
   ].join(' ');
 }
