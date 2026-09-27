@@ -7455,6 +7455,15 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                       }
 
                       updateValue('productCameraAngle', option as any);
+                      const angleMap: Record<string, ProductStudioState['angle']> = {
+                        'Eye level product': 'eye_level',
+                        '45° hero': '45_hero',
+                        'Top-down flat lay': 'top_down',
+                        'Low angle power': 'low_angle',
+                        'High angle overview': 'high_angle',
+                        'Detail close-up': 'detail_closeup',
+                      };
+                      productStore.setAngle(angleMap[option]);
                       productStore.setCameraUiLabels({ angle: option });
                       markSectionTouched('product-camera');
                     }}
@@ -7478,6 +7487,13 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     disabled={false}
                     onClick={() => {
                       updateValue('productCameraDistance', option);
+                      const distanceMap: Record<string, ProductStudioState['distance']> = {
+                        Wide: 'wide',
+                        Standard: 'standard',
+                        Tight: 'tight',
+                        Macro: 'macro',
+                      };
+                      productStore.setDistance(distanceMap[option]);
                       productStore.setCameraUiLabels({ distance: option });
                       markSectionTouched('product-camera');
                     }}
@@ -7502,6 +7518,7 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     key={option}
                     onClick={() => {
                       updateValue('productCameraRotation', option);
+                      productStore.setRotation(option);
                       productStore.setCameraUiLabels({ rotation: `${option}°` });
                       markSectionTouched('product-camera');
                     }}
@@ -7529,6 +7546,14 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                     key={option}
                     onClick={() => {
                       updateValue('productFramingGuide', option as any);
+                      const framingMap: Record<string, ProductStudioState['framing']> = {
+                        'Centered hero': 'centered_hero',
+                        'Rule of thirds': 'rule_of_thirds',
+                        'Left aligned + negative space': 'left_negative',
+                        'Right aligned + negative space': 'right_negative',
+                        'Grid-ready': 'grid_ready',
+                      };
+                      productStore.setFraming(framingMap[option]);
                       productStore.setCameraUiLabels({ framing: option });
                       markSectionTouched('product-camera');
                     }}
