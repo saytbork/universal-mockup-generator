@@ -1647,9 +1647,11 @@ export const useProductStudioStore = create<ProductStudioState & ProductStudioAc
             const validLighting = enforceValidLighting(state.lighting, validEnv);
 
             // MUTUAL EXCLUSIVITY: if real environment selected, disable Studio mode
+            const nextMicro = getDefaultMicroPlace(validEnv);
             const updates: Partial<ProductStudioState> = {
+                environmentContext: { macro: validEnv, micro: nextMicro },
                 environmentMacro: validEnv,
-                microPlace: getDefaultMicroPlace(validEnv),
+                microPlace: nextMicro,
                 lighting: validLighting,
             };
 
