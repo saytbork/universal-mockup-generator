@@ -31,7 +31,7 @@ export default function Login() {
         return;
       }
       setStatus("success");
-      setMessage("You will receive your login link shortly.");
+      setMessage("Check your email for your secure link. Open it to create your free image.");
     } catch (err: any) {
       setStatus("error");
       setMessage(err?.message || "Unable to send magic link.");
@@ -92,8 +92,8 @@ export default function Login() {
       >
         <div className="space-y-2 text-center">
           <p className="text-xs uppercase tracking-[0.35em] text-indigo-600">Perfect Mockup</p>
-          <h1 className="text-3xl font-bold">Access your workspace</h1>
-          <p className="text-sm text-gray-600">Secure magic link sign-in. No passwords.</p>
+          <h1 className="text-3xl font-bold">Create your free mockup</h1>
+          <p className="text-sm text-gray-600">Enter your email. We’ll send a secure magic link and your account includes 1 free image.</p>
         </div>
         <form onSubmit={handleSend} className="space-y-4">
           <label className="block text-sm text-gray-600">Email</label>
@@ -135,7 +135,7 @@ export default function Login() {
             disabled={status === "loading"}
             className="w-full rounded-xl bg-indigo-600 text-white py-3 text-lg font-semibold  hover:bg-indigo-600 text-white transition flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send Magic Link"}
+            {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Email Me My Free Image Link"}
           </button>
         </form>
         <AnimatePresence>
