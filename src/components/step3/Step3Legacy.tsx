@@ -6336,6 +6336,29 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                               key={option.value}
                               disabled={false}
                               onClick={() => {
+                                // Keep Physical Presence coherent with the selected interaction.
+                                // Hand-contact interactions must not leave placement="surface",
+                                // otherwise V2 receives contradictory surface + held directives.
+                                const heldInteractions = new Set<ProductStudioState['interaction']>([
+                                  'cropped-hand',
+                                  'supported-hold',
+                                  'holding',
+                                  'two-hand-hold',
+                                  'presenting',
+                                  'framed-presentation',
+                                  'applying-opening',
+                                  'capsule-display',
+                                ]);
+                                if (heldInteractions.has(option.stateValue)) {
+                                  productStore.setPlacement('held');
+                                } else if (
+                                  option.stateValue === 'none' ||
+                                  option.stateValue === 'passive-presence' ||
+                                  option.stateValue === 'resting-interaction'
+                                ) {
+                                  productStore.setPlacement('surface');
+                                }
+
                                 productStore.setInteraction(option.stateValue);
                                 productStore.setHandsHolding(option.stateValue !== 'none');
                                 updateValue('productStudioInteraction', option.stateValue as any);
