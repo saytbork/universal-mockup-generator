@@ -778,10 +778,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
             className="flex flex-col items-center justify-center gap-3 mt-10 w-full"
           >
             <Link
-              to="/app"
+              to="/login"
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-12 py-6 font-bold text-lg transition-all hover:bg-indigo-700 shadow-2xl shadow-indigo-600/30 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:scale-[0.98]"
             >
-              Generate 2 Free Images
+              Generate 1 Free Image
               <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
@@ -1605,7 +1605,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </p>
 
           <p className="text-center text-sm text-gray-600">
-            Want to try it first? <Link to="/app" className="font-semibold text-indigo-600 hover:text-indigo-700">Start free with 2 images.</Link>
+            Want to try it first? <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">Get 1 free image by email.</Link>
           </p>
 
           {selectedPlan && (
@@ -1652,7 +1652,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ disableSeo = false }) => {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <Link
-              to="/app"
+              to="/login"
               className="inline-flex items-center justify-center rounded-xl bg-indigo-600 text-white px-10 py-5 font-bold text-sm transition-all hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:scale-[0.98]"
             >
               Create your first product visual in minutes
