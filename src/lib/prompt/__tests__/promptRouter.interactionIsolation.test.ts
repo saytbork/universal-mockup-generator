@@ -110,4 +110,19 @@ describe('promptRouter interaction isolation', () => {
     expect(v2State.groundingMode).toBe('surface-grounded');
   });
 
+
+  test('air and floating placement aliases resolve to suspended physics', () => {
+    for (const placement of ['air', 'floating'] as const) {
+      const v2State = toStudioV2State(
+        buildState({
+          placement,
+          interaction: 'none',
+        } as any)
+      );
+
+      expect(v2State.physicalPresence).toBe('suspended');
+      expect(v2State.groundingMode).toBe('controlled-floating');
+    }
+  });
+
 });
