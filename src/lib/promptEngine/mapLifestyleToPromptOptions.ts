@@ -1517,16 +1517,6 @@ export function mapLifestyleToPromptOptions(
             : null;
 
     const productInteractionLabel = (sceneState.productInteraction || '').trim();
-    const normalizedPoseKey = normalizeKey(sceneState.pose);
-    const foregroundProductFocusRequested =
-        !isUGCMode &&
-        hasUploadedProductAsset &&
-        !ritualHideProductRequested &&
-        !forceHideProductRequested &&
-        isEnvironmentSceneIntent &&
-        (productInteractionLabel === 'Presenting' ||
-            productInteractionLabel === 'Holding' ||
-            normalizedPoseKey === 'offer-to-lens-reach');
     const captureBaseSelection = normalizedCaptureBase[0];
     const operatorSelection = normalizedCameraOperator[0];
     const hasProppedSurface = captureBaseSelection === PROPPED_SURFACE_ID;
@@ -1640,24 +1630,13 @@ export function mapLifestyleToPromptOptions(
                 .replace(/smooth motion/gi, 'natural movement');
             console.log('[ANTI-DOLL] Stripped cinematic language for person-included scene');
         }
-
-        if (foregroundProductFocusRequested) {
-            // Avoid semantics that encourage focusing on the face/background when the product must be foreground.
-            effectiveCameraSemantic = effectiveCameraSemantic
-                .replace(/crisp subject separation/gi, 'crisp overall clarity');
-            effectiveCameraSemantic +=
-                ' Focus priority: lock focus on the product in the foreground; the product label must be tack sharp and fully readable. Avoid heavy background blur.';
-        }
         mapped.cameraDeviceSemantic = effectiveCameraSemantic;
         console.log('[MAP] camera:', mapped.camera, '→', effectiveCameraSemantic);
     }
 
-    // For environment-first scenes, the default is mid-ground contextual placement.
-    // However, if the user is explicitly presenting the product toward camera, force product-forward framing.
-    if (foregroundProductFocusRequested) {
-        mapped.placementStyle = PRODUCT_PROMINENCE_CONFIG['product-first'].placementStyle;
-        mapped.productPlane = PRODUCT_PROMINENCE_CONFIG['product-first'].productPlane;
-    } else if (hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested) {
+    // Product prominence controls attention only; Product Interaction controls the
+    // physical relationship. Neither may silently rewrite the other.
+    if (hasUploadedProductAsset && !ritualHideProductRequested && !forceHideProductRequested) {
         const key =
             (sceneState as any).productProminence || ('product-first' as const);
         const config =
