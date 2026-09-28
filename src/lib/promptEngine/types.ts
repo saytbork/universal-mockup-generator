@@ -55,6 +55,7 @@ export interface PersonDetails {
     personPose?: string;
     personMood?: string;
     personAppearance?: string;
+    productState?: 'closed' | 'opened';
     productInteraction?: string;
     wardrobeStyle?: string;
     personProps?: string;

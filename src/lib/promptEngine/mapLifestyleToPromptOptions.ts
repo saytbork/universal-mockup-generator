@@ -937,6 +937,7 @@ export function mapLifestyleToPromptOptions(
         placement: sceneState.placement,
         // Preserve the canonical UI interaction at top level. ProductBuilder and
         // professional-bias layers read this field directly.
+        productState: ((sceneState as any).productState || 'closed') as 'closed' | 'opened',
         productInteraction: sceneState.productInteraction,
         handsHolding: resolveLifestyleHandsHolding({
             resolvedSceneType,

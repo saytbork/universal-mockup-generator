@@ -68,6 +68,13 @@ export class ProductBuilder implements PromptBuilder {
               ? this.buildEcommerceCanvasProductInsertion(options, hasMultipleProducts)
               : this.buildProductInsertion(options, hasMultipleProducts, productAssets.length);
 
+        const lifestyleProductState = String(options.productState || 'closed').trim().toLowerCase();
+        if (lifestyleProductState === 'opened') {
+            prompt += ' PRODUCT STATE (EXPLICIT): OPENED. Change only the functional state of the existing closure shown by the reference product. Preserve the exact package body, dimensions, neck/opening geometry, label, artwork, materials, and proportions. Remove or open only the closure mechanism that actually belongs to this package. Do not invent a cap, lid, pump, tab, thread, opening, accessory, interior contents, or alternate packaging. Product state must not change placement, scale, interaction, prominence, camera, framing, or composition.';
+        } else {
+            prompt += ' PRODUCT STATE (EXPLICIT): CLOSED. Preserve the exact existing closure from the reference product in its closed state. Do not remove, open, replace, redesign, or invent any closure component. Product state must not change placement, scale, interaction, prominence, camera, framing, or composition.';
+        }
+
         if (effectiveHeightNotes) {
             prompt += ` Respect real-world scale: ${effectiveHeightNotes}.`;
             prompt +=

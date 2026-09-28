@@ -497,6 +497,9 @@ export interface Step3Values {
   framing: string;
   productProminence: 'balanced' | 'product-first' | 'model-first' | 'fifty-fifty';
 
+  // Product State — independent of interaction/composition
+  productState: 'closed' | 'opened';
+
   // Product Interaction
   productInteraction: string;
   productUsageDescription: string;
@@ -1498,6 +1501,9 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
     cameraAngle: 'Eye level',
     framing: 'Rule of thirds',
     productProminence: 'product-first',
+
+    // Product State
+    productState: 'closed',
 
     // Product Interaction
     productInteraction: 'holding',
@@ -8281,6 +8287,20 @@ const LifestyleStep3: React.FC<LifestyleStep3Props> = ({
                             </div>
                           </div>
                         )}
+                      </div>
+
+                      <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Product State</p>
+                          <p className="text-xs text-gray-500 dark:text-white/50">Keep the existing closure closed or show it opened without redesigning the packaging.</p>
+                        </div>
+                        <div className={`flex flex-wrap gap-2 ${hasUploadedProductAsset ? '' : 'pointer-events-none select-none opacity-50'}`}>
+                          {[{ value: 'closed', label: 'Closed' }, { value: 'opened', label: 'Opened' }].map(option => (
+                            <button key={option.value} type="button" onClick={() => { updateValue('productState', option.value); markSectionTouched('productInteraction'); }} className={getTogglePillClass(values.productState === option.value)} disabled={!hasUploadedProductAsset}>
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="space-y-4 border-t border-gray-200/60 pt-6 dark:border-white/10">
