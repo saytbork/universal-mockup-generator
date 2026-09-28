@@ -615,11 +615,21 @@ const WARDROBE_SEMANTIC_MAP: Record<string, string> = {
  * PRODUCT INTERACTION → Physical hand and body relationship to product
  */
 const INTERACTION_SEMANTIC_MAP: Record<string, string> = {
-    'Holding': 'hands naturally holding the product in the FOREGROUND, closer to the camera lens than the face. Product is the primary subject; label faces camera and stays fully readable. Do not place the product behind the person.',
-    'Using': 'hands actively using the product while keeping the product in the FOREGROUND and fully readable. Product remains the primary subject; no blur or defocus on the product/label.',
-    'Presenting': 'product extended toward camera with natural wrist motion, held closest to lens. Product is the primary subject; label faces camera and stays fully readable without forced styling.',
+    'holding': 'Person physically holds the product with a natural grip. Preserve the depth plane, prominence, framing, and camera hierarchy selected by the other Lifestyle controls; holding does not automatically make the product foreground or primary.',
+    'Holding': 'Person physically holds the product with a natural grip. Preserve the depth plane, prominence, framing, and camera hierarchy selected by the other Lifestyle controls; holding does not automatically make the product foreground or primary.',
+    'showing': 'Product is intentionally shown toward the camera for visibility while preserving the selected product prominence, shot, and depth plane.',
+    'Showing': 'Product is intentionally shown toward the camera for visibility while preserving the selected product prominence, shot, and depth plane.',
+    'Showing to Camera': 'Product is intentionally shown toward the camera for visibility while preserving the selected product prominence, shot, and depth plane.',
+    'foreground': 'Product occupies the foreground plane as explicitly selected. Preserve believable scale and the selected person/product prominence.',
+    'Foreground': 'Product occupies the foreground plane as explicitly selected. Preserve believable scale and the selected person/product prominence.',
+    'beside': 'Product is positioned beside the person in the shared scene, naturally integrated at believable scale without promoting it into a foreground hero.',
+    'Beside': 'Product is positioned beside the person in the shared scene, naturally integrated at believable scale without promoting it into a foreground hero.',
+    'background': 'Product remains in the background/context plane as explicitly selected; do not move it forward or convert it into the primary subject.',
+    'Background': 'Product remains in the background/context plane as explicitly selected; do not move it forward or convert it into the primary subject.',
+    // Legacy values retained for existing saved scenes.
+    'Using': 'hands actively using the product in the selected scene hierarchy without changing its chosen prominence or camera plane',
+    'Presenting': 'product presented toward camera while preserving the selected composition and subject hierarchy',
     'Unboxing / Open Box': 'hands opening packaging or revealing the product inside with natural curiosity',
-    'Showing to Camera': 'product held outward toward camera lens, hand angled to display product label or design',
     'Unboxing': 'hands in process of opening product packaging, revealing contents with natural excitement',
     'Applying': 'hands applying product to skin or surface with natural spreading or dabbing motion',
     'Placing on Surface': 'hands lowering product onto surface, fingers releasing grip, natural placement motion'
@@ -936,12 +946,7 @@ export function mapLifestyleToPromptOptions(
             ugcRealMode: (sceneState as any).ugcRealMode,
         }),
     };
-    mapped.allowMessiness =
-        resolvedSceneType === 'lifestyle-real' &&
-            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury' &&
-            Boolean((sceneState as any).ugcRealMode) !== true
-            ? false
-            : Boolean((sceneState as any).allowMessiness);
+    mapped.allowMessiness = Boolean((sceneState as any).allowMessiness);
 
     // Formulation Story can optionally hide the product entirely (scene-only).
     if (isFormulationMode && sceneState.formulationProductVisible === false) {
@@ -2065,10 +2070,6 @@ export function mapLifestyleToPromptOptions(
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] Ecommerce Blank Space lighting enforced:', mapped.lighting);
     } else {
-        const isLuxuryLifestyleMode =
-            resolvedSceneType === 'lifestyle-real' &&
-            String((sceneState as any).visualIntent || '').trim().toLowerCase() === 'luxury' &&
-            Boolean((sceneState as any).ugcRealMode) !== true;
         const timeSemantic = TIME_SEMANTIC_MAP[sceneState.timeOfDay] || TIME_SEMANTIC_MAP['Midday'];
         const lightingStyleLabel = sceneState.lightingStyle || 'Natural Light';
         const looksOutdoor = (() => {
@@ -2100,9 +2101,7 @@ export function mapLifestyleToPromptOptions(
                 .replace(/inside/gi, 'outdoors');
         }
 
-        mapped.lighting = isLuxuryLifestyleMode
-            ? 'editorial interior lighting context'
-            : `${timeSemantic}, ${lightingSemantic}`;
+        mapped.lighting = `${timeSemantic}, ${lightingSemantic}`;
         (mapped as any).timeLightingContext = mapped.lighting;
         console.log('[MAP] lighting:', sceneState.timeOfDay, '+', sceneState.lightingStyle, '→', mapped.lighting);
     }
@@ -2168,7 +2167,7 @@ export function mapLifestyleToPromptOptions(
                     ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing. It must read as a real photographed location with believable construction, lived material response, natural lens behavior, and true-to-life depth; never as a 3D render, CGI environment, glossy showroom mockup, or synthetic virtual set.`
                     : 'The environment is styled as an expensive luxury campaign set with premium materials, controlled geometry, aspirational styling, and real-location photographic believability; never as a 3D render, CGI environment, or synthetic virtual set.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Luxury Advertising): Do NOT depict cheap-looking materials, domestic realism, casual everyday styling, generic influencer aesthetics, messy environments, documentary realism, 3D-rendered interiors, CGI surfaces, synthetic architecture, or virtual-set lighting. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Luxury Advertising): Preserve photographic realism and premium material response. Do NOT depict 3D-rendered interiors, CGI surfaces, synthetic architecture, or virtual-set lighting. Messiness, documentary cues, camera angle, shot, and composition remain controlled by their explicit Lifestyle selections.';
             mapped.luxuryStyle = 'aspirational luxury campaign';
         } else if (resolvedVisualIntent === 'brand') {
             mapped.lifestyleAdvertisingProfile =
@@ -2203,11 +2202,11 @@ export function mapLifestyleToPromptOptions(
         if (visualIntentKey === 'luxury') {
             const luxuryStructureMap: Record<'single' | 'couple' | 'group', string> = {
                 single:
-                    'LUXURY_SINGLE_STRUCTURE: One subject only. Clear visual authority. No secondary people. Centered or disciplined rule-of-thirds alignment. No competing hierarchy. Controlled micro-expression. Product-forward or balanced allowed.',
+                    'LUXURY_SINGLE_STRUCTURE: One subject only. Preserve the selected framing, camera angle, shot, and product prominence without adding hierarchy rules.',
                 couple:
-                    'LUXURY_COUPLE_STRUCTURE: Exactly two distinct individuals. Equal visual hierarchy. Both subjects on the same focal plane. No depth stacking. No portrait foreground dominance. Subjects side-by-side or symmetrical with clear spacing. No dominance of one subject over the other.',
+                    'LUXURY_COUPLE_STRUCTURE: Exactly two distinct individuals. Preserve the selected framing, depth, camera angle, shot, and product prominence; do not infer a new hierarchy from Luxury mode.',
                 group:
-                    'LUXURY_GROUP_STRUCTURE: Three or more distinct individuals with equal visual weight. Same focal plane. No hierarchical foreground subject. No depth stacking. Horizontal or shallow-arc arrangement. Clear identity differentiation and intentional spacing.',
+                    'LUXURY_GROUP_STRUCTURE: Three or more distinct individuals with clear identity differentiation. Preserve the selected framing, depth, camera angle, shot, and product prominence.',
             };
             mapped.lifestyleAdvertisingProfile = `${mapped.lifestyleAdvertisingProfile} ${luxuryStructureMap[personCountKey]}`.trim();
         } else if (visualIntentKey === 'brand') {
