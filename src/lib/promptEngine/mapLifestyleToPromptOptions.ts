@@ -534,8 +534,6 @@ const FRAMING_SEMANTIC_MAP: Record<string, string> = {
     'Spontaneous': 'spontaneous imperfect framing with natural cropping, slightly off-kilter authentic composition'
 };
 
-const LIFESTYLE_9X16_VERTICAL_FILL_RULE =
-    'VERTICAL FILL RULE (CRITICAL): The subject must occupy at least 85–90% of the vertical frame height. The head should be positioned close to the top edge of the frame. Feet may be partially cropped if necessary. No excessive empty space above or below the subject.';
 
 /**
  * TIME OF DAY → Physical light characteristics and atmosphere
@@ -2342,16 +2340,8 @@ export function mapLifestyleToPromptOptions(
     // Aspect ratio is independent from shot/framing. A 9:16 canvas must not
     // silently rewrite Full Body, framing, camera angle, or composition.
 
-    // Rule: Selfie Mode overrides Camera Position
-    if (mapped.selfieMode && mapped.selfieMode !== 'None') {
-        // Force third-person OFF if selfie is active (except for "Third-person phone shot")
-        if (mapped.selfieMode.includes('Third-person')) {
-            // Allow
-        } else {
-            // Ensure camera is consistent with selfie
-            mapped.cameraShot = 'closeUp' as any; // Selfies are generally close
-        }
-    }
+    // Selfie mode does not rewrite the selected shot. Any true incompatibility
+    // must be represented by disabled UI/state controls, not repaired here.
 
     if (isEnvironmentSceneIntent) {
         const isEcommerceCanvasOverlay =
