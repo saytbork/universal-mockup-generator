@@ -5751,14 +5751,12 @@ If the model attempts to create a scene or environment, override it and force a 
             'Do NOT generate an empty scene/background; never omit the product.',
           ].join(' ');
         } else if (!hideProductMode && generationProducts.length > 0) {
-          // Lifestyle/UGC safety: ensure the product is foregrounded and tack-sharp.
-          // This prevents "nice portrait + blurry product" outputs when the user uploads a product reference.
+          // Lifestyle/UGC safety protects product identity only.
+          // Spatial hierarchy, shot, camera and depth remain authoritative from the UI selections.
           finalPrompt = [
             finalPrompt,
-            'CRITICAL PRODUCT FOCUS: The product must be in the foreground and be the sharpest object in the image.',
-            'The label/logo must be fully readable (no blur, no glare, no occlusion).',
-            'Do NOT use shallow depth of field, bokeh, or background separation. Avoid shallow consumer blur effects. Keep a single-plane image with flat focus.',
-            'If a person is present, they may be slightly less sharp than the product, but the product must be tack sharp.',
+            'PRODUCT REFERENCE FIDELITY: Preserve the exact uploaded product identity, geometry, packaging, label and logo.',
+            'Do not move, enlarge, recenter, foreground, background, or refocus the product in a way that contradicts the selected Lifestyle interaction, prominence, shot, camera angle, or composition.',
           ].join(' ');
         } else if (isProPhotographer) {
           const proBits = [options.proLens, options.proLightingRig, options.proPostTreatment].filter(Boolean);
