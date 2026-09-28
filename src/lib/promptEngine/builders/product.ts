@@ -98,45 +98,18 @@ export class ProductBuilder implements PromptBuilder {
             options.sceneIntent === 'ecommerce' ||
             options.personIncluded === false;
 
-        // Product-first optics lock: the product must never be the blurred element.
-        // Exception: Ritual Mode allows natural depth with ritual action in focus
-        if (options.ritualModeActive && !options.ritualHideProduct) {
-            prompt +=
-                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture tack sharp. Product can be naturally integrated in the scene with contextual focus; label should remain readable but product is not the primary sharp element.';
-        } else if (ugcDepthLockActive) {
-            // UGC guard blocks any positive depth-of-field language. Keep focus directives without DOF terms.
-            prompt +=
-                isProductOnly
-                    ? ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the entire frame evenly focused; do not let the product or label become soft while the background is sharp.'
-                    : ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the entire frame evenly focused; do not let the product or label become soft while the face is sharp.';
-        } else {
-            prompt +=
-                isProductOnly
-                    ? ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background—not the product).'
-                    : ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product (if anything is softer, it must be the background or the face—not the product).';
-        }
-        if (effectiveHeightNotes) {
+        // Product fidelity must not override Lifestyle hierarchy.\n        // Product-only/ecommerce scenes may own focus; Lifestyle preserves the user's\n        // selected composition, shot, camera and interaction.\n        if (options.ritualModeActive && !options.ritualHideProduct) {\n            prompt +=\n                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture clear. Product can be naturally integrated with contextual focus; preserve label fidelity when visible.';\n        } else if (isProductOnly) {\n            prompt += ugcDepthLockActive\n                ? ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the frame evenly focused; do not let the product or label become soft while the background is sharp.'\n                : ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking.';\n        } else {\n            prompt += ' PRODUCT FIDELITY: Preserve exact packaging, label and logo detail at the placement, scale and depth selected by the Lifestyle controls. Do not move the product forward, enlarge it, change the shot, or change camera focus hierarchy solely to improve readability.';\n        }\n        if (effectiveHeightNotes) {
             prompt +=
                 ' SCALE RULE: Do not upscale the product beyond its real-world size. If readability is low, move the camera closer or adjust framing while keeping believable hand-to-product proportions and consistent real-world scale.';
         } else {
-            prompt +=
-                ' SCALE RULE: Keep the product large enough that the label text is readable at a glance. Do not make the product small in the frame; avoid full-body-wide shots that shrink the product.';
+            if (isProductOnly) {
+                prompt += ' SCALE RULE: Keep the product large enough that the label text is readable at a glance.';
+            } else {
+                prompt += ' SCALE RULE: Preserve believable real-world product scale within the selected Lifestyle shot and composition; do not enlarge the product to compensate for a wide or full-body framing choice.';
+            }
         }
         
-        // Ritual Mode: product placement is secondary to the action
-        if (options.ritualModeActive && !options.ritualHideProduct) {
-            prompt +=
-                ' PLACEMENT RULE (RITUAL MODE): Product must be naturally integrated in the background or mid-ground, secondary to the ritual action. The ritual activity and body posture are the primary visual elements. Product should feel incidental and contextual, not hero-focused.';
-        } else {
-            prompt +=
-                isProductOnly
-                    ? ' PLACEMENT RULE: Product must be physically closer to the camera than any surrounding props. Do not place the product behind objects or surfaces. No element should occlude the product or label.'
-                    : isBackgroundOrShowingGroup
-                        ? ' PLACEMENT RULE: Keep the product at believable tabletop or shared-scene scale within the group. Do not upscale it into an oversized foreground hero prop. The product may sit on the same plane as hands, tableware, or nearby people, but must remain fully readable and naturally proportioned to the environment.'
-                        : ' PLACEMENT RULE: Product must be physically closer to the camera than the face/body. Do not place the product behind the person. The face must not occlude the product.';
-        }
-
-        const mappedMaterial = productMaterial
+        // Placement authority follows the explicit Lifestyle interaction/composition.\n        if (options.ritualModeActive && !options.ritualHideProduct) {\n            prompt +=\n                ' PLACEMENT RULE (RITUAL MODE): Product is naturally integrated as selected by the ritual controls and remains secondary to the ritual action.';\n        } else if (isProductOnly) {\n            prompt +=\n                ' PLACEMENT RULE: Keep the product fully present and structurally faithful within the product-only composition.';\n        } else {\n            prompt +=\n                ` PLACEMENT AUTHORITY: Preserve the Lifestyle selection "${interactionValue || 'none'}" together with product prominence "${String(options.productProminence || 'balanced')}". Do not promote a background/beside/model-first selection into a foreground product hero and do not demote a foreground/product-first selection.`;\n        }\n\n        const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial
             : '';
         if (mappedMaterial) {
