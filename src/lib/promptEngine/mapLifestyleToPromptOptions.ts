@@ -508,7 +508,7 @@ const SHOT_TYPE_SEMANTIC_MAP: Record<string, string> = {
     'Close': 'tight close-up showing face and upper shoulders with minimal background, focused on expression and product proximity',
     'Medium': 'medium framing from mid-torso up, balanced view of face, hands, and immediate environment',
     'Wide': 'wide framing capturing the person within their surroundings, showing more of the room or setting for context',
-    'Full body': 'extended framing from waist to top of head (3/4 body), showing full torso, arms, and upper environment; feet and floor may be excluded to keep product properly sized'
+    'Full body': 'full-body framing showing the complete person from head to toe, including feet and surrounding floor/context; preserve this shot even when a product is present'
 };
 
 /**
