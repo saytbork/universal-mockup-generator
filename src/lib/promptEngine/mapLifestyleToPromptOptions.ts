@@ -476,27 +476,27 @@ const PRODUCT_PROMINENCE_CONFIG: Record<
 > = {
     balanced: {
         placementStyle:
-            'Balanced placement: product and person share attention while the environment supports the moment without stealing focus.',
+            'Balanced emphasis: person and product share visual attention. Preserve the independently selected interaction, depth plane, shot, framing, and camera angle.',
         productPlane:
-            'Balanced plane: keep both the face and the product in focus at the same time; the product label must be tack sharp and fully readable. Avoid heavy background blur that hides the product; avoid tiny product-in-frame compositions.',
+            'Balanced hierarchy only; do not infer foreground/background placement from prominence. Product spatial placement comes from Product Interaction.',
     },
     'product-first': {
         placementStyle:
-            'Product-forward placement: the product is the primary hero in the foreground while the environment remains visible as context.',
+            'Product-first emphasis: the product carries the strongest visual attention while preserving the independently selected interaction, depth plane, shot, framing, and camera angle.',
         productPlane:
-            'Foreground product-first placement closest to the camera lens; product and label must be tack sharp and fully readable; do not let the product fall into the background. Scale requirement: product must be large enough that label text reads clearly (avoid tiny product-in-frame compositions). The product sits closer to the camera than the face; the face must not obscure or dominate the product.',
+            'Product-first hierarchy does not automatically mean foreground. Preserve Product Interaction as the authority for foreground, beside, background, showing, or holding.',
     },
     'model-first': {
         placementStyle:
-            'Person-forward placement: the person is the hero while the product remains clearly visible and believable within the scene.',
+            'Model-first emphasis: the person carries the strongest visual attention while the product remains naturally integrated according to the selected interaction.',
         productPlane:
-            'Person-forward plane: keep the person prominent without pushing the product into a second plane. Keep the product on the same visual plane and tack sharp with a fully readable label; never place it in deep background or out of focus.',
+            'Model-first hierarchy does not move or refocus the product. Preserve Product Interaction as the authority for its spatial relationship.',
     },
     'fifty-fifty': {
         placementStyle:
-            'Equal emphasis placement: person and product share prominence with tight, intentional framing.',
+            'Equal emphasis: person and product share visual priority while preserving the independently selected interaction, depth plane, shot, framing, and camera angle.',
         productPlane:
-            'Equal emphasis plane: place the product and the face in the foreground together. Tight framing where both elements share prominence. Keep both the face and the product label tack sharp and readable; avoid compositing or unrealistic scale differences.',
+            'Equal hierarchy only; do not force both subjects onto one plane or into foreground. Preserve Product Interaction and camera controls.',
     },
 };
 
@@ -658,6 +658,7 @@ function isHandInteractionLabel(label: string): boolean {
     const normalized = String(label || '').trim().toLowerCase();
     return (
         normalized === 'holding' ||
+        normalized === 'showing' ||
         normalized === 'presenting' ||
         normalized === 'showing to camera' ||
         normalized === 'placing on surface' ||
@@ -1675,13 +1676,11 @@ export function mapLifestyleToPromptOptions(
 
         // In bg-replace canvas overlay, wide shots consistently shrink the product and defeat "Product First".
         // Force tighter shot types based on the user's composition intent.
-        const effectiveShotTypeKey = forceHideProductRequested
-            ? 'Medium'
-            : isEcommerceCanvasOverlayActive
-                ? productProminenceKey === 'model-first'
-                    ? 'Medium'
-                    : 'Close'
-                : (sceneState.shotType || 'Medium');
+        const effectiveShotTypeKey = isEcommerceCanvasOverlayActive
+            ? productProminenceKey === 'model-first'
+                ? 'Medium'
+                : 'Close'
+            : (sceneState.shotType || 'Medium');
 
         const shotTypeSemantic =
             SHOT_TYPE_SEMANTIC_MAP[effectiveShotTypeKey] ||
@@ -2361,135 +2360,8 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     // Prevent composition conflicts that shrink the subject vertically in portrait.
     // Scope: Lifestyle (non-UGC) only. Do not touch UGC behavior.
-    const isLifestyleNonUgc9x16 =
-        isEnvironmentSceneIntent &&
-        mapped.aspectRatio === '9:16' &&
-        isUGCMode !== true &&
-        mapped.ugcRealModeActive !== true;
-
-    if (isLifestyleNonUgc9x16) {
-        // Remove any strict head-to-toe requirement.
-        const shot = String(mapped.cameraShot || '').trim();
-        if (/(head\s*to\s*toe|full[- ]length)/i.test(shot)) {
-            mapped.cameraShot =
-                'vertical portrait framing with strong vertical fill; feet may be partially cropped if necessary; no full-length framing requirement' as any;
-        }
-
-        // Prevent "balanced negative space" from being interpreted as top/bottom headroom in 9:16.
-        const perspective = String(mapped.perspective || '').trim();
-        if (perspective) {
-            mapped.perspective = perspective
-                .replace(/balanced negative space/gi, 'balanced lateral negative space (left/right) only; minimal headroom');
-        }
-
-        (mapped as any).verticalFillRule = LIFESTYLE_9X16_VERTICAL_FILL_RULE;
-    }
-
-    // ========================================================================
-    // FORMULATION STORY (Restored)
-    // ========================================================================
-    mapped.formulationExpertEnabled = isFormulationMode;
-    mapped.formulationExpertName = sceneState.formulationName;
-    const roleValue = sceneState.formulationRole === 'Custom'
-        ? sceneState.formulationCustomRole
-        : sceneState.formulationRole;
-    mapped.formulationExpertRole = roleValue ? roleValue.trim() : '';
-    mapped.formulationLabStyle = sceneState.formulationLabVibe;
-    mapped.formulationExpertPreset = sceneState.formulationPreset;
-    mapped.formulationExpertAttire = sceneState.formulationAttire as ExpertAttire;
-    mapped.formulationBadgeEnabled = sceneState.formulationBadgeEnabled;
-    mapped.formulationStory = buildFormulationStoryOptions(sceneState);
-    (mapped as any).formulationTone =
-        (sceneState as any).formulationTone || 'calm, grounded, everyday';
-
-    // ========================================================================
-    // CONTENT STYLE & CREATION INTENT
-    // ========================================================================
-    mapped.creationIntent = sceneState.creationIntent;
-    const explicitContentStyle = String((sceneState as any).contentStyle || '').trim();
-    if (explicitContentStyle) {
-        mapped.contentStyle = explicitContentStyle as any;
-    }
-
-    // ========================================================================
-    // SELFIE MODE (Restored Logic)
-    // ========================================================================
-
-    // RULE 1: SELFIE × MULTI-PRODUCT EXCLUSION
-    const matchesMultiProduct = existingOptions && existingOptions.productAssets && existingOptions.productAssets.length > 1;
-
-    if (matchesMultiProduct) {
-        // HARD OVERRIDE - FORCE DISABLE SELFIE
-        console.log('[RULE 1] Multi-product scene detected - DISABLING all selfie modes');
-        mapped.selfieMode = 'None'; // or undefined/null if preferred, but 'None' is semantic here
-        if (mapped.personDetails) {
-            mapped.personDetails.selfieMode = undefined;
-            mapped.personDetails.selfieType = undefined;
-        }
-        mapped.selfieType = undefined; // Legacy
-
-        // Also ensure Step 3 value doesn't sneak in
-    } else if (sceneState.selfieMode && sceneState.selfieMode !== 'None') {
-        let selfieSemantic = (
-            // @ts-ignore
-            SELFIE_TYPE_SEMANTIC_MAP[sceneState.selfieMode] ||
-            // @ts-ignore
-            sceneState.selfieMode
-        );
-
-        // Inject camera tilt for UGC Real Mode selfies
-        if (isUGCMode) {
-            const tilts = [6, -6, 10, -10];
-            // Use the seed for deterministic randomness if available
-            const seedNum = parseInt(sceneState.seed || '0', 10) || Math.floor(Math.random() * 1000);
-            const selectedTilt = tilts[seedNum % tilts.length];
-            selfieSemantic = `${selfieSemantic}, imperfect camera tilt of ${selectedTilt} degrees for handheld realism`.replace(/\s+/g, ' ').trim();
-            console.log('[MAP] UGC Selfie Tilt injected:', selectedTilt, 'degrees');
-        }
-
-        mapped.selfieMode = selfieSemantic;
-        mapped.personDetails.selfieMode = selfieSemantic;
-        mapped.selfieType = selfieSemantic; // Legacy
-        mapped.personDetails.selfieType = selfieSemantic; // Legacy
-
-        console.log('[MAP] selfieMode:', sceneState.selfieMode, '→', selfieSemantic);
-    }
-
-    const captureBaseId = normalizedCaptureBase[0];
-    const captureBaseIsSelfie =
-        captureBaseId === 'torso-level-handheld' ||
-        captureBaseId === 'high-angle' ||
-        captureBaseId === 'low-angle' ||
-        captureBaseId === 'close-face' ||
-        captureBaseId === 'propped-surface';
-    const uiSelfieUnset = !sceneState.selfieMode || sceneState.selfieMode === 'None';
-    if (!matchesMultiProduct && captureBaseIsSelfie && uiSelfieUnset) {
-        mapped.selfieMode = captureBaseId;
-        mapped.selfieType = captureBaseId;
-        if (mapped.personDetails) {
-            mapped.personDetails.selfieMode = captureBaseId;
-            mapped.personDetails.selfieType = captureBaseId;
-        }
-    }
-
-    // ========================================================================
-    // FINAL SAFETY CHECKS & CONFLICT RESOLUTION (Priority 8)
-    // ========================================================================
-
-    // Rule: UGC Real Mode overrides everything
-    if (isUGCMode) {
-        // Block cinema cameras if they slipped through
-        const proCameras = [
-            'DSLR / mirrorless camera',
-            'Cinema camera rig',
-            'Medium format studio camera',
-            'Laptop webcam (pro setup)'
-        ];
-        if (proCameras.includes(mapped.camera || '')) {
-            console.log('[SAFETY] Downgrading Pro Camera in UGC Mode');
-            mapped.camera = 'Intentional smartphone camera';
-        }
-    }
+    // Aspect ratio is independent from shot/framing. A 9:16 canvas must not
+    // silently rewrite Full Body, framing, camera angle, or composition.
 
     // Rule: Selfie Mode overrides Camera Position
     if (mapped.selfieMode && mapped.selfieMode !== 'None') {
