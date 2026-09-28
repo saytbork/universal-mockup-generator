@@ -2154,14 +2154,14 @@ export function mapLifestyleToPromptOptions(
                 ''
         ).trim();
         const settingPhrase = settingLabel
-            ? `The ${settingLabel} is styled as an editorial luxury interior or premium campaign set with clean surfaces, intentional styling, and no clutter.`
-            : 'The environment is styled as an editorial luxury set with premium finishes and curated geometry.';
+            ? `The ${settingLabel} receives the selected campaign treatment while preserving the explicit scene-order, messiness, props, lighting, and environment controls.`
+            : 'Apply the selected campaign treatment without replacing explicit environment, scene-order, messiness, lighting, or composition controls.';
 
         if (resolvedVisualIntent === 'luxury') {
             mapped.lifestyleAdvertisingProfile =
                 'The person must appear as a real luxury advertising model with elevated, aspirational presence, polished believable features, premium grooming, and expensive campaign energy; not casual, not domestic, not documentary.';
             mapped.lifestyleWardrobeRules =
-                'Wardrobe must feel luxury-fashion adjacent: premium tailoring, clean silhouettes, rich materials, refined structure, and immaculate finish; no cheap basics, no sloppy casualwear, no worn fabrics, no domestic styling.';
+                'Render the explicitly selected wardrobe with luxury-campaign material response, grooming and finish. Do not replace the chosen garment, silhouette, color, or styling preset.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
                     ? `The ${settingLabel} is styled as an expensive luxury campaign location with premium materials, sculpted visual hierarchy, controlled surfaces, and aspirational set dressing. It must read as a real photographed location with believable construction, lived material response, natural lens behavior, and true-to-life depth; never as a 3D render, CGI environment, glossy showroom mockup, or synthetic virtual set.`
@@ -2173,25 +2173,25 @@ export function mapLifestyleToPromptOptions(
             mapped.lifestyleAdvertisingProfile =
                 'The person must appear as a real brand-campaign model with polished believable features, premium grooming, and clean commercial presence; not casual, not domestic, not documentary.';
             mapped.lifestyleWardrobeRules =
-                'Wardrobe must be premium, clean, intact, well-fitted, and commercially brand-safe; fabrics should look new, structured, and intentional; no sloppy basics, no worn garments, no domestic loungewear.';
+                'Render the explicitly selected wardrobe with brand-campaign polish and believable material detail. Do not replace the chosen garment, silhouette, color, or styling preset.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
                     ? `The ${settingLabel} is styled as a premium brand campaign set with clean surfaces, intentional composition, disciplined props, and conversion-friendly readability. It must feel like a real photographed interior with believable materials, true room depth, natural imperfections, and physical lighting response; never like CGI, Unreal-style staging, or a 3D mockup.`
                     : 'The environment is styled as a premium brand campaign set with clean surfaces, disciplined props, conversion-friendly readability, and real-location photographic believability; never like CGI or a 3D mockup.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Brand Advertising): Do NOT depict domestic realism, casual everyday styling, clutter, damaged wardrobe, cheap set dressing, UGC/documentary vibes, CGI interiors, synthetic surfaces, virtual-set lighting, or 3D-rendered room geometry. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Brand Advertising): Preserve photographic realism. Do NOT depict CGI interiors, synthetic surfaces, virtual-set lighting, or 3D-rendered room geometry. Wardrobe, messiness, documentary cues, camera, shot, and composition remain controlled by their explicit Lifestyle selections.';
             mapped.brandLook = 'clean premium campaign';
         } else {
             mapped.lifestyleAdvertisingProfile =
                 'The person must appear as a real editorial campaign model with polished presentation, natural believable features, and design-forward fashion/editorial presence; not casual, not domestic, not documentary.';
             mapped.lifestyleWardrobeRules =
-                'Wardrobe must be elevated and editorial: refined silhouettes, clean structure, high-quality fabrics, and intentional styling; no sloppy basics, no worn casualwear, no domestic clothing language.';
+                'Render the explicitly selected wardrobe with editorial art direction and believable material detail. Do not replace the chosen garment, silhouette, color, or styling preset.';
             mapped.lifestyleEnvironmentInterpretation =
                 settingLabel
                     ? `The ${settingLabel} is styled as a curated editorial campaign interior with clean surfaces, intentional styling, design-forward composition, and magazine-grade set discipline. It must still read as a real photographed place with believable architecture, true material texture, natural falloff, and optical depth; never as a CG concept room or synthetic render.`
                     : 'The environment is styled as a curated editorial campaign set with design-forward composition, magazine-grade discipline, and real-location photographic believability; never as a CG concept room or synthetic render.';
             mapped.lifestyleHardRestrictions =
-                'Hard restrictions (Editorial Advertising): Do NOT depict domestic realism, sloppy wardrobe, generic ecommerce stiffness, messy clutter, UGC/documentary visuals, CG concept interiors, synthetic architecture, 3D-rendered surfaces, or fake virtual-set lighting. If any of these appear, the generation is invalid.';
+                'Hard restrictions (Editorial Advertising): Preserve photographic realism. Do NOT depict CG concept interiors, synthetic architecture, 3D-rendered surfaces, or fake virtual-set lighting. Wardrobe, messiness, documentary cues, camera, shot, and composition remain controlled by their explicit Lifestyle selections.';
             mapped.editorialStyle = 'design-forward editorial campaign';
         }
         (mapped as any).disableUgcSemantics = true;
@@ -2212,17 +2212,17 @@ export function mapLifestyleToPromptOptions(
         } else if (visualIntentKey === 'brand') {
             const brandStructureMap: Record<'single' | 'couple' | 'group', string> = {
                 single:
-                    'BRAND_SINGLE_STRUCTURE: One primary subject. Product-forward allowed. Mild depth hierarchy allowed. Commercial clarity prioritized.',
+                    'BRAND_SINGLE_STRUCTURE: One subject. Preserve the selected framing, depth, camera angle, shot, and product prominence.',
                 couple:
-                    'BRAND_COUPLE_STRUCTURE: Two distinct individuals. Slight hierarchy allowed but not extreme. Depth separation allowed without portrait stacking. Product may remain primary.',
+                    'BRAND_COUPLE_STRUCTURE: Two distinct individuals. Preserve the selected framing, depth, camera angle, shot, and product prominence.',
                 group:
-                    'BRAND_GROUP_STRUCTURE: Commercial ensemble of three or more individuals. Slight hierarchy allowed. Product may remain primary. Avoid portrait hero dominance and aggressive foreground stacking.',
+                    'BRAND_GROUP_STRUCTURE: Three or more distinct individuals. Preserve the selected framing, depth, camera angle, shot, and product prominence.',
             };
             mapped.lifestyleAdvertisingProfile = `${mapped.lifestyleAdvertisingProfile} ${brandStructureMap[personCountKey]}`.trim();
         } else if (visualIntentKey === 'editorial') {
             const editorialStructureMap: Record<'single' | 'couple' | 'group', string> = {
                 single:
-                    'EDITORIAL_SINGLE_STRUCTURE: One subject. Artistic composition and dramatic hierarchy are allowed.',
+                    'EDITORIAL_SINGLE_STRUCTURE: One subject. Preserve the selected framing, depth, camera angle, shot, and product prominence.',
                 couple:
                     'EDITORIAL_COUPLE_STRUCTURE: Two individuals. Hierarchy, depth layering, and creative asymmetry are allowed.',
                 group:
