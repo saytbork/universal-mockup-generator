@@ -98,7 +98,20 @@ export class ProductBuilder implements PromptBuilder {
             options.sceneIntent === 'ecommerce' ||
             options.personIncluded === false;
 
-        // Product fidelity must not override Lifestyle hierarchy.\n        // Product-only/ecommerce scenes may own focus; Lifestyle preserves the user's\n        // selected composition, shot, camera and interaction.\n        if (options.ritualModeActive && !options.ritualHideProduct) {\n            prompt +=\n                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture clear. Product can be naturally integrated with contextual focus; preserve label fidelity when visible.';\n        } else if (isProductOnly) {\n            prompt += ugcDepthLockActive\n                ? ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the frame evenly focused; do not let the product or label become soft while the background is sharp.'\n                : ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking.';\n        } else {\n            prompt += ' PRODUCT FIDELITY: Preserve exact packaging, label and logo detail at the placement, scale and depth selected by the Lifestyle controls. Do not move the product forward, enlarge it, change the shot, or change camera focus hierarchy solely to improve readability.';\n        }\n        if (effectiveHeightNotes) {
+        // Product fidelity must not override Lifestyle hierarchy.
+        // Product-only/ecommerce scenes may own focus; Lifestyle preserves the user's
+        // selected composition, shot, camera and interaction.
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' FOCUS PRIORITY (RITUAL MODE): Keep the ritual action and body posture clear. Product can be naturally integrated with contextual focus; preserve label fidelity when visible.';
+        } else if (isProductOnly) {
+            prompt += ugcDepthLockActive
+                ? ' FOCUS PRIORITY: the product label must be crisp and fully readable. Keep the frame evenly focused; do not let the product or label become soft while the background is sharp.'
+                : ' FOCUS PRIORITY: lock focus on the product. The product must be the sharpest object in the frame and the label must be fully readable. Use deep depth of field (f/8–f/11) or focus stacking.';
+        } else {
+            prompt += ' PRODUCT FIDELITY: Preserve exact packaging, label and logo detail at the placement, scale and depth selected by the Lifestyle controls. Do not move the product forward, enlarge it, change the shot, or change camera focus hierarchy solely to improve readability.';
+        }
+        if (effectiveHeightNotes) {
             prompt +=
                 ' SCALE RULE: Do not upscale the product beyond its real-world size. If readability is low, move the camera closer or adjust framing while keeping believable hand-to-product proportions and consistent real-world scale.';
         } else {
@@ -109,7 +122,19 @@ export class ProductBuilder implements PromptBuilder {
             }
         }
         
-        // Placement authority follows the explicit Lifestyle interaction/composition.\n        if (options.ritualModeActive && !options.ritualHideProduct) {\n            prompt +=\n                ' PLACEMENT RULE (RITUAL MODE): Product is naturally integrated as selected by the ritual controls and remains secondary to the ritual action.';\n        } else if (isProductOnly) {\n            prompt +=\n                ' PLACEMENT RULE: Keep the product fully present and structurally faithful within the product-only composition.';\n        } else {\n            prompt +=\n                ` PLACEMENT AUTHORITY: Preserve the Lifestyle selection "${interactionValue || 'none'}" together with product prominence "${String(options.productProminence || 'balanced')}". Do not promote a background/beside/model-first selection into a foreground product hero and do not demote a foreground/product-first selection.`;\n        }\n\n        const mappedMaterial = productMaterial
+        // Placement authority follows the explicit Lifestyle interaction/composition.
+        if (options.ritualModeActive && !options.ritualHideProduct) {
+            prompt +=
+                ' PLACEMENT RULE (RITUAL MODE): Product is naturally integrated as selected by the ritual controls and remains secondary to the ritual action.';
+        } else if (isProductOnly) {
+            prompt +=
+                ' PLACEMENT RULE: Keep the product fully present and structurally faithful within the product-only composition.';
+        } else {
+            prompt +=
+                ` PLACEMENT AUTHORITY: Preserve the Lifestyle selection "${interactionValue || 'none'}" together with product prominence "${String(options.productProminence || 'balanced')}". Do not promote a background/beside/model-first selection into a foreground product hero and do not demote a foreground/product-first selection.`;
+        }
+
+        const mappedMaterial = productMaterial
             ? parameterMap.productMaterial?.[productMaterial] ?? productMaterial
             : '';
         if (mappedMaterial) {
@@ -228,8 +253,11 @@ export class ProductBuilder implements PromptBuilder {
       - match color temperature and contrast,
       - generate accurate shadow casting under the jar/bottle,
       ${hasActiveHandContact
-        ? '- apply micro-occlusion where the hand touches the product,\n      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,\n      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,'
-        : '- no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product,\n      - if no one is actively holding it, the product must rest naturally on a surface with clean contact and no phantom support,'}
+        ? '- apply micro-occlusion where the hand touches the product,
+      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,
+      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,'
+        : '- no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product,
+      - if no one is actively holding it, the product must rest naturally on a surface with clean contact and no phantom support,'}
       - generate correct reflections on glass, plastic, or metal,
       - preserve the exact design, size, colors, and branding of the uploaded product.
     `.trim().replace(/\s+/g, ' ');
