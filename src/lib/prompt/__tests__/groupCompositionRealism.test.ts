@@ -223,8 +223,9 @@ describe('IdentityBuilder group composition realism', () => {
       })
     );
 
-    expect(productOutput).toContain('PLACING RULE'.replace('PLACING', 'PLACEMENT'));
-    expect(productOutput).toContain('Keep the product at believable tabletop or shared-scene scale within the group.');
+    expect(productOutput).toContain('PLACEMENT AUTHORITY');
+    expect(productOutput).toContain('Lifestyle selection "background"');
+    expect(productOutput).toContain('product prominence "balanced"');
     expect(productOutput).toContain('no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product');
     expect(productOutput).toContain('if no one is actively holding it, the product must rest naturally on a surface');
     expect(productOutput).not.toContain('HAND CONTACT INTEGRATION: fingers must wrap around the product');
