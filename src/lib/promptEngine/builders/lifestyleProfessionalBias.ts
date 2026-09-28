@@ -54,7 +54,7 @@ export class LifestyleProfessionalBiasBuilder {
       'Creative advertising direction: premium, art-directed, visually expensive, and clearly built for brand campaign use.',
       'Environment discipline: editorial-grade interior environment, controlled set styling, intentional background simplification, premium prop discipline, no clutter unless explicitly requested.',
       'Background depth: subtle premium separation with controlled falloff and stabilized framing.',
-      'Camera reinforcement: set-lit enhancement even under natural light, commercial dynamic range, precision framing, premium ad contrast, and brand-safe compositional control.',
+      'Camera reinforcement: commercial dynamic range and premium campaign finish while preserving the explicitly selected camera type, angle, shot, framing, lighting, and composition.',
       'Signal suppression: remove user-generated framing drift, domestic storytelling tone, handheld instability, low-tier social-content aesthetics, and phone-capture vibes.',
     ];
 
@@ -66,7 +66,7 @@ export class LifestyleProfessionalBiasBuilder {
 
     if (productInteraction === 'holding') {
       parts.push(
-        'Holding directive: structured grip, pose-directed positioning, controlled wrist alignment, product-forward hand geometry, and premium hero readability.'
+        'Holding directive: natural believable grip, pose-directed wrist alignment, and anatomically correct contact. Holding does not change the selected product prominence, depth plane, shot, framing, or camera hierarchy.'
       );
     }
 
