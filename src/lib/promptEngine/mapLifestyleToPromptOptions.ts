@@ -212,136 +212,18 @@ const generateIdentityKey = (): string => {
     return generateIdentitySeed();
 };
 
-const BRAND_DRAMATIC_CAMERA_ANGLES = ['Low angle', 'High angle', 'Top-down', 'Bottom-up'] as const;
-const LUXURY_ALLOWED_CAMERA_TYPES = ['DSLR / mirrorless camera', 'Medium format studio camera'] as const;
-const LUXURY_ALLOWED_ANGLES = ['Eye level', 'Slightly above eye level', 'Slightly below eye level'] as const;
-const LUXURY_ALLOWED_SHOTS = ['Close', 'Medium'] as const;
-const LUXURY_ALLOWED_COMPOSITIONS = ['product-first', 'balanced'] as const;
-
-const normalizeVisualIntent = (value?: Step3Values['visualIntent']): 'editorial' | 'brand' | 'luxury' | 'ugc' => {
-    const intent = String(value || 'editorial').trim().toLowerCase();
-    if (intent === 'ugc' || intent === 'brand' || intent === 'luxury' || intent === 'editorial') {
-        return intent;
-    }
-    return 'editorial';
-};
-
-const resolveCompositionKey = (state: Step3Values): 'product-first' | 'balanced' | 'fifty-fifty' | 'model-first' | 'unknown' => {
-    const compositionValue = String(state.productProminence || '').trim().toLowerCase();
-    if (compositionValue === 'product first' || compositionValue === 'product-first') return 'product-first';
-    if (compositionValue === 'balanced') return 'balanced';
-    if (compositionValue === 'fifty / fifty' || compositionValue === 'fifty-fifty') return 'fifty-fifty';
-    if (compositionValue === 'model first' || compositionValue === 'model-first') return 'model-first';
-    return 'unknown';
-};
-
-const applyCompositionKey = (
-    state: Step3Values,
-    compositionKey: 'product-first' | 'balanced'
-): void => {
-    state.productProminence = compositionKey;
-};
-
 /**
- * CAMERA_COMPATIBILITY_LAYER
- * Deterministic compatibility for Lifestyle modes.
+ * Lifestyle selections are authoritative.
+ *
+ * Compatibility is enforced in the UI/state layer only when two controls are
+ * genuinely contradictory. The mapper must never rewrite an allowed camera,
+ * shot, composition, person-count, or visual-intent selection.
  */
-function applyLifestyleCompatibility(
-    sceneState: Step3Values,
-    resolvedSceneType: 'studio-branding' | 'lifestyle-real'
-): Step3Values {
-    if (resolvedSceneType !== 'lifestyle-real') {
-        return sceneState;
-    }
-
-    const next: Step3Values = { ...sceneState };
-    const intent = normalizeVisualIntent(next.visualIntent);
-    next.visualIntent = intent;
-
-    if (next.ugcRealMode === true || intent === 'ugc') {
-        if (next.personCount === 'group') {
-            next.personCount = 'single';
-            next.editSecondaryPerson = false;
-        }
-        return next;
-    }
-
-    next.personIncluded = true;
-    next.noPerson = false;
-
-    const compositionKey = resolveCompositionKey(next);
-
-    if (intent === 'editorial') {
-        return next;
-    }
-
-    if (intent === 'brand') {
-        if (
-            next.shotType === 'Full body' &&
-            compositionKey === 'product-first'
-        ) {
-            applyCompositionKey(next, 'balanced');
-        }
-        if (BRAND_DRAMATIC_CAMERA_ANGLES.includes(next.cameraAngle as (typeof BRAND_DRAMATIC_CAMERA_ANGLES)[number])) {
-            next.cameraAngle = 'Eye level';
-        }
-        if (next.cameraType === 'Medium format studio camera' && next.shotType === 'Wide') {
-            next.cameraType = 'DSLR / mirrorless camera';
-        }
-        if (next.personCount === 'group' && resolveCompositionKey(next) === 'product-first') {
-            applyCompositionKey(next, 'balanced');
-        }
-        if (next.personCount === 'group' && next.shotType === 'Close') {
-            next.shotType = 'Medium';
-        }
-        if (next.shotType === 'Extreme close-up') {
-            next.shotType = 'Medium';
-        }
-        return next;
-    }
-
-    if (intent === 'luxury') {
-        if (!LUXURY_ALLOWED_CAMERA_TYPES.includes(next.cameraType as (typeof LUXURY_ALLOWED_CAMERA_TYPES)[number])) {
-            next.cameraType = LUXURY_ALLOWED_CAMERA_TYPES[0];
-        }
-
-        if (!LUXURY_ALLOWED_ANGLES.includes(next.cameraAngle as (typeof LUXURY_ALLOWED_ANGLES)[number])) {
-            next.cameraAngle = LUXURY_ALLOWED_ANGLES[0];
-        }
-
-        if (!LUXURY_ALLOWED_SHOTS.includes(next.shotType as (typeof LUXURY_ALLOWED_SHOTS)[number])) {
-            next.shotType = 'Medium';
-        }
-
-        if (compositionKey !== 'product-first' && compositionKey !== 'balanced') {
-            applyCompositionKey(next, 'balanced');
-        }
-
-        if (next.personCount === 'group') {
-            applyCompositionKey(next, 'balanced');
-            next.shotType = 'Medium';
-            next.cameraAngle = 'Eye level';
-        }
-
-        if (next.personCount === 'couple' && resolveCompositionKey(next) === 'product-first') {
-            applyCompositionKey(next, 'balanced');
-        }
-
-        next.allowMessiness = false;
-        next.ugcRealMode = false;
-        (next as unknown as { ugcImperfectionLevel: Step3Values['ugcImperfectionLevel'] | 'none' }).ugcImperfectionLevel = 'none';
-        (next as unknown as { sceneOrderChaos: Step3Values['sceneOrderChaos'] | 'Controlled' }).sceneOrderChaos = 'Controlled';
-    }
-
-    return next;
-}
-
 function normalizeLifestyleState(
     sceneState: Step3Values,
     resolvedSceneType: 'studio-branding' | 'lifestyle-real'
 ): Step3Values {
     const next: Step3Values = { ...sceneState };
-    const isLifestyleReal = resolvedSceneType === 'lifestyle-real';
 
     const ugcActive = next.ugcRealMode === true;
     if (!ugcActive) {
@@ -354,16 +236,6 @@ function normalizeLifestyleState(
         next.ugcMotionStability = [];
         next.ugcFramingImperfections = [];
         next.ugcAwkwardContext = [];
-    }
-
-    const contentStyle = String((next as any).contentStyle || '').trim().toLowerCase();
-    const visualIntent = String((next as any).visualIntent || '').trim().toLowerCase();
-
-    if (isLifestyleReal && visualIntent === 'luxury') {
-        next.ugcRealMode = false;
-        next.allowMessiness = false;
-        (next as any).ugcImperfectionLevel = 'none';
-        (next as any).sceneOrderChaos = 'Controlled';
     }
 
     next.ugcRealMode = Boolean(next.ugcRealMode);
@@ -1038,7 +910,6 @@ export function mapLifestyleToPromptOptions(
     // ========================================================================
     console.log('[LIFESTYLE MODE ACTIVE]');
     sceneState = normalizeLifestyleState(sceneState, resolvedSceneType);
-    sceneState = applyLifestyleCompatibility(sceneState, resolvedSceneType);
 
     // Initialize mapped options
     const identityContinuityRequested = sceneState.sameCreatorAcrossScenes === true;
