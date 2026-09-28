@@ -26,7 +26,6 @@ export function buildCamera(params: any): string {
   const ugcVisualMode = String(params.visualMode || '').trim().toLowerCase() === 'ugc';
   const ugcRealActive = ugcVisualMode;
   const ugcMode = ugcVisualMode || Boolean(params.ugcMode) || selfieActive;
-  const hasProductAssets = Array.isArray(params.productAssets) && params.productAssets.length > 0;
 
   // Selfie: force front-facing smartphone characteristics (prevents pro-camera DOF blur).
   if (selfieActive) {
@@ -68,31 +67,12 @@ export function buildCamera(params: any): string {
     }
   }
 
-  if (hasProductAssets && camera) {
-    // Never encourage shallow DOF when a product reference must remain readable.
-    camera = String(camera)
-      .replace(
-        /shallow depth of field/gi,
-        ugcMode
-          ? "natural, unstyled clarity"
-          : "deep depth of field (f/8–f/11)"
-      )
-      .replace(/subject separation/gi, "crisp detail");
-  }
-
-  const focusLock =
-    hasProductAssets && !ugcRealActive
-      ? ugcMode
-        ? "VISIBILITY PRIORITY: keep the product and label clearly visible and readable; product remains the primary subject."
-        : "FOCUS PRIORITY: lock focus on the product (not the face). The product must be the sharpest object in the frame; the label must be crisp and fully readable. Use deep depth of field (f/8–f/11) or focus stacking. Absolutely no portrait mode, bokeh, or shallow depth-of-field that blurs the product."
-      : "";
-
   // Prevent duplication in mapped styling
   delete params.camera;
   delete params.cameraType;
   delete params.placementCamera;
 
-  return uniqueParts([camera, focusLock]);
+  return uniqueParts([camera]);
 }
 
 // Helper to check against parameter map values since 'camera' string is the mapped description
