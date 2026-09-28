@@ -58,6 +58,7 @@ describe('Lifestyle control authority', () => {
       expect(mapped.cameraAngle).toMatch(/below the subject|angled up/i);
       expect(mapped.allowMessiness).toBe(true);
       expect(mapped.camera).toBe('DSLR / mirrorless camera');
+      expect(mapped.aspectRatio).toBe('9:16');
     }
   );
 
