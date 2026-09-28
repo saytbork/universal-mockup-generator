@@ -67,7 +67,8 @@ describe('Lifestyle control authority', () => {
       { productAssets: [{ id: 'p1', name: 'Reference product' }] } as any
     );
 
-    expect(String(mapped.interaction || mapped.productInteraction)).not.toMatch(/closer to the camera lens than the face|primary subject/i);
+    expect(String(mapped.personDetails?.productInteraction || '')).toMatch(/does not automatically make the product foreground or primary/i);
+    expect(String(mapped.personDetails?.productInteraction || '')).not.toMatch(/closer to the camera lens than the face|product is the primary subject/i);
     expect(mapped.productProminence).toBe('model-first');
   });
 
