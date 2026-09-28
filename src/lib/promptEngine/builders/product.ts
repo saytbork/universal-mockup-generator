@@ -114,12 +114,12 @@ export class ProductBuilder implements PromptBuilder {
         if (effectiveHeightNotes) {
             prompt +=
                 ' SCALE RULE: Do not upscale the product beyond its real-world size. If readability is low, move the camera closer or adjust framing while keeping believable hand-to-product proportions and consistent real-world scale.';
+        } else if (isProductOnly) {
+            prompt +=
+                ' SCALE RULE: Keep the product large enough that the label text is readable at a glance.';
         } else {
-            if (isProductOnly) {
-                prompt += ' SCALE RULE: Keep the product large enough that the label text is readable at a glance.';
-            } else {
-                prompt += ' SCALE RULE: Preserve believable real-world product scale within the selected Lifestyle shot and composition; do not enlarge the product to compensate for a wide or full-body framing choice.';
-            }
+            prompt +=
+                ' SCALE RULE: Preserve believable real-world product scale within the selected Lifestyle shot and composition; do not enlarge the product to compensate for a wide or full-body framing choice.';
         }
         
         // Placement authority follows the explicit Lifestyle interaction/composition.
@@ -253,11 +253,8 @@ export class ProductBuilder implements PromptBuilder {
       - match color temperature and contrast,
       - generate accurate shadow casting under the jar/bottle,
       ${hasActiveHandContact
-        ? '- apply micro-occlusion where the hand touches the product,
-      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,
-      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,'
-        : '- no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product,
-      - if no one is actively holding it, the product must rest naturally on a surface with clean contact and no phantom support,'}
+        ? '- apply micro-occlusion where the hand touches the product,\n      - HAND CONTACT INTEGRATION: fingers must wrap around the product with realistic grip pressure; subtle skin compression; correct occlusion where fingers overlap the product; realistic contact shadows from fingers onto the product surface,\n      - EDGE INTEGRATION: no cutout/halo edges, no sticker-like overlay, no pasted look; match grain/sharpness/noise between product and hand,'
+        : '- no extra hands, duplicate hands, floating hands, or stray fingers may appear near the product,\n      - if no one is actively holding it, the product must rest naturally on a surface with clean contact and no phantom support,'}
       - generate correct reflections on glass, plastic, or metal,
       - preserve the exact design, size, colors, and branding of the uploaded product.
     `.trim().replace(/\s+/g, ' ');
