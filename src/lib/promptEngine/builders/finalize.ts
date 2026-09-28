@@ -17,6 +17,12 @@ export class FinalizeBuilder implements PromptBuilder {
             options.creationIntent === 'ugc' ||
             options.creationMode === 'lifestyle';
 
+        const isProductOnly =
+            options.contentStyle === 'product' ||
+            options.creationIntent === 'product' ||
+            options.sceneIntent === 'ecommerce' ||
+            options.personIncluded === false;
+
         const aspectRatio = String(options.aspectRatio || '').trim() || '1:1';
         const lines: string[] = [
             'Final render must be high resolution, photorealistic and free of watermarks or text.',
@@ -53,21 +59,25 @@ export class FinalizeBuilder implements PromptBuilder {
                 'PRODUCT INTEGRITY (NON-NEGOTIABLE): The product packaging must remain identical across all images in the sequence. Same size, same proportions, and same orientation.',
                 'No deformation, no scaling inconsistencies. Branding must be sharp and readable.',
                 'Material and texture must look photorealistic (e.g., paper pouch, matte finish). product sits naturally on surfaces, not hovering.',
-                'THE PRODUCT MUST NEVER BE CROPPED: The product must be centered, fully visible, and not cut off at the top or bottom of the frame.'
+                isProductOnly
+                    ? 'PRODUCT FRAMING: Keep the product fully visible and not cut off at the top or bottom of the frame.'
+                    : 'PRODUCT FRAMING: Preserve the selected Lifestyle composition and placement. Do not recenter, foreground, enlarge, or change the chosen shot solely for product visibility.'
             );
             
-            // Ritual Mode exception: product is secondary to ritual action
-            if (!options.ritualModeActive) {
+            // Product-only scenes can own hierarchy. Lifestyle hierarchy comes from explicit controls.
+            if (!options.ritualModeActive && isProductOnly) {
                 lines.push(
-                    'PRODUCT PRIORITY (CRITICAL): The product must be clearly visible in the foreground/main subject position; never placed in the background/second plane.'
+                    'PRODUCT PRIORITY: Keep the product clearly present as the primary subject in this product-only scene.'
                 );
             }
             
             lines.push(
                 'CONTACT REALISM: The product must look physically held or placed naturally (not composited). Natural shadows and believable contact pressure.',
-                ugcDepthLockActive
-                    ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
-                    : 'OPTICS LOCK: The product must be tack sharp and the sharpest object in the frame. Use eye-level or slight top-down angle (35mm–50mm lens equivalent). Absolutely no wide-angle distortion.',
+                isProductOnly
+                    ? (ugcDepthLockActive
+                        ? 'VISIBILITY LOCK: The product and label remain clearly visible and readable across the frame; never soft or unreadable.'
+                        : 'OPTICS LOCK: Keep the product tack sharp and structurally faithful in this product-only scene.')
+                    : 'LIFESTYLE FIDELITY LOCK: Preserve exact product identity and label geometry without changing the selected camera angle, shot, depth plane, composition, or subject hierarchy.',
                 'Avoid backgrounds that read as borders or padding. Do not add letterboxing/pillarboxing or any black bars; the scene must fully occupy the requested aspect ratio.',
                 'NEGATIVE PRODUCT CONSTRAINT (CRITICAL | HARD BLOCKER): distorted text on product, blurry label, messy letters, deformed logo, misspelled words, unreadable label text, warped typography, invented characters, redrawn text, hallucinated lettering, alien symbols on packaging, neon-like text, glowing letters, stylized font interpretation, AI-generated text, synthesized typography, melted letters, smeared text, pixelated typography, low-resolution label, out-of-focus text, motion-blurred lettering, abstract characters. The product label text MUST be photographic (not illustrated, not reinterpreted, not regenerated). Label must appear as direct photograph from reference image.'
             );
